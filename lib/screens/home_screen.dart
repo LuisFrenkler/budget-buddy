@@ -90,7 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
+              // extra bottom space so the last item is not hidden behind the + button
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 96),
               children: [
               // greeting header
               _greetingHeader(),
@@ -306,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // horizontal scrollable list of badge cards
   Widget _badgeRow(List<badge_model.Badge> badges) {
     return SizedBox(
-      height: 90,
+      height: 96,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: badges.length,
@@ -318,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return GestureDetector(
             onTap: () => _showBadgeDialog(b),
             child: Container(
-              width: 75,
+              width: 78,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppColors.surface,
@@ -332,13 +333,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   // emoji - gray if locked
                   Text(b.emoji, style: TextStyle(fontSize: 28, color: b.isUnlocked ? null : Colors.grey)),
                   const SizedBox(height: 4),
-                  // badge name
-                  Text(
-                    b.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 9, color: b.isUnlocked ? AppColors.text : AppColors.textDim),
+                  // badge name - shrinks instead of breaking long words like "Wochentracker"
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      b.name,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 9, color: b.isUnlocked ? AppColors.text : AppColors.textDim),
+                    ),
                   ),
                 ],
               ),

@@ -76,7 +76,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 Icon(up ? Icons.trending_up : Icons.trending_down, color: color, size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  '${Money.signed(h.gainCents)} · ${h.gainPercent >= 0 ? '+' : ''}${h.gainPercent.toStringAsFixed(2)} %',
+                  '${Money.signed(h.gainCents)} · ${Money.percent(h.gainPercent, digits: 2)}',
                   style: TextStyle(color: color, fontWeight: FontWeight.bold),
                 ),
               ]),

@@ -67,5 +67,11 @@ void main() {
       expect(Money.withSign(1299, true).startsWith('+'), isTrue);
       expect(Money.withSign(1299, false).startsWith('-'), isTrue);
     });
+
+    test('percent uses a German decimal comma', () {
+      expect(Money.percent(35.236, digits: 2), '+35,24 %');
+      expect(Money.percent(-4.25), '-4,3 %');
+      expect(Money.percent(12.5, signed: false), '12,5 %');
+    });
   });
 }

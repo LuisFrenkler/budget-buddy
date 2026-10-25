@@ -127,7 +127,7 @@ class _DepotScreenState extends State<DepotScreen> {
   Widget _overviewCard(int value, int invested, int gain) {
     final up = gain >= 0;
     final percent = invested == 0 ? 0.0 : gain / invested * 100;
-    final pct = '${percent >= 0 ? '+' : ''}${percent.toStringAsFixed(2)} %';
+    final pct = Money.percent(percent, digits: 2);
 
     return HeroCard(
       label: 'Depotwert',
@@ -199,7 +199,7 @@ class _DepotScreenState extends State<DepotScreen> {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(up ? Icons.trending_up : Icons.trending_down, color: color, size: 16),
                     const SizedBox(width: 4),
-                    Text('${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(1)} %',
+                    Text(Money.percent(pct),
                         style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
                   ]),
                 ),
@@ -350,7 +350,7 @@ class _DepotScreenState extends State<DepotScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(Money.format(h.valueCents), style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text('${h.gainPercent >= 0 ? '+' : ''}${h.gainPercent.toStringAsFixed(1)}%',
+              Text(Money.percent(h.gainPercent),
                   style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),

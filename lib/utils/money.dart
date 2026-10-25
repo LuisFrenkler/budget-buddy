@@ -62,4 +62,10 @@ class Money {
     final cents = int.parse(intPart) * 100 + int.parse(fracPart);
     return negative ? -cents : cents;
   }
+
+  // formats a percentage German style, e.g. 35.24 -> "+35,24 %"
+  static String percent(double value, {int digits = 1, bool signed = true}) {
+    final s = NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(value);
+    return '${signed && value >= 0 ? '+' : ''}$s %';
+  }
 }

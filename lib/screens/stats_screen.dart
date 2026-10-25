@@ -451,7 +451,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               const SizedBox(height: 4),
               // percentage text
-              Text('${(percent * 100).toStringAsFixed(1)}%', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+              Text(Money.percent(percent * 100, signed: false), style: TextStyle(fontSize: 12, color: AppColors.textDim)),
             ],
           ),
         ),
