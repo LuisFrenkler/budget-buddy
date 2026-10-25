@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
 import '../services/buddy_service.dart';
+import '../services/plus_service.dart';
+import 'plus_screen.dart';
 import '../services/db.dart';
 import '../services/quick_parser.dart';
 import '../utils/dates.dart';
@@ -63,6 +65,10 @@ class _SmartEntryState extends State<_SmartEntry> {
   }
 
   Future<void> _scan() async {
+    if (!PlusService.allowed(PlusFeature.receiptScan)) {
+      await showPlus(context, reason: 'Du hast deine ${PlusService.freeReceiptScans} Gratis-Scans genutzt');
+      if (!PlusService.active.value) return;
+    }
     final picked = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
     final file = picked?.files.single;
     if (file?.bytes == null) return;
@@ -74,6 +80,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     });
     try {
       final booking = await BuddyService.receipt(file.bytes!, mime);
+      await PlusService.count(PlusFeature.receiptScan);
       HapticFeedback.mediumImpact();
       setState(() {
         _preview = booking;

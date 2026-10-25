@@ -8,10 +8,12 @@ import 'dart:math' as math;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/budget.dart';
+import '../models/goal.dart';
 import '../models/holding.dart';
 import '../models/recurring.dart';
 import '../models/transaction.dart';
 import 'db.dart';
+import 'goals_service.dart';
 import 'recurring_service.dart';
 import 'settings_service.dart';
 
@@ -115,6 +117,16 @@ class DemoData {
         startDate: start,
         endDate: end,
       ));
+    }
+
+    // two savings goals, one with a date
+    if (Hive.isBoxOpen('goals')) {
+      await GoalsService.save(Goal(
+          id: uuid.v4(), name: 'Urlaub', emoji: '🏖️', targetCents: 120000, savedCents: 45000,
+          deadline: DateTime(today.year, today.month + 6, 1), createdAt: today));
+      await GoalsService.save(Goal(
+          id: uuid.v4(), name: 'Notgroschen', emoji: '🛟', targetCents: 300000, savedCents: 180000,
+          createdAt: today));
     }
 
     // savings from before the six months, so the Kontostand does not start at 0 €

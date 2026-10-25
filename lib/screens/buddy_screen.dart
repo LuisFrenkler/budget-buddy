@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/account_service.dart';
 import '../services/buddy_service.dart';
+import '../services/plus_service.dart';
+import 'plus_screen.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import 'auth_screens.dart';
@@ -102,6 +104,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
     HapticFeedback.selectionClick();
     var live = _live ?? false;
     if (live && !await _consent()) live = false;
+    // AI answers cost money: the free tier has a few per month
+    if (live && !PlusService.allowed(PlusFeature.aiQuestion)) {
+      if (!mounted) return;
+      await showPlus(context, reason: 'Du hast deine ${PlusService.freeAiQuestions} Gratis-Fragen genutzt');
+      if (!PlusService.active.value) return;
+    }
+    if (live) await PlusService.count(PlusFeature.aiQuestion);
+    if (!mounted) return;
 
     _input.clear();
     setState(() {
@@ -357,6 +367,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
           ]),
           const SizedBox(height: 6),
+          if (_live == true && !PlusService.active.value)
+            Text('Noch ${PlusService.left(PlusFeature.aiQuestion)} von ${PlusService.freeAiQuestions} Gratis-Fragen diesen Monat',
+                style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
           Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
               style: TextStyle(fontSize: 11, color: AppColors.textDim)),
         ]),
@@ -516,13 +529,9 @@ class _BuddyCardState extends State<BuddyCard> {
                     const SizedBox(height: 2),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
-                      transitionBuilder: (child, a) => FadeTransition(
-                        opacity: a,
-                        child: SlideTransition(
-                          position: Tween(begin: const Offset(0, 0.4), end: Offset.zero).animate(a),
-                          child: child,
-                        ),
-                      ),
+                      // old and new question cross-fade in the same place
+                      layoutBuilder: (current, previous) =>
+                          Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
                       child: Text('„${s[_i].text}“',
                           key: ValueKey(_i),
                           style: TextStyle(color: AppColors.textDim, fontSize: 13),

@@ -5,6 +5,7 @@ import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
+import 'services/plus_service.dart';
 import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
 import 'utils/theme.dart';
@@ -22,6 +23,7 @@ void main() async {
   await Hive.openBox('holdings');
   await Hive.openBox('recurring');
   await Hive.openBox('settings');
+  await Hive.openBox('goals');
 
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();
@@ -33,6 +35,7 @@ void main() async {
   ThemeController.isDark.value = Settings.darkMode;
   Settings.loadHideAmounts();
   Settings.loadGuest();
+  PlusService.load();
   await AccountService.restore();
 
   // start the app

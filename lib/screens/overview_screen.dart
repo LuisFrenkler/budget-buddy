@@ -18,6 +18,9 @@ import '../widgets/segmented.dart';
 import '../widgets/tx_row.dart';
 import 'buddy_screen.dart';
 import 'budget_screen.dart';
+import 'goals_screen.dart';
+import 'recap_screen.dart';
+import '../services/goals_service.dart';
 import 'connections_screen.dart';
 import 'profile_screen.dart';
 
@@ -75,7 +78,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
       valueListenable: Hive.box('transactions').listenable(),
       // settings carry the linked bank and its opening balance
       builder: (context, _, __) => ListenableBuilder(
-        listenable: Listenable.merge([Hive.box('budgets').listenable(), Hive.box('settings').listenable()]),
+        listenable: Listenable.merge([
+          Hive.box('budgets').listenable(),
+          Hive.box('settings').listenable(),
+          Hive.box('goals').listenable(),
+        ]),
         builder: (context, _) {
           final tx = DB.getTx();
           final cash = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false)
@@ -93,11 +100,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 if (empty)
                   _welcome()
                 else ...[
+                  const RecapBanner(),
                   ..._netWorth(tx, cash, depotNow),
                   const SizedBox(height: 28),
                   _accountsCard(tx, cash, depotNow),
                   const SizedBox(height: 16),
                   const BuddyCard(),
+                  ..._goals(),
                   ..._budgets(),
                   ..._insight(tx),
                   ..._recent(tx),
@@ -279,6 +288,81 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ),
       ),
     );
+  }
+
+  // savings goals as a row of rings, with a tile to start a new one
+  List<Widget> _goals() {
+    final goals = GoalsService.all();
+    return [
+      const SizedBox(height: 28),
+      Row(children: [
+        const Text('Sparziele', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        const Spacer(),
+        if (goals.isNotEmpty)
+          TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
+            child: const Text('Alle'),
+          ),
+      ]),
+      const SizedBox(height: 8),
+      SizedBox(
+        height: 132,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            for (final g in goals)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Material(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
+                    child: SizedBox(
+                      width: 128,
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        GoalRing(g, size: 58),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(g.name,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        Text('${(g.progress * 100).round()} %', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => addGoal(context),
+                child: SizedBox(
+                  width: 128,
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle),
+                      child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 28),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Neues Ziel', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text(goals.isEmpty ? 'z. B. Urlaub' : 'mit Sparplan', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  ]),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
   }
 
   // current budgets as small progress rings
