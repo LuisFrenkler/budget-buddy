@@ -11,7 +11,7 @@ void main() {
   setUpAll(() async {
     tempDir = Directory.systemTemp.createTempSync('bb_demo_test');
     Hive.init(tempDir.path);
-    for (final name in ['transactions', 'budgets', 'badges', 'holdings']) {
+    for (final name in ['transactions', 'budgets', 'badges', 'holdings', 'recurring']) {
       await Hive.openBox(name);
     }
     // no DB.initBadges() here on purpose: loading demo data from the
@@ -40,6 +40,13 @@ void main() {
     test('ends up with a positive balance and unlocked badges', () {
       expect(DB.balance(), greaterThan(0));
       expect(DB.getBadges().where((b) => b.isUnlocked).length, 4);
+    });
+
+    test('books salary and fixed costs as standing orders', () {
+      expect(DB.getRules().length, 6);
+      final rent = DB.getTx().where((t) => t.note == 'Miete').toList();
+      expect(rent.length, 6); // one per month, none after "now"
+      expect(DB.getRules().every((r) => r.lastRun != null), isTrue);
     });
 
     test('creates a portfolio and budgets for the current month', () {

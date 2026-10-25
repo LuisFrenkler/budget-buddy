@@ -8,8 +8,10 @@ import 'dart:math' as math;
 import 'package:uuid/uuid.dart';
 import '../models/budget.dart';
 import '../models/holding.dart';
+import '../models/recurring.dart';
 import '../models/transaction.dart';
 import 'db.dart';
+import 'recurring_service.dart';
 
 class DemoData {
   static Future<void> load({DateTime? now}) async {
@@ -33,22 +35,38 @@ class DemoData {
       ));
     }
 
+    // salary and fixed costs as standing orders; the recurring engine books
+    // them for every month, so the "Wiederkehrend" screen is filled as well
+    final first = DateTime(today.year, today.month - 5);
+    final standing = [
+      ['Gehalt', 'Gehalt', 285000, true, 1],
+      ['Wohnen', 'Miete', 78000, false, 3],
+      ['Transport', 'Deutschlandticket', 5800, false, 2],
+      ['Gesundheit', 'Fitnessstudio', 3490, false, 5],
+      ['Unterhaltung', 'Netflix', 1399, false, 12],
+      ['Unterhaltung', 'Spotify', 1099, false, 20],
+    ];
+    for (final r in standing) {
+      await DB.addRule(RecurringRule(
+        id: uuid.v4(),
+        category: r[0] as String,
+        note: r[1] as String,
+        amountCents: r[2] as int,
+        isIncome: r[3] as bool,
+        interval: 'monatlich',
+        startDate: DateTime(first.year, first.month, r[4] as int),
+      ));
+    }
+    await RecurringService.process(today: today);
+
     for (int m = 5; m >= 0; m--) {
       final month = DateTime(today.year, today.month - m);
       final days = DateTime(month.year, month.month + 1, 0).day;
       DateTime day(int d) => DateTime(month.year, month.month, d.clamp(1, days), 12);
       DateTime randomDay() => day(1 + rnd.nextInt(days));
 
-      // income
-      await add(day(1), 'Gehalt', 'Gehalt', 285000, income: true);
+      // side income every other month
       if (m.isEven) await add(day(15), 'Nebenjob', 'Nachhilfe', 32000, income: true);
-
-      // fixed costs
-      await add(day(3), 'Wohnen', 'Miete', 78000);
-      await add(day(2), 'Transport', 'Deutschlandticket', 5800);
-      await add(day(5), 'Gesundheit', 'Fitnessstudio', 3490);
-      await add(day(12), 'Unterhaltung', 'Netflix', 1399);
-      await add(day(20), 'Unterhaltung', 'Spotify', 1099);
 
       // everyday spending
       const shops = ['REWE', 'EDEKA', 'Lidl', 'Aldi Süd'];

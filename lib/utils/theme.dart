@@ -107,6 +107,15 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
 
+    // calm switches without the default outline
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.white : AppColors.textDim),
+      trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? AppColors.primary : AppColors.surfaceAlt),
+      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+    ),
+
     // floating snackbars above the navigation bar
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,

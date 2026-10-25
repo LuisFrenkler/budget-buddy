@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/money.dart';
+import 'instrument_avatar.dart';
 import '../utils/instruments.dart';
 import '../utils/theme.dart';
 
@@ -14,14 +16,6 @@ class InstrumentSearchSheet extends StatefulWidget {
 class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
   String _q = '';
 
-  String _emoji(String type) {
-    switch (type) {
-      case 'ETF': return '🧺';
-      case 'Krypto': return '🪙';
-      case 'Sonstiges': return '💎';
-      default: return '📈';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +58,13 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                     ),
                   for (final i in results)
                     ListTile(
-                      leading: Text(_emoji(i.type), style: const TextStyle(fontSize: 22)),
-                      title: Text(i.name),
-                      subtitle: Text('${i.symbol} · ${i.type}'),
+                      leading: InstrumentAvatar(i.name),
+                      title: Text(i.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text('${i.symbol} · ${i.type}', style: TextStyle(color: AppColors.textDim)),
+                      // reference price, upgraded to a live quote after picking
+                      trailing: i.refCents > 0
+                          ? Text(Money.format(i.refCents), style: const TextStyle(fontWeight: FontWeight.w600))
+                          : null,
                       onTap: () => Navigator.pop(context, i),
                     ),
                 ],

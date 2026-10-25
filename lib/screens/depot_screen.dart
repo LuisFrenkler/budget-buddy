@@ -8,6 +8,7 @@ import '../services/price_service.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
 import '../widgets/interactive_chart.dart';
+import '../widgets/instrument_avatar.dart';
 import '../services/history.dart';
 import 'add_holding_screen.dart';
 import 'holding_detail_screen.dart';
@@ -297,8 +298,6 @@ class _DepotScreenState extends State<DepotScreen> {
   // single holding row in the same calm style as the transaction list
   Widget _holdingCard(Holding h) {
     final color = h.isUp ? AppColors.primary : AppColors.error;
-    final emoji = AssetTypes.list.firstWhere(
-        (t) => t['name'] == h.type, orElse: () => {'emoji': '💎'})['emoji']!;
 
     return Dismissible(
       key: Key(h.id),
@@ -317,13 +316,7 @@ class _DepotScreenState extends State<DepotScreen> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
-                child: Text(emoji, style: const TextStyle(fontSize: 20)),
-              ),
+              InstrumentAvatar(h.name),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

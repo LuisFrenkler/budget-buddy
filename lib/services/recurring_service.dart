@@ -67,9 +67,10 @@ class RecurringService {
     return out;
   }
 
-  // generates all due transactions for every rule, returning how many were made
-  static Future<int> process() async {
-    final today = DateTime.now();
+  // generates all due transactions for every rule, returning how many were made.
+  // [today] defaults to now; tests and the demo data pass a fixed date.
+  static Future<int> process({DateTime? today}) async {
+    today ??= DateTime.now();
     int created = 0;
 
     for (final rule in DB.getRules()) {

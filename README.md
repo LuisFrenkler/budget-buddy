@@ -55,7 +55,7 @@ A small Dart backend acts as a proxy to link a real bank account (GoCardless, PS
 | Data | CSV import/export, JSON backup |
 | APIs | Finnhub (prices), GoCardless Bank Account Data, Parqet |
 | Backend | Dart HTTP server (`backend/server.dart`) |
-| Testing | flutter_test – 85 unit and widget tests |
+| Testing | flutter_test – 86 unit and widget tests |
 
 ## Project Structure
 

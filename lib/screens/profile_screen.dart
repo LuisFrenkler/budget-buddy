@@ -11,6 +11,7 @@ import '../services/settings_service.dart';
 import '../services/auth_service.dart';
 import '../services/file_saver.dart';
 import '../utils/theme.dart';
+import '../utils/dates.dart';
 import '../models/badge.dart' as badge_model;
 import 'recurring_screen.dart';
 import 'connections_screen.dart';
@@ -29,129 +30,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return ValueListenableBuilder<Box>(
       valueListenable: Hive.box('transactions').listenable(),
       builder: (context, box, child) {
-        // get number of transactions from database
-        final count = DB.getTx().length;
+        final tx = DB.getTx();
+        final badges = DB.getBadges();
+        final unlocked = badges.where((b) => b.isUnlocked).length;
+        // oldest transaction = the user's start with the app
+        final since = tx.isEmpty ? null : tx.last.date;
 
         return Scaffold(
           appBar: AppBar(title: const Text('Profil')),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
             children: [
-              
-              // card showing total transaction count
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.receipt_long, color: AppColors.primary, size: 32),
-                    const SizedBox(width: 16),
-                    Column(
+              // header: avatar and a few personal numbers
+              Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle),
+                    child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 34),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        Text('Transaktionen', style: TextStyle(color: AppColors.textDim)),
+                        const Text('Mein BudgetBuddy', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text('Alle Daten bleiben auf diesem Gerät',
+                            style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              _group([
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Row(children: [
+                    _stat('${tx.length}', 'Umsätze'),
+                    _stat(since == null ? '–' : Dates.month(since), 'Dabei seit'),
+                    _stat('$unlocked/${badges.length}', 'Erfolge'),
+                  ]),
+                ),
+              ]),
 
               // achievements, kept low-key here instead of on the home screen
               _sectionLabel('Erfolge'),
-              _badgeGrid(),
+              _badgeGrid(badges),
 
-              const SizedBox(height: 24),
+              _sectionLabel('Sicherheit & Darstellung'),
+              _group([
+                _switchRow(Icons.lock_rounded, 'App-Sperre', 'Face ID / PIN beim Öffnen',
+                    Settings.appLockEnabled, _toggleAppLock),
+                _switchRow(Icons.dark_mode_rounded, 'Dunkler Modus', null, ThemeController.isDark.value,
+                    _toggleDarkMode),
+              ]),
 
-              // security section
-              _sectionLabel('Sicherheit'),
-              Container(
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-                child: SwitchListTile(
-                  secondary: const Icon(Icons.lock_outline, color: AppColors.primary),
-                  title: const Text('App-Sperre'),
-                  subtitle: Text('Face-ID / PIN beim Öffnen',
-                      style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-                  activeThumbColor: AppColors.primary,
-                  value: Settings.appLockEnabled,
-                  onChanged: _toggleAppLock,
-                ),
-              ),
+              _sectionLabel('Automatisierung'),
+              _group([
+                _row(Icons.repeat_rounded, 'Wiederkehrende Buchungen', 'Miete, Gehalt, Abos', _openRecurring),
+                _row(Icons.sync_rounded, 'Konto & Depot verbinden', 'Bank (PSD2) und Parqet', _openConnections),
+              ]),
 
-              const SizedBox(height: 24),
-              _sectionLabel('Darstellung'),
-              Container(
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-                child: SwitchListTile(
-                  secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.primary),
-                  title: const Text('Dunkler Modus'),
-                  activeThumbColor: AppColors.primary,
-                  value: ThemeController.isDark.value,
-                  onChanged: _toggleDarkMode,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              _sectionLabel('Live-Verbindung'),
-              _dataTile(Icons.sync, 'Konto & Depot verbinden', _openConnections),
-
-              const SizedBox(height: 24),
-              _sectionLabel('Automatisch'),
-              _dataTile(Icons.repeat, 'Wiederkehrende Buchungen', _openRecurring),
-
-              const SizedBox(height: 24),
               _sectionLabel('Daten'),
-
-              // button to open file picker and import csv
-              ElevatedButton.icon(
-                onPressed: _importCSV,
-                icon: const Icon(Icons.file_upload),
-                label: const Text('CSV importieren'),
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-              ),
-              const SizedBox(height: 8),
-              // show user what format the csv should have
-              Text(
-                'Format: Datum;Kategorie;Beschreibung;Betrag',
-                style: TextStyle(fontSize: 12, color: AppColors.textDim),
-              ),
-              const SizedBox(height: 16),
-
-              // import an existing depot from a broker CSV export
-              _dataTile(Icons.account_balance_wallet_outlined, 'Depot importieren (CSV)', _importDepotCsv),
-              Padding(
-                padding: const EdgeInsets.only(top: 6, left: 4),
-                child: Text('Format: Name;Symbol;Typ;Anzahl;Kaufpreis;AktuellerKurs',
-                    style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-              ),
-              const SizedBox(height: 16),
-
-              // export and backup actions
-              _dataTile(Icons.file_download_outlined, 'Als CSV exportieren', _exportCsv),
-              const SizedBox(height: 8),
-              _dataTile(Icons.backup_outlined, 'Backup erstellen (JSON)', _backupJson),
-              const SizedBox(height: 8),
-              _dataTile(Icons.restore, 'Backup wiederherstellen', _restoreJson),
+              _group([
+                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV: Datum;Kategorie;Beschreibung;Betrag',
+                    _importCSV),
+                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export', _importDepotCsv),
+                _row(Icons.file_download_rounded, 'Als CSV exportieren', null, _exportCsv),
+                _row(Icons.cloud_upload_rounded, 'Backup erstellen', 'Alle Daten als JSON', _backupJson),
+                _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
+              ]),
 
               const SizedBox(height: 24),
-
-              // button to delete all data
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ListTile(
-                  leading: const Icon(Icons.delete_outline, color: AppColors.error),
-                  title: const Text('Alle Daten löschen'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _deleteAllData,
-                ),
+              _group([
+                _row(Icons.delete_outline_rounded, 'Alle Daten löschen', null, _deleteAllData, danger: true),
+              ]),
+              const SizedBox(height: 24),
+              Center(
+                child: Text('BudgetBuddy 1.0', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ),
             ],
           ),
@@ -160,10 +119,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // small grey section heading
+  // one value of the header statistics
+  Widget _stat(String value, String label) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 2),
+          Text(label, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  // rows grouped in one rounded surface, separated by thin lines
+  Widget _group(List<Widget> rows) {
+    return Container(
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (int i = 0; i < rows.length; i++) ...[
+            if (i > 0) Divider(height: 1, indent: 60, color: AppColors.border),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _icon(IconData icon, Color color) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(9)),
+      child: Icon(icon, color: color, size: 18),
+    );
+  }
+
+  // tappable settings row with an optional explanation below the title
+  Widget _row(IconData icon, String title, String? subtitle, VoidCallback onTap, {bool danger = false}) {
+    final color = danger ? AppColors.error : AppColors.primary;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            _icon(icon, color),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.error : AppColors.text)),
+                  if (subtitle != null)
+                    Text(subtitle,
+                        style: TextStyle(color: AppColors.textDim, fontSize: 12), overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            if (!danger) Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _switchRow(IconData icon, String title, String? subtitle, bool value, ValueChanged<bool> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
+      child: Row(
+        children: [
+          _icon(icon, AppColors.primary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                if (subtitle != null) Text(subtitle, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+              ],
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+
+  // icons instead of emojis, so badges match the rest of the app
+  static const _badgeIcons = {
+    'first': Icons.flag_rounded,
+    'saver': Icons.savings_rounded,
+    'master': Icons.insights_rounded,
+    'week': Icons.event_available_rounded,
+  };
+
   // two-column grid of achievement badges; locked ones are dimmed
-  Widget _badgeGrid() {
-    final badges = DB.getBadges();
+  Widget _badgeGrid(List<badge_model.Badge> badges) {
     return LayoutBuilder(builder: (context, c) {
       final w = (c.maxWidth - 10) / 2;
       return Wrap(
@@ -175,15 +230,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _badgeTile(badge_model.Badge b, double width) {
+    final color = b.isUnlocked ? AppColors.warning : AppColors.textDim;
     return Opacity(
-      opacity: b.isUnlocked ? 1 : 0.4,
+      opacity: b.isUnlocked ? 1 : 0.5,
       child: Container(
         width: width,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
-            Text(b.emoji, style: const TextStyle(fontSize: 24)),
+            _icon(_badgeIcons[b.id] ?? Icons.emoji_events_rounded, color),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -192,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(b.name,
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                       overflow: TextOverflow.ellipsis),
-                  Text(b.description,
+                  Text(b.isUnlocked ? b.description : 'Noch offen: ${b.description}',
                       style: TextStyle(color: AppColors.textDim, fontSize: 11),
                       overflow: TextOverflow.ellipsis),
                 ],
@@ -206,23 +262,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _sectionLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
       child: Text(text,
           style: TextStyle(
               color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  // a tappable list-tile inside a surface card (used for data actions)
-  Widget _dataTile(IconData icon, String title, VoidCallback onTap) {
-    return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(title),
-        trailing: Icon(Icons.chevron_right, color: AppColors.textDim),
-        onTap: onTap,
-      ),
     );
   }
 
