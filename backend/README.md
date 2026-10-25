@@ -1,61 +1,103 @@
-# BudgetBuddy Backend (Konto- & Depot-Sync)
+# BudgetBuddy Backend (bank and depot sync)
 
-A small local proxy so the app can link a real **bank account** (GoCardless /
-PSD2) and **depot** (Parqet) without ever keeping secrets in the client.
+This is a small local server. It lets the app link a real **bank account** through
+[Enable Banking](https://enablebanking.com) (PSD2, 2,500+ European banks) and a
+**depot** through Parqet. API keys stay on the server and are never stored in the app.
 
 ```
-[ App ] --http--> [ this server ] --https--> [ GoCardless / Parqet ]
+[ App ] --http--> [ this server ] --https--> [ Enable Banking -> your bank ]
+                                  --https--> [ Parqet ]
 ```
 
-## 1. Get free credentials
-
-**Bank (GoCardless Bank Account Data):**
-1. Sign up at <https://bankaccountdata.gocardless.com> (free, no card).
-2. User Secrets → create a secret → note the **Secret ID** and **Secret Key**.
-
-**Depot (Parqet) — optional:**
-- A Parqet **API token** and your **portfolio id** (from your Parqet account).
-
-## 2. Run the server
+## Quick start (demo bank, no account needed)
 
 ```bash
-cd budget_buddy
-export GOCARDLESS_SECRET_ID=...      # required for the bank link
-export GOCARDLESS_SECRET_KEY=...
-export PARQET_TOKEN=...              # optional, for the depot
-export PARQET_PORTFOLIO_ID=...       # optional
-dart run backend/server.dart
+cd backend
+dart pub get
+dart run server.dart
 ```
 
-It listens on `http://localhost:8090`. Check it: `curl http://localhost:8090/health`.
+Without credentials the server runs a **demo bank**. It goes through the same
+connect, consent and sync steps as a real bank, using generated data. The consent
+page is clearly marked as a demo.
 
-## 3. Run the app pointing at it
+In the app, go to **Profil → Konto & Depot verbinden → Bank auswählen** (or use
+**Bankkonto verbinden** on the start screen). Pick a bank and tap
+**Zugriff erlauben**. The app notices the granted access by itself, then imports the
+balance and the last 90 days of bookings.
 
-The app defaults to `http://localhost:8090`. To override:
+## Real banks (free for your own accounts)
+
+1. Sign up at <https://enablebanking.com/sign-in/> and open the Control Panel.
+2. Register an application for the **production** environment. Have it generate
+   the key pair and download the private key (`.pem`).
+   - Add the redirect URL `http://localhost:8090/bank/callback`. If the panel only
+     accepts HTTPS, see the redirect notes below.
+3. Link your own account in the Control Panel to activate the app. It then runs in
+   "restricted" mode, which is free and only sees accounts you have linked.
+4. Start the server with:
 
 ```bash
-flutter run -d chrome --dart-define=BACKEND_URL=http://localhost:8090
+export EB_APP_ID=<application id>
+export EB_PRIVATE_KEY_PATH=/path/to/<application id>.pem
+dart run server.dart
 ```
 
-Then in the app: **Profil → Live-Verbindung → Konto & Depot verbinden**.
-- **Bank verbinden** → pick your bank → log in at the bank → back in the app
-  tap **Umsätze importieren**.
-- **Parqet-Depot laden** → pulls your positions into the depot.
+The start line now says `Enable Banking (live)`. The bank list in the app shows
+real German banks, and the login happens on your bank's own page.
+
+### Redirect notes
+
+After the login, the bank sends the browser to `EB_REDIRECT_URL`. The default is
+`http://localhost:8090/bank/callback`. That address must be whitelisted exactly in
+the Enable Banking app. If you need HTTPS, expose the server, for example with
+`cloudflared tunnel --url http://localhost:8090`. Then set both `PUBLIC_URL` and
+`EB_REDIRECT_URL` to the tunnel address.
+
+## Depot (Parqet, optional)
+
+```bash
+export PARQET_TOKEN=...
+export PARQET_PORTFOLIO_ID=...
+```
+
+Trade Republic and Scalable Capital have no open API for this. Export the
+positions there and import the CSV in the app under **Profil → Depot importieren**.
+
+## How syncing works in the app
+
+- Each booking is saved under the stable id `bank_<account>:<booking id>`. A
+  re-sync never creates duplicates and never overwrites a booking you edited.
+- New bookings are categorized in two steps:
+  1. The category you last gave the same counterparty, so the app learns from your
+     corrections.
+  2. Otherwise a keyword guess, e.g. REWE → Lebensmittel, DB Vertrieb → Transport
+     (see `lib/services/categorizer.dart`).
+- Banks only hand out a few months of history. The app therefore keeps an opening
+  balance, which makes its Kontostand match the bank's exactly.
+- The app syncs by itself on start when the last sync is older than 4 hours. You can
+  also tap the bank chip on the Konto tab or pull down to refresh.
 
 ## Endpoints
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/health` | status + which integrations are configured |
-| GET | `/gc/institutions?country=DE` | list banks |
-| POST | `/gc/requisition` | `{institutionId, redirect}` → consent link |
-| GET | `/gc/transactions?requisitionId=` | normalized booked transactions |
+| GET | `/health` | status: `bank` is `live` or `demo`, `parqet` true/false |
+| GET | `/bank/institutions?country=DE` | banks to choose from |
+| POST | `/bank/connect` | `{institution}` → `{state, link}`; open `link` to log in |
+| GET | `/bank/callback` | redirect target of the bank (code → session) |
+| GET | `/bank/status?state=` | `pending`, `linked`, `failed` or `unknown` |
+| GET | `/bank/sync?state=&days=90` | balance in cents and normalized bookings |
+| POST | `/bank/disconnect` | `{state}`; revokes the session |
 | GET | `/parqet/portfolio?id=` | depot positions |
 
-## Notes
+## Security notes
 
-- Secrets are read from env vars only — never commit them.
-- PSD2 consent lasts ~90 days; bank data refreshes up to ~4×/day.
-- For production, host this behind HTTPS and restrict CORS to your app origin.
-- Parqet's response shape varies by plan; `/parqet/portfolio` maps the common
-  fields and may need a small tweak for your account.
+- Secrets come only from environment variables. `.pem` files and `.data/` are
+  git-ignored.
+- The server binds to `127.0.0.1` only. A link is identified by a random 128-bit
+  `state` token that only the app knows.
+- Access is read-only. PSD2 consent is valid for up to 180 days, after which the
+  app asks you to renew it.
+- Before hosting this for other people, add HTTPS, restrict CORS to the app's origin
+  and add user authentication. Enable Banking's free mode is for personal use only.

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
+import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/history.dart';
+import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -62,71 +64,82 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
-      valueListenable: Hive.box('transactions').listenable(),
-      builder: (context, _, __) => ValueListenableBuilder<int>(
+    // settings carry the linked bank, its last sync and the opening balance
+    return ListenableBuilder(
+      listenable: Listenable.merge([Hive.box('transactions').listenable(), Hive.box('settings').listenable()]),
+      builder: (context, _) => ValueListenableBuilder<int>(
         valueListenable: widget.segment,
         builder: (context, segment, _) {
           final tx = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
-          final balance = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false);
-          final points = History.dailyBalance(tx, from: _rangeStart(tx));
+          final balance = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false) + Settings.openingBalanceCents;
+          final points = History.dailyBalance(tx, from: _rangeStart(tx), opening: Settings.openingBalanceCents);
 
           return SafeArea(
             bottom: false,
-            child: CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 20),
-                        ChartHeader(
-                          label: 'Kontostand',
-                          cents: balance,
-                          startCents: points.isEmpty ? balance : points.first.cents,
-                          period: _periods[_range]!,
-                          scrub: _scrub,
-                          startDate: points.isEmpty ? null : points.first.date,
-                        ),
-                        const SizedBox(height: 16),
-                        InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
-                        const SizedBox(height: 12),
-                        RangeSelector(
-                          labels: _ranges,
-                          selected: _range,
-                          onChanged: (r) => setState(() => _range = r),
-                        ),
-                      ],
+            // pull down to fetch new bookings from the linked bank
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              notificationPredicate: (_) => Settings.bankState.isNotEmpty,
+              onRefresh: () => _SyncPill.sync(context),
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                            const Spacer(),
+                            if (Settings.bankState.isNotEmpty) const _SyncPill(),
+                          ]),
+                          const SizedBox(height: 20),
+                          ChartHeader(
+                            label: 'Kontostand',
+                            cents: balance,
+                            startCents: points.isEmpty ? balance : points.first.cents,
+                            period: _periods[_range]!,
+                            scrub: _scrub,
+                            startDate: points.isEmpty ? null : points.first.date,
+                          ),
+                          const SizedBox(height: 16),
+                          InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
+                          const SizedBox(height: 12),
+                          RangeSelector(
+                            labels: _ranges,
+                            selected: _range,
+                            onChanged: (r) => setState(() => _range = r),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: PinnedHeader(
-                    child: Segmented(
-                      labels: const ['Umsätze', 'Budgets', 'Analyse'],
-                      index: segment,
-                      onChanged: (i) => widget.segment.value = i,
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: PinnedHeader(
+                      child: Segmented(
+                        labels: const ['Umsätze', 'Budgets', 'Analyse'],
+                        index: segment,
+                        onChanged: (i) => widget.segment.value = i,
+                      ),
                     ),
                   ),
-                ),
-                if (segment == 0) ..._transactionSlivers(tx),
-                if (segment == 1)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    sliver: SliverToBoxAdapter(child: BudgetView()),
-                  ),
-                if (segment == 2)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    sliver: SliverToBoxAdapter(child: StatsView()),
-                  ),
-                // room for the floating navigation bar
-                const SliverToBoxAdapter(child: SizedBox(height: 110)),
-              ],
+                  if (segment == 0) ..._transactionSlivers(tx),
+                  if (segment == 1)
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      sliver: SliverToBoxAdapter(child: BudgetView()),
+                    ),
+                  if (segment == 2)
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      sliver: SliverToBoxAdapter(child: StatsView()),
+                    ),
+                  // room for the floating navigation bar
+                  const SliverToBoxAdapter(child: SizedBox(height: 110)),
+                ],
+              ),
             ),
           );
         },
@@ -293,4 +306,71 @@ class _MonthGroup {
   final int month;
   int net = 0;
   _MonthGroup(this.year, this.month);
+}
+
+// Small "ING · vor 3 Min." button next to the title of a linked account;
+// tapping it fetches new bookings.
+class _SyncPill extends StatefulWidget {
+  const _SyncPill();
+
+  // syncs and reports the outcome; shared with pull-to-refresh
+  static Future<void> sync(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    String text;
+    try {
+      final added = await BankSync.run();
+      text = added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}';
+    } catch (_) {
+      text = 'Bank gerade nicht erreichbar';
+    }
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  @override
+  State<_SyncPill> createState() => _SyncPillState();
+}
+
+class _SyncPillState extends State<_SyncPill> {
+  bool _busy = false;
+
+  String get _when {
+    final last = Settings.lastSync;
+    if (last == null) return '';
+    final d = DateTime.now().difference(last);
+    if (d.inMinutes < 1) return ' · jetzt';
+    if (d.inMinutes < 60) return ' · ${d.inMinutes} Min.';
+    if (d.inHours < 24) return ' · ${d.inHours} Std.';
+    return ' · ${Dates.dayMonth(last)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: _busy
+            ? null
+            : () async {
+                HapticFeedback.selectionClick();
+                setState(() => _busy = true);
+                await _SyncPill.sync(context);
+                if (mounted) setState(() => _busy = false);
+              },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            _busy
+                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                : Icon(Icons.sync_rounded, size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text('${Settings.bankName}$_when',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim)),
+          ]),
+        ),
+      ),
+    );
+  }
 }

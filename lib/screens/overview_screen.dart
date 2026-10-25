@@ -5,6 +5,7 @@ import '../models/transaction.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/history.dart';
+import '../services/settings_service.dart';
 import '../services/insights_service.dart';
 import '../services/price_service.dart';
 import '../utils/money.dart';
@@ -13,6 +14,7 @@ import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
 import '../widgets/tx_row.dart';
 import 'budget_screen.dart';
+import 'connections_screen.dart';
 import 'profile_screen.dart';
 
 // The start screen: total net worth with an interactive chart and a glance at
@@ -67,11 +69,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Box>(
       valueListenable: Hive.box('transactions').listenable(),
-      builder: (context, _, __) => ValueListenableBuilder<Box>(
-        valueListenable: Hive.box('budgets').listenable(),
-        builder: (context, _, __) {
+      // settings carry the linked bank and its opening balance
+      builder: (context, _, __) => ListenableBuilder(
+        listenable: Listenable.merge([Hive.box('budgets').listenable(), Hive.box('settings').listenable()]),
+        builder: (context, _) {
           final tx = DB.getTx();
-          final cash = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false);
+          final cash = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false)
+              + Settings.openingBalanceCents;
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
 
@@ -132,7 +136,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
   // net worth headline, chart and range buttons
   List<Widget> _netWorth(List<Transaction> tx, int cash, int depotNow) {
     final now = DateTime.now();
-    final cashPts = History.dailyBalance(tx, from: DateTime(now.year, now.month, now.day - (_days - 1)));
+    final cashPts = History.dailyBalance(tx,
+        from: DateTime(now.year, now.month, now.day - (_days - 1)), opening: Settings.openingBalanceCents);
     final depot = _depot;
     final points = [
       for (int i = 0; i < cashPts.length; i++)
@@ -182,7 +187,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           _accountRow(
             icon: Icons.account_balance_wallet_rounded,
             color: AppColors.primary,
-            title: 'Konto',
+            title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
             value: cash,
             change: '${Money.signed(monthNet)} im Monat',
             up: monthNet >= 0,
@@ -383,14 +388,25 @@ class _OverviewScreenState extends State<OverviewScreen> {
         children: [
           const Text('Willkommen 👋', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          Text('Erfasse deine erste Buchung oder schau dir die App mit Beispieldaten an.',
+          Text('Verbinde dein Girokonto, dann kommen Kontostand und Umsätze von selbst. '
+              'Oder erfasse deine Buchungen von Hand.',
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
+              icon: const Icon(Icons.account_balance_rounded, size: 20),
+              label: const Text('Bankkonto verbinden'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceAlt, foregroundColor: AppColors.text),
               onPressed: () => TxRow.openEditor(context),
-              child: const Text('Erste Buchung erfassen'),
+              child: const Text('Selbst erfassen'),
             ),
           ),
           const SizedBox(height: 8),

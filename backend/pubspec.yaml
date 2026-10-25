@@ -1,0 +1,9 @@
+name: budget_buddy_backend
+description: Local proxy that links a real bank account (Enable Banking / PSD2) and a Parqet depot to BudgetBuddy.
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+dependencies:
+  http: ^1.6.0
+  dart_jsonwebtoken: ^3.4.1

@@ -1,5 +1,6 @@
 // database operations (transactions, badges, budgets)
 import 'package:hive/hive.dart';
+import 'settings_service.dart';
 import '../models/transaction.dart';
 import '../models/badge.dart';
 import '../models/budget.dart';
@@ -298,6 +299,11 @@ class DB {
     await _budgetBox.clear();
     await _holdingBox.clear();
     await _recurringBox.clear();
+    // the opening balance only makes sense together with the bookings
+    if (Hive.isBoxOpen('settings')) {
+      await Settings.setOpeningBalanceCents(0);
+      await Settings.clearBank();
+    }
     await initBadges();
   }
 }

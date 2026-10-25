@@ -43,7 +43,7 @@ A personal finance app built with **Flutter** that brings your budget and your i
 - Demo mode with six months of realistic sample data to explore the app instantly
 
 **Optional live sync**
-A small Dart backend acts as a proxy to link a real bank account (GoCardless, PSD2) and a Parqet depot, so API secrets never live in the app. See [backend/README.md](backend/README.md).
+**Real bank connection:** a small Dart backend links your actual checking account through Enable Banking (PSD2, 2,500+ European banks, read-only). Balance and bookings sync automatically. New bookings are auto-categorized and the app learns from your corrections. A built-in demo bank lets anyone try the whole flow without credentials. See [backend/README.md](backend/README.md).
 
 ## Tech Stack
 
@@ -53,7 +53,7 @@ A small Dart backend acts as a proxy to link a real bank account (GoCardless, PS
 | Storage | Hive (local NoSQL database) |
 | Security | local_auth (biometrics / device credentials) |
 | Data | CSV import/export, JSON backup |
-| APIs | Finnhub (prices), GoCardless Bank Account Data, Parqet |
+| APIs | Finnhub (prices), Enable Banking (PSD2), Parqet |
 | Backend | Dart HTTP server (`backend/server.dart`) |
 | Testing | flutter_test – 86 unit and widget tests |
 
@@ -66,7 +66,7 @@ lib/
 ├── services/   # Database, balance history, importers, backup, prices, insights, demo data
 ├── utils/      # Theme, money and date formatting, number pad input, instrument list
 └── widgets/    # Interactive chart, big number, segmented control, transaction row
-backend/        # Optional proxy server for bank and depot sync
+backend/        # Server for bank (PSD2) and depot sync, with a demo bank
 test/           # Unit and widget tests
 landing/        # Landing page for the app
 ```

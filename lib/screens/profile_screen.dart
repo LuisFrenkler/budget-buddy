@@ -91,7 +91,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _sectionLabel('Automatisierung'),
               _group([
                 _row(Icons.repeat_rounded, 'Wiederkehrende Buchungen', 'Miete, Gehalt, Abos', _openRecurring),
-                _row(Icons.sync_rounded, 'Konto & Depot verbinden', 'Bank (PSD2) und Parqet', _openConnections),
+                _row(
+                    Icons.sync_rounded,
+                    'Konto & Depot verbinden',
+                    Settings.bankName.isNotEmpty ? '${Settings.bankName} verbunden' : 'Girokonto per PSD2, Depot per Parqet',
+                    _openConnections),
               ]),
 
               _sectionLabel('Daten'),

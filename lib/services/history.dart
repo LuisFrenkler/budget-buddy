@@ -15,15 +15,16 @@ class History {
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
   // balance at the end of each day from [from] to [to] (inclusive).
-  // Transactions before [from] count towards the starting balance.
-  static List<ChartPoint> dailyBalance(List<Transaction> tx, {required DateTime from, DateTime? to}) {
+  // Transactions before [from] count towards the starting balance, on top
+  // of [opening] (the balance before the very first transaction).
+  static List<ChartPoint> dailyBalance(List<Transaction> tx, {required DateTime from, DateTime? to, int opening = 0}) {
     final start = _day(from);
     final end = _day(to ?? DateTime.now());
     if (end.isBefore(start)) return const [];
 
     // net change per day
     final perDay = <DateTime, int>{};
-    int running = 0;
+    int running = opening;
     for (final t in tx) {
       final delta = t.isIncome ? t.amountCents : -t.amountCents;
       final d = _day(t.date);

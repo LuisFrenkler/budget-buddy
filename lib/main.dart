@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/onboarding_screen.dart';
+import 'services/bank_sync.dart';
 import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
 import 'utils/theme.dart';
@@ -23,6 +24,9 @@ void main() async {
 
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();
+
+  // fetch new bookings from a linked bank in the background
+  BankSync.refreshIfStale();
 
   // apply the saved theme mode
   ThemeController.isDark.value = Settings.darkMode;
