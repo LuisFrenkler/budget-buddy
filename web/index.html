@@ -120,13 +120,20 @@
   
   
   <script>
-    // Older builds installed an offline cache that kept serving the old app on
-    // reload. Remove it once, then load the current version from the server.
-    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-      Promise.all([
-        navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister()))),
-        window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : null,
-      ]).then(() => location.reload());
+    // Older builds installed Flutter's offline cache, which kept serving the
+    // old app on reload. Remove only that one (the reminder worker stays),
+    // then load the current version from the server.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        const old = rs.filter(r => [r.active, r.waiting, r.installing]
+          .some(w => w && w.scriptURL.includes("flutter_service_worker.js")));
+        if (!old.length) return;
+        Promise.all([
+          ...old.map(r => r.unregister()),
+          window.caches ? caches.keys().then(ks => Promise.all(
+            ks.filter(k => k.startsWith("flutter-")).map(k => caches.delete(k)))) : null,
+        ]).then(() => location.reload());
+      });
     }
   </script>
   <script src="flutter_bootstrap.js" async=""></script>
