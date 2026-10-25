@@ -44,6 +44,17 @@ class BudgetBuddyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,  // hide debug banner
         theme: AppTheme.theme(dark),        // reactive light/dark theme
         home: const RootGate(),             // onboarding -> lock -> app
+        // on wide screens (desktop browser, Mac) keep a phone-width column
+        // in the middle instead of stretching every screen edge to edge
+        builder: (context, child) => ColoredBox(
+          color: dark ? const Color(0xFF05070A) : const Color(0xFFE6EAF0),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: child,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -22,8 +22,8 @@ class InteractiveChart extends StatefulWidget {
 }
 
 class _InteractiveChartState extends State<InteractiveChart> with SingleTickerProviderStateMixin {
-  late final AnimationController _reveal =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
+  late final AnimationController _reveal = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+    ..forward();
   int? _index;
 
   @override
@@ -72,27 +72,32 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
 
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onHorizontalDragStart: (d) => _scrubTo(d.localPosition.dx, w),
-        onHorizontalDragUpdate: (d) => _scrubTo(d.localPosition.dx, w),
-        onHorizontalDragEnd: (_) => _end(),
-        onHorizontalDragCancel: _end,
-        onLongPressStart: (d) => _scrubTo(d.localPosition.dx, w),
-        onLongPressMoveUpdate: (d) => _scrubTo(d.localPosition.dx, w),
-        onLongPressEnd: (_) => _end(),
-        child: AnimatedBuilder(
-          animation: _reveal,
-          builder: (_, __) => SizedBox(
-            height: widget.height,
-            width: w,
-            child: CustomPaint(
-              painter: _ChartPainter(
-                values: [for (final p in pts) p.cents.toDouble()],
-                color: color,
-                dim: AppColors.textDim,
-                progress: Curves.easeOutCubic.transform(_reveal.value),
-                index: _index,
+      // with a mouse (Mac, browser) hovering is enough to read a value
+      return MouseRegion(
+        onHover: (e) => _scrubTo(e.localPosition.dx, w),
+        onExit: (_) => _end(),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragStart: (d) => _scrubTo(d.localPosition.dx, w),
+          onHorizontalDragUpdate: (d) => _scrubTo(d.localPosition.dx, w),
+          onHorizontalDragEnd: (_) => _end(),
+          onHorizontalDragCancel: _end,
+          onLongPressStart: (d) => _scrubTo(d.localPosition.dx, w),
+          onLongPressMoveUpdate: (d) => _scrubTo(d.localPosition.dx, w),
+          onLongPressEnd: (_) => _end(),
+          child: AnimatedBuilder(
+            animation: _reveal,
+            builder: (_, __) => SizedBox(
+              height: widget.height,
+              width: w,
+              child: CustomPaint(
+                painter: _ChartPainter(
+                  values: [for (final p in pts) p.cents.toDouble()],
+                  color: color,
+                  dim: AppColors.textDim,
+                  progress: Curves.easeOutCubic.transform(_reveal.value),
+                  index: _index,
+                ),
               ),
             ),
           ),
