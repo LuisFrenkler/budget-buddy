@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/holding.dart';
+import '../services/account_service.dart';
+import 'auth_screens.dart';
 import '../services/backend_service.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
@@ -106,6 +108,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   Widget _bankCard() {
     if (Settings.bankState.isNotEmpty) return _linkedCard();
+    if (AccountService.current.value == null) return _needsAccountCard();
     if (_pendingState != null) return _waitingCard();
     return _card(
       child: Column(
@@ -134,6 +137,36 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // bank links belong to an account, so guests sign up first
+  Widget _needsAccountCard() {
+    return _card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          _iconTile(Icons.account_balance_rounded, AppColors.primary),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Text('Bankkonto verbinden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        Text('Dafür brauchst du ein kostenloses Konto. So bleibt deine Bankverbindung nur für dich sichtbar.',
+            style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            onPressed: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
+              if (mounted) setState(() {});
+            },
+            child: const Text('Konto erstellen'),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -202,7 +235,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                 ],
               ),
             ),
-            _chip(expiresSoon ? 'Läuft ab' : 'Aktiv', expiresSoon ? AppColors.warning : AppColors.primary),
+            _chip(expiresSoon ? 'Läuft ab' : 'Aktiv', expiresSoon ? AppColors.warning : AppColors.positive),
           ]),
           const SizedBox(height: 20),
           Text('Kontostand', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
@@ -297,7 +330,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   Widget _serverStatus() {
     final ok = _mode != null;
-    final color = _checking ? AppColors.textDim : (ok ? AppColors.primary : AppColors.warning);
+    final color = _checking ? AppColors.textDim : (ok ? AppColors.positive : AppColors.warning);
     final text = _checking
         ? 'Suche Server …'
         : !ok
@@ -433,6 +466,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   Future<void> _linked(String state, BankLink link) async {
     HapticFeedback.mediumImpact();
     await Settings.setBankState(state);
+    await Settings.setBankOwner(AccountService.current.value?.id ?? '');
     await Settings.setBankInfo(name: link.bank ?? _pendingBank ?? 'Bank', iban: link.iban, validUntil: link.validUntil);
     if (!mounted) return;
     setState(() => _pendingState = null);

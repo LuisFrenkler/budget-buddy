@@ -5,6 +5,7 @@
 // portfolio and budgets for the current month. A fixed random seed keeps the
 // data identical on every run, which also makes it testable.
 import 'dart:math' as math;
+import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/budget.dart';
 import '../models/holding.dart';
@@ -12,6 +13,7 @@ import '../models/recurring.dart';
 import '../models/transaction.dart';
 import 'db.dart';
 import 'recurring_service.dart';
+import 'settings_service.dart';
 
 class DemoData {
   static Future<void> load({DateTime? now}) async {
@@ -114,6 +116,9 @@ class DemoData {
         endDate: end,
       ));
     }
+
+    // savings from before the six months, so the Kontostand does not start at 0 €
+    if (Hive.isBoxOpen('settings')) await Settings.setOpeningBalanceCents(420000);
 
     await DB.checkBadges();
   }

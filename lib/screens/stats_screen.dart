@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'contracts_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
@@ -77,7 +78,7 @@ class _StatsViewState extends State<StatsView> {
         final data = DB.categoriesOf(tx, isIncome: _tab == 1);
 
         // color for charts (red for expenses, green for income)
-        final color = _tab == 0 ? AppColors.error : AppColors.primary;
+        final color = _tab == 0 ? AppColors.error : AppColors.positive;
 
         // month-over-month expense insights
         final last = DB.inMonth(all, DateTime(_month.year, _month.month - 1));
@@ -113,6 +114,10 @@ class _StatsViewState extends State<StatsView> {
 
               // 6-month income vs expenses
               _trendCard(trend),
+              const SizedBox(height: 24),
+
+              // contracts and subscriptions found in the bookings
+              const ContractsCard(),
               const SizedBox(height: 24),
 
               // automatic insights vs the previous month
@@ -211,7 +216,7 @@ class _StatsViewState extends State<StatsView> {
           Row(children: [
             const Text('Verlauf', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const Spacer(),
-            _legendDot(AppColors.primary, 'Einnahmen'),
+            _legendDot(AppColors.positive, 'Einnahmen'),
             const SizedBox(width: 12),
             _legendDot(AppColors.error, 'Ausgaben'),
           ]),
@@ -233,7 +238,7 @@ class _StatsViewState extends State<StatsView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              bar(m.income, AppColors.primary, m.month == _month),
+                              bar(m.income, AppColors.positive, m.month == _month),
                               const SizedBox(width: 3),
                               bar(m.expenses, AppColors.error, m.month == _month),
                             ],
@@ -333,7 +338,7 @@ class _StatsViewState extends State<StatsView> {
                   color: balance >= 0 ? AppColors.text : AppColors.error)),
           const SizedBox(height: 10),
           Wrap(spacing: 20, runSpacing: 6, children: [
-            _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.primary),
+            _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.positive),
             _miniStat(Icons.arrow_upward_rounded, 'Ausgaben', expenses, AppColors.error),
           ]),
         ],

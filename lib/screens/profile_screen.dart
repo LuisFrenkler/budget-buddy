@@ -15,6 +15,8 @@ import '../utils/dates.dart';
 import '../models/badge.dart' as badge_model;
 import 'recurring_screen.dart';
 import 'connections_screen.dart';
+import 'auth_screens.dart';
+import '../services/account_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -35,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final unlocked = badges.where((b) => b.isUnlocked).length;
         // oldest transaction = the user's start with the app
         final since = tx.isEmpty ? null : tx.last.date;
+        final account = AccountService.current.value;
 
         return Scaffold(
           appBar: AppBar(title: const Text('Profil')),
@@ -44,21 +47,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // header: avatar and a few personal numbers
               Row(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle),
-                    child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 34),
-                  ),
+                  _avatar(account),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Mein BudgetBuddy', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                        Text(account?.name ?? 'Gast', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 2),
-                        Text('Alle Daten bleiben auf diesem Gerät',
-                            style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                        Text(account?.email ?? 'Ohne Konto · Daten nur auf diesem Gerät',
+                            style: TextStyle(color: AppColors.textDim, fontSize: 13), overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
@@ -108,9 +106,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
               ]),
 
-              const SizedBox(height: 24),
+              _sectionLabel('Konto'),
               _group([
-                _row(Icons.delete_outline_rounded, 'Alle Daten löschen', null, _deleteAllData, danger: true),
+                if (account == null)
+                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung', _signUp)
+                else ...[
+                  _row(Icons.logout_rounded, 'Abmelden', null, _logout),
+                  _row(Icons.person_remove_rounded, 'Konto löschen', 'Konto und Bankverbindungen entfernen',
+                      _deleteAccount, danger: true),
+                ],
+                _row(Icons.delete_outline_rounded, 'Alle Daten löschen', 'Umsätze, Budgets und Depot auf diesem Gerät',
+                    _deleteAllData, danger: true),
               ]),
               const SizedBox(height: 24),
               Center(
@@ -121,6 +127,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  // round avatar with the initial of the signed-in user
+  Widget _avatar(Account? account) {
+    return Container(
+      width: 64,
+      height: 64,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(colors: AppColors.heroBrand, begin: Alignment.topLeft, end: Alignment.bottomRight),
+      ),
+      child: account == null
+          ? const Icon(Icons.person_rounded, color: Colors.white, size: 32)
+          : Text(account.name.isEmpty ? '?' : account.name[0].toUpperCase(),
+              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
+    );
+  }
+
+  void _signUp() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
+
+  Future<void> _logout() async {
+    final ok = await _confirm('Abmelden?', 'Deine Daten bleiben auf diesem Gerät. Zum Öffnen meldest du dich wieder an.',
+        'Abmelden');
+    if (!ok) return;
+    await AccountService.logout();
+    if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
+  }
+
+  Future<void> _deleteAccount() async {
+    final ok = await _confirm(
+        'Konto löschen?',
+        'Dein Konto und alle Bankverbindungen werden dauerhaft gelöscht. '
+            'Umsätze auf diesem Gerät bleiben, bis du sie unter „Alle Daten löschen“ entfernst.',
+        'Endgültig löschen');
+    if (!ok) return;
+    try {
+      await AccountService.deleteAccount();
+      if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
+  Future<bool> _confirm(String title, String text, String action) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(title),
+        content: Text(text),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
   }
 
   // one value of the header statistics
@@ -278,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(text),
-      backgroundColor: error ? AppColors.error : AppColors.primary,
+      backgroundColor: error ? AppColors.error : null,
     ));
   }
 
@@ -441,7 +509,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? '${imported.transactions.length} importiert, ${imported.skipped} übersprungen'
             : '${imported.transactions.length} importiert';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), backgroundColor: AppColors.primary),
+          SnackBar(content: Text(msg)),
         );
       }
     } catch (e) {
@@ -484,7 +552,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gelöscht'), backgroundColor: AppColors.primary),
+          const SnackBar(content: Text('Gelöscht')),
         );
       }
     }

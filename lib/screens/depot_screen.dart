@@ -42,6 +42,14 @@ class _DepotScreenState extends State<DepotScreen> {
   void initState() {
     super.initState();
     _loadHistory();
+    // positions added later (demo, import, Parqet) need a fresh history
+    Hive.box('holdings').listenable().addListener(_loadHistory);
+  }
+
+  @override
+  void dispose() {
+    Hive.box('holdings').listenable().removeListener(_loadHistory);
+    super.dispose();
   }
 
   Future<void> _loadHistory() async {
@@ -175,11 +183,11 @@ class _DepotScreenState extends State<DepotScreen> {
           children: [
             Expanded(child: _stat('Investiert', Money.format(invested), AppColors.text)),
             Expanded(
-              child: _stat('Gewinn/Verlust', Money.signed(gain), gain >= 0 ? AppColors.primary : AppColors.error),
+              child: _stat('Gewinn/Verlust', Money.signed(gain), gain >= 0 ? AppColors.positive : AppColors.error),
             ),
             Expanded(
               child: _stat('Rendite', invested == 0 ? '–' : Money.percent(gain / invested * 100),
-                  gain >= 0 ? AppColors.primary : AppColors.error),
+                  gain >= 0 ? AppColors.positive : AppColors.error),
             ),
           ],
         ),
@@ -297,7 +305,7 @@ class _DepotScreenState extends State<DepotScreen> {
 
   // single holding row in the same calm style as the transaction list
   Widget _holdingCard(Holding h) {
-    final color = h.isUp ? AppColors.primary : AppColors.error;
+    final color = h.isUp ? AppColors.positive : AppColors.error;
 
     return Dismissible(
       key: Key(h.id),
@@ -366,11 +374,11 @@ class _DepotScreenState extends State<DepotScreen> {
         if (result.failed == 0) {
           // every holding has a live source
           msg = result.updated > 0 ? '${result.updated} Kurse aktualisiert' : 'Kurse sind aktuell';
-          bg = AppColors.primary;
+          bg = AppColors.surfaceAlt;
         } else if (result.live > 0) {
           // crypto refreshed; stocks/ETFs can't live-update in the browser
           msg = 'Krypto aktualisiert · Aktien nur am iPhone/mit Key live';
-          bg = AppColors.primary;
+          bg = AppColors.surfaceAlt;
         } else {
           // nothing could be fetched live (only stocks, in the browser)
           msg = 'Aktien-Kurse brauchen einen Finnhub-Key oder das iPhone';
@@ -399,7 +407,6 @@ class _DepotScreenState extends State<DepotScreen> {
       _loadHistory(); // include the new/changed position in the trend
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(holding == null ? 'Hinzugefügt' : 'Aktualisiert'),
-        backgroundColor: AppColors.primary,
       ));
     }
   }

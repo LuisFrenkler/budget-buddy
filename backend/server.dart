@@ -12,9 +12,9 @@
 //   PARQET_TOKEN, PARQET_PORTFOLIO_ID  optional, for the depot
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
 //
-// The server only listens on localhost. A linked bank is identified by a
-// random "state" token that the app keeps; sessions survive restarts in
-// .data/sessions.json.
+// The server only listens on localhost. Users sign in with email and
+// password (see lib/accounts.dart); every bank link belongs to one user and
+// is identified by a random "state" token. Data survives restarts in .data/.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -22,6 +22,7 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 
+import 'lib/accounts.dart';
 import 'lib/bank_provider.dart';
 import 'lib/demo_bank.dart';
 import 'lib/enable_banking.dart';
@@ -34,13 +35,15 @@ late final BankProvider _bank;
 late final String _publicUrl;
 late final String _redirectUrl;
 
-// consent started but not finished yet: state -> bank name
-final _pending = <String, String>{};
+// consent started but not finished yet: state -> (bank name, owner id)
+final _pending = <String, ({String bank, String owner})>{};
 // consent failed: state -> message
 final _failed = <String, String>{};
 // linked banks: state -> session
 final _sessions = <String, Map<String, dynamic>>{};
-final _store = File('${File.fromUri(Platform.script).parent.path}/.data/sessions.json');
+final _dataDir = '${File.fromUri(Platform.script).parent.path}/.data';
+final _store = File('$_dataDir/sessions.json');
+final _accounts = Accounts(File('$_dataDir/users.json'));
 
 Future<void> main() async {
   final port = int.tryParse(_env('PORT')) ?? 8090;
@@ -54,6 +57,7 @@ Future<void> main() async {
     _bank = DemoBank(_publicUrl);
   }
   await _load();
+  await _accounts.load();
 
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
   stdout.writeln('BudgetBuddy backend on $_publicUrl');
@@ -63,6 +67,8 @@ Future<void> main() async {
   await for (final req in server) {
     try {
       await _handle(req);
+    } on AuthError catch (e) {
+      await _json(req, e.status, {'error': e.message});
     } catch (e) {
       await _json(req, 500, {'error': '$e'});
     }
@@ -88,8 +94,8 @@ String _newState() {
 void _cors(HttpResponse res) {
   res.headers
     ..set('Access-Control-Allow-Origin', '*')
-    ..set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    ..set('Access-Control-Allow-Headers', 'Content-Type');
+    ..set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+    ..set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
 Future<void> _json(HttpRequest req, int status, Object body) async {
@@ -112,6 +118,26 @@ Future<Map<String, dynamic>> _body(HttpRequest req) async {
   return text.isEmpty ? {} : jsonDecode(text) as Map<String, dynamic>;
 }
 
+String? _bearer(HttpRequest req) {
+  final h = req.headers.value('authorization') ?? '';
+  return h.startsWith('Bearer ') ? h.substring(7) : null;
+}
+
+// the signed-in user; throws 401 when the token is missing or expired
+Map<String, dynamic> _user(HttpRequest req) {
+  final u = _accounts.userFor(_bearer(req));
+  if (u == null) throw const AuthError(401, 'Bitte melde dich erneut an.');
+  return u;
+}
+
+// a linked bank of the signed-in user; throws 404 for anyone else's
+Map<String, dynamic> _ownSession(HttpRequest req, String state) {
+  final user = _user(req);
+  final s = _sessions[state];
+  if (s == null || s['owner'] != user['id']) throw const AuthError(404, 'Keine Verbindung gefunden. Bitte neu verbinden.');
+  return s;
+}
+
 Future<void> _handle(HttpRequest req) async {
   if (req.method == 'OPTIONS') {
     _cors(req.response);
@@ -124,6 +150,22 @@ Future<void> _handle(HttpRequest req) async {
   switch (req.uri.path) {
     case '/health':
       return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'parqet': _env('PARQET_TOKEN').isNotEmpty});
+    case '/auth/register':
+      final b = await _body(req);
+      return _json(req, 200,
+          await _accounts.register(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}', name: '${b['name'] ?? ''}'));
+    case '/auth/login':
+      final b = await _body(req);
+      return _json(req, 200, await _accounts.login(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}'));
+    case '/auth/me':
+      return _json(req, 200, {'user': Accounts.public(_user(req))});
+    case '/auth/logout':
+      final token = _bearer(req);
+      if (token != null) await _accounts.logout(token);
+      return _json(req, 200, {'ok': true});
+    case '/auth/account':
+      if (req.method != 'DELETE') return _json(req, 405, {'error': 'DELETE only'});
+      return _deleteAccount(req);
     case '/bank/institutions':
       return _json(req, 200, {'institutions': await _bank.institutions(q['country'] ?? 'DE')});
     case '/bank/connect':
@@ -149,6 +191,7 @@ Future<void> _handle(HttpRequest req) async {
 
 // POST {institution, country} -> {state, link}
 Future<void> _connect(HttpRequest req) async {
+  final user = _user(req);
   final body = await _body(req);
   final institution = '${body['institution'] ?? ''}';
   if (institution.isEmpty) return _json(req, 400, {'error': 'institution required'});
@@ -159,7 +202,7 @@ Future<void> _connect(HttpRequest req) async {
     state: state,
     redirectUrl: _redirectUrl,
   );
-  _pending[state] = institution;
+  _pending[state] = (bank: institution, owner: user['id'] as String);
   return _json(req, 200, {'state': state, 'link': link});
 }
 
@@ -183,8 +226,8 @@ Future<void> _demoConsent(HttpRequest req) {
 Future<void> _callback(HttpRequest req) async {
   final q = req.uri.queryParameters;
   final state = q['state'] ?? '';
-  final bankName = _pending[state];
-  if (bankName == null) {
+  final pending = _pending[state];
+  if (pending == null) {
     return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in BudgetBuddy erneut.</p>');
   }
   if (q['code'] == null) {
@@ -194,7 +237,9 @@ Future<void> _callback(HttpRequest req) async {
   }
   try {
     final session = await _bank.createSession(q['code']!);
+    final bankName = pending.bank;
     _sessions[state] = {
+      'owner': pending.owner,
       'sessionId': session.id,
       'bank': bankName,
       'accounts': [for (final a in session.accounts) a.toJson()],
@@ -216,9 +261,10 @@ Future<void> _callback(HttpRequest req) async {
 
 // GET ?state= -> {status: pending|linked|failed|unknown, ...}
 Future<void> _status(HttpRequest req) {
+  final user = _user(req);
   final state = req.uri.queryParameters['state'] ?? '';
   final s = _sessions[state];
-  if (s != null) {
+  if (s != null && s['owner'] == user['id']) {
     return _json(req, 200, {
       'status': 'linked',
       'bank': s['bank'],
@@ -227,7 +273,7 @@ Future<void> _status(HttpRequest req) {
       'mode': _bank.mode,
     });
   }
-  if (_pending.containsKey(state)) return _json(req, 200, {'status': 'pending'});
+  if (_pending[state]?.owner == user['id']) return _json(req, 200, {'status': 'pending'});
   if (_failed.containsKey(state)) return _json(req, 200, {'status': 'failed', 'error': _failed[state]});
   return _json(req, 200, {'status': 'unknown'});
 }
@@ -235,8 +281,7 @@ Future<void> _status(HttpRequest req) {
 // GET ?state=&days=90 -> {balanceCents, transactions} over all accounts
 Future<void> _sync(HttpRequest req) async {
   final q = req.uri.queryParameters;
-  final s = _sessions[q['state'] ?? ''];
-  if (s == null) return _json(req, 404, {'error': 'Keine Verbindung gefunden. Bitte neu verbinden.'});
+  final s = _ownSession(req, q['state'] ?? '');
   final days = (int.tryParse(q['days'] ?? '') ?? 90).clamp(1, 730);
   final from = DateTime.now().subtract(Duration(days: days));
 
@@ -256,6 +301,7 @@ Future<void> _sync(HttpRequest req) async {
 // POST {state}
 Future<void> _disconnect(HttpRequest req) async {
   final state = '${(await _body(req))['state'] ?? ''}';
+  _ownSession(req, state);
   final s = _sessions.remove(state);
   if (s != null) {
     await _save();
@@ -268,10 +314,28 @@ Future<void> _disconnect(HttpRequest req) async {
   return _json(req, 200, {'ok': true});
 }
 
+// DELETE /auth/account: the user, their sign-ins and every bank link
+Future<void> _deleteAccount(HttpRequest req) async {
+  final user = _user(req);
+  final own = _sessions.entries.where((e) => e.value['owner'] == user['id']).toList();
+  for (final e in own) {
+    _sessions.remove(e.key);
+    try {
+      await _bank.endSession(e.value['sessionId'] as String);
+    } catch (_) {
+      // revoked locally either way
+    }
+  }
+  await _save();
+  await _accounts.delete(user['id'] as String);
+  return _json(req, 200, {'ok': true});
+}
+
 // --- Parqet (depot) ---
 
 // GET /parqet/portfolio -> holdings + total value
 Future<void> _parqetPortfolio(HttpRequest req) async {
+  _user(req);
   final token = _env('PARQET_TOKEN');
   final id = req.uri.queryParameters['id'] ?? _env('PARQET_PORTFOLIO_ID');
   if (token.isEmpty) return _json(req, 400, {'error': 'Parqet nicht eingerichtet (PARQET_TOKEN fehlt)'});
@@ -302,16 +366,16 @@ String _page(String body) => '''<!doctype html>
 <title>BudgetBuddy</title>
 <style>
   body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-       background:#0a0e14;color:#f2f4f7;font:16px/1.5 -apple-system,BlinkMacSystemFont,Inter,sans-serif}
+       background:#0b0b10;color:#f2f4f7;font:16px/1.5 -apple-system,BlinkMacSystemFont,Inter,sans-serif}
   main{max-width:380px;padding:32px 24px}
   h1{font-size:28px;margin:8px 0 12px}
   p{color:#c9ced6}.dim{color:#7d8590;font-size:14px}
   ul{color:#c9ced6;padding-left:20px}
   .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;color:#f5b84c;
        background:rgba(245,184,76,.12);padding:4px 10px;border-radius:999px}
-  .btn{display:block;text-align:center;background:#22c55e;color:#fff;font-weight:700;
+  .btn{display:block;text-align:center;background:#7c5cff;color:#fff;font-weight:700;
        padding:14px;border-radius:14px;text-decoration:none;margin-top:24px}
   .link{display:block;text-align:center;color:#7d8590;margin-top:14px;text-decoration:none}
-  .check{width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,.15);color:#22c55e;
+  .check{width:56px;height:56px;border-radius:50%;background:rgba(124,92,255,.18);color:#a48bff;
          display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800}
 </style></head><body><main>$body</main></body></html>''';

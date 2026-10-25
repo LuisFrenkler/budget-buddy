@@ -4,6 +4,7 @@
 // the local dev server.
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'account_service.dart';
 
 class Bank {
   final String id;
@@ -51,6 +52,9 @@ class BackendService {
     }
   }
 
+  static Map<String, String> get _auth =>
+      AccountService.token == null ? {} : {'Authorization': 'Bearer ${AccountService.token}'};
+
   static Map<String, dynamic> _decode(http.Response res) {
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     if (res.statusCode != 200) throw body['error'] ?? 'Fehler ${res.statusCode}';
@@ -58,11 +62,11 @@ class BackendService {
   }
 
   static Future<Map<String, dynamic>> _get(String path) async =>
-      _decode(await http.get(Uri.parse('$base$path')).timeout(const Duration(seconds: 60)));
+      _decode(await http.get(Uri.parse('$base$path'), headers: _auth).timeout(const Duration(seconds: 60)));
 
   static Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async => _decode(await http.post(
         Uri.parse('$base$path'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', ..._auth},
         body: jsonEncode(body),
       ));
 

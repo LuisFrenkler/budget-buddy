@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 import '../screens/add_screen.dart';
+import '../screens/transaction_screen.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -23,7 +24,8 @@ class TxRow extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),
-      onTap: onTap ?? () => openEditor(context, tx: tx),
+      onTap: onTap ??
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => TransactionScreen(id: tx.id))),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
@@ -50,7 +52,7 @@ class TxRow extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
-                color: tx.isIncome ? AppColors.primary : AppColors.text,
+                color: tx.isIncome ? AppColors.positive : AppColors.text,
               ),
             ),
           ],

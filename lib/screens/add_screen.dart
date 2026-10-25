@@ -98,7 +98,7 @@ class _AddScreenState extends State<AddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final color = _isIncome ? AppColors.primary : AppColors.text;
+    final color = _isIncome ? AppColors.positive : AppColors.text;
     final sign = _amount.isEmpty ? '' : (_isIncome ? '+' : Money.minus);
 
     return Focus(

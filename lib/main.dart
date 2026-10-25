@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/auth_screens.dart';
+import 'services/account_service.dart';
 import 'services/bank_sync.dart';
 import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
@@ -30,6 +31,9 @@ void main() async {
 
   // apply the saved theme mode
   ThemeController.isDark.value = Settings.darkMode;
+  Settings.loadHideAmounts();
+  Settings.loadGuest();
+  await AccountService.restore();
 
   // start the app
   runApp(const BudgetBuddyApp());
@@ -64,26 +68,22 @@ class BudgetBuddyApp extends StatelessWidget {
   }
 }
 
-// Decides what to show first: onboarding on the very first launch, then the
-// lock gate wrapping the app.
-class RootGate extends StatefulWidget {
+// Decides what to show: the welcome screen until someone signs in or chooses
+// to try the app without an account, then the app behind the lock gate.
+class RootGate extends StatelessWidget {
   const RootGate({super.key});
 
   @override
-  State<RootGate> createState() => _RootGateState();
-}
-
-class _RootGateState extends State<RootGate> {
-  bool _onboarded = Settings.onboardingDone;
-
-  @override
   Widget build(BuildContext context) {
-    if (!_onboarded) {
-      return OnboardingScreen(onFinish: () async {
-        await Settings.setOnboardingDone(true);
-        if (mounted) setState(() => _onboarded = true);
-      });
-    }
-    return const AuthGate(child: HomeScreen());
+    return ListenableBuilder(
+      listenable: Listenable.merge([AccountService.current, Settings.guest]),
+      builder: (context, _) {
+        final inApp = AccountService.current.value != null || Settings.guest.value;
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          child: inApp ? const AuthGate(child: HomeScreen()) : const WelcomeScreen(),
+        );
+      },
+    );
   }
 }

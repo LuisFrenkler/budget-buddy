@@ -66,7 +66,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         }
         final h = matches.first;
         final up = h.isUp;
-        final color = up ? AppColors.primary : AppColors.error;
+        final color = up ? AppColors.positive : AppColors.error;
 
         return Scaffold(
           appBar: AppBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/settings_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 
@@ -14,6 +15,13 @@ class AnimatedMoney extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: Settings.hideAmounts,
+      builder: (_, hidden, __) => hidden ? Text(Money.hidden, style: style) : _animated(),
+    );
+  }
+
+  Widget _animated() {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: cents.toDouble()),
       duration: animate ? const Duration(milliseconds: 700) : Duration.zero,
@@ -82,14 +90,21 @@ class ChangeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final up = cents >= 0;
-    final color = up ? AppColors.primary : AppColors.error;
+    final color = up ? AppColors.positive : AppColors.error;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: color, size: 24),
-        Text(
-          Money.signed(cents) + (percent != null ? ' (${Money.percent(percent!, digits: 2, signed: false)})' : ''),
-          style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 14),
+        // in privacy mode only the percentage stays visible
+        ValueListenableBuilder<bool>(
+          valueListenable: Settings.hideAmounts,
+          builder: (_, hidden, __) {
+            final pct = percent != null ? Money.percent(percent!, digits: 2, signed: hidden) : null;
+            return Text(
+              hidden ? (pct ?? Money.hidden) : Money.signed(cents) + (pct != null ? ' ($pct)' : ''),
+              style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 14),
+            );
+          },
         ),
         if (suffix != null) ...[
           const SizedBox(width: 6),
@@ -117,10 +132,10 @@ class CategoryAvatar extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: isIncome ? AppColors.primary.withValues(alpha: 0.14) : AppColors.surfaceAlt,
+        color: isIncome ? AppColors.positive.withValues(alpha: 0.14) : AppColors.surfaceAlt,
         shape: BoxShape.circle,
       ),
-      child: Icon(Categories.icon(category), color: isIncome ? AppColors.primary : AppColors.text, size: size * 0.48),
+      child: Icon(Categories.icon(category), color: isIncome ? AppColors.positive : AppColors.text, size: size * 0.48),
     );
   }
 }

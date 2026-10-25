@@ -68,7 +68,7 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
       );
     }
     final up = pts.last.cents >= pts.first.cents;
-    final color = up ? AppColors.primary : AppColors.error;
+    final color = up ? AppColors.positive : AppColors.error;
 
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;

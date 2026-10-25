@@ -83,6 +83,11 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | status: `bank` is `live` or `demo`, `parqet` true/false |
+| POST | `/auth/register` | `{name, email, password}` → `{token, user}` |
+| POST | `/auth/login` | `{email, password}` → `{token, user}` |
+| GET | `/auth/me` | the signed-in user |
+| POST | `/auth/logout` | ends this session |
+| DELETE | `/auth/account` | deletes the user and all of their bank links |
 | GET | `/bank/institutions?country=DE` | banks to choose from |
 | POST | `/bank/connect` | `{institution}` → `{state, link}`; open `link` to log in |
 | GET | `/bank/callback` | redirect target of the bank (code → session) |
@@ -91,7 +96,14 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | POST | `/bank/disconnect` | `{state}`; revokes the session |
 | GET | `/parqet/portfolio?id=` | depot positions |
 
+All `/bank/*` and `/parqet/*` endpoints need `Authorization: Bearer <token>`. A
+bank link belongs to the account that created it.
+
 ## Security notes
+
+- Passwords are stored as bcrypt hashes. Session tokens are 256-bit random values,
+  stored only as their SHA-256, and valid for 30 days. Five wrong passwords lock an
+  email for five minutes, and the error does not reveal whether the email exists.
 
 - Secrets come only from environment variables. `.pem` files and `.data/` are
   git-ignored.
@@ -100,4 +112,4 @@ positions there and import the CSV in the app under **Profil → Depot importier
 - Access is read-only. PSD2 consent is valid for up to 180 days, after which the
   app asks you to renew it.
 - Before hosting this for other people, add HTTPS, restrict CORS to the app's origin
-  and add user authentication. Enable Banking's free mode is for personal use only.
+  and add password reset by email. Enable Banking's free mode is for personal use only.

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
+import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/history.dart';
@@ -10,6 +12,7 @@ import '../services/insights_service.dart';
 import '../services/price_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
 import '../widgets/tx_row.dart';
@@ -104,28 +107,45 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
+  // the signed-in user's initial, or a person for guests
+  Widget _initial() {
+    final name = AccountService.current.value?.name ?? '';
+    if (name.isEmpty) return const Icon(Icons.person_rounded, color: AppColors.primary, size: 22);
+    return Text(name[0].toUpperCase(),
+        style: const TextStyle(color: AppColors.primary, fontSize: 17, fontWeight: FontWeight.w800));
+  }
+
   // wordmark on the left, profile avatar on the right
   Widget _topBar() {
     return Row(
       children: [
-        Text.rich(
-          TextSpan(children: [
-            TextSpan(text: 'Budget', style: TextStyle(color: AppColors.text)),
-            const TextSpan(text: 'Buddy', style: TextStyle(color: AppColors.primary)),
-          ]),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-        ),
+        const BrandMark(size: 30),
+        const SizedBox(width: 10),
+        const Wordmark(size: 20),
         const Spacer(),
+        // privacy mode: hide all balances with one tap
+        ValueListenableBuilder<bool>(
+          valueListenable: Settings.hideAmounts,
+          builder: (_, hidden, __) => IconButton(
+            tooltip: hidden ? 'Beträge zeigen' : 'Beträge verbergen',
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              Settings.setHideAmounts(!hidden);
+            },
+            icon: Icon(hidden ? Icons.visibility_off_rounded : Icons.visibility_rounded, color: AppColors.textDim),
+          ),
+        ),
+        const SizedBox(width: 4),
         Material(
           color: AppColors.surfaceAlt,
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-            child: const SizedBox(
+            child: SizedBox(
               width: 40,
               height: 40,
-              child: Icon(Icons.person_rounded, color: AppColors.primary, size: 22),
+              child: Center(child: _initial()),
             ),
           ),
         ),
@@ -240,12 +260,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(change,
-                      style: TextStyle(fontSize: 13, color: up ? AppColors.primary : AppColors.error),
+                      style: TextStyle(fontSize: 13, color: up ? AppColors.positive : AppColors.error),
                       overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-            Text(Money.format(value), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ValueListenableBuilder<bool>(
+              valueListenable: Settings.hideAmounts,
+              builder: (_, hidden, __) => Text(hidden ? Money.hidden : Money.format(value),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
           ],

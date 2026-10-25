@@ -36,6 +36,7 @@ dependencies:
 
   # opening the bank consent link in the browser
   url_launcher: ^6.3.0
+  flutter_secure_storage: ^10.3.4
 
 dev_dependencies:
   flutter_test:
@@ -71,15 +72,15 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   web:
     generate: true
-    background_color: "#0A0E14"
-    theme_color: "#22C55E"
-  adaptive_icon_background: "#0A0E14"
+    background_color: "#0B0B10"
+    theme_color: "#7C5CFF"
+  adaptive_icon_background: "#7C5CFF"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 
 # native splash screen (run: dart run flutter_native_splash:create)
 flutter_native_splash:
-  color: "#0A0E14"
+  color: "#0B0B10"
   image: "assets/icon/icon_fg.png"
   android_12:
-    color: "#0A0E14"
+    color: "#0B0B10"
     image: "assets/icon/icon_fg.png"

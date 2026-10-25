@@ -5,6 +5,11 @@ class Dates {
   static const shortMonths = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni',
                               'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
 
+  static const weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+  // e.g. "Montag, 5. Januar 2026"
+  static String long(DateTime d) => '${weekdays[d.weekday - 1]}, ${full(d)}';
+
   // e.g. "5. Jan."
   static String dayMonth(DateTime d) => '${d.day}. ${shortMonths[d.month - 1]}';
 

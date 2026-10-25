@@ -14,6 +14,9 @@ class Money {
   // typographic minus (U+2212) used for display instead of the hyphen
   static const minus = '\u2212';
 
+  // what an amount shows in privacy mode
+  static const hidden = '•••••• €';
+
   // formats cents as German currency. handles its own minus sign.
   static String format(int cents) => _fmt.format(cents / 100).replaceFirst('-', minus);
 

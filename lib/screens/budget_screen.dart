@@ -65,7 +65,7 @@ class BudgetView extends StatelessWidget {
 Color budgetColor(Budget b) {
   if (b.isOver) return AppColors.error;
   if (b.progress >= 0.8) return AppColors.warning;
-  return AppColors.primary;
+  return AppColors.positive;
 }
 
 // single budget card with an animated progress bar; tap shows its spending

@@ -7,3 +7,5 @@ environment:
 dependencies:
   http: ^1.6.0
   dart_jsonwebtoken: ^3.4.1
+  bcrypt: ^1.2.0
+  crypto: ^3.0.7

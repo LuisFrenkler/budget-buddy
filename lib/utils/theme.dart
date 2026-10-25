@@ -8,36 +8,38 @@ class ThemeController {
 }
 
 class AppColors {
-  // brand colors — identical in both modes
-  static const primary = Color(0xFF22C55E);
-  static const primaryDark = Color(0xFF0E9F6E);
-  static const accent = Color(0xFF34E89E);       // bright mint for highlights
-  static const accentBlue = Color(0xFF0EA5E9);   // secondary accent (depot)
-  static const error = Color(0xFFFF6B70);
-  static const warning = Color(0xFFF59E0B);
+  // brand: an electric violet for buttons, links, selection and the logo.
+  // It never stands for "plus" or "minus"; those have their own colors.
+  static const primary = Color(0xFF7C5CFF);
+  static const primaryDeep = Color(0xFF5B3DF5);
+  static const accentBlue = Color(0xFF38BDF8);   // secondary accent (depot)
 
-  // hero gradients (brand, both modes)
-  static const heroGreen = [Color(0xFF16D196), Color(0xFF22C55E), Color(0xFF0E9F6E)];
-  static const heroBlue = [Color(0xFF0EA5E9), Color(0xFF22C55E)];
+  // meaning: money in and gains, money out and losses, attention
+  static const positive = Color(0xFF2BD17E);
+  static const error = Color(0xFFFF5D73);
+  static const warning = Color(0xFFFFB020);
 
-  // colors for pie chart
+  // brand gradient for hero areas (onboarding, sign-in)
+  static const heroBrand = [Color(0xFFA48BFF), Color(0xFF7C5CFF), Color(0xFF5B3DF5)];
+
+  // categorical colors for charts, brand first
   static const chart = [
-    Color(0xFF22C55E), // green
-    Color(0xFF0EA5E9), // blue
-    Color(0xFFF59E0B), // orange
-    Color(0xFFFF6B70), // red
-    Color(0xFF6366F1), // indigo
-    Color(0xFF8B5CF6), // purple
+    Color(0xFF7C5CFF), // violet
+    Color(0xFF38BDF8), // sky
+    Color(0xFFFFB020), // amber
+    Color(0xFFFF5D73), // rose
+    Color(0xFF2BD17E), // green
+    Color(0xFFF472B6), // pink
   ];
 
-  // neutral colors — resolved from the current theme mode
+  // neutral colors, a calm graphite resolved from the current theme mode
   static bool get _d => ThemeController.isDark.value;
-  static Color get bg => _d ? const Color(0xFF0A0E14) : const Color(0xFFF4F6FA);
-  static Color get surface => _d ? const Color(0xFF151C26) : const Color(0xFFFFFFFF);
-  static Color get surfaceAlt => _d ? const Color(0xFF1B2430) : const Color(0xFFEAEEF4);
-  static Color get text => _d ? const Color(0xFFFFFFFF) : const Color(0xFF0A0E14);
-  static Color get textDim => _d ? const Color(0xFF8A94A6) : const Color(0xFF647084);
-  static Color get border => _d ? const Color(0xFF222C38) : const Color(0xFFE2E8F0);
+  static Color get bg => _d ? const Color(0xFF0B0B10) : const Color(0xFFF6F6F9);
+  static Color get surface => _d ? const Color(0xFF16161E) : const Color(0xFFFFFFFF);
+  static Color get surfaceAlt => _d ? const Color(0xFF1F1F2A) : const Color(0xFFEDEDF3);
+  static Color get text => _d ? const Color(0xFFF7F7FA) : const Color(0xFF0B0B10);
+  static Color get textDim => _d ? const Color(0xFF8C8CA1) : const Color(0xFF6A6A7D);
+  static Color get border => _d ? const Color(0xFF26263A) : const Color(0xFFE3E3EC);
 }
 
 // app theme
@@ -49,6 +51,10 @@ class AppTheme {
 
     colorScheme: (dark ? const ColorScheme.dark() : const ColorScheme.light()).copyWith(
       primary: AppColors.primary,
+      onPrimary: Colors.white,
+      secondary: AppColors.primary,
+      secondaryContainer: AppColors.surfaceAlt,
+      onSecondaryContainer: AppColors.text,
       surface: AppColors.surface,
       error: AppColors.error,
     ),
@@ -99,6 +105,25 @@ class AppTheme {
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+    ),
+
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+    ),
+
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.primary),
 
     // floating action button
     floatingActionButtonTheme: FloatingActionButtonThemeData(

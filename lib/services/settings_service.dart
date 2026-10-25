@@ -1,4 +1,5 @@
 // Small typed wrapper around the 'settings' Hive box for app preferences.
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 class Settings {
@@ -18,10 +19,37 @@ class Settings {
   static Future<void> setOnboardingDone(bool value) =>
       _box.put('onboardingDone', value);
 
+  // privacy mode: balances show as dots, e.g. when others can see the screen.
+  // A notifier so every amount on screen hides or shows at once.
+  static final hideAmounts = ValueNotifier<bool>(false);
+
+  static void loadHideAmounts() => hideAmounts.value = _box.get('hideAmounts', defaultValue: false) as bool;
+
+  static Future<void> setHideAmounts(bool value) {
+    hideAmounts.value = value;
+    return _box.put('hideAmounts', value);
+  }
+
   // dark vs light theme (defaults to dark)
   static bool get darkMode => _box.get('darkMode', defaultValue: true) as bool;
 
   static Future<void> setDarkMode(bool value) => _box.put('darkMode', value);
+
+  // "try without an account": the app works fully offline, no bank link.
+  // A notifier so the root can switch between welcome and app.
+  static final guest = ValueNotifier<bool>(false);
+
+  static void loadGuest() => guest.value = _box.get('guest', defaultValue: false) as bool;
+
+  static Future<void> setGuest(bool value) {
+    guest.value = value;
+    return _box.put('guest', value);
+  }
+
+  // id of the account that linked the bank on this device
+  static String get bankOwner => _box.get('bankOwner', defaultValue: '') as String;
+
+  static Future<void> setBankOwner(String value) => _box.put('bankOwner', value);
 
   // token of the linked bank on the backend (empty = not linked)
   static String get bankState => _box.get('bankState', defaultValue: '') as String;
@@ -56,7 +84,7 @@ class Settings {
 
   // forgets the linked bank; the imported bookings stay
   static Future<void> clearBank() async {
-    for (final k in ['bankState', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync']) {
+    for (final k in ['bankState', 'bankOwner', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync']) {
       await _box.delete(k);
     }
   }

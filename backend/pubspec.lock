@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.1"
+  bcrypt:
+    dependency: "direct main"
+    description:
+      name: bcrypt
+      sha256: "6073a700cbbc59f1d4ab27cd532755e3de5e676c4941f535f351374df849270b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   clock:
     dependency: transitive
     description:
@@ -33,6 +41,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  crypto:
+    dependency: "direct main"
+    description:
+      name: crypto
+      sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.7"
   dart_jsonwebtoken:
     dependency: "direct main"
     description:
@@ -122,4 +138,4 @@ packages:
     source: hosted
     version: "1.1.1"
 sdks:
-  dart: ">=3.5.0 <4.0.0"
+  dart: ">=3.7.0 <4.0.0"
