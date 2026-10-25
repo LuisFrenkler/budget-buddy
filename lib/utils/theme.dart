@@ -44,6 +44,7 @@ class AppColors {
 class AppTheme {
   static ThemeData theme(bool dark) => ThemeData(
     brightness: dark ? Brightness.dark : Brightness.light,
+    fontFamily: 'Inter',
     scaffoldBackgroundColor: AppColors.bg,
 
     colorScheme: (dark ? const ColorScheme.dark() : const ColorScheme.light()).copyWith(

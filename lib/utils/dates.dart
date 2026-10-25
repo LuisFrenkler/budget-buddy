@@ -1,0 +1,26 @@
+// German date labels used across the app.
+class Dates {
+  static const months = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                         'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  static const shortMonths = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni',
+                              'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
+
+  // e.g. "5. Jan."
+  static String dayMonth(DateTime d) => '${d.day}. ${shortMonths[d.month - 1]}';
+
+  // e.g. "5. Januar 2026"
+  static String full(DateTime d) => '${d.day}. ${months[d.month - 1]} ${d.year}';
+
+  // e.g. "Oktober" in the current year, otherwise "Oktober 2025"
+  static String month(DateTime d) =>
+      d.year == DateTime.now().year ? months[d.month - 1] : '${months[d.month - 1]} ${d.year}';
+
+  // "Heute", "Gestern" or e.g. "5. Jan."
+  static String relativeDay(DateTime d) {
+    final now = DateTime.now();
+    final diff = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    if (diff == 0) return 'Heute';
+    if (diff == 1) return 'Gestern';
+    return dayMonth(d);
+  }
+}

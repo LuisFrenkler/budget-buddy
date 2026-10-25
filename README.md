@@ -9,32 +9,37 @@ A personal finance app built with **Flutter** that brings your budget and your i
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/screen_home.png" alt="Home" width="200">
-  <img src="docs/images/screen_stats.png" alt="Statistics and insights" width="200">
-  <img src="docs/images/screen_categories.png" alt="Spending by category" width="200">
-  <img src="docs/images/screen_depot.png" alt="Portfolio" width="200">
+  <img src="docs/images/screen_start.png" alt="Start: net worth with interactive chart" width="180">
+  <img src="docs/images/screen_account.png" alt="Account: balance and transactions" width="180">
+  <img src="docs/images/screen_analysis.png" alt="Monthly analysis" width="180">
+  <img src="docs/images/screen_depot.png" alt="Depot while scrubbing the chart" width="180">
+  <img src="docs/images/screen_add.png" alt="Fast entry with number pad" width="180">
 </p>
 
 ## Features
 
-**Budgeting**
-- Track income and expenses by category, grouped by month, with search, editing and swipe-to-delete with undo
-- Monthly budgets per category with progress bars
-- Recurring transactions (e.g. rent, salary) that are generated automatically, including any that came due while the app was closed
-- Statistics per month with an income vs. expenses chart for the last six months
-- Automatic insights comparing this month's spending to last month
-- Achievement badges (first transaction, €100 saved, 50 transactions, 7 days tracked)
+**Overview**
+- Net worth (account + depot) with an interactive chart: drag across it to read any day's value, switch between 1M, 3M, 6M and 1J
+- Account and depot at a glance, current budgets as progress rings, the most relevant insight and the latest transactions – everything leads deeper with one tap
 
-**Portfolio**
-- Depot overview with total value, gain/loss, value chart and allocation donut
-- Built-in search for well-known stocks, ETFs and crypto, with live prices via the Finnhub API
+**Account**
+- Balance history with the same interactive chart, plus three sections: *Umsätze*, *Budgets* and *Analyse*
+- Transactions grouped by month, with search, editing and swipe-to-delete with undo
+- Fast entry: big amount display, on-screen number pad, category chips sorted by usage, date and repeat chips (a physical keyboard works too)
+- Recurring transactions (e.g. rent, salary) that are generated automatically, including any that came due while the app was closed
+- Budgets per category that turn yellow from 80 % and red when over the limit; tap one to see its transactions
+- Monthly analysis: income vs. expenses for six months (tap a month to jump to it), a donut by category (tap a slice to highlight it, tap again to see its transactions) and automatic insights compared to last month
+
+**Depot**
+- Portfolio value with an interactive chart, overall gain/loss and return, and an interactive allocation donut
+- Detail page per position with an interactive price chart
+- Built-in search for well-known stocks, ETFs and crypto, with live prices via the Finnhub API; pull to refresh
 - Import of positions from a **Trade Republic** transaction export: buys and sells are aggregated into net positions with an average buy price
 
 **Data & Security**
-- Import transactions or positions from CSV
-- CSV export and full JSON backup / restore
+- Import transactions or positions from CSV, CSV export and full JSON backup / restore
 - App lock with Face ID / fingerprint / device PIN, re-locks when the app goes to the background
-- Dark and light mode, onboarding on first launch
+- Dark and light mode, Inter typeface, haptic feedback, achievements in the profile
 - Demo mode with six months of realistic sample data to explore the app instantly
 
 **Optional live sync**
@@ -50,17 +55,17 @@ A small Dart backend acts as a proxy to link a real bank account (GoCardless, PS
 | Data | CSV import/export, JSON backup |
 | APIs | Finnhub (prices), GoCardless Bank Account Data, Parqet |
 | Backend | Dart HTTP server (`backend/server.dart`) |
-| Testing | flutter_test – 76 unit and widget tests |
+| Testing | flutter_test – 85 unit and widget tests |
 
 ## Project Structure
 
 ```
 lib/
 ├── models/     # Transaction, Budget, Holding, Recurring, Badge
-├── screens/    # Home, Budget, Stats, Depot, Profile, Onboarding, ...
-├── services/   # Database, importers, backup, prices, insights, auth
-├── utils/      # Theme, money formatting, instrument list
-└── widgets/    # Charts, cards, search sheet
+├── screens/    # Shell, Overview, Account (budgets, analysis), Depot, Add, Profile, ...
+├── services/   # Database, balance history, importers, backup, prices, insights, demo data
+├── utils/      # Theme, money and date formatting, number pad input, instrument list
+└── widgets/    # Interactive chart, big number, segmented control, transaction row
 backend/        # Optional proxy server for bank and depot sync
 test/           # Unit and widget tests
 landing/        # Landing page for the app
@@ -88,3 +93,5 @@ flutter test
 ```
 
 > The app's user interface is in German.
+
+The Inter typeface is included under the SIL Open Font License (see `assets/fonts/Inter-OFL.txt`).

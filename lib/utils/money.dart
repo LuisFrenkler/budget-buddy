@@ -11,21 +11,24 @@ class Money {
   static final NumberFormat _fmt =
       NumberFormat.currency(locale: 'de_DE', symbol: '€', decimalDigits: 2);
 
+  // typographic minus (U+2212) used for display instead of the hyphen
+  static const minus = '\u2212';
+
   // formats cents as German currency. handles its own minus sign.
-  static String format(int cents) => _fmt.format(cents / 100);
+  static String format(int cents) => _fmt.format(cents / 100).replaceFirst('-', minus);
 
   // formats with an explicit leading + for positive values (used for balances)
   static String signed(int cents) => (cents >= 0 ? '+' : '') + format(cents);
 
   // formats a positive amount with a + or - depending on income/expense
   static String withSign(int cents, bool isIncome) =>
-      (isIncome ? '+' : '-') + format(cents.abs());
+      (isIncome ? '+' : minus) + format(cents.abs());
 
   // parses user or CSV input into cents. accepts both German (12,99) and
   // English (12.99) decimal separators as well as thousands separators.
   // returns null if the input cannot be parsed into a valid amount.
   static int? parseToCents(String input) {
-    var s = input.trim().replaceAll('€', '').replaceAll(' ', '');
+    var s = input.trim().replaceAll('€', '').replaceAll(' ', '').replaceAll(minus, '-');
     if (s.isEmpty) return null;
 
     // remember and strip a leading minus
@@ -66,6 +69,6 @@ class Money {
   // formats a percentage German style, e.g. 35.24 -> "+35,24 %"
   static String percent(double value, {int digits = 1, bool signed = true}) {
     final s = NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(value);
-    return '${signed && value >= 0 ? '+' : ''}$s %';
+    return '${signed && value >= 0 ? '+' : ''}${s.replaceFirst('-', minus)} %';
   }
 }

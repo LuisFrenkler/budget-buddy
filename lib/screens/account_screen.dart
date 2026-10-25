@@ -1,0 +1,296 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../models/transaction.dart';
+import '../services/db.dart';
+import '../services/history.dart';
+import '../utils/dates.dart';
+import '../utils/money.dart';
+import '../utils/theme.dart';
+import '../widgets/interactive_chart.dart';
+import '../widgets/segmented.dart';
+import '../widgets/tx_row.dart';
+import 'budget_screen.dart';
+import 'stats_screen.dart';
+
+// The account: balance with an interactive chart, then switchable sections
+// for transactions, budgets and the monthly analysis.
+class AccountScreen extends StatefulWidget {
+  // 0 = Umsätze, 1 = Budgets, 2 = Analyse; shared so other tabs can jump here
+  final ValueNotifier<int> segment;
+
+  const AccountScreen({super.key, required this.segment});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  static const _ranges = ['1M', '3M', '6M', '1J', 'Max'];
+  static const _periods = {
+    '1M': 'im letzten Monat',
+    '3M': 'in 3 Monaten',
+    '6M': 'in 6 Monaten',
+    '1J': 'im letzten Jahr',
+    'Max': 'seit Beginn',
+  };
+  String _range = '3M';
+  ChartPoint? _scrub;
+
+  String _search = '';
+  bool _searching = false;
+
+  // ids swiped away but not yet gone from the box, so the Dismissible
+  // leaves the tree immediately instead of waiting for Hive's notification
+  final _hidden = <String>{};
+
+  DateTime _rangeStart(List<Transaction> tx) {
+    final now = DateTime.now();
+    switch (_range) {
+      case '1M':
+        return DateTime(now.year, now.month - 1, now.day);
+      case '3M':
+        return DateTime(now.year, now.month - 3, now.day);
+      case '6M':
+        return DateTime(now.year, now.month - 6, now.day);
+      case '1J':
+        return DateTime(now.year - 1, now.month, now.day);
+      default:
+        return History.firstDay(tx) ?? now;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Box>(
+      valueListenable: Hive.box('transactions').listenable(),
+      builder: (context, _, __) => ValueListenableBuilder<int>(
+        valueListenable: widget.segment,
+        builder: (context, segment, _) {
+          final tx = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
+          final balance = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false);
+          final points = History.dailyBalance(tx, from: _rangeStart(tx));
+
+          return SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 20),
+                        ChartHeader(
+                          label: 'Kontostand',
+                          cents: balance,
+                          startCents: points.isEmpty ? balance : points.first.cents,
+                          period: _periods[_range]!,
+                          scrub: _scrub,
+                          startDate: points.isEmpty ? null : points.first.date,
+                        ),
+                        const SizedBox(height: 16),
+                        InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
+                        const SizedBox(height: 12),
+                        RangeSelector(
+                          labels: _ranges,
+                          selected: _range,
+                          onChanged: (r) => setState(() => _range = r),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: PinnedHeader(
+                    child: Segmented(
+                      labels: const ['Umsätze', 'Budgets', 'Analyse'],
+                      index: segment,
+                      onChanged: (i) => widget.segment.value = i,
+                    ),
+                  ),
+                ),
+                if (segment == 0) ..._transactionSlivers(tx),
+                if (segment == 1)
+                  const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    sliver: SliverToBoxAdapter(child: BudgetView()),
+                  ),
+                if (segment == 2)
+                  const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+                    sliver: SliverToBoxAdapter(child: StatsView()),
+                  ),
+                // room for the floating navigation bar
+                const SliverToBoxAdapter(child: SizedBox(height: 110)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  List<Widget> _transactionSlivers(List<Transaction> tx) {
+    final rows = _groupByMonth(_filter(tx));
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        sliver: SliverToBoxAdapter(
+          child: _searching
+              ? Padding(padding: const EdgeInsets.only(top: 8), child: _searchField())
+              : Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => setState(() => _searching = true),
+                    icon: const Icon(Icons.search_rounded, size: 18),
+                    label: const Text('Suchen'),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                  ),
+                ),
+        ),
+      ),
+      if (tx.isEmpty)
+        SliverToBoxAdapter(child: _emptyState())
+      else if (rows.isEmpty)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Center(child: Text('Keine Treffer', style: TextStyle(color: AppColors.textDim))),
+          ),
+        )
+      else
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverList.builder(
+            itemCount: rows.length,
+            itemBuilder: (_, i) {
+              final r = rows[i];
+              return r is _MonthGroup ? _monthHeader(r) : _dismissible(r as Transaction);
+            },
+          ),
+        ),
+    ];
+  }
+
+  // text field to search/filter transactions
+  Widget _searchField() {
+    return TextField(
+      autofocus: true,
+      onChanged: (v) => setState(() => _search = v),
+      decoration: InputDecoration(
+        hintText: 'Kategorie oder Beschreibung',
+        prefixIcon: const Icon(Icons.search_rounded),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => setState(() {
+            _searching = false;
+            _search = '';
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Icon(Icons.receipt_long_rounded, size: 56, color: AppColors.textDim),
+          const SizedBox(height: 16),
+          const Text('Noch keine Umsätze', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Tippe auf + um deine erste Buchung zu erfassen.',
+              textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+        ],
+      ),
+    );
+  }
+
+  // filters transactions by the search text (category or note)
+  List<Transaction> _filter(List<Transaction> tx) {
+    final q = _search.trim().toLowerCase();
+    if (q.isEmpty) return tx;
+    return tx
+        .where((t) => t.category.toLowerCase().contains(q) || (t.note?.toLowerCase().contains(q) ?? false))
+        .toList();
+  }
+
+  // flattens the (newest first) list into month headers followed by their rows
+  List<Object> _groupByMonth(List<Transaction> tx) {
+    final rows = <Object>[];
+    _MonthGroup? group;
+    for (final t in tx) {
+      if (group == null || group.year != t.date.year || group.month != t.date.month) {
+        group = _MonthGroup(t.date.year, t.date.month);
+        rows.add(group);
+      }
+      group.net += t.isIncome ? t.amountCents : -t.amountCents;
+      rows.add(t);
+    }
+    return rows;
+  }
+
+  Widget _monthHeader(_MonthGroup g) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Row(
+        children: [
+          Text(Dates.month(DateTime(g.year, g.month)),
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600)),
+          const Spacer(),
+          Text(Money.signed(g.net), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _dismissible(Transaction t) {
+    return Dismissible(
+      key: Key(t.id),
+      // only allow swipe from right to left
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(14)),
+        child: const Icon(Icons.delete_rounded, color: Colors.white),
+      ),
+      onDismissed: (_) => _deleteTx(t),
+      child: TxRow(t),
+    );
+  }
+
+  // deletes right away and offers an undo instead of asking first
+  void _deleteTx(Transaction t) {
+    HapticFeedback.mediumImpact();
+    setState(() => _hidden.add(t.id));
+    DB.deleteTx(t.id);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text('${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
+      action: SnackBarAction(
+        label: 'Rückgängig',
+        textColor: AppColors.primary,
+        // re-add the exact same transaction (same id) to restore it
+        onPressed: () async {
+          await DB.addTx(t);
+          if (mounted) setState(() => _hidden.remove(t.id));
+        },
+      ),
+    ));
+  }
+}
+
+// header row of one month in the transaction list
+class _MonthGroup {
+  final int year;
+  final int month;
+  int net = 0;
+  _MonthGroup(this.year, this.month);
+}

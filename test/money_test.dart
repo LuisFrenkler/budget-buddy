@@ -59,18 +59,22 @@ void main() {
 
     test('signed prefixes a plus for positive balances', () {
       expect(Money.signed(500).startsWith('+'), isTrue);
-      expect(Money.signed(-500).startsWith('-'), isTrue);
+      expect(Money.signed(-500).startsWith(Money.minus), isTrue);
       expect(Money.signed(0).startsWith('+'), isTrue);
     });
 
     test('withSign uses income/expense sign', () {
       expect(Money.withSign(1299, true).startsWith('+'), isTrue);
-      expect(Money.withSign(1299, false).startsWith('-'), isTrue);
+      expect(Money.withSign(1299, false).startsWith(Money.minus), isTrue);
+    });
+
+    test('parses the typographic minus as well', () {
+      expect(Money.parseToCents('\u221212,50'), -1250);
     });
 
     test('percent uses a German decimal comma', () {
       expect(Money.percent(35.236, digits: 2), '+35,24 %');
-      expect(Money.percent(-4.25), '-4,3 %');
+      expect(Money.percent(-4.25), '\u22124,3 %');
       expect(Money.percent(12.5, signed: false), '12,5 %');
     });
   });

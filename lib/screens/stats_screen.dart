@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
 import '../services/db.dart';
@@ -7,31 +8,48 @@ import '../utils/theme.dart';
 import '../utils/money.dart';
 import '../widgets/big_number.dart';
 import '../services/insights_service.dart';
+import '../widgets/tx_row.dart';
+import '../widgets/segmented.dart';
 
-class StatsScreen extends StatefulWidget {
-  const StatsScreen({super.key});
-  
+// Monthly analysis as a section of the account screen (not scrollable on its own).
+class StatsView extends StatefulWidget {
+  const StatsView({super.key});
+
   @override
-  State<StatsScreen> createState() => _StatsScreenState();
+  State<StatsView> createState() => _StatsViewState();
 }
 
-class _StatsScreenState extends State<StatsScreen> {
+class _StatsViewState extends State<StatsView> {
   // currently selected month for statistics
   late DateTime _month;
 
   // until the user picks a month, follow the latest month that has data
   bool _autoMonth = true;
-  
+
   // which tab is active (0 = expenses, 1 = income)
   int _tab = 0;
 
+  // highlighted donut slice, if any
+  int? _slice;
+
   // month names for display
-  static const _monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-                              'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  static const _monthNames = [
+    'Januar',
+    'Februar',
+    'März',
+    'April',
+    'Mai',
+    'Juni',
+    'Juli',
+    'August',
+    'September',
+    'Oktober',
+    'November',
+    'Dezember'
+  ];
 
   // short month names for the trend chart
-  static const _shortMonths = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-                               'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  static const _shortMonths = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 
   @override
   void initState() {
@@ -54,10 +72,10 @@ class _StatsScreenState extends State<StatsScreen> {
         final income = DB.sumOf(tx, isIncome: true);
         final expenses = DB.sumOf(tx, isIncome: false);
         final balance = income - expenses;
-        
+
         // get category breakdown
         final data = DB.categoriesOf(tx, isIncome: _tab == 1);
-        
+
         // color for charts (red for expenses, green for income)
         final color = _tab == 0 ? AppColors.error : AppColors.primary;
 
@@ -78,48 +96,45 @@ class _StatsScreenState extends State<StatsScreen> {
           trend.add(_MonthTotals(m, DB.sumOf(mt, isIncome: true), DB.sumOf(mt, isIncome: false)));
         }
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Statistiken')),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // month selector at top
-              _monthSelector(),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // month selector at top
+            _monthSelector(),
+            const SizedBox(height: 24),
+
+            // show empty state or statistics
+            if (tx.isEmpty)
+              _emptyState()
+            else ...[
+              // overview card with balance
+              _overviewCard(income, expenses, balance),
               const SizedBox(height: 24),
-              
-              // show empty state or statistics
-              if (tx.isEmpty)
-                _emptyState()
-              else ...[
-                // overview card with balance
-                _overviewCard(income, expenses, balance),
+
+              // 6-month income vs expenses
+              _trendCard(trend),
+              const SizedBox(height: 24),
+
+              // automatic insights vs the previous month
+              if (insights.isNotEmpty) ...[
+                _insightsCard(insights),
                 const SizedBox(height: 24),
-
-                // 6-month income vs expenses
-                _trendCard(trend),
-                const SizedBox(height: 24),
-
-                // automatic insights vs the previous month
-                if (insights.isNotEmpty) ...[
-                  _insightsCard(insights),
-                  const SizedBox(height: 24),
-                ],
-
-                // tabs switch (expenses/ income)
-                _tabSelector(),
-                const SizedBox(height: 16),
-                
-                // pie chart (only if there is data)
-                if (data.isNotEmpty) ...[
-                  _pieChart(data),
-                  const SizedBox(height: 24),
-                ],
-                
-                // list of categories with amounts
-                _categoryList(data, color),
               ],
+
+              // tabs switch (expenses/ income)
+              _tabSelector(),
+              const SizedBox(height: 16),
+
+              // pie chart (only if there is data)
+              if (data.isNotEmpty) ...[
+                _pieChart(data, tx),
+                const SizedBox(height: 24),
+              ],
+
+              // list of categories with amounts
+              _categoryList(data, color, tx),
             ],
-          ),
+          ],
         );
       },
     );
@@ -136,6 +151,7 @@ class _StatsScreenState extends State<StatsScreen> {
   void _selectMonth(DateTime m) {
     setState(() {
       _autoMonth = false;
+      _slice = null;
       _month = DateTime(m.year, m.month);
     });
   }
@@ -160,8 +176,7 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
         IconButton(
           onPressed: canGoForward ? () => _selectMonth(DateTime(_month.year, _month.month + 1)) : null,
-          icon: Icon(Icons.chevron_right_rounded,
-              color: canGoForward ? AppColors.primary : AppColors.border),
+          icon: Icon(Icons.chevron_right_rounded, color: canGoForward ? AppColors.primary : AppColors.border),
         ),
       ],
     );
@@ -299,25 +314,35 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  // big monthly balance with income and expenses below (cents)
+  // monthly balance with income and expenses below (cents)
   Widget _overviewCard(int income, int expenses, int balance) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: BigNumber(
-        label: 'Monatsbilanz',
-        cents: balance,
-        signed: true,
-        below: Row(children: [
-          _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.primary),
-          const SizedBox(width: 20),
-          _miniStat(Icons.arrow_upward_rounded, 'Ausgaben', expenses, AppColors.error),
-        ]),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Bilanz', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          const SizedBox(height: 2),
+          AnimatedMoney(balance,
+              signed: true,
+              style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.8,
+                  color: balance >= 0 ? AppColors.text : AppColors.error)),
+          const SizedBox(height: 10),
+          Wrap(spacing: 20, runSpacing: 6, children: [
+            _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.primary),
+            _miniStat(Icons.arrow_upward_rounded, 'Ausgaben', expenses, AppColors.error),
+          ]),
+        ],
       ),
     );
   }
 
   Widget _miniStat(IconData icon, String label, int cents, Color color) {
-    return Row(children: [
+    return Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(icon, size: 16, color: color),
       const SizedBox(width: 4),
       Text('$label ', style: TextStyle(color: AppColors.textDim, fontSize: 14)),
@@ -325,137 +350,157 @@ class _StatsScreenState extends State<StatsScreen> {
     ]);
   }
 
-  // tab buttons to switch between expenses and income view
+  // switch between expenses and income view
   Widget _tabSelector() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          _tabButton('Ausgaben', 0),
-          _tabButton('Einnahmen', 1),
-        ],
-      ),
+    return Segmented(
+      labels: const ['Ausgaben', 'Einnahmen'],
+      index: _tab,
+      onChanged: (i) => setState(() {
+        _tab = i;
+        _slice = null;
+      }),
     );
   }
 
-  // single tab button
-  Widget _tabButton(String label, int index) {
-    final isActive = _tab == index;
-    
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _tab = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.primary.withValues(alpha: 0.15) : null,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: isActive ? FontWeight.bold : null,
-              color: isActive ? AppColors.primary : AppColors.textDim,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // pie chart showing category distribution (CustomPainter)
-  Widget _pieChart(Map<String, int> data) {
-    // sort categories by amount (highest first)
-    final sorted = data.entries.toList();
-    sorted.sort((a, b) => b.value.compareTo(a.value));
-
-    // take top 5 categories
-    final entries = <MapEntry<String, int>>[];
-    for (int i = 0; i < sorted.length && i < 5; i++) {
-      entries.add(sorted[i]);
-    }
-
-    // if there are more than 5 categories, group the rest as "Sonstiges"
+  // top 5 categories, the rest grouped as "Weitere"
+  List<MapEntry<String, int>> _topEntries(Map<String, int> data) {
+    final sorted = data.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final entries = sorted.take(5).toList();
     if (sorted.length > 5) {
       int otherSum = 0;
-      for (int i = 5; i < sorted.length; i++) {
-        otherSum += sorted[i].value;
+      for (final e in sorted.skip(5)) {
+        otherSum += e.value;
       }
-      entries.add(MapEntry('Sonstiges', otherSum));
+      entries.add(MapEntry('Weitere', otherSum));
     }
+    return entries;
+  }
 
-    // calculate total for percentages
+  // the month's transactions of one category (or of the grouped rest)
+  void _openCategory(String category, List<Transaction> monthTx, List<MapEntry<String, int>> entries) {
+    final named = entries.map((e) => e.key).toSet();
+    final list = monthTx
+        .where((t) => t.isIncome == (_tab == 1))
+        .where((t) => category == 'Weitere' ? !named.contains(t.category) : t.category == category)
+        .toList();
+    showTransactionsSheet(context,
+        title: category, subtitle: '${_monthNames[_month.month - 1]} ${_month.year}', tx: list);
+  }
+
+  // donut chart: tap a slice to highlight it, tap it again to see its spending
+  Widget _pieChart(Map<String, int> data, List<Transaction> monthTx) {
+    final entries = _topEntries(data);
     int total = 0;
-    for (var entry in data.values) {
-      total += entry;
+    for (final v in data.values) {
+      total += v;
+    }
+    final sel = _slice != null && _slice! < entries.length ? _slice : null;
+
+    void onTap(Offset local, double size) {
+      final c = Offset(size / 2, size / 2);
+      final d = local - c;
+      // ignore taps in the hole or outside the ring
+      if (d.distance < size * 0.25 || d.distance > size / 2) {
+        setState(() => _slice = null);
+        return;
+      }
+      // angle measured clockwise from the top
+      var angle = math.atan2(d.dy, d.dx) + math.pi / 2;
+      if (angle < 0) angle += 2 * math.pi;
+      double acc = 0;
+      for (int i = 0; i < entries.length; i++) {
+        acc += entries[i].value / total * 2 * math.pi;
+        if (angle <= acc) {
+          HapticFeedback.selectionClick();
+          if (sel == i) {
+            _openCategory(entries[i].key, monthTx, entries);
+          } else {
+            setState(() => _slice = i);
+          }
+          return;
+        }
+      }
     }
 
+    const size = 140.0;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
-          // the pie chart itself
-          SizedBox(
-            height: 120,
-            width: 120,
-            child: CustomPaint(painter: _PiePainter(entries, total)),
+          GestureDetector(
+            onTapUp: (d) => onTap(d.localPosition, size),
+            child: SizedBox(
+              height: size,
+              width: size,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 700),
+                    curve: Curves.easeOutCubic,
+                    builder: (_, t, __) => CustomPaint(
+                      size: const Size(size, size),
+                      painter: _PiePainter(entries, total, sel, t, AppColors.surface),
+                    ),
+                  ),
+                  // center label: selected slice or the total
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(sel == null ? 'Gesamt' : entries[sel].key,
+                          style: TextStyle(fontSize: 10, color: AppColors.textDim), overflow: TextOverflow.ellipsis),
+                      Text(Money.format(sel == null ? total : entries[sel].value),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(width: 24),
-          // legend next to pie chart
+          const SizedBox(width: 20),
+          // legend next to pie chart, tappable as well
           Expanded(
-            child: _buildLegend(entries, total),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < entries.length; i++)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _openCategory(entries[i].key, monthTx, entries),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Opacity(
+                        opacity: sel == null || sel == i ? 1 : 0.4,
+                        child: Row(children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                                color: AppColors.chart[i % AppColors.chart.length], shape: BoxShape.circle),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(entries[i].key,
+                                style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
+                          ),
+                          Text('${(entries[i].value / total * 100).toStringAsFixed(0)} %',
+                              style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                        ]),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // builds the legend for the pie chart
-  Widget _buildLegend(List<MapEntry<String, int>> entries, int total) {
-    final legendItems = <Widget>[];
-    
-    for (int i = 0; i < entries.length; i++) {
-      final entry = entries[i];
-      final percent = (entry.value / total * 100).toStringAsFixed(0);
-      
-      legendItems.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              // color dot
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: AppColors.chart[i % AppColors.chart.length],
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // category name
-              Expanded(
-                child: Text(entry.key, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
-              ),
-              // percentage
-              Text('$percent%', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: legendItems,
-    );
-  }
-
   // list of all categories with amounts and progress bars
-  Widget _categoryList(Map<String, int> data, Color color) {
+  Widget _categoryList(Map<String, int> data, Color color, List<Transaction> monthTx) {
     // show message if no data
     if (data.isEmpty) {
       return Center(
@@ -465,11 +510,11 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       );
     }
-    
+
     // sort by amount (highest first)
     final sorted = data.entries.toList();
     sorted.sort((a, b) => b.value.compareTo(a.value));
-    
+
     // calculate total for percentages
     int total = 0;
     for (var entry in data.values) {
@@ -480,38 +525,48 @@ class _StatsScreenState extends State<StatsScreen> {
     final categoryCards = <Widget>[];
     for (var entry in sorted) {
       final percent = entry.value / total;
-      
+
       categoryCards.add(
-        Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // category name and amount
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(Money.format(entry.value), style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // progress bar showing percentage
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: percent,
-                  backgroundColor: AppColors.bg,
-                  valueColor: AlwaysStoppedAnimation(color),
-                  minHeight: 6,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _openCategory(entry.key, monthTx, const []),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // category name and amount
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(Money.format(entry.value), style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // progress bar showing percentage
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: percent,
+                        backgroundColor: AppColors.bg,
+                        valueColor: AlwaysStoppedAnimation(color),
+                        minHeight: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // percentage text
+                    Text(Money.percent(percent * 100, signed: false),
+                        style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              // percentage text
-              Text(Money.percent(percent * 100, signed: false), style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-            ],
+            ),
           ),
         ),
       );
@@ -533,57 +588,40 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 }
 
-// CustomPainter class to draw the pie chart
+// donut chart; the selected slice pops out, the others fade. [t] animates
+// the sweep from 0 to 1 when the chart appears.
 class _PiePainter extends CustomPainter {
-  // list of categories with amounts (in cents)
   final List<MapEntry<String, int>> entries;
-  // total of all amounts (for calculating percentages)
   final int total;
-  
-  _PiePainter(this.entries, this.total);
+  final int? selected;
+  final double t;
+  final Color hole;
+
+  _PiePainter(this.entries, this.total, this.selected, this.t, this.hole);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // center point of the pie chart
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    
-    // paint object for drawing
-    final paint = Paint();
-    paint.style = PaintingStyle.fill;
-    
+    final radius = size.width / 2 - 4;
+    final paint = Paint()..style = PaintingStyle.fill;
+
     // start angle at top
-    double currentAngle = -math.pi / 2;
-
-    // draw each pie segment
+    double angle = -math.pi / 2;
     for (int i = 0; i < entries.length; i++) {
-      // calculate how big this segment is
-      final sweepAngle = (entries[i].value / total) * 2 * math.pi;
-      
-      // set color for this segment
-      paint.color = AppColors.chart[i % AppColors.chart.length];
-
-      // pie segment
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        currentAngle,
-        sweepAngle,
-        true,
-        paint,
-      );
-
-      currentAngle += sweepAngle;
+      final sweep = entries[i].value / total * 2 * math.pi * t;
+      final color = AppColors.chart[i % AppColors.chart.length];
+      paint.color = selected == null || selected == i ? color : color.withValues(alpha: 0.3);
+      final r = selected == i ? radius + 4 : radius;
+      canvas.drawArc(Rect.fromCircle(center: center, radius: r), angle, sweep, true, paint);
+      angle += sweep;
     }
-    
-    // draw a circle in the middle
-    paint.color = AppColors.surface;
-    canvas.drawCircle(center, radius * 0.5, paint);
+    // hole in the middle
+    paint.color = hole;
+    canvas.drawCircle(center, radius * 0.62, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(covariant _PiePainter old) => old.selected != selected || old.t != t || old.entries != entries;
 }
 
 // income and expenses of one month (cents), for the trend chart

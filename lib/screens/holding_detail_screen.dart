@@ -5,7 +5,8 @@ import '../services/db.dart';
 import '../services/price_service.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
-import '../widgets/line_chart.dart';
+import '../services/history.dart';
+import '../widgets/interactive_chart.dart';
 import 'add_holding_screen.dart';
 
 class HoldingDetailScreen extends StatefulWidget {
@@ -17,11 +18,18 @@ class HoldingDetailScreen extends StatefulWidget {
 }
 
 class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
-  List<double> _series = [];
+  List<ChartPoint> _points = []; // price per share in cents, oldest first
   bool _loading = true;
-  int _days = 30;
+  String _range = '1M';
+  ChartPoint? _scrub;
 
-  static const _ranges = {'7T': 7, '1M': 30, '3M': 90, '1J': 365};
+  static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
+  static const _periods = {
+    '1W': 'in einer Woche',
+    '1M': 'im letzten Monat',
+    '3M': 'in 3 Monaten',
+    '1J': 'im letzten Jahr',
+  };
 
   @override
   void initState() {
@@ -32,10 +40,12 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
   Future<void> _loadChart() async {
     setState(() => _loading = true);
     final h = widget.holding;
-    final series = await PriceService.history(symbol: h.symbol, type: h.type, days: _days);
-    if (mounted) {
+    final range = _range;
+    final pts = await PriceService.historyPoints(symbol: h.symbol, type: h.type, days: _ranges[range]!);
+    // ignore late results of a range that is no longer selected
+    if (mounted && range == _range) {
       setState(() {
-        _series = series;
+        _points = [for (final p in pts) ChartPoint(p.$1, (p.$2 * 100).round())];
         _loading = false;
       });
     }
@@ -67,53 +77,61 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
             ],
           ),
           body: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              Text(Money.format(h.valueCents),
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Row(children: [
-                Icon(up ? Icons.trending_up : Icons.trending_down, color: color, size: 18),
-                const SizedBox(width: 6),
-                Text(
-                  '${Money.signed(h.gainCents)} · ${Money.percent(h.gainPercent, digits: 2)}',
-                  style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                ),
-              ]),
-              const SizedBox(height: 20),
-
-              // range selector
-              Row(
-                children: [
-                  for (final entry in _ranges.entries) _rangeChip(entry.key, entry.value),
-                ],
+              // price with an interactive chart; scrubbing shows each day's price
+              ChartHeader(
+                label: h.symbol.isNotEmpty ? 'Kurs · ${h.symbol}' : 'Kurs',
+                cents: h.currentPriceCents,
+                startCents: _points.length >= 2 ? _points.first.cents : h.buyPriceCents,
+                period: _points.length >= 2 ? _periods[_range]! : 'seit Kauf',
+                scrub: _scrub,
+                startDate: _points.isEmpty ? null : _points.first.date,
               ),
+              const SizedBox(height: 16),
+              if (_loading)
+                const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+              else if (_points.length < 2)
+                SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: Text(
+                      h.type == 'Krypto' ? 'Chart nicht verfügbar' : 'Aktien-Chart ist auf dem iPhone live',
+                      style: TextStyle(color: AppColors.textDim),
+                    ),
+                  ),
+                )
+              else
+                InteractiveChart(points: _points, onScrub: (p) => setState(() => _scrub = p)),
               const SizedBox(height: 12),
-
-              // price chart
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-                child: _loading
-                    ? const SizedBox(
-                        height: 150,
-                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
-                    : _series.length < 2
-                        ? SizedBox(
-                            height: 150,
-                            child: Center(
-                              child: Text(
-                                h.type == 'Krypto'
-                                    ? 'Chart nicht verfügbar'
-                                    : 'Aktien-Chart ist auf dem iPhone live',
-                                style: TextStyle(color: AppColors.textDim),
-                              ),
-                            ),
-                          )
-                        : LineChart(_series, color: color),
+              RangeSelector(
+                labels: _ranges.keys.toList(),
+                selected: _range,
+                onChanged: (r) {
+                  setState(() => _range = r);
+                  _loadChart();
+                },
               ),
               const SizedBox(height: 24),
+
+              // the user's own position
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Deine Position', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                    const SizedBox(height: 2),
+                    Text(Money.format(h.valueCents),
+                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+                    const SizedBox(height: 4),
+                    Text('${Money.signed(h.gainCents)} · ${Money.percent(h.gainPercent, digits: 2)} seit Kauf',
+                        style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // details
               _detailRow('Anzahl', '${_trimShares(h.shares)} Stück'),
@@ -127,32 +145,6 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _rangeChip(String label, int days) {
-    final active = _days == days;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () {
-          setState(() => _days = days);
-          _loadChart();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: active ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: active ? Border.all(color: AppColors.primary) : null,
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  color: active ? AppColors.primary : AppColors.textDim,
-                  fontWeight: active ? FontWeight.bold : null,
-                  fontSize: 13)),
-        ),
-      ),
     );
   }
 

@@ -2,23 +2,27 @@ import 'package:flutter/material.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 
-// A money amount that counts up to its new value whenever it changes.
+// A money amount that counts up on first show and glides to new values.
+// With animate = false it follows changes instantly (e.g. while scrubbing).
 class AnimatedMoney extends StatelessWidget {
   final int cents;
   final TextStyle style;
   final bool signed;
+  final bool animate;
 
-  const AnimatedMoney(this.cents, {super.key, required this.style, this.signed = false});
+  const AnimatedMoney(this.cents, {super.key, required this.style, this.signed = false, this.animate = true});
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(end: cents.toDouble()),
-      duration: const Duration(milliseconds: 700),
+      tween: Tween(begin: 0, end: cents.toDouble()),
+      duration: animate ? const Duration(milliseconds: 700) : Duration.zero,
       curve: Curves.easeOutCubic,
       builder: (_, v, __) {
         final c = v.round();
-        return Text(signed ? Money.signed(c) : Money.format(c), style: style);
+        // fixed-width digits so the number does not jitter while it changes
+        return Text(signed ? Money.signed(c) : Money.format(c),
+            style: style.copyWith(fontFeatures: const [FontFeature.tabularFigures()]));
       },
     );
   }
@@ -30,9 +34,17 @@ class BigNumber extends StatelessWidget {
   final String label;
   final int cents;
   final bool signed;
+  final bool animate;
   final Widget? below;
 
-  const BigNumber({super.key, required this.label, required this.cents, this.signed = false, this.below});
+  const BigNumber({
+    super.key,
+    required this.label,
+    required this.cents,
+    this.signed = false,
+    this.animate = true,
+    this.below,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +56,7 @@ class BigNumber extends StatelessWidget {
         AnimatedMoney(
           cents,
           signed: signed,
+          animate: animate,
           style: TextStyle(
             color: AppColors.text,
             fontSize: 40,
@@ -80,7 +93,10 @@ class ChangeLabel extends StatelessWidget {
         ),
         if (suffix != null) ...[
           const SizedBox(width: 6),
-          Text(suffix!, style: TextStyle(color: AppColors.textDim, fontSize: 14)),
+          Flexible(
+            child: Text(suffix!,
+                style: TextStyle(color: AppColors.textDim, fontSize: 14), overflow: TextOverflow.ellipsis),
+          ),
         ],
       ],
     );
