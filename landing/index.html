@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BudgetBuddy — Dein Geld, erwachsen geworden.</title>
+<meta name="description" content="Konto, Budgets und Depot in einer App. Privat, ehrlich, auf Deutsch. Ab Q4 2026 im App Store — jetzt Frühzugang sichern.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --signal:#22C55E; --signal-deep:#0E9F6E; --mint:#34E89E;
+    --ink:#0A0E14; --ink-soft:#2A3340;
+    --bone:#F6F4EF; --bone-deep:#EFEBE2; --line:#E4DFD3;
+    --slate:#6E7889;
+    --r-lg:28px; --r-md:20px; --r-sm:14px;
+    --disp:"Space Grotesk","Helvetica Neue",sans-serif;
+    --text:"Inter","Helvetica Neue",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--text);background:var(--bone);color:var(--ink);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--signal);color:#fff}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 28px}
+  h1,h2,h3,.disp{font-family:var(--disp);letter-spacing:-.02em}
+
+  /* ---------- nav ---------- */
+  nav{position:fixed;inset:0 0 auto 0;z-index:50;background:rgba(246,244,239,.85);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav-i{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .logo{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-weight:700;font-size:20px}
+  .logo img{width:38px;height:38px;border-radius:10px}
+  .logo b{color:var(--signal)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+    font-family:var(--text);font-weight:600;font-size:15.5px;border:none;border-radius:999px;
+    background:var(--ink);color:#fff;padding:13px 24px;transition:.22s}
+  .btn:hover{background:var(--signal);transform:translateY(-1px);
+    box-shadow:0 12px 30px rgba(34,197,94,.28)}
+  .btn.green{background:var(--signal);color:#fff;box-shadow:0 10px 28px rgba(34,197,94,.3)}
+  .btn.green:hover{background:var(--signal-deep)}
+  .btn.small{padding:10px 18px;font-size:14px}
+
+  /* ---------- hero ---------- */
+  header{padding:168px 0 96px;position:relative;overflow:hidden}
+  .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);
+    background:#fff;border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:600;
+    color:var(--ink-soft);margin-bottom:26px}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--signal);
+    box-shadow:0 0 0 4px rgba(34,197,94,.18)}
+  h1{font-size:clamp(44px,5.6vw,72px);font-weight:700;line-height:1.02}
+  h1 em{font-style:normal;color:var(--signal)}
+  .sub{margin-top:22px;font-size:18px;line-height:1.65;color:var(--slate);max-width:500px}
+  .cta{margin-top:34px;max-width:520px}
+  .cta-form{display:flex;gap:10px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:7px 7px 7px 22px;box-shadow:0 18px 44px rgba(10,14,20,.07)}
+  .cta-form input{flex:1;border:none;outline:none;background:transparent;font-size:16px;
+    font-family:var(--text);color:var(--ink);min-width:0}
+  .cta-form input::placeholder{color:#A9A290}
+  .success{display:none;background:#fff;border:1.5px solid var(--signal);color:var(--signal-deep);
+    padding:16px 20px;border-radius:var(--r-md);font-weight:600}
+  .micro{display:flex;gap:18px;margin-top:16px;font-size:13.5px;color:var(--slate);flex-wrap:wrap}
+  .micro span{display:flex;align-items:center;gap:6px}
+  .micro b{color:var(--ink)}
+
+  /* widget collage — the product IS the visual */
+  .collage{position:relative;min-height:560px}
+  .widget{position:absolute;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+    box-shadow:0 24px 60px rgba(10,14,20,.10);padding:22px;
+    animation:bob 7s ease-in-out infinite}
+  .widget.balance{width:320px;left:6%;top:0;background:linear-gradient(135deg,#16D196,#22C55E 55%,#0E9F6E);
+    border:none;color:#fff;z-index:3;animation-delay:.2s}
+  .widget.balance .lbl{font-size:13px;opacity:.85}
+  .widget.balance .val{font-family:var(--disp);font-size:38px;font-weight:700;margin-top:2px}
+  .widget.balance .row{display:flex;gap:10px;margin-top:16px}
+  .widget.balance .chip{flex:1;background:rgba(255,255,255,.18);border-radius:14px;padding:10px 12px}
+  .widget.balance .chip small{font-size:11px;opacity:.85;display:block}
+  .widget.balance .chip b{font-size:15px}
+  .widget.depot{width:340px;right:0;top:150px;background:var(--ink);border:none;color:#fff;z-index:2;
+    animation-delay:1.1s}
+  .widget.depot .top{display:flex;justify-content:space-between;font-size:14.5px;font-weight:600}
+  .widget.depot .top b{color:var(--mint)}
+  .widget.depot svg{width:100%;height:auto;margin-top:12px}
+  .widget.tx{width:300px;left:14%;bottom:34px;z-index:4;animation-delay:2s}
+  .widget.tx .r{display:flex;align-items:center;gap:12px;padding:9px 0}
+  .widget.tx .r+.r{border-top:1px solid var(--bone-deep)}
+  .widget.tx .ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;
+    justify-content:center;font-size:18px;background:var(--bone)}
+  .widget.tx .n{flex:1;font-size:14.5px;font-weight:600}
+  .widget.tx .n small{display:block;font-weight:400;color:var(--slate);font-size:12px}
+  .widget.tx .a{font-weight:700;font-size:14.5px}
+  .widget.tag{right:0;top:12px;z-index:4;padding:12px 18px;border-radius:999px;font-weight:600;
+    font-size:14px;display:flex;gap:8px;align-items:center;animation-delay:2.7s;max-width:88%}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  /* ---------- ticker ---------- */
+  .ticker{background:var(--ink);color:var(--bone);overflow:hidden;padding:18px 0;
+    border-block:1px solid var(--ink)}
+  .ticker .belt{display:flex;gap:0;white-space:nowrap;animation:belt 26s linear infinite;width:max-content}
+  .ticker span{font-family:var(--disp);font-weight:500;font-size:17px;padding:0 26px;
+    display:flex;align-items:center;gap:26px}
+  .ticker i{font-style:normal;color:var(--signal)}
+  @keyframes belt{to{transform:translateX(-50%)}}
+
+  /* ---------- section scaffolding ---------- */
+  section{padding:110px 0}
+  .kick{display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--signal-deep)}
+  .kick::before{content:"";width:26px;height:2.5px;background:var(--signal);border-radius:2px}
+  h2{font-size:clamp(34px,4vw,52px);font-weight:700;line-height:1.08;margin-top:16px}
+  .lead{color:var(--slate);font-size:17.5px;line-height:1.7;margin-top:16px;max-width:600px}
+
+  /* growth-line divider — signature motif */
+  .divider{padding:0}
+  .divider svg{display:block;width:100%;height:70px}
+
+  /* ---------- chapters ---------- */
+  .chapter{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;padding:54px 0}
+  .chapter .visual{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:34px;box-shadow:0 24px 60px rgba(10,14,20,.07)}
+  .chapter .visual.dark{background:var(--ink);border:none;color:#fff}
+  .chapter h3{font-size:clamp(26px,2.6vw,36px);font-weight:700;line-height:1.12}
+  .chapter h3 em{font-style:normal;color:var(--signal)}
+  .chapter p{color:var(--slate);font-size:16.5px;line-height:1.7;margin-top:14px;max-width:440px}
+  .chapter ul{margin-top:18px;list-style:none}
+  .chapter li{display:flex;gap:12px;align-items:flex-start;padding:7px 0;font-size:15.5px;font-weight:500}
+  .chapter li::before{content:"";flex:0 0 auto;width:18px;height:18px;margin-top:2px;border-radius:6px;
+    background:var(--signal);
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E") center/contain no-repeat}
+  .bigstat{font-family:var(--disp);font-weight:700}
+  .visual .vhead{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:600}
+  .visual .vhead b{color:var(--mint)}
+  .budgetbar{margin-top:16px}
+  .budgetbar .t{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:7px}
+  .budgetbar .t small{color:var(--slate);font-weight:500}
+  .bar{height:10px;border-radius:6px;background:var(--bone-deep);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:6px;background:var(--signal)}
+  .insight{margin-top:20px;background:var(--bone);border-radius:var(--r-sm);padding:14px 16px;
+    font-size:14.5px;font-weight:500;display:flex;gap:10px;align-items:flex-start}
+  .insight span{flex:0 0 auto}
+
+  /* ---------- privacy band ---------- */
+  .privacy{background:var(--ink);color:var(--bone);border-radius:var(--r-lg);
+    padding:70px 56px;display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
+  .privacy h2{color:#fff;margin-top:14px}
+  .privacy h2 em{font-style:normal;color:var(--signal)}
+  .privacy p{color:#96A0B0;font-size:16.5px;line-height:1.7;margin-top:14px;max-width:460px}
+  .facts{display:grid;gap:14px}
+  .fact{background:#121924;border:1px solid #222C38;border-radius:var(--r-md);padding:20px 22px}
+  .fact b{font-family:var(--disp);font-size:19px;display:block}
+  .fact small{color:#96A0B0;font-size:13.5px;margin-top:3px;display:block}
+  .fact b i{font-style:normal;color:var(--signal)}
+
+  /* ---------- founder ---------- */
+  .founder{max-width:780px;margin:0 auto;text-align:center}
+  .founder blockquote{font-family:var(--disp);font-size:clamp(24px,2.8vw,34px);font-weight:500;
+    line-height:1.35;margin-top:26px}
+  .founder blockquote em{font-style:normal;color:var(--signal-deep)}
+  .founder .who{margin-top:26px;display:flex;align-items:center;justify-content:center;gap:14px}
+  .founder .av{width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--signal);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--disp);font-size:19px}
+  .founder .who b{display:block;font-size:15.5px}
+  .founder .who small{color:var(--slate)}
+
+  /* ---------- faq ---------- */
+  .faq{max-width:760px;margin:48px auto 0}
+  .faq details{background:#fff;border:1px solid var(--line);border-radius:var(--r-md);
+    margin-bottom:12px;overflow:hidden}
+  .faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;
+    align-items:center;padding:21px 24px;font-weight:600;font-size:16.5px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";color:var(--signal);font-size:22px;font-weight:400;
+    font-family:var(--disp);transition:.2s}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq .a{padding:0 24px 21px;color:var(--slate);font-size:15.5px;line-height:1.7}
+
+  /* ---------- final ---------- */
+  .final{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:76px 48px;text-align:center;position:relative;overflow:hidden}
+  .final::before{content:"";position:absolute;inset:auto -18% -68% -18%;height:120%;
+    background:radial-gradient(ellipse at center,rgba(34,197,94,.16),transparent 62%)}
+  .final>*{position:relative}
+  .final img.icon{width:76px;height:76px;border-radius:19px;margin-bottom:24px;
+    box-shadow:0 18px 44px rgba(34,197,94,.35)}
+  .final .cta{max-width:520px;margin:32px auto 0}
+  .final .store{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:28px}
+  .final .store img{height:44px}
+  .final .store small{font-weight:700;letter-spacing:.2em;color:var(--slate);font-size:12.5px}
+
+  footer{border-top:1px solid var(--line);padding:38px 0 58px;color:var(--slate);font-size:14px}
+  .foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
+
+  /* reveal */
+  .js .rv{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+  .js .rv.on{opacity:1;transform:none}
+
+  @media(max-width:940px){
+    .hero{grid-template-columns:1fr}
+    .collage{min-height:520px;margin-top:8px}
+    .widget.balance{left:0}
+    .widget.depot{right:0;top:190px}
+    .widget.tx{left:4%;bottom:0}
+    .chapter{grid-template-columns:1fr;gap:30px;padding:40px 0}
+    .chapter .copy{order:-1}
+    .privacy{grid-template-columns:1fr;padding:48px 30px}
+    h1{font-size:44px}
+    .cta-form{flex-direction:column;border-radius:var(--r-lg);padding:12px}
+    .cta-form input{padding:10px 12px}
+    .nav-i .logo{font-size:16px}.nav-i .logo img{width:30px;height:30px}
+    .nav-i .btn.small{padding:9px 14px;font-size:13.5px;white-space:nowrap}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-i">
+    <a class="logo" href="#top"><img src="appicon.png" alt="">Budget<b>Buddy</b></a>
+    <a class="btn small green" href="#warteliste">Frühzugang</a>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="wrap hero">
+    <div>
+      <div class="pill"><span class="dot"></span>Launch Q4 2026 — Warteliste ist offen</div>
+      <h1>Dein Geld,<br><em>erwachsen</em><br>geworden.</h1>
+      <p class="sub">Konto, Budgets und Depot in einer App, die sich nicht wie Arbeit anfühlt.
+        Ehrlich, privat und auf Deutsch — von einem, der sie selbst jeden Tag benutzt.</p>
+      <div class="cta" id="warteliste">
+        <form class="cta-form" onsubmit="return joinWaitlist(this)">
+          <input type="email" required placeholder="deine@email.de" aria-label="E-Mail-Adresse">
+          <button class="btn green" type="submit">Frühzugang sichern</button>
+        </form>
+        <div class="success">✓ Willkommen an Bord! Wir melden uns vor dem Launch.</div>
+        <div class="micro">
+          <span>🔒 <b>Privat:</b> Daten bleiben auf deinem Gerät</span>
+          <span>💚 <b>0 €</b> zum Launch</span>
+          <span>✉️ Kein Spam</span>
+        </div>
+      </div>
+    </div>
+    <div class="collage" aria-hidden="true">
+      <div class="widget balance">
+        <div class="lbl">Kontostand</div>
+        <div class="val">+9.956,99 €</div>
+        <div class="row">
+          <div class="chip"><small>↙ Einnahmen</small><b>6.150,00 €</b></div>
+          <div class="chip"><small>↗ Ausgaben</small><b>2.965,44 €</b></div>
+        </div>
+      </div>
+      <div class="widget depot">
+        <div class="top"><span>Depot</span><b>▲ +8,4 %</b></div>
+        <svg viewBox="0 0 300 110">
+          <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#34E89E" stop-opacity=".3"/>
+            <stop offset="1" stop-color="#34E89E" stop-opacity="0"/></linearGradient></defs>
+          <path d="M8,88 L36,82 L64,86 L92,66 L120,72 L148,52 L176,58 L204,38 L232,44 L262,26 L292,18 L292,110 L8,110 Z" fill="url(#wg)"/>
+          <path d="M8,88 L36,82 L64,86 L92,66 L120,72 L148,52 L176,58 L204,38 L232,44 L262,26 L292,18" fill="none" stroke="#34E89E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="292" cy="18" r="5" fill="#34E89E"/>
+        </svg>
+      </div>
+      <div class="widget tx">
+        <div class="r"><div class="ic">💼</div><div class="n">Gehalt<small>1. März</small></div>
+          <div class="a" style="color:var(--signal-deep)">+2.850,00 €</div></div>
+        <div class="r"><div class="ic">🛒</div><div class="n">Lebensmittel<small>5. März</small></div>
+          <div class="a" style="color:#D0483F">−112,34 €</div></div>
+      </div>
+      <div class="widget tag">💡 <span>120 € gespart</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <div class="belt">
+    <span>Konto <i>●</i> Depot <i>●</i> Budgets <i>●</i> Live-Kurse <i>●</i> Insights <i>●</i> Privat <i>●</i> Auf Deutsch <i>●</i></span>
+    <span>Konto <i>●</i> Depot <i>●</i> Budgets <i>●</i> Live-Kurse <i>●</i> Insights <i>●</i> Privat <i>●</i> Auf Deutsch <i>●</i></span>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="rv">
+      <span class="kick">Ein Versprechen</span>
+      <h2>Finanz-Apps fühlen sich an wie Arbeit.<br>BudgetBuddy fühlt sich an wie ein <span style="color:var(--signal)">Buddy</span>.</h2>
+      <p class="lead">Kein Fachchinesisch, keine zehn Tabs, kein schlechtes Gewissen.
+        Nur du, deine Zahlen und ein Begleiter, der sie verständlich macht.</p>
+    </div>
+
+    <div class="chapter">
+      <div class="visual rv">
+        <div class="bigstat" style="font-size:15px;color:var(--slate);font-family:var(--text);font-weight:600">Gesamtvermögen</div>
+        <div class="bigstat" style="font-size:52px;margin-top:4px">9.956,99&nbsp;€</div>
+        <div style="display:flex;gap:12px;margin-top:20px">
+          <div style="flex:1;background:var(--bone);border-radius:14px;padding:14px">
+            <small style="color:var(--slate);font-weight:600">💳 Konto</small>
+            <div style="font-weight:700;margin-top:4px">+3.184,56 €</div>
+          </div>
+          <div style="flex:1;background:var(--bone);border-radius:14px;padding:14px">
+            <small style="color:var(--slate);font-weight:600">📈 Depot</small>
+            <div style="font-weight:700;margin-top:4px">6.772,43 €</div>
+          </div>
+        </div>
+      </div>
+      <div class="copy rv">
+        <h3>Ein Blick. <em>Alles klar.</em></h3>
+        <p>Konto und Depot leben endlich im selben Zuhause. BudgetBuddy rechnet beides zu
+          einer Zahl zusammen, die wirklich zählt: deinem Vermögen.</p>
+        <ul>
+          <li>Kontostand, Einnahmen &amp; Ausgaben auf einen Blick</li>
+          <li>Depotwert live dazugerechnet</li>
+          <li>Eine App statt fünf</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="chapter">
+      <div class="copy rv">
+        <h3>Dein Depot. <em>Live.</em></h3>
+        <p>Aktien, ETFs und Krypto mit Echtzeitkursen, Charts und Verlauf.
+          Und dein bestehendes Depot? Ein Export genügt — BudgetBuddy baut es
+          in Sekunden nach, inklusive Gewinn und Verlust.</p>
+        <ul>
+          <li>Live-Kurse für Aktien &amp; Krypto</li>
+          <li>Kurs-Charts: 7 Tage bis 1 Jahr</li>
+          <li>Trade-Republic-Import in 30 Sekunden</li>
+        </ul>
+      </div>
+      <div class="visual dark rv">
+        <div class="vhead"><span>Depot-Verlauf</span><b>▲ +8,4 %</b></div>
+        <svg viewBox="0 0 420 160">
+          <defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#34E89E" stop-opacity=".28"/>
+            <stop offset="1" stop-color="#34E89E" stop-opacity="0"/></linearGradient></defs>
+          <path d="M10,128 L50,118 L90,124 L130,96 L170,104 L210,76 L250,84 L290,56 L330,64 L370,36 L410,26 L410,160 L10,160 Z" fill="url(#vg)"/>
+          <path d="M10,128 L50,118 L90,124 L130,96 L170,104 L210,76 L250,84 L290,56 L330,64 L370,36 L410,26" fill="none" stroke="#34E89E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="410" cy="26" r="6" fill="#34E89E"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:13px;color:#96A0B0">
+          <span>7T</span><span style="color:#fff;font-weight:700">1M</span><span>3M</span><span>1J</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter">
+      <div class="visual rv">
+        <div class="budgetbar">
+          <div class="t"><span>🛒 Lebensmittel</span><small>212 € / 250 €</small></div>
+          <div class="bar"><i style="width:85%"></i></div>
+        </div>
+        <div class="budgetbar">
+          <div class="t"><span>🎬 Unterhaltung</span><small>38 € / 60 €</small></div>
+          <div class="bar"><i style="width:63%"></i></div>
+        </div>
+        <div class="budgetbar">
+          <div class="t"><span>🍽️ Essen &amp; Trinken</span><small>96 € / 120 €</small></div>
+          <div class="bar"><i style="width:80%;background:#F59E0B"></i></div>
+        </div>
+        <div class="insight"><span>💡</span><div><b>Insight:</b> Du gibst diesen Monat 23 % mehr für
+          Essen aus als im letzten. Kleiner Hinweis unter Buddys.</div></div>
+      </div>
+      <div class="copy rv">
+        <h3>Budgets, die <em>halten</em>.</h3>
+        <p>Limits pro Kategorie, Warnstufen bevor es eng wird, und Insights,
+          die Muster erkennen, bevor du sie teuer bezahlst.</p>
+        <ul>
+          <li>Budgets mit Ampel-Logik</li>
+          <li>Automatische Monats-Insights</li>
+          <li>Daueraufträge — Gehalt &amp; Abos buchen sich selbst</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="privacy rv">
+      <div>
+        <span class="kick" style="color:var(--mint)">Unser Standpunkt</span>
+        <h2>Deine Daten.<br>Dein Gerät.<br><em>Punkt.</em></h2>
+        <p>BudgetBuddy verkauft keine Daten und sammelt keine. Alles bleibt lokal auf deinem
+          iPhone, geschützt mit Face ID. Kein Konto-Zwang, kein Tracking, keine Kompromisse.</p>
+      </div>
+      <div class="facts">
+        <div class="fact"><b><i>100 %</i> lokal</b><small>Deine Finanzdaten verlassen dein Gerät nicht</small></div>
+        <div class="fact"><b>Face ID <i>Sperre</i></b><small>Die App öffnet nur für dich</small></div>
+        <div class="fact"><b><i>0</i> Tracker</b><small>Keine Analyse-SDKs, kein Daten-Verkauf</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap founder rv">
+    <span class="kick" style="justify-content:center">Warum es BudgetBuddy gibt</span>
+    <blockquote>„Ich wollte eine App, die Konto <em>und</em> Depot versteht, ohne meine Daten
+      zu verkaufen. Es gab sie nicht. Also habe ich sie gebaut — und benutze sie
+      seitdem jeden Tag.“</blockquote>
+    <div class="who">
+      <div class="av">L</div>
+      <div style="text-align:left"><b>Luis Frenkler</b><small>Gründer &amp; Entwickler</small></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="rv" style="text-align:center">
+      <span class="kick" style="justify-content:center">Fragen &amp; Antworten</span>
+      <h2>Kurz &amp; ehrlich.</h2>
+    </div>
+    <div class="faq rv">
+      <details><summary>Was kostet BudgetBuddy?</summary>
+        <div class="a">Zum Launch nichts. Wer über die Warteliste kommt, behält alle
+        Launch-Funktionen dauerhaft kostenlos.</div></details>
+      <details><summary>Wo liegen meine Finanzdaten?</summary>
+        <div class="a">Ausschließlich auf deinem Gerät, geschützt mit Face ID / PIN.
+        Es gibt keinen Konto-Zwang und keine Datenweitergabe.</div></details>
+      <details><summary>Welche Broker werden unterstützt?</summary>
+        <div class="a">Zum Start: Trade-Republic-Import per Export-Datei plus manuelle Positionen
+        mit Live-Kursen für Aktien, ETFs und Krypto. Weitere Broker folgen.</div></details>
+      <details><summary>Wann ist der Launch?</summary>
+        <div class="a">Q4 2026 im App Store. Die Warteliste bekommt vorher Beta-Zugang —
+        wer zuerst kommt, testet zuerst.</div></details>
+      <details><summary>iOS oder Android?</summary>
+        <div class="a">Zum Launch iOS (App Store). Android ist in Planung.</div></details>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="final rv">
+      <img class="icon" src="appicon.png" alt="">
+      <h2>Werde Buddy der ersten Stunde.</h2>
+      <p class="lead" style="margin:14px auto 0;text-align:center">Frühzugang sichern — kostenlos,
+        unverbindlich und garantiert ohne Spam.</p>
+      <div class="cta">
+        <form class="cta-form" onsubmit="return joinWaitlist(this)">
+          <input type="email" required placeholder="deine@email.de" aria-label="E-Mail-Adresse">
+          <button class="btn green" type="submit">Auf die Warteliste</button>
+        </form>
+        <div class="success" style="margin-top:0">✓ Willkommen an Bord! Wir melden uns vor dem Launch.</div>
+      </div>
+      <div class="store">
+        <img src="appstore_badge.svg" alt="Laden im App Store">
+        <small>AB Q4 2026</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="#top" style="font-size:16px"><img src="appicon.png" alt="" style="width:30px;height:30px">Budget<b>Buddy</b></a>
+    <div>„Dein Geld, erwachsen geworden.“ · © 2026 BudgetBuddy</div>
+    <div><a href="#">Impressum</a> · <a href="#">Datenschutz</a></div>
+  </div>
+</footer>
+
+<script>
+  function joinWaitlist(f){f.style.display='none';
+    var s=f.parentElement.querySelector('.success');if(s)s.style.display='block';return false}
+  if('IntersectionObserver' in window){
+    document.documentElement.classList.add('js');
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}})},{threshold:.14});
+    document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
+    setTimeout(function(){document.querySelectorAll('.rv:not(.on)')
+      .forEach(function(el){el.classList.add('on')})},2500);
+  }
+</script>
+</body>
+</html>

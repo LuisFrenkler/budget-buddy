@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BudgetBuddy — Der Film. Dein Geld, erwachsen geworden.</title>
+<meta name="description" content="Ein cineastisches Erlebnis: Konto, Budgets und Depot in einer App. Ab Q4 2026 im App Store.">
+<style>
+  :root{
+    --signal:#22C55E; --mint:#34E89E; --ink:#0A0E14; --surface:#151C26;
+    --bone:#F6F4EF; --slate:#8A94A6; --border:#222C38;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#050708;color:#fff;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--signal);color:#04170b}
+
+  /* film grain + vignette */
+  .grain{position:fixed;inset:-50%;z-index:60;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+    animation:grain 8s steps(10) infinite}
+  @keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-3%,-2%)}30%{transform:translate(2%,3%)}50%{transform:translate(-2%,2%)}70%{transform:translate(3%,-3%)}90%{transform:translate(-3%,1%)}}
+  .vignette{position:fixed;inset:0;z-index:55;pointer-events:none;
+    background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5) 100%)}
+
+  /* nav */
+  nav{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;justify-content:space-between;
+    align-items:center;padding:22px 34px;mix-blend-mode:normal;
+    background:linear-gradient(rgba(5,7,8,.65),transparent);transition:.3s}
+  .logo{display:flex;align-items:center;gap:11px;font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .logo img{width:30px;height:30px;border-radius:8px}
+  .logo span{color:var(--signal)}
+  .navcta{font-size:14px;font-weight:700;color:#04170b;background:var(--signal);
+    padding:10px 18px;border-radius:11px;transition:.2s;box-shadow:0 6px 24px rgba(34,197,94,.35)}
+  .navcta:hover{background:var(--mint)}
+
+  /* ---------- ACT 0: title card ---------- */
+  .act0{height:100vh;position:relative;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;text-align:center}
+  .act0 .bg{position:absolute;inset:-12%;background:url(epic_bg.jpg) center/cover;opacity:.5;
+    will-change:transform}
+  .act0 .shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,#050708 88%)}
+  .act0 .inner{position:relative;z-index:2;padding:0 24px}
+  .act0 img.icon{width:92px;height:92px;border-radius:22px;
+    box-shadow:0 24px 80px rgba(34,197,94,.45);margin-bottom:34px;animation:rise 1.2s .1s both}
+  .act0 h1{font-size:clamp(52px,9vw,124px);font-weight:800;letter-spacing:-.045em;line-height:.98;
+    animation:rise 1.2s .3s both}
+  .act0 h1 em{font-style:normal;color:var(--signal)}
+  .act0 .tag{margin-top:26px;font-size:clamp(15px,1.6vw,20px);color:var(--slate);
+    letter-spacing:.35em;text-transform:uppercase;animation:rise 1.2s .55s both}
+  @keyframes rise{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:none}}
+  .scrollcue{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:2;
+    color:var(--slate);font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+    animation:fadecue 2.2s 1.4s both}
+  .scrollcue::after{content:"";display:block;width:1px;height:44px;margin:12px auto 0;
+    background:linear-gradient(var(--signal),transparent);animation:drip 1.8s infinite}
+  @keyframes fadecue{from{opacity:0}to{opacity:1}}
+  @keyframes drip{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* ---------- ACT 1: problem statement ---------- */
+  .act1{min-height:120vh;display:flex;align-items:center;justify-content:center;padding:16vh 24px}
+  .act1 .lines{max-width:1000px}
+  .act1 p{font-size:clamp(34px,6vw,84px);font-weight:800;letter-spacing:-.04em;line-height:1.06;
+    color:#2c3644;transition:color .5s ease;margin:.25em 0}
+  .act1 p.lit{color:#fff}
+  .act1 p.lit b{color:var(--signal)}
+
+  /* ---------- ACT 2: sticky phone reveal ---------- */
+  .act2{position:relative;height:340vh}
+  .act2 .stage{position:sticky;top:0;height:100vh;overflow:hidden;
+    display:flex;align-items:center;justify-content:center}
+  .act2 .bg{position:absolute;inset:-14%;background:url(epic_bg.jpg) center/cover;
+    will-change:transform;opacity:.85}
+  .act2 .shade{position:absolute;inset:0;
+    background:linear-gradient(180deg,#050708 0%,transparent 26%,transparent 74%,#050708 100%)}
+  .act2 .phone{position:relative;z-index:3;width:min(340px,66vw);will-change:transform;
+    filter:drop-shadow(0 50px 100px rgba(0,0,0,.6))}
+  .act2 .chapter{position:absolute;z-index:4;left:50%;transform:translateX(-50%);bottom:9vh;
+    text-align:center;width:100%;padding:0 24px}
+  .act2 .chapter div{position:absolute;left:0;right:0;opacity:0;transform:translateY(18px);
+    transition:opacity .45s ease,transform .45s ease;font-size:clamp(26px,4.4vw,54px);
+    font-weight:800;letter-spacing:-.03em;text-shadow:0 6px 40px rgba(0,0,0,.8)}
+  .act2 .chapter div.on{opacity:1;transform:none}
+  .act2 .chapter em{font-style:normal;color:var(--signal)}
+
+  /* ---------- ACT 3: chart scene ---------- */
+  .act3{position:relative;height:260vh}
+  .act3 .stage{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;overflow:hidden;background:
+    radial-gradient(ellipse at 50% 60%,rgba(34,197,94,.09),transparent 60%)}
+  .act3 .kicker{color:var(--signal);font-size:13px;font-weight:700;letter-spacing:.35em;
+    text-transform:uppercase;margin-bottom:18px}
+  .act3 h2{font-size:clamp(34px,5vw,64px);font-weight:800;letter-spacing:-.035em;text-align:center;
+    padding:0 24px}
+  .act3 .pct{margin-top:10px;font-size:clamp(44px,7vw,96px);font-weight:800;color:var(--mint);
+    letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .act3 svg{width:min(860px,92vw);height:auto;margin-top:26px}
+  .act3 .line{fill:none;stroke:var(--mint);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+  .act3 .area{fill:url(#ag);opacity:.9}
+  .act3 .dot{fill:var(--mint);filter:drop-shadow(0 0 14px rgba(52,232,158,.9))}
+
+  /* ---------- ACT 4: the film ---------- */
+  .act4{padding:18vh 24px;display:flex;flex-direction:column;align-items:center;background:#050708}
+  .act4 .kicker{color:var(--signal);font-size:13px;font-weight:700;letter-spacing:.35em;
+    text-transform:uppercase}
+  .act4 h2{font-size:clamp(32px,4.6vw,58px);font-weight:800;letter-spacing:-.035em;margin:14px 0 40px;
+    text-align:center}
+  .frame{position:relative;border-radius:28px;overflow:hidden;width:min(420px,86vw);
+    box-shadow:0 60px 140px rgba(0,0,0,.65),0 0 0 1px var(--border),0 0 90px rgba(34,197,94,.14)}
+  .frame video{display:block;width:100%;height:auto}
+  .frame .bars{position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 0 0 80px rgba(0,0,0,.45)}
+  .act4 small{margin-top:22px;color:var(--slate);letter-spacing:.25em;font-size:12px;
+    text-transform:uppercase}
+
+  /* ---------- ACT 5: features as film credits ---------- */
+  .act5{padding:16vh 24px;max-width:900px;margin:0 auto}
+  .act5 .row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
+    padding:34px 6px;border-bottom:1px solid var(--border);opacity:0;transform:translateY(24px);
+    transition:opacity .7s ease,transform .7s ease}
+  .act5 .row.on{opacity:1;transform:none}
+  .act5 .row h3{font-size:clamp(22px,3.2vw,38px);font-weight:800;letter-spacing:-.025em}
+  .act5 .row p{color:var(--slate);font-size:15px;max-width:340px;text-align:right;line-height:1.55}
+  .act5 .row h3 span{color:var(--signal)}
+
+  /* ---------- ACT 6: finale ---------- */
+  .act6{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    text-align:center;overflow:hidden;padding:20vh 24px}
+  .act6 .bg{position:absolute;inset:-10%;background:url(epic_bg.jpg) center/cover;opacity:.4;
+    will-change:transform}
+  .act6 .shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 25%,#050708 85%)}
+  .act6 .inner{position:relative;z-index:2;max-width:720px}
+  .act6 img.icon{width:84px;height:84px;border-radius:20px;margin-bottom:30px;
+    box-shadow:0 20px 70px rgba(34,197,94,.5)}
+  .act6 h2{font-size:clamp(38px,6vw,76px);font-weight:800;letter-spacing:-.04em;line-height:1.02}
+  .act6 h2 em{font-style:normal;color:var(--signal)}
+  .act6 p{color:var(--slate);font-size:17px;margin-top:20px}
+  .cta-form{display:flex;gap:10px;max-width:520px;margin:36px auto 0}
+  .cta-form input{flex:1;background:rgba(21,28,38,.9);border:1px solid var(--border);color:#fff;
+    font-size:16px;padding:16px 18px;border-radius:14px;outline:none;min-width:0;transition:.2s}
+  .cta-form input:focus{border-color:var(--signal);box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+  .btn{background:var(--signal);color:#04170b;font-weight:700;font-size:16px;border:none;
+    padding:16px 26px;border-radius:14px;cursor:pointer;transition:.2s;
+    box-shadow:0 10px 34px rgba(34,197,94,.4)}
+  .btn:hover{background:var(--mint);transform:translateY(-1px)}
+  .success{display:none;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);
+    color:var(--mint);padding:16px;border-radius:14px;font-weight:600;max-width:520px;margin:36px auto 0}
+  .act6 .store{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:30px}
+  .act6 .store img{height:46px}
+  .act6 .store small{color:var(--slate);letter-spacing:.25em;font-weight:700;font-size:13px}
+  footer{position:relative;z-index:2;padding:26px;text-align:center;color:#5a6678;font-size:13px;
+    background:#050708}
+
+  @media(max-width:700px){
+    .act5 .row{flex-direction:column;align-items:flex-start;gap:10px}
+    .act5 .row p{text-align:left}
+    .cta-form{flex-direction:column}
+    nav{padding:16px 20px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div><div class="vignette"></div>
+
+<nav id="nav">
+  <a class="logo" href="#"><img src="appicon.png" alt="">Budget<span>Buddy</span></a>
+  <a class="navcta" href="#finale">Frühzugang sichern</a>
+</nav>
+
+<!-- ACT 0 · Title card -->
+<section class="act0">
+  <div class="bg" data-plx="0.25"></div>
+  <div class="shade"></div>
+  <div class="inner">
+    <img class="icon" src="appicon.png" alt="BudgetBuddy">
+    <h1>Dein Geld,<br><em>erwachsen</em> geworden.</h1>
+    <div class="tag">Ein Film über deine Finanzen</div>
+  </div>
+  <div class="scrollcue">Scroll</div>
+</section>
+
+<!-- ACT 1 · Problem -->
+<section class="act1">
+  <div class="lines">
+    <p data-lit>5 Apps.</p>
+    <p data-lit>3 Logins.</p>
+    <p data-lit><b>0</b> Überblick.</p>
+    <p data-lit style="margin-top:.8em">Bis jetzt<b>.</b></p>
+  </div>
+</section>
+
+<!-- ACT 2 · Sticky phone reveal -->
+<section class="act2" id="act2">
+  <div class="stage">
+    <div class="bg" data-plx="0.12"></div>
+    <div class="shade"></div>
+    <img class="phone" id="phone" src="phone.png" alt="BudgetBuddy App">
+    <div class="chapter">
+      <div data-ch="0">Ein <em>Kontostand</em>.</div>
+      <div data-ch="1">Ein <em>Depot</em>. Live.</div>
+      <div data-ch="2"><em>Eine</em> App.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ACT 3 · Chart draws on scroll -->
+<section class="act3" id="act3">
+  <div class="stage">
+    <div class="kicker">Kapitel 3 · Wachstum</div>
+    <h2>Sieh deinem Geld beim Wachsen zu.</h2>
+    <div class="pct" id="pct">+0,0 %</div>
+    <svg viewBox="0 0 860 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#34E89E" stop-opacity=".28"/>
+          <stop offset="1" stop-color="#34E89E" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path id="area" class="area" d=""></path>
+      <path id="line" class="line" d="M20,250 L110,232 L190,242 L280,190 L360,206 L450,150 L530,166 L620,104 L700,124 L780,60 L840,38"></path>
+      <circle id="dot" class="dot" r="9" cx="20" cy="250"></circle>
+    </svg>
+  </div>
+</section>
+
+<!-- ACT 4 · The film -->
+<section class="act4">
+  <div class="kicker">Kapitel 4 · Der Spot</div>
+  <h2>BudgetBuddy in 4,6 Sekunden.</h2>
+  <div class="frame">
+    <video id="film" src="film.mp4" muted playsinline loop preload="metadata"></video>
+    <div class="bars"></div>
+  </div>
+  <small>4K · 60 fps · Ton aus Rücksicht stumm</small>
+</section>
+
+<!-- ACT 5 · Credits/features -->
+<section class="act5">
+  <div class="row"><h3><span>01</span> Gesamtvermögen</h3><p>Konto + Depot = eine Zahl. Dein ganzes Geld, ein Dashboard.</p></div>
+  <div class="row"><h3><span>02</span> Live-Kurse</h3><p>Aktien, ETFs & Krypto in Echtzeit — mit Charts und Verlauf.</p></div>
+  <div class="row"><h3><span>03</span> Trade-Republic-Import</h3><p>Export hochladen, Depot steht. In dreißig Sekunden.</p></div>
+  <div class="row"><h3><span>04</span> Budgets & Insights</h3><p>Limits, die halten. Muster, die du endlich siehst.</p></div>
+  <div class="row"><h3><span>05</span> Privat by Design</h3><p>Lokal gespeichert, Face-ID-geschützt. Deine Daten gehören dir.</p></div>
+</section>
+
+<!-- ACT 6 · Finale -->
+<section class="act6" id="finale">
+  <div class="bg" data-plx="0.18"></div>
+  <div class="shade"></div>
+  <div class="inner">
+    <img class="icon" src="appicon.png" alt="">
+    <h2>Sei dabei, <em>bevor</em> alle dabei sind.</h2>
+    <p>Frühzugang sichern — kostenlos, unverbindlich, ohne Spam.</p>
+    <form class="cta-form" onsubmit="return joinWaitlist(this)">
+      <input type="email" required placeholder="deine@email.de" aria-label="E-Mail">
+      <button class="btn" type="submit">Auf die Warteliste</button>
+    </form>
+    <div class="success">✓ Du stehst auf der Liste! Wir melden uns vor dem Launch.</div>
+    <div class="store">
+      <img src="appstore_badge.svg" alt="Laden im App Store">
+      <small>AB Q4 2026</small>
+    </div>
+  </div>
+</section>
+
+<footer>„Dein Geld, erwachsen geworden." · © 2026 BudgetBuddy · Impressum · Datenschutz</footer>
+
+<script>
+(function(){
+  function joinWaitlist(f){f.style.display='none';
+    var s=f.parentElement.querySelector('.success');if(s)s.style.display='block';return false}
+  window.joinWaitlist=joinWaitlist;
+
+  var line=document.getElementById('line'),dot=document.getElementById('dot'),
+      area=document.getElementById('area'),pct=document.getElementById('pct'),
+      phone=document.getElementById('phone'),act2=document.getElementById('act2'),
+      act3=document.getElementById('act3'),chapters=document.querySelectorAll('[data-ch]'),
+      plx=document.querySelectorAll('[data-plx]'),film=document.getElementById('film');
+  var LEN=line.getTotalLength();
+  line.style.strokeDasharray=LEN;line.style.strokeDashoffset=LEN;
+
+  // area path mirrors the line, closed to the baseline
+  var lineD=line.getAttribute('d');
+  area.setAttribute('d',lineD+' L840,300 L20,300 Z');
+  area.style.opacity=0;
+
+  function prog(el){ // 0..1 progress of a tall section scrolled through its sticky window
+    var r=el.getBoundingClientRect();
+    var total=r.height-window.innerHeight;
+    return Math.min(1,Math.max(0,-r.top/total));
+  }
+
+  function pointAt(p){ // point along the line for the dot
+    return line.getPointAtLength(LEN*p);
+  }
+
+  var litEls=document.querySelectorAll('[data-lit]');
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting)e.target.classList.add('lit');});},{threshold:.6});
+  litEls.forEach(function(el){io.observe(el)});
+
+  var io2=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting)e.target.classList.add('on');});},{threshold:.25});
+  document.querySelectorAll('.act5 .row').forEach(function(el){io2.observe(el)});
+
+  var iof=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting){film.play().catch(function(){})}else{film.pause()}});},{threshold:.4});
+  iof.observe(film);
+
+  function tick(){
+    var y=window.scrollY;
+
+    // parallax backdrops
+    plx.forEach(function(el){
+      var f=parseFloat(el.getAttribute('data-plx'));
+      var r=el.parentElement.getBoundingClientRect();
+      el.style.transform='translateY('+(-r.top*f)+'px)';
+    });
+
+    // ACT 2: phone scale/float + chapters
+    var p2=prog(act2);
+    var s=1.28-0.42*p2;
+    var ty=14-30*p2;
+    phone.style.transform='translateY('+ty+'vh) scale('+s+') rotate('+(4-8*p2)+'deg)';
+    chapters.forEach(function(c,i){
+      var lo=i/3,hi=(i+1)/3;
+      c.classList.toggle('on',p2>=lo&&p2<hi||i===2&&p2>=hi);
+    });
+
+    // ACT 3: chart draw + counter
+    var p3=prog(act3);
+    var eased=p3<0?0:p3>1?1:p3*p3*(3-2*p3);
+    line.style.strokeDashoffset=LEN*(1-eased);
+    var pt=pointAt(eased);
+    dot.setAttribute('cx',pt.x);dot.setAttribute('cy',pt.y);
+    area.style.opacity=eased*.95;
+    pct.textContent='+'+(8.4*eased).toFixed(1).replace('.',',')+' %';
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

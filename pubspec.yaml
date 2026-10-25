@@ -1,0 +1,71 @@
+name: budget_buddy
+description: finance tracker (BudgetBuddy)
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Date formatting (German format)
+  intl: ^0.20.2
+
+  # Local NoSQL database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # UUID generation (transaction IDs)
+  uuid: ^4.0.0
+
+  # File picker for CSV import
+  file_picker: ^10.3.8
+
+  # Biometric / device-credential app lock
+  local_auth: ^2.3.0
+
+  # Sharing exported CSV / backup files
+  share_plus: ^10.1.4
+
+  # Locating a temp directory to write export files
+  path_provider: ^2.1.5
+
+  # HTTP client for live market prices
+  http: ^1.2.2
+
+  # opening the bank consent link in the browser
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # generate app launcher icons + native splash from a single source image
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
+flutter:
+  uses-material-design: true
+
+# app icon generation (run: dart run flutter_launcher_icons)
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    background_color: "#0A0E14"
+    theme_color: "#22C55E"
+  adaptive_icon_background: "#0A0E14"
+  adaptive_icon_foreground: "assets/icon/icon_fg.png"
+
+# native splash screen (run: dart run flutter_native_splash:create)
+flutter_native_splash:
+  color: "#0A0E14"
+  image: "assets/icon/icon_fg.png"
+  android_12:
+    color: "#0A0E14"
+    image: "assets/icon/icon_fg.png"
