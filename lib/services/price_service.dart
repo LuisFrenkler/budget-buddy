@@ -10,8 +10,10 @@
 // without any network call.
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/holding.dart';
+import 'backend_service.dart';
 import 'db.dart';
 
 class PriceService {
@@ -166,11 +168,15 @@ class PriceService {
     return null;
   }
 
+  // Yahoo's chart API; in the browser it sends no CORS headers, so the web
+  // build asks through the backend proxy instead
+  static Uri _yahooUrl(String symbol, String range) => kIsWeb
+      ? Uri.parse('${BackendService.base}/market/chart?symbol=${Uri.encodeQueryComponent(symbol)}&range=$range')
+      : Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=$range');
+
   static Future<String?> _yahooRaw(String symbol) async {
     try {
-      final url = Uri.parse(
-          'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=1d');
-      final res = await http.get(url);
+      final res = await http.get(_yahooUrl(symbol, '1d'));
       return res.statusCode == 200 ? res.body : null;
     } catch (_) {
       return null;
@@ -302,8 +308,7 @@ class PriceService {
   static Future<List<(DateTime, double)>> _yahooPoints(String symbol, int days) async {
     final range = days <= 7 ? '7d' : days <= 31 ? '1mo' : days <= 93 ? '3mo' : '1y';
     try {
-      final res = await http.get(Uri.parse(
-          'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=$range'));
+      final res = await http.get(_yahooUrl(symbol, range));
       if (res.statusCode != 200) return [];
       final parsed = parseYahooPoints(res.body);
       if (parsed == null) return [];
@@ -362,6 +367,9 @@ class PriceService {
       }
       final keys = byDay.keys.toList()..sort();
       final fallback = h.currentPriceCents / 100;
+      // the series ends at the holding's current value, so chart and headline
+      // agree; the history only contributes the shape of the movement
+      final scale = keys.isEmpty || fallback <= 0 || byDay[keys.last]! <= 0 ? 1.0 : fallback / byDay[keys.last]!;
 
       for (int i = 0; i < days; i++) {
         double price;
@@ -377,7 +385,7 @@ class PriceService {
             }
           }
           // before the first known quote: back-fill with the earliest price
-          price = atOrBefore ?? byDay[keys.first]!;
+          price = (atOrBefore ?? byDay[keys.first]!) * scale;
         }
         series[i] += (h.shares * price * 100).round();
       }

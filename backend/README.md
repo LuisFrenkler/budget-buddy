@@ -112,6 +112,7 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | GET | `/bank/sync?state=&days=90` | balance in cents and normalized bookings |
 | POST | `/bank/disconnect` | `{state}`; revokes the session |
 | GET | `/parqet/portfolio?id=` | depot positions |
+| GET | `/market/chart?symbol=&range=` | stock and ETF prices for the web app (Yahoo, cached 5 min, no sign-in) |
 
 All `/bank/*` and `/parqet/*` endpoints need `Authorization: Bearer <token>`. A
 bank link belongs to the account that created it.

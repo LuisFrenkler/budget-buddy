@@ -22,6 +22,11 @@ import 'goals_screen.dart';
 import 'recap_screen.dart';
 import '../services/goals_service.dart';
 import 'connections_screen.dart';
+import 'contracts_screen.dart';
+import 'subscription_screen.dart';
+import '../services/hints_service.dart';
+import '../services/plus_service.dart';
+import '../widgets/hints_bell.dart';
 import 'profile_screen.dart';
 
 // The start screen: total net worth with an interactive chart and a glance at
@@ -119,6 +124,26 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
+  // takes the user to where a hint can be acted on
+  void _openHint(HintTarget target) {
+    Widget? page;
+    switch (target) {
+      case HintTarget.budgets:
+        return widget.onOpen(1, segment: 1);
+      case HintTarget.transactions:
+        return widget.onOpen(1, segment: 0);
+      case HintTarget.contracts:
+        page = const ContractsScreen();
+      case HintTarget.subscription:
+        page = const SubscriptionScreen();
+      case HintTarget.connections:
+        page = const ConnectionsScreen();
+      case HintTarget.goals:
+        page = const GoalsScreen();
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+  }
+
   // the signed-in user's initial, or a person for guests
   Widget _initial() {
     final name = AccountService.current.value?.name ?? '';
@@ -135,6 +160,17 @@ class _OverviewScreenState extends State<OverviewScreen> {
         const SizedBox(width: 10),
         const Wordmark(size: 20),
         const Spacer(),
+        HintsBell(
+          hints: HintsService.current(
+            tx: DB.getTx(),
+            budgets: DB.getBudgets(),
+            goals: GoalsService.all(),
+            subscription: PlusService.subscription.value,
+            bankValidUntil: Settings.bankValidUntil,
+          ),
+          onOpen: _openHint,
+          onChanged: () => setState(() {}),
+        ),
         // privacy mode: hide all balances with one tap
         ValueListenableBuilder<bool>(
           valueListenable: Settings.hideAmounts,

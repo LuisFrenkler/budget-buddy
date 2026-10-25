@@ -30,7 +30,6 @@ class _PlusScreenState extends State<PlusScreen> {
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
     (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Jeder Kassenbon in Sekunden erfasst'),
     (Icons.flag_rounded, 'Unbegrenzt Sparziele', 'Mit Buddys Sparplan für jedes Ziel'),
-    (Icons.notifications_active_rounded, 'Alarme', 'Wenn ein Abo teurer wird oder ein Budget kippt'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
   ];
 

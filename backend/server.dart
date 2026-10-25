@@ -206,6 +206,8 @@ Future<void> _handle(HttpRequest req) async {
       return _disconnect(req);
     case '/parqet/portfolio':
       return _parqetPortfolio(req);
+    case '/market/chart':
+      return _marketChart(req);
     default:
       return _json(req, 404, {'error': 'unknown endpoint: ${req.uri.path}'});
   }
@@ -427,6 +429,44 @@ Future<void> _parqetPortfolio(HttpRequest req) async {
     return {'name': name, 'shares': shares.toDouble(), 'valueCents': (value * 100).round()};
   }).toList();
   return _json(req, 200, {'holdings': out});
+}
+
+// --- market data ---
+
+// Yahoo's chart API sends no CORS headers, so the web app asks through here.
+// Public data only, no sign-in needed; answers are cached for five minutes.
+final _chartCache = <String, (DateTime, String)>{};
+const _ranges = {'1d', '5d', '7d', '1mo', '3mo', '6mo', '1y'};
+
+Future<void> _marketChart(HttpRequest req) async {
+  final symbol = req.uri.queryParameters['symbol'] ?? '';
+  final range = req.uri.queryParameters['range'] ?? '1d';
+  if (!RegExp(r'^[A-Za-z0-9.=^-]{1,20}$').hasMatch(symbol) || !_ranges.contains(range)) {
+    return _json(req, 400, {'error': 'symbol oder range ungültig'});
+  }
+  final key = '$symbol|$range';
+  final hit = _chartCache[key];
+  if (hit != null && DateTime.now().difference(hit.$1) < const Duration(minutes: 5)) {
+    return _raw(req, hit.$2);
+  }
+  final res = await http.get(
+    Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/${Uri.encodeComponent(symbol)}'
+        '?interval=1d&range=$range'),
+    headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
+  );
+  if (res.statusCode != 200) return _json(req, 502, {'error': 'Kursdaten gerade nicht verfügbar'});
+  if (_chartCache.length > 500) _chartCache.clear();
+  _chartCache[key] = (DateTime.now(), res.body);
+  return _raw(req, res.body);
+}
+
+Future<void> _raw(HttpRequest req, String json) async {
+  _cors(req.response);
+  req.response
+    ..statusCode = 200
+    ..headers.contentType = ContentType.json;
+  req.response.write(json);
+  await req.response.close();
 }
 
 // --- html ---
