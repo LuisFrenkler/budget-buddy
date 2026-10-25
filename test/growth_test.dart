@@ -85,4 +85,76 @@ void main() {
       await PlusService.cancelTest();
     });
   });
+
+  group('Plus subscription', () {
+    setUpAll(() async {
+      Hive.init(Directory.systemTemp.createTempSync('sub').path);
+      await Hive.openBox('settings');
+    });
+
+    test('trial, invoices, cancel and resume', () async {
+      final start = DateTime(2026, 1, 10);
+      final sub = await PlusService.start(plan: PlusPlan.monthly, method: PayMethod.sepa, now: start);
+      expect(PlusService.active.value, isTrue);
+      expect(sub.trialEnds, DateTime(2026, 1, 17));
+      expect(sub.inTrial(DateTime(2026, 1, 15)), isTrue);
+      expect(sub.invoices(DateTime(2026, 1, 15)), isEmpty);
+
+      // two payments by mid March: 17 Jan and 17 Feb
+      final march = DateTime(2026, 3, 1);
+      expect(sub.invoices(march).length, 2);
+      expect(sub.periodEnd(march), DateTime(2026, 3, 17));
+
+      await PlusService.cancel(now: march);
+      final cancelled = PlusService.subscription.value!;
+      expect(cancelled.endsAt, DateTime(2026, 3, 17));
+      expect(cancelled.activeAt(DateTime(2026, 3, 16)), isTrue);
+      expect(cancelled.activeAt(DateTime(2026, 3, 18)), isFalse);
+      // no charge on the day it ends
+      expect(cancelled.invoices(DateTime(2026, 4, 1)).length, 2);
+
+      await PlusService.resume();
+      expect(PlusService.subscription.value!.cancelled, isFalse);
+
+      // a run-out cancellation is dropped on load
+      await PlusService.cancel(now: march);
+      PlusService.load(now: DateTime(2026, 4, 1));
+      expect(PlusService.active.value, isFalse);
+    });
+
+    test('promo codes add free days', () async {
+      expect(PlusService.promoDays('freund'), 30);
+      expect(PlusService.promoDays('NOPE'), isNull);
+      final now = DateTime(2026, 5, 1);
+      await PlusService.start(plan: PlusPlan.yearly, method: PayMethod.paypal, now: now, extraDays: 14);
+      expect(PlusService.subscription.value!.trialEnds, DateTime(2026, 5, 22));
+      expect(await PlusService.redeem('BUDDY30', now: now), isTrue);
+      expect(PlusService.subscription.value!.trialEnds, DateTime(2026, 6, 21));
+      await PlusService.end();
+    });
+  });
+
+  group('Payment checks', () {
+    test('cards', () {
+      expect(PaymentChecks.cardNumber('4242 4242 4242 4242'), isTrue);
+      expect(PaymentChecks.cardNumber('4242 4242 4242 4241'), isFalse);
+      expect(PaymentChecks.cardBrand('5555 5555 5555 4444'), 'Mastercard');
+      expect(PaymentChecks.cardBrand('3782 822463 10005'), 'Amex');
+      final now = DateTime(2026, 10, 25);
+      expect(PaymentChecks.expiry('10/26', now: now), isTrue);
+      expect(PaymentChecks.expiry('09/26', now: now), isFalse);
+      expect(PaymentChecks.expiry('13/28', now: now), isFalse);
+      expect(PaymentChecks.cvc('123'), isTrue);
+      expect(PaymentChecks.cvc('12'), isFalse);
+    });
+
+    test('IBAN and e-mail', () {
+      expect(PaymentChecks.iban('DE89 3704 0044 0532 0130 00'), isTrue);
+      expect(PaymentChecks.iban('DE89 3704 0044 0532 0130 01'), isFalse);
+      expect(PaymentChecks.iban('GB82 WEST 1234 5698 7654 32'), isTrue);
+      expect(PaymentChecks.maskIban('DE89 3704 0044 0532 0130 00'), 'DE89 •••• 3000');
+      expect(PaymentChecks.email('luis@beispiel.de'), isTrue);
+      expect(PaymentChecks.email('luis@'), isFalse);
+    });
+  });
 }

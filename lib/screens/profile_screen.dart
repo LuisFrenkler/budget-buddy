@@ -19,6 +19,7 @@ import 'auth_screens.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
+import 'subscription_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -134,43 +135,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Plus status: an invitation, or what is active
+  // Plus status: an invitation, or the subscription with its next date
   Widget _plusCard() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: PlusService.active,
-      builder: (context, plus, _) => Material(
-        borderRadius: BorderRadius.circular(18),
-        clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: plus ? null : const LinearGradient(colors: AppColors.heroBrand),
-            color: plus ? AppColors.surface : null,
-          ),
-          child: InkWell(
-            onTap: plus ? null : () => showPlus(context),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(children: [
-                Text(plus ? '✨' : '🚀', style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(plus ? 'BudgetBuddy Plus aktiv' : 'BudgetBuddy Plus',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 16, color: plus ? AppColors.text : Colors.white)),
-                    Text(plus ? 'Testmodus, ohne Zahlung' : 'Buddy, Belege und Ziele ohne Limit · 7 Tage gratis',
-                        style: TextStyle(fontSize: 13, color: plus ? AppColors.textDim : Colors.white70)),
-                  ]),
-                ),
-                if (plus)
-                  TextButton(onPressed: PlusService.cancelTest, child: const Text('Beenden'))
-                else
-                  const Icon(Icons.chevron_right_rounded, color: Colors.white),
-              ]),
+    return ValueListenableBuilder<Subscription?>(
+      valueListenable: PlusService.subscription,
+      builder: (context, sub, _) {
+        final plus = sub != null;
+        final now = DateTime.now();
+        final subtitle = sub == null
+            ? 'Buddy, Belege und Ziele ohne Limit · 7 Tage gratis'
+            : sub.cancelled
+                ? 'Gekündigt · aktiv bis ${Dates.dayMonth(sub.endsAt!)}'
+                : sub.inTrial(now)
+                    ? 'Gratis-Test bis ${Dates.dayMonth(sub.trialEnds)} · Abo verwalten'
+                    : 'Nächste Zahlung ${Dates.dayMonth(sub.periodEnd(now))} · Abo verwalten';
+        return Material(
+          borderRadius: BorderRadius.circular(18),
+          clipBehavior: Clip.antiAlias,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: plus ? null : const LinearGradient(colors: AppColors.heroBrand),
+              color: plus ? AppColors.surface : null,
+            ),
+            child: InkWell(
+              onTap: plus
+                  ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()))
+                  : () => showPlus(context),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(children: [
+                  Text(plus ? '✨' : '🚀', style: const TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(plus ? 'Mein Abo · Plus' : 'BudgetBuddy Plus',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 16, color: plus ? AppColors.text : Colors.white)),
+                      Text(subtitle, style: TextStyle(fontSize: 13, color: plus ? AppColors.textDim : Colors.white70)),
+                    ]),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: plus ? AppColors.textDim : Colors.white),
+                ]),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -585,7 +595,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await DB.clearAll();
     if (AccountService.current.value != null) await AccountService.logout();
     await Settings.resetApp();
-    PlusService.load();
+    await PlusService.end();
     if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
   }
 }

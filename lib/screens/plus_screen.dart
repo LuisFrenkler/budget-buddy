@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'checkout_screen.dart';
 import '../services/plus_service.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
@@ -34,26 +35,15 @@ class _PlusScreenState extends State<PlusScreen> {
   ];
 
   Future<void> _buy() async {
-    // the store purchase is not connected yet: say so instead of pretending
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Testmodus'),
-        content: const Text('In dieser Version ist der Kauf über App Store und Google Play noch nicht angebunden. '
-            'Du kannst Plus hier kostenlos und ohne Zahlung testen.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Plus testen')),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    await PlusService.activateTest();
-    HapticFeedback.heavyImpact();
-    if (!mounted) return;
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Willkommen bei Plus ✨')));
+    final ok = await showCheckout(context, _yearly ? PlusPlan.yearly : PlusPlan.monthly);
+    if (ok && mounted) Navigator.pop(context);
+  }
+
+  void _restore() {
+    final found = PlusService.restore();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(found ? 'Dein Plus-Abo ist wieder aktiv' : 'Kein Abo gefunden, das wiederhergestellt werden kann')));
+    if (found) Navigator.pop(context);
   }
 
   @override
@@ -119,6 +109,11 @@ class _PlusScreenState extends State<PlusScreen> {
                   _plan(true),
                   const SizedBox(height: 10),
                   _plan(false),
+                  const SizedBox(height: 16),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    for (final m in availableMethods().take(4))
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: MethodLogo(m)),
+                  ]),
                 ],
               ),
             ),
@@ -133,9 +128,14 @@ class _PlusScreenState extends State<PlusScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Danach ${_yearly ? '${PlusService.yearlyPrice} im Jahr' : '${PlusService.monthlyPrice} im Monat'}. '
-                  'Kündigen jederzeit im App Store, spätestens 24 Std. vor Ablauf.',
+                  'Heute 0 €, jederzeit kündbar unter Profil › Mein Abo.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
+                ),
+                TextButton(
+                  onPressed: _restore,
+                  style: TextButton.styleFrom(foregroundColor: AppColors.textDim, visualDensity: VisualDensity.compact),
+                  child: const Text('Käufe wiederherstellen', style: TextStyle(fontSize: 12.5)),
                 ),
               ]),
             ),

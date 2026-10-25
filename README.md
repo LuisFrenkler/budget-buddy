@@ -101,6 +101,12 @@ Live prices are optional. To enable them, pass a free [Finnhub](https://finnhub.
 flutter run --dart-define=FINNHUB_KEY=your_key
 ```
 
+Build the web version without the offline cache, so a reload always shows the latest build:
+
+```bash
+flutter build web --pwa-strategy=none
+```
+
 Run the tests:
 
 ```bash

@@ -16,22 +16,25 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="BudgetBuddy: Deine Finanzen mit KI. Konto, Depot und Sparziele an einem Ort.">
+  <meta name="theme-color" content="#0B0B10">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="budget_buddy">
+  <meta name="apple-mobile-web-app-title" content="BudgetBuddy">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png">
 
-  <title>budget_buddy</title>
+  <title>BudgetBuddy</title>
   <link rel="manifest" href="manifest.json">
   
   
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  
+  
   <style id="splash-screen-style">
     html {
       height: 100%
@@ -42,6 +45,16 @@
       min-height: 100%;
       background-color: #0B0B10;
           background-size: 100% 100%;
+    }
+
+    /* the logo breathes gently while the app loads */
+    #splash img {
+      animation: bb-breathe 1.8s ease-in-out infinite;
+    }
+
+    @keyframes bb-breathe {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.85; }
     }
 
     .center {
@@ -105,6 +118,17 @@
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
   
+  
+  <script>
+    // Older builds installed an offline cache that kept serving the old app on
+    // reload. Remove it once, then load the current version from the server.
+    if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+      Promise.all([
+        navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.unregister()))),
+        window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : null,
+      ]).then(() => location.reload());
+    }
+  </script>
   <script src="flutter_bootstrap.js" async=""></script>
 
 

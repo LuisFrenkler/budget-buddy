@@ -1,11 +1,11 @@
 {
-    "name": "budget_buddy",
-    "short_name": "budget_buddy",
+    "name": "BudgetBuddy",
+    "short_name": "BudgetBuddy",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0B0B10",
     "theme_color": "#7C5CFF",
-    "description": "A new Flutter project.",
+    "description": "Deine Finanzen mit KI",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
