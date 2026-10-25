@@ -6,7 +6,7 @@ import '../services/db.dart';
 import '../services/price_service.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
-import '../widgets/hero_card.dart';
+import '../widgets/big_number.dart';
 import '../widgets/line_chart.dart';
 import 'add_holding_screen.dart';
 import 'holding_detail_screen.dart';
@@ -74,12 +74,6 @@ class _DepotScreenState extends State<DepotScreen> {
               IconButton(icon: const Icon(Icons.add), onPressed: () => _add()),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            heroTag: 'fab_depot',
-            onPressed: () => _add(),
-            icon: const Icon(Icons.add),
-            label: const Text('Position'),
-          ),
           body: holdings.isEmpty
               ? _emptyState()
               : ListView(
@@ -97,7 +91,8 @@ class _DepotScreenState extends State<DepotScreen> {
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     ...holdings.map(_holdingCard),
-                    const SizedBox(height: 80),
+                    // room for the floating navigation bar
+                    const SizedBox(height: 100),
                   ],
                 ),
         );
@@ -123,42 +118,23 @@ class _DepotScreenState extends State<DepotScreen> {
     );
   }
 
-  // top gradient hero: total value, gain/loss pill and invested amount
+  // big total value with the overall gain/loss and invested amount below
   Widget _overviewCard(int value, int invested, int gain) {
-    final up = gain >= 0;
     final percent = invested == 0 ? 0.0 : gain / invested * 100;
-    final pct = Money.percent(percent, digits: 2);
-
-    return HeroCard(
-      label: 'Depotwert',
-      value: Money.format(value),
-      gradient: AppColors.heroBlue,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(up ? Icons.trending_up : Icons.trending_down, color: Colors.white, size: 18),
-                  const SizedBox(width: 6),
-                  Text('${Money.signed(gain)} · $pct',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text('Investiert: ${Money.format(invested)}',
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: BigNumber(
+        label: 'Depotwert',
+        cents: value,
+        below: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ChangeLabel(cents: gain, percent: percent, suffix: 'gesamt'),
+            const SizedBox(height: 4),
+            Text('Investiert: ${Money.format(invested)}',
+                style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          ],
+        ),
       ),
     );
   }

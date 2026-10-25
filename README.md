@@ -18,10 +18,10 @@ A personal finance app built with **Flutter** that brings your budget and your i
 ## Features
 
 **Budgeting**
-- Track income and expenses by category, with search and editing
+- Track income and expenses by category, grouped by month, with search, editing and swipe-to-delete with undo
 - Monthly budgets per category with progress bars
 - Recurring transactions (e.g. rent, salary) that are generated automatically, including any that came due while the app was closed
-- Statistics per month with a spending trend chart
+- Statistics per month with an income vs. expenses chart for the last six months
 - Automatic insights comparing this month's spending to last month
 - Achievement badges (first transaction, €100 saved, 50 transactions, 7 days tracked)
 
@@ -35,6 +35,7 @@ A personal finance app built with **Flutter** that brings your budget and your i
 - CSV export and full JSON backup / restore
 - App lock with Face ID / fingerprint / device PIN, re-locks when the app goes to the background
 - Dark and light mode, onboarding on first launch
+- Demo mode with six months of realistic sample data to explore the app instantly
 
 **Optional live sync**
 A small Dart backend acts as a proxy to link a real bank account (GoCardless, PSD2) and a Parqet depot, so API secrets never live in the app. See [backend/README.md](backend/README.md).
@@ -49,7 +50,7 @@ A small Dart backend acts as a proxy to link a real bank account (GoCardless, PS
 | Data | CSV import/export, JSON backup |
 | APIs | Finnhub (prices), GoCardless Bank Account Data, Parqet |
 | Backend | Dart HTTP server (`backend/server.dart`) |
-| Testing | flutter_test – 72 unit and widget tests |
+| Testing | flutter_test – 76 unit and widget tests |
 
 ## Project Structure
 

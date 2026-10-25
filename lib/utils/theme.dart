@@ -57,6 +57,9 @@ class AppTheme {
       backgroundColor: AppColors.bg,
       foregroundColor: AppColors.text,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      // large left-aligned titles on every screen
+      centerTitle: false,
       titleTextStyle: TextStyle(
         color: AppColors.text,
         fontSize: 24,
@@ -103,6 +106,14 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
 
+    // floating snackbars above the navigation bar
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: AppColors.surfaceAlt,
+      contentTextStyle: TextStyle(color: AppColors.text, fontSize: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+
     // bottom navigation (custom floating nav is used on the home screen)
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.surface,
@@ -147,6 +158,25 @@ class Categories {
     {'name': 'Sonstiges', 'emoji': '💰'},
   ];
   
+  // maps a category name to a representative icon
+  static IconData icon(String c) {
+    switch (c) {
+      case 'Lebensmittel': return Icons.shopping_cart_rounded;
+      case 'Transport': return Icons.directions_car_rounded;
+      case 'Unterhaltung': return Icons.movie_rounded;
+      case 'Wohnen': return Icons.home_rounded;
+      case 'Kleidung': return Icons.checkroom_rounded;
+      case 'Gesundheit': return Icons.favorite_rounded;
+      case 'Bildung': return Icons.school_rounded;
+      case 'Essen & Trinken': return Icons.restaurant_rounded;
+      case 'Gehalt': return Icons.work_rounded;
+      case 'Nebenjob': return Icons.handyman_rounded;
+      case 'Investition': return Icons.trending_up_rounded;
+      case 'Geschenk': return Icons.card_giftcard_rounded;
+      default: return Icons.category_rounded;
+    }
+  }
+
   // all category names (for csv validation)
   static List<String> get all {
     final list = <String>[];

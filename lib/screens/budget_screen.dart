@@ -34,13 +34,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
             ),
             // show empty state or list of budgets
             body: budgets.isEmpty ? _buildEmptyState() : _buildBudgetList(budgets),
-            // floating button to add new budget
-            floatingActionButton: FloatingActionButton.extended(
-              heroTag: 'fab_budget',
-              onPressed: _showAddDialog,
-              icon: const Icon(Icons.add),
-              label: const Text('Budget'),
-            ),
           );
         },
       ),

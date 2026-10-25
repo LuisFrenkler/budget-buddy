@@ -45,11 +45,16 @@ class DB {
   }
   
   // get transactions for a specific month
-  static List<Transaction> getTxByMonth(DateTime month) {
-    final all = getTx();
+  static List<Transaction> getTxByMonth(DateTime month) => inMonth(getTx(), month);
+
+  // --- pure helpers on an already loaded list ---
+  // Screens load getTx() once per build and aggregate with these, instead of
+  // re-reading and re-sorting the whole box for every single number.
+
+  // the transactions of one calendar month
+  static List<Transaction> inMonth(List<Transaction> list, DateTime month) {
     final result = <Transaction>[];
-    
-    for (var t in all) {
+    for (var t in list) {
       if (t.date.year == month.year && t.date.month == month.month) {
         result.add(t);
       }
@@ -57,42 +62,20 @@ class DB {
     return result;
   }
 
-  // total income, in cents
-  static int income({DateTime? month}) {
-    final list = month != null ? getTxByMonth(month) : getTx();
-
+  // sum of all incomes or all expenses in the list, in cents
+  static int sumOf(List<Transaction> list, {required bool isIncome}) {
     int sum = 0;
     for (var t in list) {
-      if (t.isIncome) {
+      if (t.isIncome == isIncome) {
         sum += t.amountCents;
       }
     }
     return sum;
   }
 
-  // calculate total expenses, in cents
-  static int expenses({DateTime? month}) {
-    final list = month != null ? getTxByMonth(month) : getTx();
-
-    int sum = 0;
-    for (var t in list) {
-      if (!t.isIncome) {
-        sum += t.amountCents;
-      }
-    }
-    return sum;
-  }
-
-  // balance, in cents
-  static int balance({DateTime? month}) {
-    return income(month: month) - expenses(month: month);
-  }
-
-  // group transactions by category and sum the amounts in cents (pie chart)
-  static Map<String, int> byCategory({DateTime? month, required bool isIncome}) {
-    final list = month != null ? getTxByMonth(month) : getTx();
+  // amounts per category for incomes or expenses, in cents
+  static Map<String, int> categoriesOf(List<Transaction> list, {required bool isIncome}) {
     final result = <String, int>{};
-
     for (var t in list) {
       if (t.isIncome == isIncome) {
         // if category exists, add to it. otherwise start at 0
@@ -101,6 +84,23 @@ class DB {
     }
     return result;
   }
+
+  // total income, in cents
+  static int income({DateTime? month}) =>
+      sumOf(month != null ? getTxByMonth(month) : getTx(), isIncome: true);
+
+  // calculate total expenses, in cents
+  static int expenses({DateTime? month}) =>
+      sumOf(month != null ? getTxByMonth(month) : getTx(), isIncome: false);
+
+  // balance, in cents
+  static int balance({DateTime? month}) {
+    return income(month: month) - expenses(month: month);
+  }
+
+  // group transactions by category and sum the amounts in cents (pie chart)
+  static Map<String, int> byCategory({DateTime? month, required bool isIncome}) =>
+      categoriesOf(month != null ? getTxByMonth(month) : getTx(), isIncome: isIncome);
 
   static Future<void> initBadges() async {
     // only create if box is empty
@@ -142,6 +142,9 @@ class DB {
   
   // check if user earned any new badges
   static Future<void> checkBadges() async {
+    // badges may not exist yet, e.g. when data arrives before the home screen
+    // ever opened (demo data from the onboarding)
+    await initBadges();
     final tx = getTx();
     
     // first transaction added

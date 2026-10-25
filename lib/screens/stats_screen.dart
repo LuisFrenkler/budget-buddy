@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
 import '../services/db.dart';
+import '../models/transaction.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
-import '../widgets/hero_card.dart';
+import '../widgets/big_number.dart';
 import '../services/insights_service.dart';
 
 class StatsScreen extends StatefulWidget {
@@ -17,6 +18,9 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   // currently selected month for statistics
   late DateTime _month;
+
+  // until the user picks a month, follow the latest month that has data
+  bool _autoMonth = true;
   
   // which tab is active (0 = expenses, 1 = income)
   int _tab = 0;
@@ -42,34 +46,36 @@ class _StatsScreenState extends State<StatsScreen> {
     return ValueListenableBuilder<Box>(
       valueListenable: Hive.box('transactions').listenable(),
       builder: (_, __, ___) {
-        // load data
-        final tx = DB.getTxByMonth(_month);
-        final income = DB.income(month: _month);
-        final expenses = DB.expenses(month: _month);
+        // load all transactions once and aggregate in memory
+        final all = DB.getTx();
+        if (_autoMonth) _month = _latestMonthWithData(all);
+
+        final tx = DB.inMonth(all, _month);
+        final income = DB.sumOf(tx, isIncome: true);
+        final expenses = DB.sumOf(tx, isIncome: false);
         final balance = income - expenses;
         
         // get category breakdown
-        final data = DB.byCategory(month: _month, isIncome: _tab == 1);
+        final data = DB.categoriesOf(tx, isIncome: _tab == 1);
         
         // color for charts (red for expenses, green for income)
         final color = _tab == 0 ? AppColors.error : AppColors.primary;
 
         // month-over-month expense insights
-        final lastMonth = DateTime(_month.year, _month.month - 1);
+        final last = DB.inMonth(all, DateTime(_month.year, _month.month - 1));
         final insights = InsightsService.generate(
-          thisByCat: DB.byCategory(month: _month, isIncome: false),
-          lastByCat: DB.byCategory(month: lastMonth, isIncome: false),
+          thisByCat: DB.categoriesOf(tx, isIncome: false),
+          lastByCat: DB.categoriesOf(last, isIncome: false),
           thisExpenses: expenses,
-          lastExpenses: DB.expenses(month: lastMonth),
+          lastExpenses: DB.sumOf(last, isIncome: false),
         );
 
-        // 6-month net balance trend (oldest -> newest)
-        final trend = <int>[];
-        final trendLabels = <String>[];
+        // income and expenses of the last 6 months (oldest -> newest)
+        final trend = <_MonthTotals>[];
         for (int i = 5; i >= 0; i--) {
           final m = DateTime(_month.year, _month.month - i);
-          trend.add(DB.income(month: m) - DB.expenses(month: m));
-          trendLabels.add(_shortMonths[m.month - 1]);
+          final mt = DB.inMonth(all, m);
+          trend.add(_MonthTotals(m, DB.sumOf(mt, isIncome: true), DB.sumOf(mt, isIncome: false)));
         }
 
         return Scaffold(
@@ -89,8 +95,8 @@ class _StatsScreenState extends State<StatsScreen> {
                 _overviewCard(income, expenses, balance),
                 const SizedBox(height: 24),
 
-                // 6-month net trend
-                _trendCard(trend, trendLabels),
+                // 6-month income vs expenses
+                _trendCard(trend),
                 const SizedBox(height: 24),
 
                 // automatic insights vs the previous month
@@ -119,78 +125,113 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
+  // the newest month that has transactions, or the current month
+  DateTime _latestMonthWithData(List<Transaction> newestFirst) {
+    final now = DateTime.now();
+    if (newestFirst.isEmpty || DB.inMonth(newestFirst, now).isNotEmpty) return DateTime(now.year, now.month);
+    final d = newestFirst.first.date;
+    return DateTime(d.year, d.month);
+  }
+
+  void _selectMonth(DateTime m) {
+    setState(() {
+      _autoMonth = false;
+      _month = DateTime(m.year, m.month);
+    });
+  }
+
   // widget to select month with arrow buttons
   Widget _monthSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // go to previous month
-          IconButton(
-            onPressed: () => setState(() => _month = DateTime(_month.year, _month.month - 1)),
-            icon: const Icon(Icons.chevron_left, color: AppColors.primary),
-          ),
-          // display current month and year
-          Text(
-            '${_monthNames[_month.month - 1]} ${_month.year}',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          // button to go to next month (not into the future)
-          IconButton(
-            onPressed: () {
-              final now = DateTime.now();
-              // only allow if not already at current month
-              bool canGoForward = _month.year < now.year || 
-                                  (_month.year == now.year && _month.month < now.month);
-              if (canGoForward) {
-                setState(() => _month = DateTime(_month.year, _month.month + 1));
-              }
-            },
-            icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-          ),
-        ],
-      ),
+    final now = DateTime.now();
+    // not into the future
+    final canGoForward = _month.year < now.year || (_month.year == now.year && _month.month < now.month);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // go to previous month
+        IconButton(
+          onPressed: () => _selectMonth(DateTime(_month.year, _month.month - 1)),
+          icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
+        ),
+        // display current month and year
+        Text(
+          '${_monthNames[_month.month - 1]} ${_month.year}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        IconButton(
+          onPressed: canGoForward ? () => _selectMonth(DateTime(_month.year, _month.month + 1)) : null,
+          icon: Icon(Icons.chevron_right_rounded,
+              color: canGoForward ? AppColors.primary : AppColors.border),
+        ),
+      ],
     );
   }
 
-  // bar chart of the net balance over the last 6 months
-  Widget _trendCard(List<int> nets, List<String> labels) {
-    int maxAbs = 0;
-    for (final n in nets) {
-      if (n.abs() > maxAbs) maxAbs = n.abs();
+  // paired bars of income (green) and expenses (red) for the last 6 months;
+  // tapping a month selects it
+  Widget _trendCard(List<_MonthTotals> months) {
+    int maxValue = 1;
+    for (final m in months) {
+      maxValue = math.max(maxValue, math.max(m.income, m.expenses));
     }
+    Widget bar(int value, Color color, bool selected) {
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        width: 10,
+        height: (value / maxValue * 80).clamp(3.0, 80.0),
+        decoration: BoxDecoration(
+          color: selected ? color : color.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Verlauf (6 Monate)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Row(children: [
+            const Text('Verlauf', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            _legendDot(AppColors.primary, 'Einnahmen'),
+            const SizedBox(width: 12),
+            _legendDot(AppColors.error, 'Ausgaben'),
+          ]),
           const SizedBox(height: 16),
           SizedBox(
             height: 110,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                for (int i = 0; i < nets.length; i++)
+                for (final m in months)
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          width: 18,
-                          height: maxAbs == 0 ? 4.0 : (nets[i].abs() / maxAbs * 72).clamp(4.0, 72.0),
-                          decoration: BoxDecoration(
-                            color: nets[i] >= 0 ? AppColors.primary : AppColors.error,
-                            borderRadius: BorderRadius.circular(6),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _selectMonth(m.month),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              bar(m.income, AppColors.primary, m.month == _month),
+                              const SizedBox(width: 3),
+                              bar(m.expenses, AppColors.error, m.month == _month),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(labels[i], style: TextStyle(fontSize: 10, color: AppColors.textDim)),
-                      ],
+                          const SizedBox(height: 6),
+                          Text(_shortMonths[m.month.month - 1],
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: m.month == _month ? AppColors.text : AppColors.textDim,
+                                fontWeight: m.month == _month ? FontWeight.w600 : FontWeight.normal,
+                              )),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -199,6 +240,14 @@ class _StatsScreenState extends State<StatsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _legendDot(Color color, String label) {
+    return Row(children: [
+      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+    ]);
   }
 
   // card listing the automatic insights
@@ -250,20 +299,30 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  // gradient hero card showing monthly balance, income and expenses (cents)
+  // big monthly balance with income and expenses below (cents)
   Widget _overviewCard(int income, int expenses, int balance) {
-    return HeroCard(
-      label: 'Monatsbilanz',
-      value: Money.signed(balance),
-      gradient: AppColors.heroGreen,
-      child: Row(
-        children: [
-          HeroPill(icon: Icons.south_west, label: 'Einnahmen', value: Money.format(income)),
-          const SizedBox(width: 10),
-          HeroPill(icon: Icons.north_east, label: 'Ausgaben', value: Money.format(expenses)),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: BigNumber(
+        label: 'Monatsbilanz',
+        cents: balance,
+        signed: true,
+        below: Row(children: [
+          _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.primary),
+          const SizedBox(width: 20),
+          _miniStat(Icons.arrow_upward_rounded, 'Ausgaben', expenses, AppColors.error),
+        ]),
       ),
     );
+  }
+
+  Widget _miniStat(IconData icon, String label, int cents, Color color) {
+    return Row(children: [
+      Icon(icon, size: 16, color: color),
+      const SizedBox(width: 4),
+      Text('$label ', style: TextStyle(color: AppColors.textDim, fontSize: 14)),
+      Text(Money.format(cents), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+    ]);
   }
 
   // tab buttons to switch between expenses and income view
@@ -525,4 +584,12 @@ class _PiePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
+}
+
+// income and expenses of one month (cents), for the trend chart
+class _MonthTotals {
+  final DateTime month;
+  final int income;
+  final int expenses;
+  _MonthTotals(this.month, this.income, this.expenses);
 }

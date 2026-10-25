@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db.dart';
+import '../services/demo_data.dart';
 import '../models/transaction.dart';
-import '../models/badge.dart' as badge_model;
 import '../utils/theme.dart';
 import '../utils/money.dart';
-import '../widgets/hero_card.dart';
+import '../widgets/big_number.dart';
+import '../widgets/line_chart.dart';
 import 'add_screen.dart';
 import 'budget_screen.dart';
 import 'stats_screen.dart';
@@ -14,17 +16,27 @@ import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-  
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // current tab index (0 = home, 1 = budget, 2 = stats, 3 = profile)
+  // current tab index (0 = home, 1 = budget, 2 = stats, 3 = depot)
   int _tab = 0;
-  
+
   // search text for filtering transactions
   String _search = '';
+  bool _searching = false;
+
+  // ids swiped away but not yet gone from the box, so the Dismissible
+  // leaves the tree immediately instead of waiting for Hive's notification
+  final _hidden = <String>{};
+
+  static const _monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                              'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  static const _shortMonths = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni',
+                               'Juli', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
 
   @override
   void initState() {
@@ -35,12 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // rebuild the whole shell (tabs, nav, FAB) when the theme mode toggles,
+    // rebuild the whole shell (tabs, nav) when the theme mode toggles,
     // so every tab re-reads the current colors instead of keeping stale ones
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
       builder: (context, _, __) => Scaffold(
-        // tap navigation
         body: IndexedStack(
           index: _tab,
           children: [
@@ -48,21 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
             BudgetScreen(),
             StatsScreen(),
             DepotScreen(),
-            ProfileScreen(),
           ],
         ),
-
-        // custom floating pill navigation
+        // custom floating pill navigation with the add button in the middle
         bottomNavigationBar: _floatingNav(),
-
-        // floating action button, only show on home tab
-        floatingActionButton: _tab == 0
-            ? FloatingActionButton(
-                heroTag: 'fab_home',
-                onPressed: _addTx,
-                child: const Icon(Icons.add),
-              )
-            : null,
       ),
     );
   }
@@ -71,165 +71,180 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _homeTab() {
     return ValueListenableBuilder<Box>(
       valueListenable: Hive.box('transactions').listenable(),
-      builder: (context, box, _) {
-        // load data
-        final tx = DB.getTx();
-        final badges = DB.getBadges();
-        final balance = DB.balance();
-        final income = DB.income();
-        final expenses = DB.expenses();
-        final depot = DB.portfolioValue();
+      builder: (context, _, __) => ValueListenableBuilder<Box>(
+        // the depot value is part of the net worth shown on top
+        valueListenable: Hive.box('holdings').listenable(),
+        builder: (context, _, __) {
+          // load everything once and aggregate in memory
+          final tx = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
+          final cash = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false);
+          final depot = DB.portfolioValue();
+          final thisMonth = DB.inMonth(tx, DateTime.now());
+          final monthNet = DB.sumOf(thisMonth, isIncome: true) - DB.sumOf(thisMonth, isIncome: false);
+          final rows = _groupByMonth(_filter(tx));
 
-        // count unlockedbadges
-        int unlockedCount = 0;
-        for (var b in badges) {
-          if (b.isUnlocked) unlockedCount++;
-        }
-
-        return Scaffold(
-          body: SafeArea(
+          return SafeArea(
             bottom: false,
-            child: ListView(
-              // extra bottom space so the last item is not hidden behind the + button
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 96),
-              children: [
-              // greeting header
-              _greetingHeader(),
-              const SizedBox(height: 18),
-              // balance card showing total, income, expenses
-              _balanceCard(balance, income, expenses),
-              const SizedBox(height: 24),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _topBar(),
+                        const SizedBox(height: 28),
+                        _summary(cash, depot, monthNet, thisMonth.isNotEmpty),
+                        if (tx.length >= 2) ...[
+                          const SizedBox(height: 20),
+                          LineChart(_balanceSeries(tx), color: AppColors.primary, height: 110),
+                        ],
+                        const SizedBox(height: 28),
+                        if (tx.isNotEmpty) _listHeader(),
+                        if (_searching) ...[const SizedBox(height: 8), _searchField()],
+                      ],
+                    ),
+                  ),
+                ),
 
-              // total net worth (cash + depot), only when there's a depot
-              if (depot > 0) ...[
-                _netWorthCard(balance, depot),
-                const SizedBox(height: 24),
-              ],
-
-              // badges section header with count
-              _sectionHeader('Abzeichen', '$unlockedCount/${badges.length}'),
-              const SizedBox(height: 8),
-              // horizontal scrollable badge list
-              _badgeRow(badges),
-              const SizedBox(height: 24),
-              
-              // transactions section header with count
-              _sectionHeader('Transaktionen', '${tx.length}'),
-              const SizedBox(height: 8),
-              // search field to filter transactions
-              _searchField(),
-              const SizedBox(height: 16),
-              
-              // show empty message or list of transactions
-              if (tx.isEmpty) 
-                _emptyState() 
-              else
-                _txList(tx),
+                // show empty message or the lazily built transaction list
+                if (tx.isEmpty)
+                  SliverToBoxAdapter(child: _emptyState())
+                else if (rows.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Center(child: Text('Keine Treffer', style: TextStyle(color: AppColors.textDim))),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    // bottom space so the last row clears the navigation bar
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
+                    sliver: SliverList.builder(
+                      itemCount: rows.length,
+                      itemBuilder: (_, i) {
+                        final r = rows[i];
+                        return r is _MonthGroup ? _monthHeader(r) : _txRow(r as Transaction);
+                      },
+                    ),
+                  ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  // greeting row at the top of the home screen
-  Widget _greetingHeader() {
+  // wordmark on the left, profile avatar on the right (opens the profile)
+  Widget _topBar() {
     return Row(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Willkommen zurück', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
-              const Text('BudgetBuddy', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            ],
-          ),
+        Text.rich(
+          TextSpan(children: [
+            TextSpan(text: 'Budget', style: TextStyle(color: AppColors.text)),
+            const TextSpan(text: 'Buddy', style: TextStyle(color: AppColors.primary)),
+          ]),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: const Icon(Icons.person, color: AppColors.primary),
+        const Spacer(),
+        Material(
+          color: AppColors.surfaceAlt,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: _openProfile,
+            child: const SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(Icons.person_rounded, color: AppColors.primary, size: 22),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  // total net worth: cash balance + current depot value
-  Widget _netWorthCard(int cash, int depot) {
-    final total = cash + depot;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Gesamtvermögen', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
-          const SizedBox(height: 2),
-          Text(Money.format(total), style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 14),
+  // big number on top: net worth (or cash balance without a depot)
+  Widget _summary(int cash, int depot, int monthNet, bool hasMonth) {
+    final hasDepot = depot > 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BigNumber(
+          label: hasDepot ? 'Gesamtvermögen' : 'Kontostand',
+          cents: hasDepot ? cash + depot : cash,
+          below: hasMonth ? ChangeLabel(cents: monthNet, suffix: 'diesen Monat') : null,
+        ),
+        if (hasDepot) ...[
+          const SizedBox(height: 16),
           Row(children: [
-            _netStat(Icons.account_balance_wallet, 'Konto', Money.signed(cash),
-                cash >= 0 ? AppColors.primary : AppColors.error),
-            const SizedBox(width: 12),
-            _netStat(Icons.trending_up, 'Depot', Money.format(depot), AppColors.accentBlue),
+            _splitPill('Konto', cash, AppColors.primary, null),
+            const SizedBox(width: 10),
+            _splitPill('Depot', depot, AppColors.accentBlue, () => setState(() => _tab = 3)),
           ]),
         ],
-      ),
+      ],
     );
   }
 
-  Widget _netStat(IconData icon, String label, String value, Color color) {
+  // small tile showing one part of the net worth
+  Widget _splitPill(String label, int cents, Color color, VoidCallback? onTap) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
-        child: Row(children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                Text(value,
-                    style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13),
-                    overflow: TextOverflow.ellipsis),
-              ],
-            ),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(children: [
+              Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                    const SizedBox(height: 2),
+                    Text(Money.format(cents),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ]),
           ),
-        ]),
+        ),
       ),
     );
   }
 
-  // big gradient hero card showing balance, income and expenses (all in cents)
-  Widget _balanceCard(int balance, int income, int expenses) {
-    return HeroCard(
-      label: 'Kontostand',
-      value: Money.signed(balance),
-      gradient: AppColors.heroGreen,
-      child: Row(
-        children: [
-          HeroPill(icon: Icons.south_west, label: 'Einnahmen', value: Money.format(income)),
-          const SizedBox(width: 10),
-          HeroPill(icon: Icons.north_east, label: 'Ausgaben', value: Money.format(expenses)),
-        ],
-      ),
-    );
+  // running cash balance after each transaction day, oldest first
+  List<double> _balanceSeries(List<Transaction> newestFirst) {
+    final series = <double>[];
+    int running = 0;
+    DateTime? lastDay;
+    for (final t in newestFirst.reversed) {
+      running += t.isIncome ? t.amountCents : -t.amountCents;
+      final day = DateTime(t.date.year, t.date.month, t.date.day);
+      // one point per day: overwrite the point of the same day
+      if (day == lastDay) {
+        series[series.length - 1] = running / 100;
+      } else {
+        series.add(running / 100);
+        lastDay = day;
+      }
+    }
+    // keep the chart readable for long histories
+    return series.length > 180 ? series.sublist(series.length - 180) : series;
   }
 
   // custom floating pill navigation bar
   Widget _floatingNav() {
-    const items = <List<Object>>[
-      [Icons.home_rounded, 'Start'],
-      [Icons.account_balance_wallet_rounded, 'Budget'],
-      [Icons.pie_chart_rounded, 'Statistik'],
-      [Icons.trending_up_rounded, 'Depot'],
-      [Icons.person_rounded, 'Profil'],
-    ];
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       height: 66,
@@ -239,10 +254,12 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          for (int i = 0; i < items.length; i++)
-            _navItem(items[i][0] as IconData, items[i][1] as String, i),
+          _navItem(Icons.home_rounded, 'Start', 0),
+          _navItem(Icons.account_balance_wallet_rounded, 'Budget', 1),
+          Expanded(child: Center(child: _addButton())),
+          _navItem(Icons.pie_chart_rounded, 'Statistik', 2),
+          _navItem(Icons.trending_up_rounded, 'Depot', 3),
         ],
       ),
     );
@@ -251,197 +268,208 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _navItem(IconData icon, String label, int i) {
     final active = _tab == i;
     final color = active ? AppColors.primary : AppColors.textDim;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _tab = i),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 3),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  color: color,
-                  fontWeight: active ? FontWeight.bold : FontWeight.normal)),
-        ],
-      ),
-    );
-  }
-
-  // maps a category name to a representative icon
-  IconData _categoryIcon(String c) {
-    switch (c) {
-      case 'Lebensmittel': return Icons.shopping_cart;
-      case 'Transport': return Icons.directions_car;
-      case 'Unterhaltung': return Icons.movie;
-      case 'Wohnen': return Icons.home;
-      case 'Kleidung': return Icons.checkroom;
-      case 'Gesundheit': return Icons.favorite;
-      case 'Bildung': return Icons.school;
-      case 'Essen & Trinken': return Icons.restaurant;
-      case 'Gehalt': return Icons.work;
-      case 'Nebenjob': return Icons.handyman;
-      case 'Investition': return Icons.trending_up;
-      case 'Geschenk': return Icons.card_giftcard;
-      default: return Icons.category;
-    }
-  }
-
-  // section header
-  Widget _sectionHeader(String title, String count) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-        // count badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-          child: Text(count, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
-  }
-
-  // horizontal scrollable list of badge cards
-  Widget _badgeRow(List<badge_model.Badge> badges) {
-    return SizedBox(
-      height: 96,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: badges.length,
-        // space between badges
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, i) {
-          final b = badges[i];
-          // each badge is tappable
-          return GestureDetector(
-            onTap: () => _showBadgeDialog(b),
-            child: Container(
-              width: 78,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(12),
-                // green border if unlocked, gray if locked
-                border: Border.all(color: b.isUnlocked ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // emoji - gray if locked
-                  Text(b.emoji, style: TextStyle(fontSize: 28, color: b.isUnlocked ? null : Colors.grey)),
-                  const SizedBox(height: 4),
-                  // badge name - shrinks instead of breaking long words like "Wochentracker"
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      b.name,
-                      maxLines: 1,
-                      style: TextStyle(fontSize: 9, color: b.isUnlocked ? AppColors.text : AppColors.textDim),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (_tab != i) HapticFeedback.selectionClick();
+          setState(() => _tab = i);
         },
-      ),
-    );
-  }
-
-  // text field to search/filter transactions
-  Widget _searchField() {
-    return TextField(
-      // update search text when user types
-      onChanged: (v) => setState(() => _search = v),
-      decoration: InputDecoration(
-        hintText: 'Suchen...',
-        prefixIcon: const Icon(Icons.search),
-        // show clear button only when there is text
-        suffixIcon: _search.isNotEmpty
-            ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() => _search = ''))
-            : null,
-      ),
-    );
-  }
-
-  // shown when there are no transactions yet
-  Widget _emptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.receipt_long, size: 64, color: AppColors.textDim),
-            const SizedBox(height: 16),
-            const Text('Keine Transaktionen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Tippe auf + um loszulegen', style: TextStyle(color: AppColors.textDim)),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 3),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: color,
+                    fontWeight: active ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
     );
   }
 
-  // builds the list of transaction cards
-  Widget _txList(List<Transaction> tx) {
-    // filter transactions by search text
-    final filtered = <Transaction>[];
-    for (var t in tx) {
-      final searchLower = _search.toLowerCase();
-      // check if category or note contains search text
-      final categoryMatch = t.category.toLowerCase().contains(searchLower);
-      final noteMatch = t.note?.toLowerCase().contains(searchLower) ?? false;
-      
-      if (categoryMatch || noteMatch) {
-        filtered.add(t);
-      }
-    }
+  // round green add button in the middle of the navigation
+  Widget _addButton() {
+    return Material(
+      color: AppColors.primary,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _addTx();
+        },
+        child: const SizedBox(
+          width: 48,
+          height: 48,
+          child: Icon(Icons.add_rounded, color: Colors.white, size: 28),
+        ),
+      ),
+    );
+  }
 
-    // build list of transaction cards
-    final items = <Widget>[];
-    for (var t in filtered) {
-      items.add(
-        // Dismissible allows swipe to delete
-        Dismissible(
-          key: Key(t.id),
-          // only allow swipe from right to left
-          direction: DismissDirection.endToStart,
-          // red background with delete icon
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
-          confirmDismiss: (_) => _confirmDeleteTx(t),
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              onTap: () => _addTx(tx: t),
-              // rounded-square chip with a category icon
-              leading: IconChip(_categoryIcon(t.category), t.isIncome ? AppColors.accent : AppColors.error),
-              title: Text(t.category, style: const TextStyle(fontWeight: FontWeight.w500)),
-              subtitle: Text(t.dateText),
-              // amount on the right
-              trailing: Text(
-                t.amountText,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: t.isIncome ? AppColors.primary : AppColors.error,
+  // "Transaktionen" title with a search toggle
+  Widget _listHeader() {
+    return Row(
+      children: [
+        const Text('Transaktionen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        const Spacer(),
+        IconButton(
+          icon: Icon(_searching ? Icons.close_rounded : Icons.search_rounded, color: AppColors.textDim),
+          onPressed: () => setState(() {
+            _searching = !_searching;
+            if (!_searching) _search = '';
+          }),
+        ),
+      ],
+    );
+  }
+
+  // text field to search/filter transactions
+  Widget _searchField() {
+    return TextField(
+      autofocus: true,
+      onChanged: (v) => setState(() => _search = v),
+      decoration: const InputDecoration(
+        hintText: 'Kategorie oder Beschreibung',
+        prefixIcon: Icon(Icons.search_rounded),
+      ),
+    );
+  }
+
+  // shown when there are no transactions yet
+  Widget _emptyState() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 24, 32, 120),
+      child: Column(
+        children: [
+          Icon(Icons.receipt_long_rounded, size: 56, color: AppColors.textDim),
+          const SizedBox(height: 16),
+          const Text('Noch keine Transaktionen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Erfasse deine erste Buchung oder schau dir die App mit Beispieldaten an.',
+              textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+          const SizedBox(height: 24),
+          ElevatedButton(onPressed: _addTx, child: const Text('Transaktion hinzufügen')),
+          const SizedBox(height: 8),
+          TextButton(onPressed: _loadDemo, child: const Text('Mit Beispieldaten ausprobieren')),
+        ],
+      ),
+    );
+  }
+
+  // filters transactions by the search text (category or note)
+  List<Transaction> _filter(List<Transaction> tx) {
+    final q = _search.trim().toLowerCase();
+    if (q.isEmpty) return tx;
+    return tx
+        .where((t) => t.category.toLowerCase().contains(q) || (t.note?.toLowerCase().contains(q) ?? false))
+        .toList();
+  }
+
+  // flattens the (newest first) list into month headers followed by their rows
+  List<Object> _groupByMonth(List<Transaction> tx) {
+    final rows = <Object>[];
+    _MonthGroup? group;
+    for (final t in tx) {
+      if (group == null || group.year != t.date.year || group.month != t.date.month) {
+        group = _MonthGroup(t.date.year, t.date.month);
+        rows.add(group);
+      }
+      group.net += t.isIncome ? t.amountCents : -t.amountCents;
+      rows.add(t);
+    }
+    return rows;
+  }
+
+  Widget _monthHeader(_MonthGroup g) {
+    final name = _monthNames[g.month - 1];
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Row(
+        children: [
+          Text(g.year == DateTime.now().year ? name : '$name ${g.year}',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600)),
+          const Spacer(),
+          Text(Money.signed(g.net), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  // "Heute", "Gestern" or e.g. "5. Jan."
+  String _dayLabel(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(d.year, d.month, d.day);
+    final diff = today.difference(day).inDays;
+    if (diff == 0) return 'Heute';
+    if (diff == 1) return 'Gestern';
+    return '${d.day}. ${_shortMonths[d.month - 1]}';
+  }
+
+  // one calm transaction row: description as title, category and day below
+  Widget _txRow(Transaction t) {
+    final note = t.note?.trim() ?? '';
+    final title = note.isNotEmpty ? note : t.category;
+    final subtitle = note.isNotEmpty ? '${t.category} · ${_dayLabel(t.date)}' : _dayLabel(t.date);
+
+    return Dismissible(
+      key: Key(t.id),
+      // only allow swipe from right to left
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(14)),
+        child: const Icon(Icons.delete_rounded, color: Colors.white),
+      ),
+      onDismissed: (_) => _deleteTx(t),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _addTx(tx: t),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            children: [
+              CategoryAvatar(t.category, isIncome: t.isIncome),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        style: TextStyle(fontSize: 13, color: AppColors.textDim),
+                        overflow: TextOverflow.ellipsis),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(width: 12),
+              // income in green, expenses in the normal text color
+              Text(
+                t.amountText,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: t.isIncome ? AppColors.primary : AppColors.text,
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    }
-    
-    return Column(children: items);
+      ),
+    );
+  }
+
+  void _openProfile() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
   }
 
   // opens the add/edit transaction screen
@@ -451,84 +479,48 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => AddScreen(tx: tx)),
     );
-    
+
     // if transaction was saved, show success message
     if (result == true && mounted) {
+      HapticFeedback.lightImpact();
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(tx == null ? 'Hinzugefügt' : 'Aktualisiert'),
-        backgroundColor: AppColors.primary,
       ));
     }
   }
 
-  // confirm delete
-  Future<bool> _confirmDeleteTx(Transaction t) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Löschen?'),
-        content: Text('${t.category}: ${t.amountText}'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Nein')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ja', style: TextStyle(color: AppColors.error))),
-        ],
+  // deletes right away and offers an undo instead of asking first
+  void _deleteTx(Transaction t) {
+    HapticFeedback.mediumImpact();
+    setState(() => _hidden.add(t.id));
+    DB.deleteTx(t.id);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text('${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
+      action: SnackBarAction(
+        label: 'Rückgängig',
+        textColor: AppColors.primary,
+        // re-add the exact same transaction (same id) to restore it
+        onPressed: () async {
+          await DB.addTx(t);
+          if (mounted) setState(() => _hidden.remove(t.id));
+        },
       ),
-    );
-    
-    // if user confirmed, delete from database and offer an undo
-    if (confirmed == true) {
-      await DB.deleteTx(t.id);
-      if (mounted) {
-        setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${t.category} gelöscht'),
-          action: SnackBarAction(
-            label: 'Rückgängig',
-            textColor: AppColors.primary,
-            // re-add the exact same transaction (same id) to restore it
-            onPressed: () => DB.addTx(t),
-          ),
-        ));
-      }
-    }
-    return false;
+    ));
   }
-  // shows popup with badge details when user taps a badge
-  void _showBadgeDialog(badge_model.Badge b) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        // title with emoji and name
-        title: Row(
-          children: [
-            Text(b.emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 12),
-            Expanded(child: Text(b.name)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // badge description
-            Text(b.description),
-            const SizedBox(height: 12),
-            // unlock status
-            Text(
-              b.isUnlocked
-                  ? 'Freigeschaltet am ${b.unlockedDate?.day}.${b.unlockedDate?.month}.${b.unlockedDate?.year}'
-                  : 'Noch nicht freigeschaltet',
-              style: TextStyle(color: AppColors.textDim, fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-        ],
-      ),
-    );
+
+  Future<void> _loadDemo() async {
+    await DemoData.load();
+    if (mounted) setState(() {});
   }
+}
+
+// header row of one month in the transaction list
+class _MonthGroup {
+  final int year;
+  final int month;
+  int net = 0;
+  _MonthGroup(this.year, this.month);
 }

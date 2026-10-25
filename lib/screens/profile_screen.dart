@@ -11,6 +11,7 @@ import '../services/settings_service.dart';
 import '../services/auth_service.dart';
 import '../services/file_saver.dart';
 import '../utils/theme.dart';
+import '../models/badge.dart' as badge_model;
 import 'recurring_screen.dart';
 import 'connections_screen.dart';
 
@@ -59,6 +60,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               
+              const SizedBox(height: 24),
+
+              // achievements, kept low-key here instead of on the home screen
+              _sectionLabel('Erfolge'),
+              _badgeGrid(),
+
               const SizedBox(height: 24),
 
               // security section
@@ -154,6 +161,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // small grey section heading
+  // two-column grid of achievement badges; locked ones are dimmed
+  Widget _badgeGrid() {
+    final badges = DB.getBadges();
+    return LayoutBuilder(builder: (context, c) {
+      final w = (c.maxWidth - 10) / 2;
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [for (final b in badges) _badgeTile(b, w)],
+      );
+    });
+  }
+
+  Widget _badgeTile(badge_model.Badge b, double width) {
+    return Opacity(
+      opacity: b.isUnlocked ? 1 : 0.4,
+      child: Container(
+        width: width,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+        child: Row(
+          children: [
+            Text(b.emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(b.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      overflow: TextOverflow.ellipsis),
+                  Text(b.description,
+                      style: TextStyle(color: AppColors.textDim, fontSize: 11),
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _sectionLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),

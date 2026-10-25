@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/demo_data.dart';
 import '../utils/theme.dart';
 
 // Three-slide intro shown once on the first launch.
@@ -42,6 +43,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool get _isLast => _page == _pages.length - 1;
+
+  bool _loadingDemo = false;
+
+  // fills the app with sample data, then enters it
+  Future<void> _startWithDemo() async {
+    setState(() => _loadingDemo = true);
+    await DemoData.load();
+    widget.onFinish();
+  }
 
   void _next() {
     if (_isLast) {
@@ -96,16 +106,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _next,
+                  onPressed: _loadingDemo ? null : _next,
                   style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
                   child: Text(_isLast ? 'Los geht\'s' : 'Weiter'),
                 ),
               ),
             ),
+            // try the app with sample data instead of starting empty
+            SizedBox(
+              height: 48,
+              child: AnimatedOpacity(
+                opacity: _isLast ? 1 : 0,
+                duration: const Duration(milliseconds: 250),
+                child: TextButton(
+                  onPressed: _isLast && !_loadingDemo ? _startWithDemo : null,
+                  child: Text(_loadingDemo ? 'Wird geladen …' : 'Mit Beispieldaten starten'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
