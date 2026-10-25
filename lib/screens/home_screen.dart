@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'smart_entry_sheet.dart';
 import 'package:flutter/services.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
@@ -150,8 +151,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _addOption(sheet, Icons.receipt_long_rounded, AppColors.primary, 'Umsatz erfassen',
-                  'Ausgabe oder Einnahme', () async {
+              _addOption(sheet, Icons.auto_awesome_rounded, AppColors.primary, 'Schnell erfassen',
+                  'Einfach eintippen, z. B. „Döner 8,50 gestern“', () => showSmartEntry(context)),
+              _addOption(sheet, Icons.document_scanner_rounded, const Color(0xFFF472B6), 'Beleg scannen',
+                  'Foto vom Kassenbon, Buddy liest den Rest', () => showSmartEntry(context, scan: true)),
+              _addOption(sheet, Icons.receipt_long_rounded, AppColors.positive, 'Umsatz erfassen',
+                  'Mit Ziffernblock', () async {
                 if (await TxRow.openEditor(context) && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hinzugefügt')));
                 }

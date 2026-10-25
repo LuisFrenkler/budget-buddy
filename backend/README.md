@@ -54,6 +54,23 @@ the Enable Banking app. If you need HTTPS, expose the server, for example with
 `cloudflared tunnel --url http://localhost:8090`. Then set both `PUBLIC_URL` and
 `EB_REDIRECT_URL` to the tunnel address.
 
+## AI features (Buddy, optional)
+
+```bash
+export ANTHROPIC_API_KEY=...   # from console.anthropic.com
+```
+
+With the key, Buddy answers through Claude Opus 5.5 (streamed), reads receipts
+and refines quick entries. Requests opt into server-side refusal fallbacks
+(`fallbacks: "default"`). Each user can make 150 AI calls per day. Without the key,
+the app falls back to offline answers and the offline parser.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/ai/chat` | `{finances, history}` → server-sent events `{"t": "..."}`, then `{"done": true}` |
+| POST | `/ai/parse` | `{text, categories}` → `{booking}` |
+| POST | `/ai/receipt` | `{image (base64), mediaType, categories}` → `{booking}` |
+
 ## Depot (Parqet, optional)
 
 ```bash

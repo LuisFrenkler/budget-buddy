@@ -52,6 +52,8 @@ class BackendService {
     }
   }
 
+  static Map<String, String> get authHeaders => _auth;
+
   static Map<String, String> get _auth =>
       AccountService.token == null ? {} : {'Authorization': 'Bearer ${AccountService.token}'};
 

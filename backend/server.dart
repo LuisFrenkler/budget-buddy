@@ -9,6 +9,7 @@
 //   EB_APP_ID, EB_PRIVATE_KEY_PATH   Enable Banking app id and its .pem key.
 //                                    Without them the server runs a demo bank.
 //   EB_REDIRECT_URL                  whitelisted redirect (default <PUBLIC_URL>/bank/callback)
+//   ANTHROPIC_API_KEY                optional, enables the AI features (lib/ai.dart)
 //   PARQET_TOKEN, PARQET_PORTFOLIO_ID  optional, for the depot
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
 //
@@ -23,6 +24,7 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
 import 'lib/accounts.dart';
+import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
 import 'lib/demo_bank.dart';
 import 'lib/enable_banking.dart';
@@ -44,6 +46,11 @@ final _sessions = <String, Map<String, dynamic>>{};
 final _dataDir = '${File.fromUri(Platform.script).parent.path}/.data';
 final _store = File('$_dataDir/sessions.json');
 final _accounts = Accounts(File('$_dataDir/users.json'));
+final _ai = Ai(_env('ANTHROPIC_API_KEY'));
+
+// AI calls cost money: at most this many per user and day
+const _aiDailyLimit = 150;
+final _aiUsage = <String, ({String day, int count})>{};
 
 Future<void> main() async {
   final port = int.tryParse(_env('PORT')) ?? 8090;
@@ -62,6 +69,7 @@ Future<void> main() async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
   stdout.writeln('BudgetBuddy backend on $_publicUrl');
   stdout.writeln('  Bank:   ${_bank.mode == 'live' ? 'Enable Banking (live)' : 'Demo-Bank (set EB_APP_ID + EB_PRIVATE_KEY_PATH for real banks)'}');
+  stdout.writeln('  KI:     ${_ai.enabled ? 'Claude (live)' : 'not configured (set ANTHROPIC_API_KEY)'}');
   stdout.writeln('  Parqet: ${_env('PARQET_TOKEN').isEmpty ? 'not configured' : 'configured'}');
 
   await for (final req in server) {
@@ -69,6 +77,8 @@ Future<void> main() async {
       await _handle(req);
     } on AuthError catch (e) {
       await _json(req, e.status, {'error': e.message});
+    } on AiError catch (e) {
+      await _json(req, 502, {'error': e.message});
     } catch (e) {
       await _json(req, 500, {'error': '$e'});
     }
@@ -149,7 +159,7 @@ Future<void> _handle(HttpRequest req) async {
   final q = req.uri.queryParameters;
   switch (req.uri.path) {
     case '/health':
-      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'parqet': _env('PARQET_TOKEN').isNotEmpty});
+      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'parqet': _env('PARQET_TOKEN').isNotEmpty});
     case '/auth/register':
       final b = await _body(req);
       return _json(req, 200,
@@ -166,6 +176,20 @@ Future<void> _handle(HttpRequest req) async {
     case '/auth/account':
       if (req.method != 'DELETE') return _json(req, 405, {'error': 'DELETE only'});
       return _deleteAccount(req);
+    case '/ai/chat':
+      return _aiChat(req);
+    case '/ai/parse':
+      final user = _aiUser(req);
+      final b = await _body(req);
+      _countAi(user);
+      return _json(req, 200, {'booking': await _ai.parse('${b['text'] ?? ''}', _categories(b))});
+    case '/ai/receipt':
+      final user = _aiUser(req);
+      final b = await _body(req);
+      _countAi(user);
+      return _json(req, 200, {
+        'booking': await _ai.receipt('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}', _categories(b))
+      });
     case '/bank/institutions':
       return _json(req, 200, {'institutions': await _bank.institutions(q['country'] ?? 'DE')});
     case '/bank/connect':
@@ -329,6 +353,55 @@ Future<void> _deleteAccount(HttpRequest req) async {
   await _save();
   await _accounts.delete(user['id'] as String);
   return _json(req, 200, {'ok': true});
+}
+
+// --- AI ---
+
+Map<String, dynamic> _aiUser(HttpRequest req) {
+  final user = _user(req);
+  if (!_ai.enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
+  return user;
+}
+
+void _countAi(Map<String, dynamic> user) {
+  final day = DateTime.now().toIso8601String().substring(0, 10);
+  final id = user['id'] as String;
+  final used = _aiUsage[id];
+  final count = used != null && used.day == day ? used.count : 0;
+  if (count >= _aiDailyLimit) throw const AuthError(429, 'Tageslimit für Buddy erreicht. Morgen geht es weiter.');
+  _aiUsage[id] = (day: day, count: count + 1);
+}
+
+List<String> _categories(Map<String, dynamic> body) {
+  final list = (body['categories'] as List?)?.map((e) => '$e').where((e) => e.isNotEmpty).toList();
+  return list == null || list.isEmpty ? const ['Sonstiges'] : list;
+}
+
+// POST {finances, history} -> server-sent events: {"t": "..."} pieces, then {"done": true}
+Future<void> _aiChat(HttpRequest req) async {
+  final user = _aiUser(req);
+  final body = await _body(req);
+  _countAi(user);
+  final history = [for (final m in (body['history'] as List? ?? [])) (m as Map).cast<String, dynamic>()];
+  if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
+
+  final res = req.response;
+  _cors(res);
+  res.headers
+    ..contentType = ContentType('text', 'event-stream', charset: 'utf-8')
+    ..set('Cache-Control', 'no-cache');
+  res.bufferOutput = false;
+  void send(Map<String, dynamic> event) => res.write('data: ${jsonEncode(event)}\n\n');
+  try {
+    await for (final piece in _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history)) {
+      send({'t': piece});
+      await res.flush();
+    }
+    send({'done': true});
+  } catch (e) {
+    send({'error': '$e'});
+  }
+  await res.close();
 }
 
 // --- Parqet (depot) ---

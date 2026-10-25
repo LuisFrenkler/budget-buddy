@@ -9,6 +9,8 @@ A personal finance app built with **Flutter** that brings your budget and your i
 ## Screenshots
 
 <p align="center">
+  <img src="docs/images/screen_buddy.png" alt="Buddy, the AI finance coach" width="150">
+  <img src="docs/images/screen_smart.png" alt="Quick entry in plain words" width="150">
   <img src="docs/images/screen_welcome.png" alt="Welcome with sign-up" width="150">
   <img src="docs/images/screen_start.png" alt="Start: net worth with interactive chart" width="150">
   <img src="docs/images/screen_account.png" alt="Account: balance and transactions" width="150">
@@ -18,6 +20,13 @@ A personal finance app built with **Flutter** that brings your budget and your i
 </p>
 
 ## Features
+
+**Buddy, the AI finance coach** (Claude Opus 5.5)
+- Ask anything about your money – "Wo kann ich sparen?", "Kann ich mir 800 € Urlaub leisten?" – and get a short, concrete answer computed from your real numbers, streamed word by word
+- **Receipt scan:** snap a receipt, and Claude reads merchant, total, date and category
+- **Plain-language entry:** type "Döner 8,50 gestern" and watch it turn into a booking while you type (offline parser), refined by Claude on save
+- Privacy first: Buddy sends only a summary (totals per month and category, budgets, contracts, merchant names, no IBAN) and only after a one-time consent. The API key stays on the server, with a daily limit per user
+- Works without AI too: offline answers computed on the device, clearly labeled
 
 **Real bank connection**
 - Links your actual checking account through Enable Banking (PSD2, 2,500+ European banks, read-only). Login happens at your bank, never in the app
@@ -59,7 +68,7 @@ A personal finance app built with **Flutter** that brings your budget and your i
 | Storage | Hive (local NoSQL database) |
 | Security | local_auth (biometrics / device credentials) |
 | Data | CSV import/export, JSON backup |
-| APIs | Finnhub (prices), Enable Banking (PSD2), Parqet |
+| APIs | Claude API (Opus 5.5), Finnhub (prices), Enable Banking (PSD2), Parqet |
 | Backend | Dart HTTP server (`backend/server.dart`) |
 | Testing | flutter_test – 86 unit and widget tests |
 

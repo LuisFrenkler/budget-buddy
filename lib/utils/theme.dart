@@ -146,6 +146,7 @@ class AppTheme {
       behavior: SnackBarBehavior.floating,
       backgroundColor: AppColors.surfaceAlt,
       contentTextStyle: TextStyle(color: AppColors.text, fontSize: 14),
+      actionTextColor: AppColors.primary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
 

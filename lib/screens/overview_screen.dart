@@ -16,6 +16,7 @@ import '../widgets/brand.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
 import '../widgets/tx_row.dart';
+import 'buddy_screen.dart';
 import 'budget_screen.dart';
 import 'connections_screen.dart';
 import 'profile_screen.dart';
@@ -95,6 +96,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ..._netWorth(tx, cash, depotNow),
                   const SizedBox(height: 28),
                   _accountsCard(tx, cash, depotNow),
+                  const SizedBox(height: 16),
+                  const BuddyCard(),
                   ..._budgets(),
                   ..._insight(tx),
                   ..._recent(tx),
