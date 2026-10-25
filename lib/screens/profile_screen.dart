@@ -108,15 +108,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               _sectionLabel('Konto'),
               _group([
-                if (account == null)
-                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung', _signUp)
-                else ...[
+                if (account == null) ...[
+                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung', _signUp),
+                  _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest),
+                ] else ...[
                   _row(Icons.logout_rounded, 'Abmelden', null, _logout),
                   _row(Icons.person_remove_rounded, 'Konto löschen', 'Konto und Bankverbindungen entfernen',
                       _deleteAccount, danger: true),
                 ],
-                _row(Icons.delete_outline_rounded, 'Alle Daten löschen', 'Umsätze, Budgets und Depot auf diesem Gerät',
-                    _deleteAllData, danger: true),
+                _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten löschen und neu starten',
+                    _resetApp, danger: true),
               ]),
               const SizedBox(height: 24),
               Center(
@@ -522,39 +523,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _deleteAllData() async {
-    // show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Alle Daten löschen?'),
-        content: const Text('Kann nicht rückgängig gemacht werden.'),
-        actions: [
-          // cancel button, returns false
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Nein'),
-          ),
-          // confirm button, returns true
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Ja', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _leaveGuest() async {
+    await Settings.setGuest(false);
+    if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
+  }
 
-    // if user confirmed, delete everything
-    if (confirmed == true) {
-      await DB.clearAll();
-      
-      // show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gelöscht')),
-        );
-      }
-    }
+  // deletes everything on this device and starts over like a fresh install;
+  // a server account stays and can be used to sign in again
+  Future<void> _resetApp() async {
+    final ok = await _confirm(
+        'App zurücksetzen?',
+        'Alle Umsätze, Budgets, Depot-Positionen und Einstellungen auf diesem Gerät werden gelöscht. '
+            '${AccountService.current.value != null ? 'Du wirst abgemeldet, dein Konto bleibt bestehen. ' : ''}'
+            'Das lässt sich nicht rückgängig machen.',
+        'Zurücksetzen');
+    if (!ok) return;
+    await DB.clearAll();
+    if (AccountService.current.value != null) await AccountService.logout();
+    await Settings.resetApp();
+    if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
   }
 }

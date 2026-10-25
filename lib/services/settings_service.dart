@@ -89,6 +89,15 @@ class Settings {
     }
   }
 
+  // back to a fresh install: every setting except the theme
+  static Future<void> resetApp() async {
+    final dark = darkMode;
+    await _box.clear();
+    await setDarkMode(dark);
+    guest.value = false;
+    hideAmounts.value = false;
+  }
+
   static DateTime? _date(String key) {
     final ms = _box.get(key) as int?;
     return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
