@@ -28,6 +28,7 @@ import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
 import 'lib/demo_bank.dart';
 import 'lib/enable_banking.dart';
+import 'lib/splits.dart';
 
 const _parqetBase = 'https://api.parqet.com/v1';
 
@@ -46,6 +47,7 @@ final _sessions = <String, Map<String, dynamic>>{};
 final _dataDir = '${File.fromUri(Platform.script).parent.path}/.data';
 final _store = File('$_dataDir/sessions.json');
 final _accounts = Accounts(File('$_dataDir/users.json'));
+final _splits = SharedSplits(File('$_dataDir/splits.json'));
 final _ai = Ai(_env('ANTHROPIC_API_KEY'));
 
 // AI calls cost money: at most this many per user and day
@@ -65,6 +67,7 @@ Future<void> main() async {
   }
   await _load();
   await _accounts.load();
+  await _splits.load();
 
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
   stdout.writeln('BudgetBuddy backend on $_publicUrl');
@@ -222,6 +225,32 @@ Future<void> _handle(HttpRequest req) async {
       return _disconnect(req);
     case '/parqet/portfolio':
       return _parqetPortfolio(req);
+    case '/splits/share':
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200,
+          await _splits.share(user['id'] as String, (b['group'] as Map).cast<String, dynamic>(), (b['me'] as num?)?.toInt() ?? 0));
+    case '/splits/preview':
+      _user(req);
+      return _json(req, 200, _splits.preview(q['code'] ?? ''));
+    case '/splits/join':
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200,
+          await _splits.join(user['id'] as String, '${b['code'] ?? ''}', (b['member'] as num?)?.toInt() ?? -1));
+    case '/splits/get':
+      final user = _user(req);
+      return _json(req, 200, _splits.get(user['id'] as String, q['id'] ?? ''));
+    case '/splits/op':
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200,
+          await _splits.apply(user['id'] as String, '${b['id'] ?? ''}', (b['op'] as Map).cast<String, dynamic>()));
+    case '/splits/leave':
+      final user = _user(req);
+      final b = await _body(req);
+      await _splits.leave(user['id'] as String, '${b['id'] ?? ''}');
+      return _json(req, 200, {'ok': true});
     case '/market/chart':
       return _marketChart(req);
     default:
@@ -369,6 +398,7 @@ Future<void> _deleteAccount(HttpRequest req) async {
     }
   }
   await _save();
+  await _splits.forget(user['id'] as String);
   await _accounts.delete(user['id'] as String);
   return _json(req, 200, {'ok': true});
 }

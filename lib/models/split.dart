@@ -69,6 +69,11 @@ class SplitGroup {
   final List<String> members; // members[0] is the user ("Ich")
   final List<SplitExpense> expenses;
   final List<Settlement> settlements;
+  // on this device: which member the user is, and the invite code once the
+  // group is shared through the server (null = only on this device)
+  int me;
+  String? code;
+  int version;
 
   SplitGroup({
     required this.id,
@@ -77,10 +82,16 @@ class SplitGroup {
     required this.members,
     List<SplitExpense>? expenses,
     List<Settlement>? settlements,
+    this.me = 0,
+    this.code,
+    this.version = 0,
   })  : expenses = expenses ?? [],
         settlements = settlements ?? [];
 
-  Map<String, dynamic> toMap() => {
+  bool get shared => code != null;
+
+  // what the server stores: the same for everyone, without the local fields
+  Map<String, dynamic> toShared() => {
         'id': id,
         'name': name,
         'emoji': emoji,
@@ -89,7 +100,12 @@ class SplitGroup {
         'settlements': [for (final s in settlements) s.toMap()],
       };
 
+  Map<String, dynamic> toMap() => {...toShared(), 'me': me, 'code': code, 'version': version};
+
   factory SplitGroup.fromMap(Map m) => SplitGroup(
+        me: (m['me'] as num? ?? 0).toInt(),
+        code: m['code'] as String?,
+        version: (m['version'] as num? ?? 0).toInt(),
         id: m['id'] as String,
         name: m['name'] as String,
         emoji: m['emoji'] as String? ?? '👥',

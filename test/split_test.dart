@@ -36,4 +36,18 @@ void main() {
     g.settlements.add(Settlement(1, 0, 5000, DateTime(2026, 10, 6)));
     expect(SplitMath.settleUp(g), isEmpty);
   });
+
+  test('who I am and the invite code stay on this device', () {
+    final g = SplitGroup(id: 'g', name: 'WG', emoji: '🏠', members: ['Luis', 'Lisa'], me: 1, code: 'J57NVN', version: 3,
+        expenses: [_e('Pizza', 3000, 0, [0, 1])]);
+    final back = SplitGroup.fromMap(g.toMap());
+    expect(back.me, 1);
+    expect(back.code, 'J57NVN');
+    expect(back.shared, isTrue);
+    // Lisa owes Luis 15 €: from Lisa's device that is her own debt
+    expect(SplitMath.balances(back)[back.me], -1500);
+    // the server copy carries no device fields
+    expect(g.toShared().containsKey('me'), isFalse);
+    expect(g.toShared().containsKey('code'), isFalse);
+  });
 }

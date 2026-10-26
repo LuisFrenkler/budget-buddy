@@ -121,6 +121,28 @@ class AccountService {
     current.value = account;
   }
 
+  // a signed-in call to the backend: GET without a body, POST with one
+  static Future<Map<String, dynamic>> api(String path, {Map<String, dynamic>? body}) async {
+    final http.Response res;
+    try {
+      final uri = Uri.parse('${BackendService.base}$path');
+      final headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer $_token'};
+      res = await (body == null
+              ? http.get(uri, headers: headers)
+              : http.post(uri, headers: headers, body: jsonEncode(body)))
+          .timeout(const Duration(seconds: 15));
+    } catch (_) {
+      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+    }
+    final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    if (res.statusCode == 401) {
+      await _forget();
+      throw 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+    }
+    if (res.statusCode != 200) throw map['error'] ?? 'Fehler ${res.statusCode}';
+    return map;
+  }
+
   static Future<void> changeName(String name) async => _update(await _authedPost('/auth/profile', {'name': name}));
 
   static Future<void> changeEmail(String email, String password) async =>

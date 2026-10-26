@@ -200,18 +200,37 @@ class GoalCard extends StatelessWidget {
 
   static Future<void> _deposit(BuildContext context, Goal goal) async {
     final controller = TextEditingController();
+    // one tap for the usual amounts: the plan's monthly rate, round sums, the rest
+    final rate = goal.monthlyCents > 0 ? goal.monthlyCents : goal.monthlyNeeded(DateTime.now());
+    final quick = <(String, int)>[
+      if (rate != null && rate > 0 && rate < goal.remainingCents) ('Monatsrate ${Money.format(rate)}', rate),
+      for (final c in [5000, 10000])
+        if (c < goal.remainingCents) (Money.format(c), c),
+      ('Rest ${Money.format(goal.remainingCents)}', goal.remainingCents),
+    ];
     final cents = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text('Für ${goal.name} zurücklegen'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
-          onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
-        ),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
+            onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
+          ),
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final (label, c) in quick)
+              ActionChip(
+                label: Text(label),
+                side: BorderSide(color: AppColors.border),
+                onPressed: () => Navigator.pop(context, c),
+              ),
+          ]),
+        ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
           TextButton(

@@ -115,6 +115,12 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | POST | `/auth/profile` | `{name}`; change the display name |
 | POST | `/auth/email` | `{email, password}`; change the email, confirmed with the password |
 | POST | `/auth/password` | `{current, next}`; new password, signs out every other device |
+| POST | `/splits/share` | `{group, me}`; shares a group, returns its invite code |
+| GET | `/splits/preview?code=` | name and members of a group, and who is taken |
+| POST | `/splits/join` | `{code, member}`; join as one of the members |
+| GET | `/splits/get?id=` | the group's current state (participants only) |
+| POST | `/splits/op` | `{id, op}`; `addExpense`, `removeExpense` or `settle`, applied in order |
+| POST | `/splits/leave` | `{id}`; leave, or delete for all when you created it |
 | GET | `/market/chart?symbol=&range=` | stock and ETF prices for the web app (Yahoo, cached 5 min, no sign-in) |
 
 All `/bank/*` and `/parqet/*` endpoints need `Authorization: Bearer <token>`. A
