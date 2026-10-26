@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
@@ -142,6 +143,10 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,  // hide debug banner
         theme: AppTheme.theme(dark),        // reactive light/dark theme
+        // the app is German: date pickers, tooltips and dialogs too, weeks start on Monday
+        locale: const Locale('de', 'DE'),
+        supportedLocales: const [Locale('de', 'DE')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         home: const RootGate(),             // onboarding -> lock -> app
         // on wide screens (desktop browser, Mac) keep a phone-width column
         // in the middle instead of stretching every screen edge to edge

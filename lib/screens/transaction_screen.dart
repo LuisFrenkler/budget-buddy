@@ -112,7 +112,11 @@ class TransactionScreen extends StatelessWidget {
                     backgroundColor: AppColors.surfaceAlt,
                     foregroundColor: AppColors.text,
                   ),
-                  onPressed: () => TxRow.openEditor(context, tx: tx),
+                  onPressed: () async {
+                    await TxRow.openEditor(context, tx: tx);
+                    // deleted in the editor: this page has nothing left to show
+                    if (context.mounted && !DB.getTx().any((t) => t.id == tx.id)) Navigator.pop(context);
+                  },
                   child: const Text('Bearbeiten'),
                 ),
               ] else ...[
