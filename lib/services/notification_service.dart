@@ -20,6 +20,7 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'cancellation_service.dart';
 import 'contracts.dart';
 import 'db.dart';
 import 'goals_service.dart';
@@ -176,7 +177,7 @@ class NotificationService {
 
   static NotifyTopic? _topicOf(HintKind k) => switch (k) {
         HintKind.budgetOver || HintKind.bigExpense => NotifyTopic.spending,
-        HintKind.priceUp => NotifyTopic.contracts,
+        HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,
         _ => null, // the rest is planned ahead as a reminder
       };
 
@@ -186,6 +187,7 @@ class NotificationService {
         goals: GoalsService.all(),
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
+        cancellations: CancellationService.all,
         now: now,
       ).where((h) => _topicOf(h.kind) != null).toList();
 

@@ -12,15 +12,17 @@ import 'big_number.dart';
 class TxRow extends StatelessWidget {
   final Transaction tx;
   final VoidCallback? onTap;
+  // off in lists that are already grouped by day
+  final bool showDay;
 
-  const TxRow(this.tx, {super.key, this.onTap});
+  const TxRow(this.tx, {super.key, this.onTap, this.showDay = true});
 
   @override
   Widget build(BuildContext context) {
     final note = tx.note?.trim() ?? '';
     final title = note.isNotEmpty ? note : tx.category;
     final day = Dates.relativeDay(tx.date);
-    final subtitle = note.isNotEmpty ? '${tx.category} · $day' : day;
+    final subtitle = !showDay ? tx.category : note.isNotEmpty ? '${tx.category} · $day' : day;
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),

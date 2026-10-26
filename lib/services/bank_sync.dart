@@ -9,6 +9,7 @@
 import '../models/transaction.dart';
 import 'backend_service.dart';
 import 'categorizer.dart';
+import 'category_rules.dart';
 import 'db.dart';
 import 'settings_service.dart';
 
@@ -46,7 +47,8 @@ class BankSync {
       added.add(Transaction(
         id: id,
         amountCents: b.amountCents.abs(),
-        category: memory[_key(title, isIncome)] ??
+        category: CategoryRules.forName(title, isIncome: isIncome) ??
+            memory[_key(title, isIncome)] ??
             Categorizer.guess('${b.counterparty} ${b.purpose}', isIncome: isIncome),
         date: b.date,
         isIncome: isIncome,

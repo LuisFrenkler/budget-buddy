@@ -77,6 +77,7 @@ class _HintsSheetState extends State<_HintsSheet> {
         HintKind.bankExpires => (Icons.account_balance_rounded, AppColors.warning),
         HintKind.bigExpense => (Icons.priority_high_rounded, AppColors.warning),
         HintKind.goalDue => (Icons.flag_rounded, AppColors.positive),
+        HintKind.stillCharging => (Icons.report_rounded, AppColors.error),
       };
 
   Future<void> _dismiss(Hint h) async {

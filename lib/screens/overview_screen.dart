@@ -28,6 +28,8 @@ import 'subscription_screen.dart';
 import '../services/hints_service.dart';
 import '../services/plus_service.dart';
 import '../widgets/hints_bell.dart';
+import '../widgets/forecast_card.dart';
+import '../services/forecast_service.dart';
 import '../services/notification_service.dart';
 import '../services/weekly_report.dart';
 import 'weekly_report_screen.dart';
@@ -141,9 +143,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ..._netWorth(tx, cash, depotNow),
                   const SizedBox(height: 28),
                   _accountsCard(tx, cash, depotNow),
+                  ..._forecast(tx),
                   const SizedBox(height: 16),
                   const BuddyCard(),
                   ..._weekly(tx),
+                  const SizedBox(height: 16),
+                  const ContractsCard(),
                   ..._goals(),
                   ..._budgets(),
                   ..._insight(tx),
@@ -156,6 +161,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
         },
       ),
     );
+  }
+
+  // what is still free this month; needs some income history
+  List<Widget> _forecast(List<Transaction> tx) {
+    final f = ForecastService.build(tx, goals: GoalsService.all());
+    if (f == null) return [];
+    return [const SizedBox(height: 16), ForecastCard(f)];
   }
 
   // this week's report, until it has been opened

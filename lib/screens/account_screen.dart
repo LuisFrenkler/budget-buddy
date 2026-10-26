@@ -183,7 +183,7 @@ class _AccountScreenState extends State<AccountScreen> {
             itemCount: rows.length,
             itemBuilder: (_, i) {
               final r = rows[i];
-              return r is _MonthGroup ? _monthHeader(r) : _dismissible(r as Transaction);
+              return r is _DayGroup ? _dayHeader(r) : _dismissible(r as Transaction);
             },
           ),
         ),
@@ -235,29 +235,48 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   // flattens the (newest first) list into month headers followed by their rows
+  // one group per day, newest first, like a banking app statement
   List<Object> _groupByMonth(List<Transaction> tx) {
     final rows = <Object>[];
-    _MonthGroup? group;
+    _DayGroup? group;
     for (final t in tx) {
-      if (group == null || group.year != t.date.year || group.month != t.date.month) {
-        group = _MonthGroup(t.date.year, t.date.month);
+      final day = DateTime(t.date.year, t.date.month, t.date.day);
+      if (group == null || group.day != day) {
+        group = _DayGroup(day);
         rows.add(group);
       }
       group.net += t.isIncome ? t.amountCents : -t.amountCents;
+      group.count++;
       rows.add(t);
     }
     return rows;
   }
 
-  Widget _monthHeader(_MonthGroup g) {
+  static String _dayLabel(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(d).inDays;
+    if (diff == 0) return 'Heute';
+    if (diff == 1) return 'Gestern';
+    final label = '${Dates.weekdays[d.weekday - 1]}, ${Dates.dayMonth(d)}';
+    return d.year == now.year ? label : '$label ${d.year}';
+  }
+
+  Widget _dayHeader(_DayGroup g) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      padding: const EdgeInsets.only(top: 18, bottom: 4),
       child: Row(
         children: [
-          Text(Dates.month(DateTime(g.year, g.month)),
-              style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(_dayLabel(g.day),
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w700)),
           const Spacer(),
-          Text(Money.signed(g.net), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          // with one booking the sum would only repeat its amount
+          if (g.count > 1)
+            Text(Money.signed(g.net),
+              style: TextStyle(
+                  color: g.net > 0 ? AppColors.positive : AppColors.textDim,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -275,7 +294,7 @@ class _AccountScreenState extends State<AccountScreen> {
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
       onDismissed: (_) => _deleteTx(t),
-      child: TxRow(t),
+      child: TxRow(t, showDay: false),
     );
   }
 
@@ -302,11 +321,11 @@ class _AccountScreenState extends State<AccountScreen> {
 }
 
 // header row of one month in the transaction list
-class _MonthGroup {
-  final int year;
-  final int month;
+class _DayGroup {
+  final DateTime day;
   int net = 0;
-  _MonthGroup(this.year, this.month);
+  int count = 0;
+  _DayGroup(this.day);
 }
 
 // Small "ING · vor 3 Min." button next to the title of a linked account;

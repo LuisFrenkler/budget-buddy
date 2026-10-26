@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
+import '../services/category_rules.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -193,7 +194,7 @@ class TransactionScreen extends StatelessWidget {
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             const Text('Kategorie', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             Wrap(spacing: 8, runSpacing: 8, children: [
@@ -201,7 +202,9 @@ class TransactionScreen extends StatelessWidget {
                 ChoiceChip(
                   selected: c['name'] == tx.category,
                   showCheckmark: false,
-                  avatar: Icon(Categories.icon(c['name']!), size: 18),
+                  side: BorderSide(color: AppColors.border),
+                  selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
+                  avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
                   label: Text(c['name']!),
                   onSelected: (_) => Navigator.pop(context, c['name']),
                 ),
@@ -220,6 +223,46 @@ class TransactionScreen extends StatelessWidget {
       isIncome: tx.isIncome,
       note: tx.note,
     ));
+    final name = tx.note?.trim() ?? '';
+    if (name.isEmpty) return;
+    final others = CategoryRules.others(tx, picked);
+    // nothing else to move: just remember it for new bookings
+    if (others.isEmpty) {
+      await CategoryRules.remember(name, picked, isIncome: tx.isIncome);
+      return;
+    }
+    if (!context.mounted) return;
+    final all = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('Alle $name-Buchungen zu $picked?', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text('${others.length} weitere ${others.length == 1 ? 'Buchung' : 'Buchungen'} von $name. '
+                'BudgetBuddy merkt sich das auch für neue.',
+                style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 18),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Ja, alle ${others.length + 1} ändern'),
+            ),
+            const SizedBox(height: 6),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Nur diese')),
+          ]),
+        ),
+      ),
+    );
+    if (all != true) return;
+    final moved = await CategoryRules.applyToAll(tx, picked);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${moved + 1} Buchungen von $name sind jetzt $picked')));
+    }
   }
 
   Future<void> _delete(BuildContext context, Transaction tx) async {

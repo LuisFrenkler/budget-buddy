@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../services/account_service.dart';
+import '../services/cancellation_service.dart';
 import '../services/contracts.dart';
 import '../services/db.dart';
 import '../services/settings_service.dart';
@@ -16,9 +20,10 @@ class ContractsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
-      valueListenable: Hive.box('transactions').listenable(),
-      builder: (context, _, __) {
+    // settings hold the sent cancellations, so a new one shows right away
+    return ListenableBuilder(
+      listenable: Listenable.merge([Hive.box('transactions').listenable(), Hive.box('settings').listenable()]),
+      builder: (context, _) {
         final contracts = Contracts.detect(DB.getTx());
         final monthly = Contracts.monthlyTotal(contracts);
         final raised = contracts.where((c) => c.priceChange > 0).toList();
@@ -87,8 +92,7 @@ class ContractsScreen extends StatelessWidget {
 
   Widget _row(BuildContext context, Contract c) {
     return InkWell(
-      onTap: () => showTransactionsSheet(context,
-          title: c.name, subtitle: 'Alle Zahlungen', tx: c.payments.reversed.toList()),
+      onTap: () => _ContractSheet.show(context, c),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
         child: Row(children: [
@@ -98,8 +102,15 @@ class ContractsScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
-              Text('Monatlich · nächste am ${Dates.dayMonth(c.nextDate)}',
-                  style: TextStyle(fontSize: 12, color: AppColors.textDim), overflow: TextOverflow.ellipsis),
+              Builder(builder: (_) {
+                final sent = CancellationService.sentAt(c.name);
+                return Text(
+                    sent != null
+                        ? 'Gekündigt am ${Dates.dayMonth(sent)}'
+                        : 'Monatlich · nächste am ${Dates.dayMonth(c.nextDate)}',
+                    style: TextStyle(fontSize: 12, color: sent != null ? AppColors.warning : AppColors.textDim),
+                    overflow: TextOverflow.ellipsis);
+              }),
             ]),
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -181,6 +192,171 @@ class ContractsCard extends StatelessWidget {
             Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
           ]),
         ),
+      ),
+    );
+  }
+}
+
+// One contract: what it costs, its payments, and cancelling it with a ready
+// letter. After sending, the row shows "Gekündigt" and Buddy watches whether
+// the payments stop.
+class _ContractSheet extends StatefulWidget {
+  final Contract contract;
+  const _ContractSheet(this.contract);
+
+  static Future<void> show(BuildContext context, Contract c) => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.surface,
+        showDragHandle: true,
+        builder: (_) => _ContractSheet(c),
+      );
+
+  @override
+  State<_ContractSheet> createState() => _ContractSheetState();
+}
+
+class _ContractSheetState extends State<_ContractSheet> {
+  final _customerNo = TextEditingController();
+  bool _writing = false;
+
+  @override
+  void dispose() {
+    _customerNo.dispose();
+    super.dispose();
+  }
+
+  String get _letter {
+    final account = AccountService.current.value;
+    return CancellationService.letter(
+      provider: widget.contract.name,
+      // a visible gap rather than a letter without a name
+      name: account?.name ?? '[Dein Name]',
+      email: account?.email ?? '',
+      customerNo: _customerNo.text.trim(),
+    );
+  }
+
+  Future<void> _sent(String how) async {
+    await CancellationService.markSent(widget.contract.name);
+    HapticFeedback.mediumImpact();
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('$how. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
+  }
+
+  Future<void> _mail() async {
+    final uri = Uri(scheme: 'mailto', query: _query({
+      'subject': CancellationService.subject(widget.contract.name, _customerNo.text.trim()),
+      'body': _letter,
+    }));
+    if (await launchUrl(uri)) await _sent('E-Mail vorbereitet');
+  }
+
+  static String _query(Map<String, String> p) =>
+      p.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: _letter));
+    await _sent('Kündigung kopiert');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.contract;
+    final sent = CancellationService.sentAt(c.name);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: SingleChildScrollView(
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            CategoryAvatar(c.category, isIncome: false, merchant: c.name, size: 48),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(c.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                Text('${Money.format(c.monthlyCents)} im Monat · ${Money.format(c.monthlyCents * 12)} im Jahr',
+                    style: TextStyle(color: AppColors.textDim)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => showTransactionsSheet(context,
+                title: c.name, subtitle: 'Alle Zahlungen', tx: c.payments.reversed.toList()),
+            icon: const Icon(Icons.receipt_long_rounded, size: 18),
+            label: Text('Alle ${c.payments.length} Zahlungen'),
+          ),
+          const SizedBox(height: 18),
+          if (sent != null) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
+              child: Text(
+                  'Gekündigt am ${Dates.full(sent)}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.',
+                  style: const TextStyle(height: 1.4)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await CancellationService.undo(c.name);
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Kündigung zurücknehmen'),
+            ),
+          ] else if (!_writing)
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52), backgroundColor: AppColors.error.withValues(alpha: 0.9)),
+              onPressed: () => setState(() => _writing = true),
+              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+              label: Text('${c.name} kündigen'),
+            )
+          else ...[
+            const Text('Buddy hat deine Kündigung geschrieben',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _customerNo,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(labelText: 'Kundennummer (optional)'),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(14),
+              constraints: const BoxConstraints(maxHeight: 240),
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+              child: SingleChildScrollView(
+                child: SelectableText(_letter, style: const TextStyle(fontSize: 13, height: 1.45)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('Tipp: Viele Anbieter haben auf ihrer Website einen Button „Verträge hier kündigen“. '
+                'Dort geht es oft am schnellsten, den Text kannst du dort einfügen.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                  onPressed: _copy,
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  label: const Text('Kopieren'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                  onPressed: _mail,
+                  icon: const Icon(Icons.send_rounded, size: 18),
+                  label: const Text('Per E-Mail'),
+                ),
+              ),
+            ]),
+          ],
+        ]),
       ),
     );
   }

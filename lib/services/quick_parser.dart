@@ -2,6 +2,7 @@
 // into a booking, instantly and offline. Buddy (the AI) refines it when
 // available; this parser makes the preview appear while typing.
 import 'categorizer.dart';
+import 'category_rules.dart';
 
 class ParsedBooking {
   final int cents;
@@ -116,6 +117,8 @@ class QuickParser {
         }
       }
     }
+    // a merchant the user has sorted before wins over the guess
+    category = CategoryRules.forName(note, isIncome: isIncome) ?? category;
     return ParsedBooking(cents, isIncome, category, note, date);
   }
 }

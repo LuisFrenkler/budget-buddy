@@ -10,10 +10,11 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'cancellation_service.dart';
 import 'contracts.dart';
 import 'plus_service.dart';
 
-enum HintKind { budgetOver, budgetClose, priceUp, upcoming, trialEnds, bankExpires, bigExpense, goalDue }
+enum HintKind { budgetOver, budgetClose, priceUp, upcoming, trialEnds, bankExpires, bigExpense, goalDue, stillCharging }
 
 // where tapping a hint leads
 enum HintTarget { budgets, contracts, subscription, connections, transactions, goals }
@@ -49,12 +50,14 @@ class HintsService {
     DateTime? now,
   }) {
     final hidden = dismissed;
+    final cancellations = CancellationService.all;
     return build(
       tx: tx,
       budgets: budgets,
       goals: goals,
       subscription: subscription,
       bankValidUntil: bankValidUntil,
+      cancellations: cancellations,
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
   }
@@ -71,6 +74,7 @@ class HintsService {
     required List<Goal> goals,
     Subscription? subscription,
     DateTime? bankValidUntil,
+    Map<String, DateTime> cancellations = const {},
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
@@ -100,6 +104,19 @@ class HintsService {
 
     final contracts = Contracts.detect(tx, now: today);
     for (final c in contracts) {
+      // cancelled, but the money still goes out
+      final sent = cancellations[c.name.toLowerCase().trim()];
+      if (sent != null && CancellationService.stillCharging(c, sent)) {
+        out.add(Hint(
+            'still-${c.name}-${c.last.date.toIso8601String().substring(0, 10)}',
+            HintKind.stillCharging,
+            '${c.name} bucht trotz Kündigung ab',
+            'Du hast am ${Dates.dayMonth(sent)} gekündigt, am ${Dates.dayMonth(c.last.date)} kamen trotzdem '
+                '${Money.format(c.monthlyCents)}. Fordere das Geld zurück; eine Lastschrift kannst du 8 Wochen '
+                'lang bei deiner Bank zurückgeben.',
+            HintTarget.contracts,
+            urgent: true));
+      }
       // a price rise in the last six weeks
       if (c.priceChange > 0 && _daysBetween(c.last.date, today) <= 42) {
         out.add(Hint(
