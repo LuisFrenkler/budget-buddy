@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db.dart';
 import '../services/csv_importer.dart';
+import '../services/bank_csv_importer.dart';
 import '../services/holdings_csv_importer.dart';
 import '../services/trade_republic_importer.dart';
 import '../services/backup_service.dart';
@@ -121,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               _sectionLabel('Daten'),
               _group([
-                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV: Datum;Kategorie;Beschreibung;Betrag',
+                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV-Export deiner Bank (Sparkasse, ING, DKB …)',
                     _importCSV),
                 _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export', _importDepotCsv),
                 _row(Icons.file_download_rounded, 'Als CSV exportieren', null, _exportCsv),
@@ -517,22 +518,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _snack('Datei konnte nicht gelesen werden', error: true);
         return;
       }
-      final content = utf8.decode(bytes, allowMalformed: true);
-      final imported = CsvImporter.parse(content);
+      // banks export in Latin-1 as often as in UTF-8
+      var content = utf8.decode(bytes, allowMalformed: true);
+      if (content.contains('\uFFFD')) content = latin1.decode(bytes);
 
-      // save every parsed transaction to the database
-      for (final tx in imported.transactions) {
-        await DB.addTx(tx);
+      // a bank's own export, or BudgetBuddy's simple format
+      final List<Transaction> txs;
+      String msg;
+      if (BankCsvImporter.looksLikeBank(content)) {
+        final r = BankCsvImporter.parse(content, existing: DB.getTx());
+        txs = r.transactions;
+        msg = [
+          '${txs.length} ${txs.length == 1 ? 'Umsatz' : 'Umsätze'}${r.bank != null ? ' von ${r.bank}' : ''} importiert',
+          if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
+          if (r.skipped > 0) '${r.skipped} nicht lesbar',
+        ].join(' · ');
+      } else {
+        final r = CsvImporter.parse(content);
+        txs = r.transactions;
+        msg = r.skipped > 0 ? '${txs.length} importiert, ${r.skipped} übersprungen' : '${txs.length} importiert';
+      }
+      if (txs.isEmpty && msg.startsWith('0')) {
+        msg = 'In dieser Datei wurden keine Umsätze gefunden. Exportiere sie im Online-Banking als CSV.';
       }
 
-      // check if user unlocked any badges
+      for (final tx in txs) {
+        await DB.addTx(tx);
+      }
       await DB.checkBadges();
 
-      // show how many were imported and how many lines were skipped
       if (mounted) {
-        final msg = imported.skipped > 0
-            ? '${imported.transactions.length} importiert, ${imported.skipped} übersprungen'
-            : '${imported.transactions.length} importiert';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg)),
         );
