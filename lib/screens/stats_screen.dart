@@ -81,13 +81,7 @@ class _StatsViewState extends State<StatsView> {
         final color = _tab == 0 ? AppColors.error : AppColors.positive;
 
         // month-over-month expense insights
-        final last = DB.inMonth(all, DateTime(_month.year, _month.month - 1));
-        final insights = InsightsService.generate(
-          thisByCat: DB.categoriesOf(tx, isIncome: false),
-          lastByCat: DB.categoriesOf(last, isIncome: false),
-          thisExpenses: expenses,
-          lastExpenses: DB.sumOf(last, isIncome: false),
-        );
+        final insights = InsightsService.forMonth(all, _month);
 
         // income and expenses of the last 6 months (oldest -> newest)
         final trend = <_MonthTotals>[];

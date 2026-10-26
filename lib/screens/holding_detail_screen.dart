@@ -44,8 +44,12 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
     final pts = await PriceService.historyPoints(symbol: h.symbol, type: h.type, days: _ranges[range]!);
     // ignore late results of a range that is no longer selected
     if (mounted && range == _range) {
+      // the curve ends at the price shown above it, so the change in the
+      // headline and the direction of the curve always agree
+      final last = pts.isEmpty ? 0.0 : pts.last.$2;
+      final scale = last > 0 && h.currentPriceCents > 0 ? h.currentPriceCents / 100 / last : 1.0;
       setState(() {
-        _points = [for (final p in pts) ChartPoint(p.$1, (p.$2 * 100).round())];
+        _points = [for (final p in pts) ChartPoint(p.$1, (p.$2 * scale * 100).round())];
         _loading = false;
       });
     }

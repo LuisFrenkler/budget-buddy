@@ -1,14 +1,49 @@
 // Generates short, human-readable German insights by comparing the current
 // month's spending to the previous month. Pure and testable: it works on
 // already-aggregated category maps and totals (all in cents).
+import '../models/transaction.dart';
 import '../utils/money.dart';
+import 'contracts.dart';
 
 class InsightsService {
+  // Insights for a month from the bookings: fixed costs (rent, subscriptions)
+  // are left out, they say nothing new; and a running month is compared with
+  // the month before up to the same day, so the 12th is not set against a
+  // complete month.
+  static List<String> forMonth(List<Transaction> all, DateTime month, {DateTime? now, int max = 3}) {
+    final today = now ?? DateTime.now();
+    final fixed = {for (final c in Contracts.detect(all, now: today)) for (final p in c.payments) p.id};
+    final running = month.year == today.year && month.month == today.month;
+    final cutDay = running ? today.day : 31;
+    Map<String, int> byCat(DateTime m) {
+      final out = <String, int>{};
+      for (final t in all) {
+        if (t.isIncome || fixed.contains(t.id)) continue;
+        if (t.date.year != m.year || t.date.month != m.month || t.date.day > cutDay) continue;
+        out[t.category] = (out[t.category] ?? 0) + t.amountCents;
+      }
+      return out;
+    }
+
+    final thisByCat = byCat(month);
+    final lastByCat = byCat(DateTime(month.year, month.month - 1));
+    int sum(Map<String, int> m) => m.values.fold(0, (a, b) => a + b);
+    return generate(
+      thisByCat: thisByCat,
+      lastByCat: lastByCat,
+      thisExpenses: sum(thisByCat),
+      lastExpenses: sum(lastByCat),
+      soFar: running,
+      max: max,
+    );
+  }
+
   static List<String> generate({
     required Map<String, int> thisByCat,
     required Map<String, int> lastByCat,
     required int thisExpenses,
     required int lastExpenses,
+    bool soFar = false, // a running month, compared up to the same day
     int max = 3,
   }) {
     final out = <String>[];
@@ -18,7 +53,9 @@ class InsightsService {
       final pct = (thisExpenses - lastExpenses) / lastExpenses * 100;
       if (pct.abs() >= 5) {
         final dir = pct > 0 ? 'mehr' : 'weniger';
-        out.add('Du gibst diesen Monat ${pct.abs().toStringAsFixed(0)} % $dir aus als im Vormonat.');
+        out.add(soFar
+            ? 'Bis heute gibst du ${pct.abs().toStringAsFixed(0)} % $dir aus als im Vormonat zur gleichen Zeit.'
+            : 'Du hast ${pct.abs().toStringAsFixed(0)} % $dir ausgegeben als im Vormonat.');
       } else {
         out.add('Deine Ausgaben sind etwa so hoch wie im Vormonat.');
       }

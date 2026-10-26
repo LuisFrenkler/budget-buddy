@@ -678,15 +678,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   // the most relevant insight of this month, leads to the analysis
   List<Widget> _insight(List<Transaction> tx) {
-    final now = DateTime.now();
-    final month = DB.inMonth(tx, now);
-    final last = DB.inMonth(tx, DateTime(now.year, now.month - 1));
-    final insights = InsightsService.generate(
-      thisByCat: DB.categoriesOf(month, isIncome: false),
-      lastByCat: DB.categoriesOf(last, isIncome: false),
-      thisExpenses: DB.sumOf(month, isIncome: false),
-      lastExpenses: DB.sumOf(last, isIncome: false),
-    );
+    final insights = InsightsService.forMonth(tx, DateTime.now());
     if (insights.isEmpty) return const [];
     return [
       const SizedBox(height: 28),
