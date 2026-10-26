@@ -99,8 +99,17 @@ class Settings {
 
   static Future<void> setDepotSync(DateTime value) => _box.put('depotSync', value.millisecondsSinceEpoch);
 
+  // the linked depot's value per day as Parqet reports it, oldest first
+  static List<(DateTime, int)> get depotHistory => [
+        for (final e in (_box.get('depotHistory') as List? ?? const []))
+          (DateTime.fromMillisecondsSinceEpoch((e as List)[0] as int), e[1] as int),
+      ];
+
+  static Future<void> setDepotHistory(List<(DateTime, int)> points) =>
+      _box.put('depotHistory', [for (final (d, c) in points) [d.millisecondsSinceEpoch, c]]);
+
   static Future<void> clearDepot() async {
-    for (final k in ['depotState', 'depotBroker', 'depotSync']) {
+    for (final k in ['depotState', 'depotBroker', 'depotSync', 'depotHistory']) {
       await _box.delete(k);
     }
   }

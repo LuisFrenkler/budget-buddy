@@ -2,6 +2,7 @@ import 'package:budget_buddy/models/holding.dart';
 import 'package:budget_buddy/services/backend_service.dart';
 import 'package:budget_buddy/services/depot_sync.dart';
 import 'package:budget_buddy/services/plus_service.dart';
+import 'package:budget_buddy/services/price_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Holding _h(String id, {double shares = 1}) =>
@@ -75,6 +76,35 @@ void main() {
       final s = Subscription.fromServer(base);
       expect(Subscription.fromMap(s.toMap()).managed, isTrue);
       expect(Subscription.fromMap(s.copyWith(plan: PlusPlan.monthly).toMap()).managed, isTrue);
+    });
+  });
+
+  group('PriceService.linkedHistory', () {
+    final axis = [for (var d = 1; d <= 5; d++) DateTime(2026, 10, d)];
+
+    test('takes the last value on or before each day and ends at the current value', () {
+      final h = PriceService.linkedHistory([
+        (DateTime(2026, 10, 1), 1000),
+        (DateTime(2026, 10, 3), 1200),
+        (DateTime(2026, 10, 5), 1500),
+      ], axis, 1500);
+      expect(h, [1000, 1000, 1200, 1200, 1500]);
+    });
+
+    test('is scaled so chart and headline agree', () {
+      final h = PriceService.linkedHistory([(DateTime(2026, 10, 1), 1000), (DateTime(2026, 10, 5), 2000)], axis, 1000);
+      expect(h.first, 500);
+      expect(h.last, 1000);
+    });
+
+    test('zero before the depot existed', () {
+      final h = PriceService.linkedHistory([(DateTime(2026, 10, 3), 800)], axis, 800);
+      expect(h, [0, 0, 800, 800, 800]);
+    });
+
+    test('today is the current value even without a point for today', () {
+      final h = PriceService.linkedHistory([(DateTime(2026, 10, 1), 1000), (DateTime(2026, 10, 4), 1100)], axis, 1234);
+      expect(h.last, 1234);
     });
   });
 }

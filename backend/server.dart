@@ -794,7 +794,7 @@ Future<void> _depotStatus(HttpRequest req) {
   return _json(req, 200, {'status': 'unknown'});
 }
 
-// GET ?state= -> {positions, broker}; refreshes the access token when needed
+// GET ?state= -> {positions, history, mode}; refreshes the access token when needed
 Future<void> _depotSync(HttpRequest req) async {
   final state = req.uri.queryParameters['state'] ?? '';
   final d = _ownDepot(req, state);
@@ -806,15 +806,15 @@ Future<void> _depotSync(HttpRequest req) async {
   }
 
   if (DateTime.now().isAfter(tokens.expires)) await renew();
-  List<DepotPosition> positions;
+  DepotSnapshot snap;
   try {
-    positions = await _depot.positions(tokens);
+    snap = await _depot.snapshot(tokens);
   } on DepotAuthExpired {
     await renew();
-    positions = await _depot.positions(tokens);
+    snap = await _depot.snapshot(tokens);
   }
-  positions = await _symbols.complete(positions);
-  return _json(req, 200, {'positions': [for (final p in positions) p.toJson()], 'mode': _depot.mode});
+  snap = await _symbols.complete(snap);
+  return _json(req, 200, {...snap.toJson(), 'mode': _depot.mode});
 }
 
 // POST {state}

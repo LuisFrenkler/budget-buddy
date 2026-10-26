@@ -15,6 +15,8 @@ import 'package:http/http.dart' as http;
 import '../models/holding.dart';
 import 'backend_service.dart';
 import 'db.dart';
+import 'depot_sync.dart';
+import 'settings_service.dart';
 
 class PriceService {
   static const _finnhubKey = String.fromEnvironment('FINNHUB_KEY');
@@ -347,8 +349,12 @@ class PriceService {
   // calendar days. Each holding's price is taken from the most recent quote
   // on-or-before that day (date-aligned, so mixed instruments sum correctly);
   // holdings without any history contribute a flat line at their current price.
+  //
+  // Positions of a linked depot use the depot's own value history instead
+  // (see [linkedHistory]): it is exact, includes buys and sells and needs no
+  // price lookups.
   static Future<List<int>> portfolioHistory({int days = 30}) async {
-    final holdings = DB.getHoldings();
+    var holdings = DB.getHoldings();
     if (holdings.isEmpty) return [];
 
     final now = DateTime.now();
@@ -357,6 +363,16 @@ class PriceService {
     final axisKeys = [for (final d in axis) _dayKey(d)];
 
     final series = List<int>.filled(days, 0);
+    final linked = holdings.where((h) => h.id.startsWith(DepotSync.prefix)).toList();
+    final depotHistory = Settings.depotHistory;
+    if (linked.isNotEmpty && depotHistory.isNotEmpty) {
+      final current = linked.fold<int>(0, (s, h) => s + h.valueCents);
+      final part = linkedHistory(depotHistory, axis, current);
+      for (int i = 0; i < days; i++) {
+        series[i] += part[i];
+      }
+      holdings = holdings.where((h) => !h.id.startsWith(DepotSync.prefix)).toList();
+    }
     for (final h in holdings) {
       final pts = await historyPoints(symbol: h.symbol, type: h.type, days: days);
 
@@ -391,6 +407,28 @@ class PriceService {
       }
     }
     return series;
+  }
+
+  // a linked depot's value on each [axis] day: the last known value on or
+  // before that day (0 before the depot existed), scaled so the last day
+  // equals [currentCents] and chart and headline agree
+  static List<int> linkedHistory(List<(DateTime, int)> points, List<DateTime> axis, int currentCents) {
+    if (points.isEmpty) return List.filled(axis.length, currentCents);
+    final sorted = [...points]..sort((a, b) => a.$1.compareTo(b.$1));
+    final last = sorted.last.$2;
+    final scale = last > 0 ? currentCents / last : 1.0;
+    final out = <int>[];
+    var j = -1;
+    for (final day in axis) {
+      final key = _dayKey(day);
+      while (j + 1 < sorted.length && _dayKey(sorted[j + 1].$1) <= key) {
+        j++;
+      }
+      out.add(j < 0 ? 0 : (sorted[j].$2 * scale).round());
+    }
+    // today is always the current value, even before Parqet has today's point
+    if (out.isNotEmpty) out[out.length - 1] = currentCents;
+    return out;
   }
 
   // best available live price in EUR cents for an instrument, or null.

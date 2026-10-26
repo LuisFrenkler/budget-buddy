@@ -153,9 +153,17 @@ class BackendService {
     return (status: '${body['status']}', error: body['error'] as String?);
   }
 
-  static Future<List<DepotPosition>> depotSync(String state) async {
+  // the positions and the depot's value per day (oldest first)
+  static Future<({List<DepotPosition> positions, List<(DateTime, int)> history})> depotSync(String state) async {
     final body = await _get('/depot/sync?state=$state');
-    return [for (final p in (body['positions'] as List)) DepotPosition.fromJson(p as Map)];
+    return (
+      positions: [for (final p in (body['positions'] as List)) DepotPosition.fromJson(p as Map)],
+      history: [
+        for (final h in (body['history'] as List? ?? const []))
+          if (DateTime.tryParse('${h['date']}') != null)
+            (DateTime.parse('${h['date']}'), (h['cents'] as num).toInt()),
+      ],
+    );
   }
 
   static Future<void> depotDisconnect(String state) => _post('/depot/disconnect', {'state': state});

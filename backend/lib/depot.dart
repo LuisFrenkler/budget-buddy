@@ -41,6 +41,19 @@ class DepotPosition {
       };
 }
 
+// what one sync brings: the positions and the depot's value per day (oldest
+// first, the last year), which already includes buys and sells
+class DepotSnapshot {
+  final List<DepotPosition> positions;
+  final List<(DateTime, int)> history;
+  const DepotSnapshot(this.positions, this.history);
+
+  Map<String, dynamic> toJson() => {
+        'positions': [for (final p in positions) p.toJson()],
+        'history': [for (final (d, c) in history) {'date': d.toIso8601String().substring(0, 10), 'cents': c}],
+      };
+}
+
 class DepotTokens {
   final String access;
   final String? refresh;
@@ -58,7 +71,7 @@ abstract class DepotProvider {
   String authUrl({required String state, required String challenge, required String redirectUrl});
   Future<DepotTokens> exchange({required String code, required String verifier, required String redirectUrl});
   Future<DepotTokens> refresh(DepotTokens tokens);
-  Future<List<DepotPosition>> positions(DepotTokens tokens);
+  Future<DepotSnapshot> snapshot(DepotTokens tokens);
 }
 
 // PKCE: a random verifier and its SHA-256 challenge, both base64url
@@ -125,9 +138,9 @@ class ParqetConnect implements DepotProvider {
   }
 
   @override
-  Future<List<DepotPosition>> positions(DepotTokens tokens) async {
+  Future<DepotSnapshot> snapshot(DepotTokens tokens) async {
     final portfolios = ((await _call('GET', '/portfolios', tokens))['items'] as List? ?? []).cast<Map>();
-    if (portfolios.isEmpty) return const [];
+    if (portfolios.isEmpty) return const DepotSnapshot([], []);
     final perf = await _call('POST', '/performance', tokens, {
       'portfolioIds': [for (final p in portfolios) p['id']],
       'interval': {'type': 'relative', 'value': 'max'},
@@ -158,6 +171,19 @@ class ParqetConnect implements DepotProvider {
         (((pos['currentPrice'] as num?) ?? 0) * 100).round(),
         broker,
       ));
+    }
+    return DepotSnapshot(out, _history(perf['charts'] as List? ?? const []));
+  }
+
+  // the chart's "history" is the depot value at the end of each day
+  static List<(DateTime, int)> _history(List charts) {
+    final from = DateTime.now().subtract(const Duration(days: 366));
+    final out = <(DateTime, int)>[];
+    for (final c in charts.cast<Map>()) {
+      final date = DateTime.tryParse('${c['date']}');
+      final value = ((c['values'] as Map?)?['history'] as num?);
+      if (date == null || value == null || date.isBefore(from)) continue;
+      out.add((DateTime(date.year, date.month, date.day), (value * 100).round()));
     }
     return out;
   }
@@ -207,10 +233,13 @@ class SymbolLookup {
   }
 
   // fills in the symbol of every security that has none
-  Future<List<DepotPosition>> complete(List<DepotPosition> positions) => Future.wait([
-        for (final p in positions)
-          p.symbol.isNotEmpty ? Future.value(p) : forIsin(p.id).then((s) => s.isEmpty ? p : p.withSymbol(s)),
-      ]);
+  Future<DepotSnapshot> complete(DepotSnapshot s) async => DepotSnapshot(
+        await Future.wait([
+          for (final p in s.positions)
+            p.symbol.isNotEmpty ? Future.value(p) : forIsin(p.id).then((sym) => sym.isEmpty ? p : p.withSymbol(sym)),
+        ]),
+        s.history,
+      );
 }
 
 class DepotAuthExpired implements Exception {
@@ -248,12 +277,23 @@ class DemoDepot implements DepotProvider {
   ];
 
   @override
-  Future<List<DepotPosition>> positions(DepotTokens tokens) async {
+  Future<DepotSnapshot> snapshot(DepotTokens tokens) async {
     final day = DateTime.now().difference(DateTime(2026)).inDays;
-    return [
+    final positions = [
       for (final (i, d) in _demo.indexed)
         DepotPosition(d.$1, d.$2, d.$3, d.$4, d.$5, d.$6,
             (d.$7 * (1 + 0.01 * math.sin(day * 0.7 + i))).round(), 'Trade Republic'),
     ];
+    // a year of steady saving plus some market movement, ending at today's value
+    final now = positions.fold<double>(0, (s, p) => s + p.shares * p.priceCents);
+    final today = DateTime.now();
+    final history = [
+      for (var i = 365; i >= 0; i--)
+        (
+          DateTime(today.year, today.month, today.day - i),
+          (now * (1 - i / 365 * 0.45) * (1 + 0.04 * math.sin(i / 23))).round(),
+        ),
+    ];
+    return DepotSnapshot(positions, history);
   }
 }

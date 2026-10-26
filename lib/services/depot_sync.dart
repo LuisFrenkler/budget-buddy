@@ -46,7 +46,9 @@ class DepotSync {
 
   // syncs the linked depot now; returns the number of positions
   static Future<int> run() async {
-    final positions = await BackendService.depotSync(Settings.depotState);
+    final data = await BackendService.depotSync(Settings.depotState);
+    final positions = data.positions;
+    await Settings.setDepotHistory(data.history);
     final result = merge(existing: DB.getHoldings(), incoming: positions);
     for (final h in result.keep) {
       await DB.addHolding(h);
@@ -61,12 +63,12 @@ class DepotSync {
   }
 
   // syncs quietly when linked and the last sync is older than [maxAge], or
-  // when a synced security still has no symbol (no chart without one)
+  // when the depot's value history is still missing (no chart without it)
   static Future<void> refreshIfStale({Duration maxAge = const Duration(hours: 4)}) async {
     if (Settings.depotState.isEmpty) return;
     final last = Settings.depotSync;
-    final noSymbol = DB.getHoldings().any((h) => h.id.startsWith(prefix) && h.symbol.isEmpty);
-    if (!noSymbol && last != null && DateTime.now().difference(last) < maxAge) return;
+    final complete = Settings.depotHistory.isNotEmpty;
+    if (complete && last != null && DateTime.now().difference(last) < maxAge) return;
     try {
       await run();
     } catch (_) {
