@@ -22,6 +22,8 @@ import '../services/plus_service.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
+import 'splits_screen.dart';
+import 'contracts_screen.dart';
 import 'account_settings_screen.dart';
 import 'notification_settings_screen.dart';
 import '../legal/legal_info.dart';
@@ -105,38 +107,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
 
+              _sectionLabel('Finanzen'),
+              _group([
+                _row(
+                    Icons.account_balance_rounded,
+                    'Bank & Depot verbinden',
+                    Settings.bankName.isNotEmpty ? '${Settings.bankName} verbunden' : 'Umsätze kommen automatisch',
+                    _openConnections),
+                _row(Icons.receipt_long_rounded, 'Verträge & Abos', 'Erkannt, mit Kündigung per Tipp',
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen()))),
+                _row(Icons.repeat_rounded, 'Daueraufträge', 'Miete, Gehalt, Abos von Hand', _openRecurring),
+                _row(Icons.call_split_rounded, 'Geteilte Ausgaben', 'WG, Paar, Urlaub',
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()))),
+              ]),
+
               _sectionLabel('Darstellung'),
               _group([
                 _switchRow(Icons.dark_mode_rounded, 'Dunkler Modus', null, ThemeController.isDark.value,
                     _toggleDarkMode),
-              ]),
-              _sectionLabel('Automatisierung'),
-              _group([
-                _row(Icons.repeat_rounded, 'Wiederkehrende Buchungen', 'Miete, Gehalt, Abos', _openRecurring),
-                _row(
-                    Icons.sync_rounded,
-                    'Konto & Depot verbinden',
-                    Settings.bankName.isNotEmpty ? '${Settings.bankName} verbunden' : 'Girokonto per PSD2, Depot per Parqet',
-                    _openConnections),
+                _switchRow(Icons.visibility_off_rounded, 'Beträge verbergen', 'Auch per Auge oben auf dem Start',
+                    Settings.hideAmounts.value, (v) async {
+                  await Settings.setHideAmounts(v);
+                  if (mounted) setState(() {});
+                }),
               ]),
 
               _sectionLabel('Daten'),
               _group([
-                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV-Export deiner Bank (Sparkasse, ING, DKB …)',
-                    _importCSV),
-                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export', _importDepotCsv),
-                _row(Icons.file_download_rounded, 'Als CSV exportieren', null, _exportCsv),
-                _row(Icons.cloud_upload_rounded, 'Backup erstellen', 'Alle Daten als JSON', _backupJson),
-                _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
+                _row(Icons.swap_vert_rounded, 'Import, Export & Backup', 'Bank-CSV, Depot, Sicherung',
+                    _openDataTools),
               ]),
 
-              _sectionLabel('Über BudgetBuddy'),
+              _sectionLabel('Mehr'),
               _group([
                 _row(Icons.info_outline_rounded, 'Über BudgetBuddy', 'Hilfe, Impressum, Datenschutz, AGB', _openAbout),
-              ]),
-
-              _sectionLabel('Neu starten'),
-              _group([
                 if (account == null)
                   _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest),
                 _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten auf diesem Gerät löschen',
@@ -226,6 +230,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _openNotifications() =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()));
+
+  // the rarely used data tools on their own page, so the profile stays short
+  void _openDataTools() => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(title: const Text('Import, Export & Backup')),
+            body: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
+              _sectionLabel('Importieren'),
+              _group([
+                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV-Export deiner Bank (Sparkasse, ING, DKB …)',
+                    _importCSV),
+                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export', _importDepotCsv),
+              ]),
+              _sectionLabel('Sichern'),
+              _group([
+                _row(Icons.file_download_rounded, 'Als CSV exportieren', 'Für Excel oder die Steuer', _exportCsv),
+                _row(Icons.cloud_upload_rounded, 'Backup erstellen', 'Alle Daten als eine Datei', _backupJson),
+                _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
+              ]),
+              const SizedBox(height: 16),
+              Text('Deine Daten liegen auf diesem Gerät. Ein Backup ist die einfachste Versicherung, '
+                  'wenn du das Handy wechselst.',
+                  textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
+            ]),
+          ),
+        ),
+      );
 
   void _openAbout() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
 
