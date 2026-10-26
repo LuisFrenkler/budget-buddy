@@ -14,6 +14,8 @@ import '../services/file_saver.dart';
 import '../utils/theme.dart';
 import '../utils/dates.dart';
 import '../models/transaction.dart';
+import '../services/savings_rate.dart';
+import '../utils/money.dart';
 import 'recurring_screen.dart';
 import 'connections_screen.dart';
 import 'auth_screens.dart';
@@ -44,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       valueListenable: Hive.box('transactions').listenable(),
       builder: (context, box, child) {
         final tx = DB.getTx();
-        final rate = _savingsRate(tx);
+        final rate = SavingsRate.headline(tx);
         // oldest transaction = the user's start with the app
         final since = tx.isEmpty ? null : tx.last.date;
         final account = AccountService.current.value;
@@ -84,7 +86,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Row(children: [
                     _stat('${tx.length}', 'Umsätze'),
                     _stat(since == null ? '–' : Dates.month(since), 'Dabei seit'),
-                    _stat(rate == null ? '–' : '$rate %', 'Sparquote'),
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _explainRate(tx),
+                        child: Column(children: [
+                          Text(rate == null ? '–' : '$rate %',
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 2),
+                          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Text('Sparquote', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                            const SizedBox(width: 3),
+                            Icon(Icons.info_outline_rounded, size: 13, color: AppColors.textDim),
+                          ]),
+                        ]),
+                      ),
+                    ),
                   ]),
                 ),
               ]),
@@ -371,23 +388,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // share of income kept over the last three complete months, the one
-  // number that says whether money builds up; null without income
-  static int? _savingsRate(List<Transaction> tx) {
-    final now = DateTime.now();
-    final from = DateTime(now.year, now.month - 3);
-    final to = DateTime(now.year, now.month);
-    var income = 0, spent = 0;
-    for (final t in tx) {
-      if (t.date.isBefore(from) || !t.date.isBefore(to)) continue;
-      if (t.isIncome) {
-        income += t.amountCents;
-      } else {
-        spent += t.amountCents;
-      }
-    }
-    if (income <= 0) return null;
-    return ((income - spent) / income * 100).round();
+  // how the savings rate comes about, month by month
+  void _explainRate(List<Transaction> tx) {
+    final months = SavingsRate.months(tx);
+    final rate = SavingsRate.headline(tx);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(rate == null ? 'Sparquote' : 'Sparquote: $rate %',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text('Wie viel von deinem Einkommen übrig bleibt, über die letzten drei abgeschlossenen Monate. '
+                'Der laufende Monat zählt erst mit, wenn er vorbei ist, sonst würde das Gehalt am '
+                'Monatsanfang die Zahl verzerren.',
+                style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 14),
+            for (final m in months)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                child: Row(children: [
+                  Expanded(
+                    child: Text('${Dates.months[m.month.month - 1]}${m.running ? ' (bisher)' : ''}',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600, color: m.running ? AppColors.textDim : AppColors.text)),
+                  ),
+                  Text(
+                    m.income <= 0
+                        ? 'kein Einkommen'
+                        : '${Money.format(m.income - m.spent)} von ${Money.format(m.income)}',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13),
+                  ),
+                  SizedBox(
+                    width: 56,
+                    child: Text(m.rate == null ? '–' : '${m.rate} %',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: (m.rate ?? 0) < 0 ? AppColors.error : AppColors.text)),
+                  ),
+                ]),
+              ),
+            const SizedBox(height: 8),
+            Text('Gut sind 10 bis 20 %. Was du auf Sparziele legst, zählt mit, solange es auf deinem Konto bleibt.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
+          ]),
+        ),
+      ),
+    );
   }
 
   Widget _sectionLabel(String text) {
