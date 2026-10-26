@@ -6,6 +6,7 @@
 // - round-up: each expense since switching it on is rounded up to the full
 //   euro, the difference goes to the goal (3,20 € -> 0,80 €)
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'db.dart';
@@ -53,6 +54,9 @@ class AutoSave {
 
   static Timer? _debounce;
 
+  // a goal the autopilot just completed, for the celebration on screen
+  static final reached = ValueNotifier<Goal?>(null);
+
   // after new bookings: round them up a moment later, once
   static void runSoon() {
     _debounce?.cancel();
@@ -67,7 +71,9 @@ class AutoSave {
     for (final g in GoalsService.all()) {
       if (!g.automated) continue;
       final before = g.toMap().toString();
+      final wasReached = g.reached;
       total += apply(g, tx, today);
+      if (!wasReached && g.reached) reached.value = g;
       if (g.toMap().toString() != before) await GoalsService.save(g);
     }
     return total;

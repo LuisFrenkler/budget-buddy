@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'smart_entry_sheet.dart';
 import 'package:flutter/services.dart';
 import 'splits_screen.dart';
+import 'goals_screen.dart';
+import '../services/auto_save.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
@@ -32,10 +34,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // create default badges if they dont exist yet
     DB.initBadges();
+    // a goal filled by the autopilot gets its celebration, too
+    AutoSave.reached.addListener(_goalReached);
+  }
+
+  void _goalReached() {
+    final g = AutoSave.reached.value;
+    if (g == null || !mounted) return;
+    AutoSave.reached.value = null;
+    celebrateGoal(context, g);
   }
 
   @override
   void dispose() {
+    AutoSave.reached.removeListener(_goalReached);
     _segment.dispose();
     super.dispose();
   }
@@ -54,14 +66,32 @@ class _HomeScreenState extends State<HomeScreen> {
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
       builder: (context, _, __) => Scaffold(
-        body: IndexedStack(
-          index: _tab,
-          children: [
+        // the tabs stay alive (scroll position, loaded charts) and cross-fade
+        // with a slight rise when switching
+        body: Stack(children: [
+          for (final (i, tab) in [
             OverviewScreen(onOpen: _open),
             AccountScreen(segment: _segment),
             const DepotScreen(),
-          ],
-        ),
+          ].indexed)
+            IgnorePointer(
+              ignoring: i != _tab,
+              child: TickerMode(
+                enabled: i == _tab,
+                child: AnimatedOpacity(
+                  opacity: i == _tab ? 1 : 0,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                  child: AnimatedSlide(
+                    offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    child: tab,
+                  ),
+                ),
+              ),
+            ),
+        ]),
         bottomNavigationBar: _navigation(),
       ),
     );

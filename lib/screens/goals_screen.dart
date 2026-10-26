@@ -13,6 +13,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/confetti.dart';
 import 'plus_screen.dart';
 
 // usual monthly surplus, the base of every plan
@@ -224,14 +225,19 @@ class GoalCard extends StatelessWidget {
     goal.savedCents += cents;
     await GoalsService.save(goal);
     HapticFeedback.mediumImpact();
-    if (!wasReached && goal.reached && context.mounted) _celebrate(context, goal);
+    if (!wasReached && goal.reached && context.mounted) celebrateGoal(context, goal);
   }
 
-  static void _celebrate(BuildContext context, Goal goal) {
+}
+
+// "Ziel erreicht!" with a burst of confetti
+void celebrateGoal(BuildContext context, Goal goal) {
     HapticFeedback.heavyImpact();
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (context) => Stack(children: [
+        const Positioned.fill(child: ConfettiBurst()),
+        Center(child: Dialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         child: Padding(
@@ -257,9 +263,9 @@ class GoalCard extends StatelessWidget {
             ),
           ]),
         ),
-      ),
+      )),
+      ]),
     );
-  }
 }
 
 // progress ring with the goal's emoji in the middle
