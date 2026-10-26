@@ -49,3 +49,16 @@ app.*.map.json
 
 # Local tool settings
 .claude/
+
+# Secrets anywhere in the tree (keys, certificates, signing files, env files)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+key.properties
