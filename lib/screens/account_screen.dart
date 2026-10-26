@@ -32,10 +32,10 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   static const _ranges = ['1M', '3M', '6M', '1J', 'Max'];
   static const _periods = {
-    '1M': 'im letzten Monat',
+    '1M': 'in 30 Tagen',
     '3M': 'in 3 Monaten',
     '6M': 'in 6 Monaten',
-    '1J': 'im letzten Jahr',
+    '1J': 'in 12 Monaten',
     'Max': 'seit Beginn',
   };
   String _range = '3M';
@@ -52,14 +52,16 @@ class _AccountScreenState extends State<AccountScreen> {
   DateTime _rangeStart(List<Transaction> tx) {
     final now = DateTime.now();
     switch (_range) {
+      // in days, like the labels say; "a month back" from the 31st would land
+      // on the 3rd of the month before
       case '1M':
-        return DateTime(now.year, now.month - 1, now.day);
+        return DateTime(now.year, now.month, now.day - 30);
       case '3M':
-        return DateTime(now.year, now.month - 3, now.day);
+        return DateTime(now.year, now.month, now.day - 91);
       case '6M':
-        return DateTime(now.year, now.month - 6, now.day);
+        return DateTime(now.year, now.month, now.day - 182);
       case '1J':
-        return DateTime(now.year - 1, now.month, now.day);
+        return DateTime(now.year, now.month, now.day - 365);
       default:
         return History.firstDay(tx) ?? now;
     }

@@ -11,6 +11,7 @@ import '../services/history.dart';
 import '../services/settings_service.dart';
 import '../services/insights_service.dart';
 import '../services/price_service.dart';
+import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
@@ -55,10 +56,10 @@ class OverviewScreen extends StatefulWidget {
 class _OverviewScreenState extends State<OverviewScreen> {
   static const _ranges = {'1M': 30, '3M': 91, '6M': 182, '1J': 365};
   static const _periods = {
-    '1M': 'im letzten Monat',
+    '1M': 'in 30 Tagen',
     '3M': 'in 3 Monaten',
     '6M': 'in 6 Monaten',
-    '1J': 'im letzten Jahr',
+    '1J': 'in 12 Monaten',
   };
   String _range = '1M';
   ChartPoint? _scrub;
@@ -149,13 +150,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   // joined a group before any own bookings: it still belongs here
                   ..._splits(),
                 ] else ...[
+                  if (DemoData.active) _demoBanner(),
                   const RecapBanner(),
                   if (!OnboardingService.hidden && !OnboardingService.complete) ...[
                     const GettingStartedCard(),
                     const SizedBox(height: 24),
                   ],
                   // without the real balance a chart of "−3,20 €" would only confuse
-                  if (!OnboardingService.balanceKnown && depotNow == 0)
+                  if (!OnboardingService.balanceKnown)
                     _balancePrompt(cash)
                   else
                     ..._netWorth(tx, cash, depotNow),
@@ -207,6 +209,45 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ),
       ),
     );
+  }
+
+  // sample data never passes for the user's own money
+  Widget _demoBanner() => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(children: [
+            const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text('Du siehst Beispieldaten', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+            ),
+            TextButton(onPressed: _removeDemo, child: const Text('Entfernen')),
+          ]),
+        ),
+      );
+
+  Future<void> _removeDemo() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Beispieldaten entfernen?'),
+        content: const Text('Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. '
+            'Was du selbst eingetragen hast, bleibt.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Entfernen')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await DemoData.remove();
+    HapticFeedback.mediumImpact();
+    if (mounted) setState(() {});
   }
 
   // what is still free this month; needs some income history. With a known
@@ -441,6 +482,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final monthNet = DB.sumOf(month, isIncome: true) - DB.sumOf(month, isIncome: false);
     final invested = DB.portfolioInvested();
     final gain = depotNow - invested;
+    final known = OnboardingService.balanceKnown;
+    final hasHoldings = DB.getHoldings().isNotEmpty;
 
     return Container(
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
@@ -450,9 +493,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
             icon: Icons.account_balance_wallet_rounded,
             color: AppColors.primary,
             title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
-            value: cash,
-            change: '${Money.signed(monthNet)} im Monat',
-            up: monthNet >= 0,
+            // without the real balance the sum of bookings means nothing
+            value: known ? Money.format(cash) : 'Eintragen',
+            change: known ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}' : 'Kontostand fehlt noch',
+            up: !known || monthNet == 0 ? null : monthNet > 0,
             onTap: () => widget.onOpen(1, segment: 0),
           ),
           Divider(height: 1, indent: 72, color: AppColors.border),
@@ -460,11 +504,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
             icon: Icons.trending_up_rounded,
             color: AppColors.accentBlue,
             title: 'Depot',
-            value: depotNow,
-            change: invested == 0
+            value: Money.format(depotNow),
+            change: !hasHoldings
                 ? 'Noch keine Positionen'
-                : '${Money.percent(gain / invested * 100, digits: 2)} gesamt',
-            up: gain >= 0,
+                : invested == 0
+                    ? 'Ohne Kaufpreis'
+                    : '${Money.percent(gain / invested * 100, digits: 2)} gesamt',
+            up: !hasHoldings || invested == 0 || gain == 0 ? null : gain > 0,
             onTap: () => widget.onOpen(2),
           ),
         ],
@@ -472,15 +518,22 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
+  // [up]: null for plain information, which stays neutral; masked amounts
+  // don't reveal their direction through colour either
   Widget _accountRow({
     required IconData icon,
     required Color color,
     required String title,
-    required int value,
+    required String value,
     required String change,
-    required bool up,
+    required bool? up,
     required VoidCallback onTap,
   }) {
+    final changeColor = up == null || Money.masked
+        ? AppColors.textDim
+        : up
+            ? AppColors.positiveText
+            : AppColors.errorText;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
@@ -507,12 +560,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis),
                     ),
-                    Text(Money.format(value), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ]),
                   const SizedBox(height: 2),
-                  Text(change,
-                      style: TextStyle(fontSize: 13, color: up ? AppColors.positive : AppColors.error),
-                      overflow: TextOverflow.ellipsis),
+                  Text(change, style: TextStyle(fontSize: 13, color: changeColor), overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
