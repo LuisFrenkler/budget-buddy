@@ -27,6 +27,8 @@ class AddScreen extends StatefulWidget {
 
 class _AddScreenState extends State<AddScreen> {
   final _noteCtrl = TextEditingController();
+  // while the description is typed the keyboard needs the room of the number pad
+  final _noteFocus = FocusNode();
 
   // form state variables
   String _amount = '';         // typed amount, e.g. "12,5"
@@ -53,13 +55,17 @@ class _AddScreenState extends State<AddScreen> {
       _category = t.category;
       _date = t.date;
     }
+    _noteFocus.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _noteCtrl.dispose();
+    _noteFocus.dispose();
     super.dispose();
   }
+
+  bool get _typingNote => _noteFocus.hasFocus;
 
   // recent merchants of the current type: one tap fills note, amount and
   // category; while typing a description they narrow down to matches
@@ -173,7 +179,8 @@ class _AddScreenState extends State<AddScreen> {
         appBar: AppBar(
           title: Text(_isEdit ? 'Bearbeiten' : 'Neuer Umsatz'),
           actions: [
-            if (_isEdit) IconButton(icon: const Icon(Icons.delete_outline_rounded), onPressed: _delete),
+            if (_isEdit)
+              IconButton(tooltip: 'Löschen', icon: const Icon(Icons.delete_outline_rounded), onPressed: _delete),
           ],
         ),
         body: SafeArea(
@@ -192,10 +199,12 @@ class _AddScreenState extends State<AddScreen> {
                 ),
               ),
 
-              // big amount, grows with the input
+              // big amount, grows with the input; scrolls when the keyboard leaves little room
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -220,6 +229,8 @@ class _AddScreenState extends State<AddScreen> {
                       width: 260,
                       child: TextField(
                         controller: _noteCtrl,
+                        focusNode: _noteFocus,
+                        textCapitalization: TextCapitalization.sentences,
                         textAlign: TextAlign.center,
                         maxLength: 60,
                         style: TextStyle(color: AppColors.text),
@@ -237,14 +248,19 @@ class _AddScreenState extends State<AddScreen> {
                     ),
                     if (!_isEdit) _suggestions(),
                   ],
+                    ),
+                  ),
                 ),
               ),
 
               _categoryChips(),
-              const SizedBox(height: 12),
-              _optionChips(),
-              const SizedBox(height: 8),
-              _numberPad(),
+              if (!_typingNote) ...[
+                const SizedBox(height: 12),
+                _optionChips(),
+                const SizedBox(height: 8),
+                _numberPad(),
+              ] else
+                const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: SizedBox(
@@ -331,9 +347,14 @@ class _AddScreenState extends State<AddScreen> {
           if (!_isEdit) ...[
             const SizedBox(width: 8),
             PopupMenuButton<String>(
+              tooltip: 'Wiederholen',
               color: AppColors.surface,
               initialValue: _repeat,
-              onSelected: (v) => setState(() => _repeat = v),
+              onSelected: (v) => setState(() {
+                _repeat = v;
+                // a one-off booking cannot lie in the future
+                if (v == 'Einmalig' && _date.isAfter(DateTime.now())) _date = DateTime.now();
+              }),
               itemBuilder: (_) => [
                 for (final o in ['Einmalig', ...RecurringService.intervals])
                   PopupMenuItem(value: o, child: Text(o)),
@@ -382,7 +403,7 @@ class _AddScreenState extends State<AddScreen> {
                   : null,
               child: Center(
                 child: k == 'del'
-                    ? Icon(Icons.backspace_outlined, color: AppColors.text)
+                    ? Icon(Icons.backspace_outlined, color: AppColors.text, semanticLabel: 'Löschen, lang drücken leert')
                     : Text(k, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500)),
               ),
             ),
@@ -392,29 +413,55 @@ class _AddScreenState extends State<AddScreen> {
   }
 
   // opens the date picker dialog
+  // A booking happened on a day up to today; only a repeating one may start
+  // later. Older bookings (imports, years of history) stay editable.
   void _openDatePicker() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final first = _date.isBefore(DateTime(2000)) ? _date : DateTime(2000);
+    final last = _repeat == 'Einmalig' ? today : DateTime(now.year + 1, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
-      // style the date picker to match our app theme
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.dark(primary: AppColors.primary, surface: AppColors.surface),
-          ),
-          child: child!,
-        );
-      },
+      initialDate: _date.isAfter(last) ? last : _date,
+      firstDate: first,
+      lastDate: last,
+      helpText: _repeat == 'Einmalig' ? 'Wann war das?' : 'Ab wann?',
     );
     if (picked != null) setState(() => _date = picked);
   }
 
   Future<void> _delete() async {
-    await DB.deleteTx(widget.tx!.id);
+    final tx = widget.tx!;
+    final messenger = ScaffoldMessenger.of(context);
     HapticFeedback.mediumImpact();
-    if (mounted) Navigator.pop(context, true);
+    await DB.deleteTx(tx.id);
+    if (!mounted) return;
+    Navigator.pop(context, true);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: const Text('Umsatz gelöscht'),
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.addTx(tx)),
+    ));
+  }
+
+  // a repeating booking that starts in the past fills in every date up to today
+  Future<bool> _confirmBackfill(RecurringRule rule) async {
+    final count = RecurringService.dueOccurrences(rule, DateTime.now()).length;
+    if (count <= 1) return true;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$count Umsätze nachtragen?'),
+        content: Text('Der Beginn liegt in der Vergangenheit. BudgetBuddy trägt jeden ${rule.interval}en Termin '
+            'bis heute nach, also $count Umsätze über zusammen ${Money.raw(rule.amountCents * count)}.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Datum ändern')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Nachtragen')),
+        ],
+      ),
+    );
+    return ok == true;
   }
 
   // saves the transaction (or a recurring rule) to the database
@@ -427,7 +474,7 @@ class _AddScreenState extends State<AddScreen> {
 
       if (!_isEdit && _repeat != 'Einmalig') {
         // create a recurring rule; the engine generates the due transactions
-        await DB.addRule(RecurringRule(
+        final rule = RecurringRule(
           id: const Uuid().v4(),
           amountCents: cents,
           category: _category!,
@@ -435,7 +482,9 @@ class _AddScreenState extends State<AddScreen> {
           note: note,
           interval: _repeat,
           startDate: date,
-        ));
+        );
+        if (!await _confirmBackfill(rule)) return;
+        await DB.addRule(rule);
         await RecurringService.process();
       } else {
         // one-off transaction (also the path for editing)
@@ -453,7 +502,9 @@ class _AddScreenState extends State<AddScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 2800),
+            content: Text('Speichern hat nicht geklappt. Bitte versuch es noch einmal.')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

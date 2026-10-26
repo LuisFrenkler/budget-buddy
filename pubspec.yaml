@@ -8,7 +8,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+  # German texts in the built-in dialogs (date picker, tooltips, OK/Abbrechen)
+  flutter_localizations:
+    sdk: flutter
+
   # Date formatting (German format)
   intl: ^0.20.2
 
