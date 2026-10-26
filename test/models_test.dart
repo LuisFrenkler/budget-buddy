@@ -65,6 +65,17 @@ void main() {
       expect(make(20000, 5000).remainingCents, 15000);
     });
 
+    test('percent used passes 100 and survives a budget without limit', () {
+      expect(make(20000, 25000).percentUsed, 125);
+      expect(make(0, 100).percentUsed, 0); // used to crash the start screen
+    });
+
+    test('covers its month, and the date range reads German', () {
+      expect(make(1, 0).covers(DateTime(2025, 3, 31, 23)), isTrue);
+      expect(make(1, 0).covers(DateTime(2025, 4, 1)), isFalse);
+      expect(make(1, 0).dateRange, '1.3.–31.3.2025');
+    });
+
     test('migrates legacy double-euro limit to cents', () {
       final legacy = {
         'category': 'Wohnen',

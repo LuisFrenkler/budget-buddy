@@ -16,6 +16,9 @@ import 'plus_service.dart';
 class AutoSave {
   static String _month(DateTime d) => '${d.year}-${d.month}';
 
+  // the month key a goal's monthly amount was last counted for
+  static String monthKey(DateTime d) => _month(d);
+
   // the cents a booking contributes when rounded up
   static int roundUpOf(int cents) => cents % 100 == 0 ? 0 : 100 - cents % 100;
 

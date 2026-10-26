@@ -321,8 +321,8 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget _dismissible(Transaction t) {
     return Dismissible(
       key: Key(t.id),
-      // only allow swipe from right to left
-      direction: DismissDirection.endToStart,
+      // only allow swipe from right to left; bank bookings would come back with the next sync
+      direction: t.id.startsWith(BankSync.prefix) ? DismissDirection.none : DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),

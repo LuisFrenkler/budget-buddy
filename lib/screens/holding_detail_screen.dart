@@ -63,8 +63,9 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         final matches = DB.getHoldings().where((x) => x.id == widget.holding.id).toList();
         if (matches.isEmpty) {
           // deleted elsewhere — leave the screen
+          // only while this page is on top: after its own delete it is already leaving
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) Navigator.pop(context);
+            if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) Navigator.pop(context);
           });
           return const SizedBox.shrink();
         }

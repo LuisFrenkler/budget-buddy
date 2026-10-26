@@ -55,6 +55,21 @@ void main() {
       expect(RecurringService.dueOccurrences(
           rule(start: DateTime(2030, 1, 1)), DateTime(2025, 3, 20)), isEmpty);
     });
+
+    test('resuming a paused rule skips the dates missed while paused', () {
+      // paused after January, switched back on in April
+      final r = rule(lastRun: DateTime(2025, 1, 15));
+      RecurringService.skipPaused(r, DateTime(2025, 4, 10));
+      expect(r.lastRun, DateTime(2025, 3, 15));
+      expect(RecurringService.dueOccurrences(r, DateTime(2025, 4, 10)), isEmpty);
+      expect(RecurringService.dueOccurrences(r, DateTime(2025, 4, 15)), [DateTime(2025, 4, 15)]);
+    });
+
+    test('resuming on a due day still books that day', () {
+      final r = rule(lastRun: DateTime(2025, 1, 15));
+      RecurringService.skipPaused(r, DateTime(2025, 4, 15));
+      expect(RecurringService.dueOccurrences(r, DateTime(2025, 4, 15)), [DateTime(2025, 4, 15)]);
+    });
   });
 
   group('RecurringService.process', () {

@@ -47,12 +47,16 @@ class SplitService {
     return _store(await AccountService.api('/splits/share', body: {'group': g.toShared(), 'me': g.me}));
   }
 
+  // codes are pasted from chats: spaces, line breaks and lower case don't matter
+  static String normalizeCode(String code) => code.replaceAll(RegExp(r'\s'), '').toUpperCase();
+
   static Future<Map<String, dynamic>> preview(String code) =>
-      AccountService.api('/splits/preview?code=${Uri.encodeQueryComponent(code)}');
+      AccountService.api('/splits/preview?code=${Uri.encodeQueryComponent(normalizeCode(code))}');
 
   // joining: what is already in the group is not "news"
   static Future<SplitGroup> join(String code, int member) async {
-    final g = await _store(await AccountService.api('/splits/join', body: {'code': code, 'member': member}));
+    final g = await _store(
+        await AccountService.api('/splits/join', body: {'code': normalizeCode(code), 'member': member}));
     await markSeen(g);
     await setPendingJoin(null);
     return g;
@@ -130,13 +134,11 @@ class SplitService {
     }
   }
 
-  // shared: the creator deletes it for all, others leave; local: just delete
-  static Future<void> remove(SplitGroup g) async {
-    if (g.shared) {
-      try {
-        await AccountService.api('/splits/leave', body: {'id': g.id});
-      } catch (_) {}
-    }
+  // shared: the creator deletes it for all, others leave; local: just delete.
+  // A shared group stays when the server can't be told, unless [localOnly]
+  // (the user chose to remove it from this device anyway).
+  static Future<void> remove(SplitGroup g, {bool localOnly = false}) async {
+    if (g.shared && !localOnly) await AccountService.api('/splits/leave', body: {'id': g.id});
     await delete(g.id);
   }
 

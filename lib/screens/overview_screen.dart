@@ -600,9 +600,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
   // current budgets as small progress rings
   List<Widget> _budgets() {
     final today = DateTime.now();
-    final budgets = DB.getBudgets()
-        .where((b) => !today.isBefore(b.startDate) && today.isBefore(b.endDate.add(const Duration(days: 1))))
-        .toList();
+    final budgets = DB.getBudgets().where((b) => b.covers(today)).toList();
     if (budgets.isEmpty) return const [];
     return [
       const SizedBox(height: 28),
@@ -652,7 +650,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                           valueColor: AlwaysStoppedAnimation(color),
                         ),
                         Center(
-                          child: Text('${(b.spentCents / b.limitCents * 100).round()} %',
+                          child: Text('${b.percentUsed} %',
                               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                         ),
                       ],

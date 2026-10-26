@@ -67,6 +67,14 @@ class RecurringService {
     return out;
   }
 
+  // A paused rule switched back on carries on from today: the dates it missed
+  // while paused are skipped, not booked afterwards (that is what pausing is for).
+  static void skipPaused(RecurringRule rule, DateTime today) {
+    final t = _dateOnly(today);
+    final missed = dueOccurrences(rule, today).where((d) => d.isBefore(t)).toList();
+    if (missed.isNotEmpty) rule.lastRun = missed.last;
+  }
+
   // generates all due transactions for every rule, returning how many were made.
   // [today] defaults to now; tests and the demo data pass a fixed date.
   static Future<int> process({DateTime? today}) async {
