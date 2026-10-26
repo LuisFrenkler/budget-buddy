@@ -34,6 +34,7 @@ void main() async {
   await Hive.openBox('recurring');
   await Hive.openBox('settings');
   await Hive.openBox('goals');
+  await Hive.openBox('splits');
 
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();

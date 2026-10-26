@@ -25,6 +25,8 @@ import '../services/goals_service.dart';
 import 'connections_screen.dart';
 import 'contracts_screen.dart';
 import 'subscription_screen.dart';
+import 'splits_screen.dart';
+import '../services/split_service.dart';
 import '../services/hints_service.dart';
 import '../services/plus_service.dart';
 import '../widgets/hints_bell.dart';
@@ -118,6 +120,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           Hive.box('budgets').listenable(),
           Hive.box('settings').listenable(),
           Hive.box('goals').listenable(),
+          if (Hive.isBoxOpen('splits')) Hive.box('splits').listenable(),
         ]),
         builder: (context, _) {
           final tx = DB.getTx();
@@ -161,6 +164,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ..._weekly(tx),
                   const SizedBox(height: 16),
                   const ContractsCard(),
+                  ..._splits(),
                   ..._goals(),
                   ..._budgets(),
                   ..._insight(tx),
@@ -207,6 +211,49 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final f = ForecastService.build(tx, goals: GoalsService.all());
     if (f == null) return [];
     return [const SizedBox(height: 16), ForecastCard(f)];
+  }
+
+  // shared spending, once there is a group
+  List<Widget> _splits() {
+    if (!Hive.isBoxOpen('splits') || SplitService.all().isEmpty) return [];
+    final total = SplitService.myTotal();
+    return [
+      const SizedBox(height: 16),
+      Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(color: const Color(0xFF14B8A6).withValues(alpha: 0.16), shape: BoxShape.circle),
+                child: const Icon(Icons.call_split_rounded, color: Color(0xFF14B8A6), size: 21),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('Geteilt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text(
+                    total == 0
+                        ? 'Alles ausgeglichen'
+                        : total > 0
+                            ? 'Du bekommst ${Money.format(total)}'
+                            : 'Du schuldest ${Money.format(-total)}',
+                    style: TextStyle(fontSize: 13, color: total > 0 ? AppColors.positive : AppColors.textDim),
+                  ),
+                ]),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+            ]),
+          ),
+        ),
+      ),
+    ];
   }
 
   // this week's report, until it has been opened

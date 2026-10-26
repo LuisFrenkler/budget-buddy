@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'smart_entry_sheet.dart';
 import 'package:flutter/services.dart';
+import 'splits_screen.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
@@ -142,6 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
     HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
+      // as tall as its options, not capped at half the screen
+      isScrollControlled: true,
       backgroundColor: AppColors.surface,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -152,9 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _addOption(sheet, Icons.auto_awesome_rounded, AppColors.primary, 'Schnell erfassen',
-                  'Einfach eintippen, z. B. „Döner 8,50 gestern“', () => showSmartEntry(context)),
+                  'Eintippen wie „Döner 8,50 gestern“', () => showSmartEntry(context)),
               _addOption(sheet, Icons.document_scanner_rounded, const Color(0xFFF472B6), 'Beleg scannen',
-                  'Foto vom Kassenbon, Buddy liest den Rest', () => showSmartEntry(context, scan: true)),
+                  'Foto vom Kassenbon genügt', () => showSmartEntry(context, scan: true)),
               _addOption(sheet, Icons.receipt_long_rounded, AppColors.positive, 'Umsatz erfassen',
                   'Mit Ziffernblock', () async {
                 if (await TxRow.openEditor(context) && mounted) {
@@ -167,6 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
               }),
               _addOption(sheet, Icons.savings_rounded, AppColors.warning, 'Budget anlegen',
                   'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
+              _addOption(sheet, Icons.call_split_rounded, const Color(0xFF14B8A6), 'Ausgabe teilen',
+                  'WG, Paar, Urlaub: wer schuldet wem', () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()));
+              }),
             ],
           ),
         ),

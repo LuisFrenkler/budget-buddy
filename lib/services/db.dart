@@ -342,6 +342,7 @@ class DB {
     await _holdingBox.clear();
     await _recurringBox.clear();
     if (Hive.isBoxOpen('goals')) await Hive.box('goals').clear();
+    if (Hive.isBoxOpen('splits')) await Hive.box('splits').clear();
     // the opening balance only makes sense together with the bookings
     if (Hive.isBoxOpen('settings')) {
       await Settings.setOpeningBalanceCents(0);

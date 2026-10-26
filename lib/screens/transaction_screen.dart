@@ -4,6 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
+import '../services/split_service.dart';
+import 'splits_screen.dart';
 import '../services/category_rules.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
@@ -88,6 +90,20 @@ class TransactionScreen extends StatelessWidget {
                 ),
               ]),
               ..._counterparty(context, tx, all),
+              // an expense paid for others: split it in a group
+              if (!tx.isIncome) ...[
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.16),
+                    foregroundColor: AppColors.primary,
+                  ),
+                  onPressed: () => shareTransaction(context, tx),
+                  icon: Icon(SplitService.isShared(tx.id) ? Icons.check_rounded : Icons.call_split_rounded, size: 18),
+                  label: Text(SplitService.isShared(tx.id) ? 'Geteilt · noch einmal teilen' : 'Mit anderen teilen'),
+                ),
+              ],
               if (!fromBank) ...[
                 const SizedBox(height: 24),
                 FilledButton(
