@@ -11,6 +11,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
+import '../services/tx_search.dart';
 import '../widgets/getting_started.dart';
 import '../widgets/tx_row.dart';
 import 'budget_screen.dart';
@@ -42,6 +43,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
   String _search = '';
   bool _searching = false;
+  TxKind _kind = TxKind.all;
 
   // ids swiped away but not yet gone from the box, so the Dismissible
   // leaves the tree immediately instead of waiting for Hive's notification
@@ -200,23 +202,53 @@ class _AccountScreenState extends State<AccountScreen> {
     ];
   }
 
-  // text field to search/filter transactions
+  // search field, quick filters and what the hits add up to
   Widget _searchField() {
-    return TextField(
-      autofocus: true,
-      onChanged: (v) => setState(() => _search = v),
-      decoration: InputDecoration(
-        hintText: 'Kategorie oder Beschreibung',
-        prefixIcon: const Icon(Icons.search_rounded),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => setState(() {
-            _searching = false;
-            _search = '';
-          }),
+    final hits = _filter(DB.getTx());
+    final active = _search.trim().isNotEmpty || _kind != TxKind.all;
+    Widget chip(String label, TxKind k) => ChoiceChip(
+          label: Text(label),
+          selected: _kind == k,
+          showCheckmark: false,
+          side: BorderSide(color: _kind == k ? AppColors.primary : AppColors.border),
+          selectedColor: AppColors.primary.withValues(alpha: 0.2),
+          onSelected: (_) => setState(() => _kind = k),
+        );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TextField(
+        autofocus: true,
+        onChanged: (v) => setState(() => _search = v),
+        decoration: InputDecoration(
+          hintText: 'Rewe, 23,75, über 100, Oktober …',
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => setState(() {
+              _searching = false;
+              _search = '';
+              _kind = TxKind.all;
+            }),
+          ),
         ),
       ),
-    );
+      const SizedBox(height: 10),
+      Row(children: [
+        chip('Alle', TxKind.all),
+        const SizedBox(width: 8),
+        chip('Ausgaben', TxKind.expenses),
+        const SizedBox(width: 8),
+        chip('Einnahmen', TxKind.income),
+      ]),
+      if (active) ...[
+        const SizedBox(height: 10),
+        Text(
+          hits.isEmpty
+              ? 'Keine Treffer'
+              : '${hits.length} ${hits.length == 1 ? 'Umsatz' : 'Umsätze'} · zusammen ${Money.signed(TxSearch.total(hits))}',
+          style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+      ],
+    ]);
   }
 
   Widget _emptyState() {
@@ -235,14 +267,8 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  // filters transactions by the search text (category or note)
-  List<Transaction> _filter(List<Transaction> tx) {
-    final q = _search.trim().toLowerCase();
-    if (q.isEmpty) return tx;
-    return tx
-        .where((t) => t.category.toLowerCase().contains(q) || (t.note?.toLowerCase().contains(q) ?? false))
-        .toList();
-  }
+  // filters transactions by the search text and the quick filters
+  List<Transaction> _filter(List<Transaction> tx) => TxSearch.filter(tx, _search, kind: _kind);
 
   // flattens the (newest first) list into month headers followed by their rows
   // one group per day, newest first, like a banking app statement
