@@ -33,8 +33,12 @@ class ForecastCard extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text('Diesen Monat noch frei', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
-              const Spacer(),
+              Expanded(
+                child: Text('Diesen Monat noch frei',
+                    style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
