@@ -67,10 +67,13 @@ class AppTheme {
       scrolledUnderElevation: 0,
       // large left-aligned titles on every screen
       centerTitle: false,
+      // same type as the in-page titles ("Konto"): an explicit style here
+      // does not inherit the theme font, so Inter is named again
       titleTextStyle: TextStyle(
+        fontFamily: 'Inter',
         color: AppColors.text,
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
       ),
     ),
     

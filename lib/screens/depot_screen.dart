@@ -78,6 +78,8 @@ class _DepotScreenState extends State<DepotScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Depot'),
+            // lines up with "Konto" on the account tab (20 px page margin)
+            titleSpacing: 20,
             actions: [
               // refresh live prices
               if (_refreshing)
