@@ -34,6 +34,8 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 
+// the app's legal texts, so app and web pages never drift apart
+import '../lib/legal/legal_texts.dart';
 import 'lib/accounts.dart';
 import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
@@ -377,6 +379,14 @@ Future<void> _handle(HttpRequest req) async {
       final b = await _body(req);
       await _splits.leave(user['id'] as String, '${b['id'] ?? ''}');
       return _json(req, 200, {'ok': true});
+    case '/datenschutz':
+      return _legal(req, LegalTexts.privacy);
+    case '/nutzungsbedingungen':
+      return _legal(req, LegalTexts.terms);
+    case '/impressum':
+      return _legal(req, LegalTexts.imprint);
+    case '/widerruf':
+      return _legal(req, LegalTexts.withdrawal);
     case '/market/chart':
       return _marketChart(req);
     default:
@@ -890,6 +900,19 @@ Future<void> _raw(HttpRequest req, String json) async {
 
 // --- html ---
 
+// a legal page from the app's texts, readable in any browser
+Future<void> _legal(HttpRequest req, LegalDoc doc) {
+  final body = StringBuffer('<article><h1>${_escape(doc.title)}</h1>');
+  for (final s in doc.sections) {
+    body.write('<h2>${_escape(s.heading)}</h2>');
+    for (final para in s.body.split('\n\n')) {
+      body.write('<p>${_escape(para).replaceAll('\n', '<br>')}</p>');
+    }
+  }
+  body.write('</article>');
+  return _html(req, body.toString());
+}
+
 String _escape(String s) =>
     s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
@@ -900,6 +923,9 @@ String _page(String body) => '''<!doctype html>
   body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
        background:#0b0b10;color:#f2f4f7;font:16px/1.5 -apple-system,BlinkMacSystemFont,Inter,sans-serif}
   main{max-width:380px;padding:32px 24px}
+  main:has(article){max-width:680px;align-self:flex-start}
+  article h2{font-size:18px;margin:28px 0 8px}
+  article p{line-height:1.6}
   h1{font-size:28px;margin:8px 0 12px}
   p{color:#c9ced6}.dim{color:#7d8590;font-size:14px}
   ul{color:#c9ced6;padding-left:20px}
