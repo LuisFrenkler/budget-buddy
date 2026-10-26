@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/big_number.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
@@ -58,6 +59,70 @@ class _AddScreenState extends State<AddScreen> {
   void dispose() {
     _noteCtrl.dispose();
     super.dispose();
+  }
+
+  // recent merchants of the current type: one tap fills note, amount and
+  // category; while typing a description they narrow down to matches
+  List<Transaction> get _recentMerchants {
+    final typed = _noteCtrl.text.trim().toLowerCase();
+    final seen = <String>{};
+    final out = <Transaction>[];
+    for (final t in DB.getTx()) {
+      final name = t.note?.trim() ?? '';
+      if (t.isIncome != _isIncome || name.isEmpty || !seen.add(name.toLowerCase())) continue;
+      if (typed.isNotEmpty && (!name.toLowerCase().startsWith(typed) || name.toLowerCase() == typed)) continue;
+      out.add(t);
+      if (out.length == 6) break;
+    }
+    return out;
+  }
+
+  void _useMerchant(Transaction t) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _noteCtrl.text = t.note!.trim();
+      _category = t.category;
+      if (_amount.isEmpty) _amount = AmountInput.fromCents(t.amountCents);
+    });
+  }
+
+  Widget _suggestions() {
+    final list = _recentMerchants;
+    // only while it helps: nothing typed yet, or a description being typed
+    if (list.isEmpty || (_amount.isNotEmpty && _noteCtrl.text.trim().isEmpty)) return const SizedBox(height: 0);
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: SizedBox(
+        height: 44,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
+            final t = list[i];
+            return Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(22),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: () => _useMerchant(t),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 6, 14, 6),
+                  child: Row(children: [
+                    CategoryAvatar(t.category, isIncome: t.isIncome, merchant: t.note, size: 30),
+                    const SizedBox(width: 8),
+                    Text(t.note!.trim(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                    const SizedBox(width: 6),
+                    Text(Money.format(t.amountCents), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                  ]),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   // categories of the current type, the most used ones first
@@ -167,8 +232,10 @@ class _AddScreenState extends State<AddScreen> {
                           focusedBorder: InputBorder.none,
                         ),
                         onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                        onChanged: (_) => setState(() {}),
                       ),
                     ),
+                    if (!_isEdit) _suggestions(),
                   ],
                 ),
               ),
@@ -220,6 +287,7 @@ class _AddScreenState extends State<AddScreen> {
         itemBuilder: (_, i) {
           final c = _categories[i];
           final selected = c == _category;
+          final tint = Categories.color(c);
           return GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
@@ -229,18 +297,18 @@ class _AddScreenState extends State<AddScreen> {
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary.withValues(alpha: 0.18) : AppColors.surface,
+                color: selected ? tint.withValues(alpha: 0.2) : AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: selected ? AppColors.primary : Colors.transparent),
+                border: Border.all(color: selected ? tint : Colors.transparent),
               ),
               child: Row(
                 children: [
-                  Icon(Categories.icon(c), size: 18, color: selected ? AppColors.primary : AppColors.textDim),
+                  Icon(Categories.icon(c), size: 18, color: tint),
                   const SizedBox(width: 6),
                   Text(c,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: selected ? AppColors.primary : AppColors.text,
+                        color: AppColors.text,
                       )),
                 ],
               ),
