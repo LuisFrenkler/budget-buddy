@@ -267,7 +267,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte ein Wertpapier wählen')),
+        const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Bitte ein Wertpapier wählen')),
       );
       return;
     }
@@ -286,7 +286,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

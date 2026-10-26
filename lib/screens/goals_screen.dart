@@ -118,7 +118,7 @@ class GoalCard extends StatelessWidget {
             onSelected: (_) async {
               await GoalsService.delete(goal.id);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
                   content: Text('${goal.name} gelöscht'),
                   action: SnackBarAction(label: 'Rückgängig', onPressed: () => GoalsService.save(goal)),
                 ));
@@ -536,7 +536,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(g.automated
             ? '${g.name} spart jetzt automatisch${added > 0 ? ' · ${Money.format(added)} schon dazu' : ''}'
             : 'Automatisches Sparen aus')));

@@ -315,7 +315,7 @@ class _AccountScreenState extends State<AccountScreen> {
     DB.deleteTx(t.id);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
       content: Text('${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
       action: SnackBarAction(
         label: 'Rückgängig',
@@ -354,7 +354,7 @@ class _SyncPill extends StatefulWidget {
       text = 'Bank gerade nicht erreichbar';
     }
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(text)));
+    messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
   }
 
   @override

@@ -235,7 +235,7 @@ class _BudgetCardState extends State<_BudgetCard> {
     DB.deleteBudget(budget);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
       content: Text('Budget ${budget.category} gelöscht'),
       action: SnackBarAction(
         label: 'Rückgängig',
@@ -325,7 +325,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
+          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
     }
   }
 
@@ -396,13 +396,13 @@ Future<bool> _saveBudget(BuildContext context, String? category, String limitTex
   }
   final messenger = ScaffoldMessenger.of(context);
   if (category == null) {
-    messenger.showSnackBar(const SnackBar(content: Text('Kategorie wählen')));
+    messenger.showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Kategorie wählen')));
     return false;
   }
   // input is whole euros -> convert to cents
   final limitCents = Money.parseToCents(limitText);
   if (limitCents == null || limitCents <= 0) {
-    messenger.showSnackBar(const SnackBar(content: Text('Limit eingeben')));
+    messenger.showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Limit eingeben')));
     return false;
   }
   // dates normalized to midnight

@@ -170,7 +170,7 @@ class _HintsSheetState extends State<_HintsSheet> {
           // the gentle ask, at the moment hints make the value obvious
           ValueListenableBuilder<bool>(
             valueListenable: NotificationService.enabled,
-            builder: (context, on, _) => on
+            builder: (context, on, _) => on || !NotificationService.canAsk
                 ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -194,8 +194,7 @@ class _HintsSheetState extends State<_HintsSheet> {
                             final ok = await NotificationService.enable();
                             if (ok) await NotificationService.hello();
                             if (!ok && context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                  content: Text('Mitteilungen sind in den Einstellungen deines Geräts blockiert')));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500), content: Text(NotificationService.problem)));
                             }
                           },
                           child: const Text('Ja, gern'),

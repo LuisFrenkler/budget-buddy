@@ -289,7 +289,7 @@ class _Details extends StatelessWidget {
   }
 
   static void _snack(BuildContext context, String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
 
   Future<void> _choosePlan(BuildContext context) async {
     final chosen = await showModalBottomSheet<PlusPlan>(

@@ -453,7 +453,7 @@ class _AddScreenState extends State<AddScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Fehler: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $error')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

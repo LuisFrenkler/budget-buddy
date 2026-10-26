@@ -67,7 +67,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
       content: Text(text),
       backgroundColor: error ? AppColors.error : null,
     ));

@@ -30,7 +30,8 @@ class OnboardingService {
         OnboardingStep.balance => balanceKnown,
         OnboardingStep.budget => DB.getBudgets().isNotEmpty,
         OnboardingStep.goal => GoalsService.all().isNotEmpty,
-        OnboardingStep.notifications => NotificationService.enabled.value,
+        // nothing to do where notifications are not possible
+        OnboardingStep.notifications => NotificationService.enabled.value || !NotificationService.canAsk,
       };
 
   static int get doneCount => OnboardingStep.values.where(done).length;

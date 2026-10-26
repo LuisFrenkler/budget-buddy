@@ -233,7 +233,7 @@ class _Report extends StatelessWidget {
   // invites to the Sunday reminder when notifications are off
   Widget _remind(BuildContext context) => ValueListenableBuilder<bool>(
         valueListenable: NotificationService.enabled,
-        builder: (context, on, _) => on
+        builder: (context, on, _) => on || !NotificationService.canAsk
             ? Center(
                 child: Text('Nächster Bericht: Sonntag, 18 Uhr',
                     style: TextStyle(color: AppColors.textDim, fontSize: 13)),
@@ -244,10 +244,10 @@ class _Report extends StatelessWidget {
                   final ok = await NotificationService.enable();
                   if (ok) await NotificationService.hello();
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
                         content: Text(ok
                             ? 'Buddy erinnert dich jeden Sonntag um 18 Uhr'
-                            : 'Mitteilungen sind in den Einstellungen deines Geräts blockiert')));
+                            : NotificationService.problem)));
                   }
                 },
                 icon: const Icon(Icons.notifications_active_outlined),

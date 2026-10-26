@@ -22,7 +22,7 @@ Future<void> showBalanceSheet(BuildContext context) async {
   );
   if (ok == true && context.mounted) {
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kontostand gespeichert')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Kontostand gespeichert')));
   }
 }
 
@@ -124,7 +124,7 @@ class GettingStartedCard extends StatelessWidget {
         if (ok) await NotificationService.hello();
         if (!ok && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Mitteilungen sind in den Einstellungen deines Geräts blockiert')));
+              SnackBar(duration: const Duration(milliseconds: 3500), content: Text(NotificationService.problem)));
         }
     }
   }

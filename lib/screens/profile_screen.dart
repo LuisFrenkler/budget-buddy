@@ -369,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // helper to show a snackbar
   void _snack(String text, {bool error = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
       content: Text(text),
       backgroundColor: error ? AppColors.error : null,
     ));
@@ -534,14 +534,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? '${imported.transactions.length} importiert, ${imported.skipped} übersprungen'
             : '${imported.transactions.length} importiert';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg)),
+          SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg)),
         );
       }
     } catch (e) {
       // something went wrong, show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppColors.error),
+          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e'), backgroundColor: AppColors.error),
         );
       }
     }

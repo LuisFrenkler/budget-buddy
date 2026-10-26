@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _addOption(sheet, Icons.receipt_long_rounded, AppColors.positive, 'Umsatz erfassen',
                   'Mit Ziffernblock', () async {
                 if (await TxRow.openEditor(context) && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hinzugefügt')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
                 }
               }),
               _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Position hinzufügen',

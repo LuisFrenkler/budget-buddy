@@ -277,7 +277,7 @@ class TransactionScreen extends StatelessWidget {
     final moved = await CategoryRules.applyToAll(tx, picked);
     if (context.mounted) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${moved + 1} Buchungen von $name sind jetzt $picked')));
+          .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('${moved + 1} Buchungen von $name sind jetzt $picked')));
     }
   }
 
@@ -287,7 +287,7 @@ class TransactionScreen extends StatelessWidget {
     Navigator.pop(context);
     await DB.deleteTx(tx.id);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
       content: const Text('Umsatz gelöscht'),
       action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.addTx(tx)),
     ));

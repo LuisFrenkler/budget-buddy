@@ -89,7 +89,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       final added = await BankSync.run();
       if (added > 0 && mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}')));
+            .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}')));
       }
     } catch (_) {
       problem = 'Bank gerade nicht erreichbar';
@@ -100,7 +100,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await SplitService.refreshAll();
     await _loadDepot();
     if (problem != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(problem)));
     }
   }
 

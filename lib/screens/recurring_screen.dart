@@ -181,7 +181,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(SnackBar(
+      messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
         content: Text('${r.note ?? r.category} gelöscht'),
         action: SnackBarAction(label: 'Rückgängig', textColor: AppColors.primary, onPressed: () => DB.addRule(r)),
       ));

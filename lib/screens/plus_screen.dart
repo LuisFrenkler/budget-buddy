@@ -41,7 +41,7 @@ class _PlusScreenState extends State<PlusScreen> {
 
   void _restore() {
     final found = PlusService.restore();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(found ? 'Dein Plus-Abo ist wieder aktiv' : 'Kein Abo gefunden, das wiederhergestellt werden kann')));
     if (found) Navigator.pop(context);
   }

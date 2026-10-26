@@ -19,7 +19,7 @@ class AboutScreen extends StatelessWidget {
     if (LegalInfo.email.startsWith('[') || !await launchUrl(uri)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Schreib uns an ${LegalInfo.email}')));
+            .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Schreib uns an ${LegalInfo.email}')));
       }
     }
   }

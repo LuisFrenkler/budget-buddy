@@ -142,7 +142,7 @@ class _GroupTile extends StatelessWidget {
 Future<void> joinSplitGroup(BuildContext context, {String? code}) async {
   if (AccountService.current.value == null) {
     // the code waits for the sign-up
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
       content: const Text('Zum Beitreten brauchst du ein kostenloses Konto.'),
       action: SnackBarAction(
         label: 'Konto erstellen',
@@ -416,7 +416,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       await change();
       HapticFeedback.mediumImpact();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
     }
   }
 
@@ -581,7 +581,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       try {
         group = await SplitService.share(group, account.firstName);
       } catch (e) {
-        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
         return;
       }
     }
@@ -642,7 +642,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: text));
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nachricht kopiert')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Nachricht kopiert')));
       }
     }
   }
@@ -701,14 +701,14 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
             txId: widget.tx?.id,
           ));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
       return;
     }
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     Navigator.pop(context);
     final others = _paidBy == g.me ? cents - (share[g.me] ?? 0) : 0;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(others > 0
             ? 'Geteilt in ${g.name} · ${Money.format(others)} bekommst du zurück'
             : 'In ${g.name} eingetragen')));

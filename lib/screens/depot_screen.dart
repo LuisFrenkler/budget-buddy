@@ -386,12 +386,12 @@ class _DepotScreenState extends State<DepotScreen> {
           msg = 'Aktien-Kurse brauchen einen Finnhub-Key oder das iPhone';
           bg = AppColors.warning;
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: bg));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg), backgroundColor: bg));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppColors.error),
+          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -407,7 +407,7 @@ class _DepotScreenState extends State<DepotScreen> {
     if (ok == true && mounted) {
       setState(() {});
       _loadHistory(); // include the new/changed position in the trend
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(holding == null ? 'Hinzugefügt' : 'Aktualisiert'),
       ));
     }
@@ -422,7 +422,7 @@ class _DepotScreenState extends State<DepotScreen> {
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(SnackBar(
+      messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
         content: Text('${h.name} gelöscht'),
         action: SnackBarAction(
           label: 'Rückgängig',

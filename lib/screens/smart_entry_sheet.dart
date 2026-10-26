@@ -114,7 +114,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
-    messenger.showSnackBar(SnackBar(
+    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
       content: Text('${tx.note ?? tx.category} · ${tx.amountText} gespeichert'),
       action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.deleteTx(tx.id)),
     ));

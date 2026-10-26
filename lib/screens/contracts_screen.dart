@@ -242,7 +242,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text('$how. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
   }
 

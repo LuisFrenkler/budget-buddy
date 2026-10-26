@@ -140,7 +140,7 @@ class _StorySheetState extends State<_StorySheet> {
       await Clipboard.setData(ClipboardData(text: widget.fallbackText));
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Bild ging nicht, Text ist kopiert')));
+            .showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Bild ging nicht, Text ist kopiert')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

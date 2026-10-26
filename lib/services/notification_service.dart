@@ -106,10 +106,28 @@ class NotificationService {
     }
   }
 
+  // why the last enable() did not work, in words for the user
+  static String problem = '';
+
+  // false when asking makes no sense: no support here, or the browser has
+  // already been told "no" (it will not ask again). Prompts then stay away.
+  static bool get canAsk {
+    if (enabled.value) return true;
+    if (!_ready) return false;
+    if (kIsWeb) {
+      final web = _plugin.resolvePlatformSpecificImplementation<WebFlutterLocalNotificationsPlugin>();
+      if (web != null && web.permissionStatus == WebNotificationPermission.denied) return false;
+    }
+    return true;
+  }
+
   // asks the system for permission; call only from a tap
   static Future<bool> enable() async {
     if (!_ready) await init();
-    if (!_ready) return false;
+    if (!_ready) {
+      problem = 'Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.';
+      return false;
+    }
     bool? granted;
     if (kIsWeb) {
       granted = await _plugin
@@ -126,7 +144,11 @@ class NotificationService {
     } else {
       granted = true;
     }
-    if (granted != true) return false;
+    if (granted != true) {
+      problem = 'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen '
+          '${kIsWeb ? 'deines Browsers' : 'deines Geräts'} für BudgetBuddy erlauben.';
+      return false;
+    }
     await _box.put('notifyOn', true);
     enabled.value = true;
     // what is already on screen should not arrive as a burst of pushes

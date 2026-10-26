@@ -116,7 +116,7 @@ class AccountSettingsScreen extends StatelessWidget {
     );
     if (ok == true && context.mounted) {
       HapticFeedback.mediumImpact();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(done)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(done)));
     }
   }
 
@@ -159,7 +159,7 @@ class AccountSettingsScreen extends StatelessWidget {
       await AccountService.deleteAccount();
       if (context.mounted) Navigator.popUntil(context, (r) => r.isFirst);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
     }
   }
 }

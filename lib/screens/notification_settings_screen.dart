@@ -29,8 +29,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     if (ok) {
       await NotificationService.hello();
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Mitteilungen sind blockiert. Du kannst sie in den Einstellungen deines Geräts erlauben.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500), content: Text(NotificationService.problem)));
     }
   }
 
@@ -50,9 +49,26 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               SettingsRow(
                 icon: on ? Icons.notifications_active_rounded : Icons.notifications_off_outlined,
                 title: 'Mitteilungen erlauben',
-                trailing: Switch(value: on, onChanged: _toggle),
+                // where it cannot work, the reason is shown instead of a switch that fails
+                subtitle: !on && !NotificationService.canAsk
+                    ? 'Hier gerade nicht möglich'
+                    : null,
+                trailing: Switch(value: on, onChanged: !on && !NotificationService.canAsk ? null : _toggle),
               ),
             ]),
+            if (!on && !NotificationService.canAsk)
+              Padding(
+                padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
+                child: Text(
+                  kIsWeb
+                      ? 'Dein Browser lässt BudgetBuddy keine Mitteilungen schicken. Du kannst das in den '
+                          'Website-Einstellungen ändern (Schloss-Symbol neben der Adresse). Die Hinweise in der '
+                          'App bekommst du trotzdem.'
+                      : 'Erlaube Mitteilungen für BudgetBuddy in den Einstellungen deines Geräts. Die Hinweise in '
+                          'der App bekommst du trotzdem.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
+                ),
+              ),
             const SectionLabel('Worüber Buddy Bescheid sagt'),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
