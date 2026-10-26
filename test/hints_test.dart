@@ -85,4 +85,16 @@ void main() {
     ];
     expect(HintsService.current(tx: const [], budgets: nov, goals: const [], now: DateTime(2026, 11, 20)), hasLength(1));
   });
+
+  test('news from shared groups, one hint per group', () {
+    final hints = HintsService.build(tx: const [], budgets: const [], goals: const [], splitNews: [
+      (group: 'WG', groupId: 'g1', title: 'Pizza', cents: 3000, by: 'Lisa'),
+      (group: 'WG', groupId: 'g1', title: 'Klopapier', cents: 450, by: 'Tom'),
+      (group: 'Urlaub', groupId: 'g2', title: 'Fähre', cents: 8000, by: 'Alex'),
+    ], now: DateTime(2026, 10, 20));
+    expect(hints.map((h) => h.title), ['Neu in WG', 'Neu in Urlaub']);
+    expect(hints.first.text, '2 neue Ausgaben, zuletzt Klopapier von Tom');
+    expect(hints.last.text, contains('Fähre'));
+    expect(hints.every((h) => h.target == HintTarget.splits), isTrue);
+  });
 }

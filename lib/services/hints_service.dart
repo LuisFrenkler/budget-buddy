@@ -13,11 +13,12 @@ import '../utils/money.dart';
 import 'cancellation_service.dart';
 import 'contracts.dart';
 import 'plus_service.dart';
+import 'split_service.dart';
 
-enum HintKind { budgetOver, budgetClose, priceUp, upcoming, trialEnds, bankExpires, bigExpense, goalDue, stillCharging }
+enum HintKind { budgetOver, budgetClose, priceUp, upcoming, trialEnds, bankExpires, bigExpense, goalDue, stillCharging, splitNew }
 
 // where tapping a hint leads
-enum HintTarget { budgets, contracts, subscription, connections, transactions, goals }
+enum HintTarget { budgets, contracts, subscription, connections, transactions, goals, splits }
 
 class Hint {
   final String id;
@@ -58,6 +59,7 @@ class HintsService {
       subscription: subscription,
       bankValidUntil: bankValidUntil,
       cancellations: cancellations,
+      splitNews: Hive.isBoxOpen('splits') ? SplitService.news() : const [],
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
   }
@@ -75,6 +77,7 @@ class HintsService {
     Subscription? subscription,
     DateTime? bankValidUntil,
     Map<String, DateTime> cancellations = const {},
+    List<({String group, String groupId, String title, int cents, String by})> splitNews = const [],
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
@@ -204,6 +207,23 @@ class HintsService {
             'Es fehlen ${Money.format(g.remainingCents)}. Ein kleiner Endspurt?',
             HintTarget.goals));
       }
+    }
+
+    // what the others added in shared groups, one hint per group
+    final byGroup = <String, List<({String group, String groupId, String title, int cents, String by})>>{};
+    for (final n in splitNews) {
+      byGroup.putIfAbsent(n.groupId, () => []).add(n);
+    }
+    for (final list in byGroup.values) {
+      final first = list.first;
+      out.add(Hint(
+          'split-${first.groupId}-${list.length}-${first.title}',
+          HintKind.splitNew,
+          'Neu in ${first.group}',
+          list.length == 1
+              ? '${first.title}, ${Money.format(first.cents)} von ${first.by}'
+              : '${list.length} neue Ausgaben, zuletzt ${list.last.title} von ${list.last.by}',
+          HintTarget.splits));
     }
 
     out.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));

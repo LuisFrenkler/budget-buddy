@@ -1,4 +1,5 @@
 // Groups for shared spending, kept in the 'splits' Hive box.
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import '../models/split.dart';
 import 'account_service.dart';
@@ -49,8 +50,13 @@ class SplitService {
   static Future<Map<String, dynamic>> preview(String code) =>
       AccountService.api('/splits/preview?code=${Uri.encodeQueryComponent(code)}');
 
-  static Future<SplitGroup> join(String code, int member) async =>
-      _store(await AccountService.api('/splits/join', body: {'code': code, 'member': member}));
+  // joining: what is already in the group is not "news"
+  static Future<SplitGroup> join(String code, int member) async {
+    final g = await _store(await AccountService.api('/splits/join', body: {'code': code, 'member': member}));
+    await markSeen(g);
+    await setPendingJoin(null);
+    return g;
+  }
 
   // newest state from the server; local groups stay as they are
   static Future<SplitGroup> refresh(SplitGroup g) async {
@@ -74,6 +80,55 @@ class SplitService {
 
   static Future<SplitGroup> settle(SplitGroup g, Settlement s) =>
       _change(g, {'type': 'settle', 'settlement': s.toMap()}, () => g.settlements.add(s));
+
+  // --- invite links ---
+
+  // the web app's own address carries the code (…/?join=7BSUUK); the phone
+  // apps use APP_URL once the app has a public address
+  static String? inviteLink(String code) {
+    const appUrl = String.fromEnvironment('APP_URL');
+    if (appUrl.isNotEmpty) return '$appUrl/?join=$code';
+    if (kIsWeb) return '${Uri.base.origin}${Uri.base.path}?join=$code';
+    return null;
+  }
+
+  static Box get _settings => Hive.box('settings');
+
+  // a code from an opened invite link, kept until it is used (also across sign-up)
+  static String? get pendingJoin => _settings.get('pendingJoin') as String?;
+  static Future<void> setPendingJoin(String? code) =>
+      code == null ? _settings.delete('pendingJoin') : _settings.put('pendingJoin', code);
+
+  // --- news from the others ---
+
+  static Set<String> get _seen => ((_settings.get('splitSeen') as List?) ?? const []).cast<String>().toSet();
+
+  // expenses someone else added that the user has not looked at yet
+  static List<({String group, String groupId, String title, int cents, String by})> news() {
+    final seen = _seen;
+    return [
+      for (final g in all())
+        if (g.shared)
+          for (final e in g.expenses)
+            if (e.paidBy != g.me && !seen.contains(e.id))
+              (group: g.name, groupId: g.id, title: e.title, cents: e.cents, by: g.members[e.paidBy]),
+    ];
+  }
+
+  static Future<void> markSeen(SplitGroup g) async {
+    final ids = {..._seen, for (final e in g.expenses) e.id}.toList();
+    await _settings.put('splitSeen', ids.length > 1000 ? ids.sublist(ids.length - 1000) : ids);
+  }
+
+  // fetches every shared group, e.g. on app start; failures keep the last state
+  static Future<void> refreshAll() async {
+    if (AccountService.current.value == null) return;
+    for (final g in all().where((g) => g.shared)) {
+      try {
+        await refresh(g);
+      } catch (_) {}
+    }
+  }
 
   // shared: the creator deletes it for all, others leave; local: just delete
   static Future<void> remove(SplitGroup g) async {

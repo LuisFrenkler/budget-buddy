@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'splits_screen.dart';
 import 'goals_screen.dart';
 import '../services/auto_save.dart';
+import '../services/account_service.dart';
+import '../services/split_service.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
@@ -36,6 +38,30 @@ class _HomeScreenState extends State<HomeScreen> {
     DB.initBadges();
     // a goal filled by the autopilot gets its celebration, too
     AutoSave.reached.addListener(_goalReached);
+    // an invite link opened the app: straight to joining, also right after signing in
+    AccountService.current.addListener(_pendingJoin);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pendingJoin());
+  }
+
+  // waits until the start screen is really on top (not under the sign-up or
+  // the "Wie möchtest du starten?" choice), then opens the join sheet once
+  bool _joining = false;
+  bool _guestHinted = false;
+  void _pendingJoin() {
+    final code = SplitService.pendingJoin;
+    if (code == null || !mounted || _joining) return;
+    if (ModalRoute.of(context)?.isCurrent != true) {
+      Future.delayed(const Duration(milliseconds: 800), _pendingJoin);
+      return;
+    }
+    // a guest gets the hint once; signing in brings the sheet back (listener)
+    if (AccountService.current.value == null) {
+      if (!_guestHinted) joinSplitGroup(context, code: code);
+      _guestHinted = true;
+      return;
+    }
+    _joining = true;
+    joinSplitGroup(context, code: code).whenComplete(() => _joining = false);
   }
 
   void _goalReached() {
@@ -48,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     AutoSave.reached.removeListener(_goalReached);
+    AccountService.current.removeListener(_pendingJoin);
     _segment.dispose();
     super.dispose();
   }

@@ -11,6 +11,7 @@ import 'services/auto_save.dart';
 import 'services/db.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
+import 'services/split_service.dart';
 import 'screens/contracts_screen.dart';
 import 'screens/connections_screen.dart';
 import 'screens/goals_screen.dart';
@@ -59,6 +60,14 @@ void main() async {
   });
 
   // reminders: open the matching page on tap, then bring them up to date
+  // an opened invite link (…/?join=CODE): remembered until the user is in
+  final join = Uri.base.queryParameters['join'];
+  final code = join?.trim().toUpperCase() ?? '';
+  // a reload of the same link after joining asks nothing
+  if (code.isNotEmpty && !SplitService.all().any((g) => g.code == code)) await SplitService.setPendingJoin(code);
+  // what the others added in shared groups since last time
+  SplitService.refreshAll();
+
   NotificationService.onTap = _openFromNotification;
   await NotificationService.init();
   NotificationService.sync();

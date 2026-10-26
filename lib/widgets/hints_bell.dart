@@ -78,6 +78,7 @@ class _HintsSheetState extends State<_HintsSheet> {
         HintKind.bigExpense => (Icons.priority_high_rounded, AppColors.warning),
         HintKind.goalDue => (Icons.flag_rounded, AppColors.positive),
         HintKind.stillCharging => (Icons.report_rounded, AppColors.error),
+        HintKind.splitNew => (Icons.call_split_rounded, const Color(0xFF14B8A6)),
       };
 
   Future<void> _dismiss(Hint h) async {

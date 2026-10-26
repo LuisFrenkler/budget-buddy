@@ -139,8 +139,9 @@ class _GroupTile extends StatelessWidget {
 }
 
 // joins a group someone shared: code first, then who you are in it
-Future<void> joinSplitGroup(BuildContext context) async {
+Future<void> joinSplitGroup(BuildContext context, {String? code}) async {
   if (AccountService.current.value == null) {
+    // the code waits for the sign-up
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Text('Zum Beitreten brauchst du ein kostenloses Konto.'),
       action: SnackBarAction(
@@ -155,25 +156,35 @@ Future<void> joinSplitGroup(BuildContext context) async {
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
-    builder: (_) => const _JoinSheet(),
+    builder: (_) => _JoinSheet(code: code),
   );
+  // closed without joining: the link is not offered again and again
+  if (group == null && code != null) await SplitService.setPendingJoin(null);
   if (group != null && context.mounted) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => SplitGroupScreen(group.id)));
   }
 }
 
 class _JoinSheet extends StatefulWidget {
-  const _JoinSheet();
+  final String? code; // from an invite link
+  const _JoinSheet({this.code});
 
   @override
   State<_JoinSheet> createState() => _JoinSheetState();
 }
 
 class _JoinSheetState extends State<_JoinSheet> {
-  final _code = TextEditingController();
+  late final _code = TextEditingController(text: widget.code ?? '');
   Map<String, dynamic>? _preview;
   String? _error;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // with a code from a link, go straight to choosing who you are
+    if (widget.code != null) WidgetsBinding.instance.addPostFrameCallback((_) => _look());
+  }
 
   @override
   void dispose() {
@@ -386,12 +397,13 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     _refresh();
   }
 
-  // shared groups fetch what the others added
+  // shared groups fetch what the others added; looking at it marks it as seen
   Future<void> _refresh() async {
     final g = SplitService.byId(widget.id);
-    if (g == null || !g.shared) return;
+    if (g == null) return;
+    if (!g.shared) return SplitService.markSeen(g);
     try {
-      await SplitService.refresh(g);
+      await SplitService.markSeen(await SplitService.refresh(g));
       if (mounted) setState(() => _syncError = null);
     } catch (e) {
       if (mounted) setState(() => _syncError = '$e');
@@ -574,8 +586,9 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       }
     }
     if (!context.mounted) return;
+    final link = SplitService.inviteLink(group.code ?? '');
     final text = 'Komm in unsere Gruppe „${group.name}“ bei BudgetBuddy, dann sehen wir alle, wer wem was schuldet. '
-        'Code: ${group.code}';
+        '${link != null ? 'Einfach hier tippen: $link\n' : ''}Code: ${group.code}';
     await showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,

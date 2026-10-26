@@ -97,6 +97,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     try {
       await PriceService.refreshAll();
     } catch (_) {}
+    await SplitService.refreshAll();
     await _loadDepot();
     if (problem != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
@@ -143,9 +144,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               children: [
                 _topBar(),
                 const SizedBox(height: 24),
-                if (empty)
-                  _welcome()
-                else ...[
+                if (empty) ...[
+                  _welcome(),
+                  // joined a group before any own bookings: it still belongs here
+                  ..._splits(),
+                ] else ...[
                   const RecapBanner(),
                   if (!OnboardingService.hidden && !OnboardingService.complete) ...[
                     const GettingStartedCard(),
@@ -327,6 +330,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
         page = const ConnectionsScreen();
       case HintTarget.goals:
         page = const GoalsScreen();
+      case HintTarget.splits:
+        page = const SplitsScreen();
     }
     Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
   }
