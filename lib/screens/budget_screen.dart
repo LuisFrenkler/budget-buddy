@@ -5,6 +5,7 @@ import '../models/budget.dart';
 import '../services/contracts.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
+import '../widgets/big_number.dart';
 import '../utils/money.dart';
 import '../widgets/tx_row.dart';
 
@@ -63,10 +64,21 @@ class BudgetView extends StatelessWidget {
 }
 
 // color of a budget: green, yellow from 80 %, red when over the limit
-Color budgetColor(Budget b) {
+Color budgetColor(Budget b, {DateTime? now}) {
   if (b.isOver) return AppColors.error;
-  if (b.progress >= 0.8) return AppColors.warning;
+  final pace = budgetPace(b, now: now);
+  // spending ahead of the calendar is the early warning
+  if (b.progress >= 0.9 || (pace != null && b.progress > pace + 0.1)) return AppColors.warning;
   return AppColors.positive;
+}
+
+// share of the budget period that has passed (0..1), null outside the period
+double? budgetPace(Budget b, {DateTime? now}) {
+  final today = now ?? DateTime.now();
+  final start = DateTime(b.startDate.year, b.startDate.month, b.startDate.day);
+  final end = DateTime(b.endDate.year, b.endDate.month, b.endDate.day + 1);
+  if (today.isBefore(start) || !today.isBefore(end)) return null;
+  return today.difference(start).inMinutes / end.difference(start).inMinutes;
 }
 
 // single budget card with an animated progress bar; tap shows its spending
@@ -114,51 +126,66 @@ class _BudgetCardState extends State<_BudgetCard> {
                 children: [
                   Row(
                     children: [
-                      Icon(Categories.icon(budget.category), size: 20, color: AppColors.textDim),
-                      const SizedBox(width: 8),
+                      CategoryAvatar(budget.category, isIncome: false, size: 38),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(budget.category,
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(budget.category, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          Text(_period(), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                        ]),
                       ),
-                      Text(Money.format(budget.spentCents),
-                          style: TextStyle(fontWeight: FontWeight.w700, color: color)),
-                      Text(' / ${Money.format(budget.limitCents)}',
-                          style: TextStyle(color: AppColors.textDim)),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                        Text(
+                          budget.isOver
+                              ? '${Money.format(budget.spentCents - budget.limitCents)} drüber'
+                              : '${Money.format(budget.remainingCents)} übrig',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: budget.isOver ? AppColors.error : AppColors.text),
+                        ),
+                        Text('von ${Money.format(budget.limitCents)}',
+                            style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                      ]),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // progress bar fills up when shown
+                  const SizedBox(height: 14),
+                  // progress bar fills up when shown; the tick marks where
+                  // spending would be at an even pace today
                   TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: budget.progress),
                     duration: const Duration(milliseconds: 800),
                     curve: Curves.easeOutCubic,
-                    builder: (_, v, __) => ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: v,
-                        backgroundColor: AppColors.surfaceAlt,
-                        valueColor: AlwaysStoppedAnimation(color),
-                        minHeight: 8,
-                      ),
+                    builder: (_, v, __) => LayoutBuilder(
+                      builder: (context, box) {
+                        final pace = budgetPace(budget);
+                        return Stack(clipBehavior: Clip.none, children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: v,
+                              backgroundColor: AppColors.surfaceAlt,
+                              valueColor: AlwaysStoppedAnimation(color),
+                              minHeight: 8,
+                            ),
+                          ),
+                          if (pace != null)
+                            Positioned(
+                              left: (box.maxWidth * pace - 1).clamp(0, box.maxWidth - 2),
+                              top: -3,
+                              child: Container(
+                                width: 2,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                    color: AppColors.text.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(1)),
+                              ),
+                            ),
+                        ]);
+                      },
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(budget.dateRange, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-                      const Spacer(),
-                      Text(
-                        budget.isOver
-                            ? '${Money.format(budget.spentCents - budget.limitCents)} drüber'
-                            : '${Money.format(budget.remainingCents)} übrig',
-                        style: TextStyle(
-                          color: budget.isOver ? AppColors.error : AppColors.textDim,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 10),
+                  Text(_footer(), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                 ],
               ),
             ),
@@ -166,6 +193,28 @@ class _BudgetCardState extends State<_BudgetCard> {
         ),
       ),
     );
+  }
+
+  String _period() {
+    if (!DB.isMonthly(budget)) return budget.dateRange;
+    final now = DateTime.now();
+    final end = DateTime(budget.endDate.year, budget.endDate.month, budget.endDate.day);
+    final left = end.difference(DateTime(now.year, now.month, now.day)).inDays + 1;
+    if (left < 1 || left > 31) return 'Monatlich · ${budget.dateRange}';
+    return 'Monatlich · noch $left ${left == 1 ? 'Tag' : 'Tage'}';
+  }
+
+  // spent so far and what that leaves per day
+  String _footer() {
+    final spent = '${Money.format(budget.spentCents)} ausgegeben';
+    final pace = budgetPace(budget);
+    if (pace == null || budget.isOver) return spent;
+    final now = DateTime.now();
+    final end = DateTime(budget.endDate.year, budget.endDate.month, budget.endDate.day);
+    final days = end.difference(DateTime(now.year, now.month, now.day)).inDays + 1;
+    final ahead = budget.progress > pace + 0.1;
+    return '$spent · ≈ ${Money.format(budget.remainingCents ~/ days)} pro Tag'
+        '${ahead ? ' · schneller als geplant' : ''}';
   }
 
   // transactions that count towards this budget
