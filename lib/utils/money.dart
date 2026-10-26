@@ -17,15 +17,22 @@ class Money {
   // what an amount shows in privacy mode
   static const hidden = '•••••• €';
 
+  // privacy mode ("Beträge verbergen"): every amount on screen goes through
+  // format(), so one switch covers all of them, including new screens
+  static bool masked = false;
+
   // formats cents as German currency. handles its own minus sign.
-  static String format(int cents) => _fmt.format(cents / 100).replaceFirst('-', minus);
+  static String format(int cents) => masked ? hidden : raw(cents);
+
+  // the real amount even in privacy mode: prices, messages sent to others
+  static String raw(int cents) => _fmt.format(cents / 100).replaceFirst('-', minus);
 
   // formats with an explicit leading + for positive values (used for balances)
-  static String signed(int cents) => (cents >= 0 ? '+' : '') + format(cents);
+  static String signed(int cents) => masked ? hidden : (cents >= 0 ? '+' : '') + format(cents);
 
   // formats a positive amount with a + or - depending on income/expense
   static String withSign(int cents, bool isIncome) =>
-      (isIncome ? '+' : minus) + format(cents.abs());
+      masked ? hidden : (isIncome ? '+' : minus) + format(cents.abs());
 
   // parses user or CSV input into cents. accepts both German (12,99) and
   // English (12.99) decimal separators as well as thousands separators.

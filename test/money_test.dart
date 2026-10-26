@@ -83,4 +83,14 @@ void main() {
       expect(Money.percent(12.5, signed: false), '12,5 %');
     });
   });
+
+  test('privacy mode hides every formatted amount but not raw ones', () {
+    Money.masked = true;
+    expect(Money.format(123450), Money.hidden);
+    expect(Money.signed(-500), Money.hidden);
+    expect(Money.withSign(500, true), Money.hidden);
+    expect(Money.raw(123450), startsWith('1.234,50'));
+    Money.masked = false;
+    expect(Money.format(123450), Money.raw(123450));
+  });
 }

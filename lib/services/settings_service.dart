@@ -1,6 +1,7 @@
 // Small typed wrapper around the 'settings' Hive box for app preferences.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import '../utils/money.dart';
 
 class Settings {
   static Box get _box => Hive.box('settings');
@@ -23,9 +24,13 @@ class Settings {
   // A notifier so every amount on screen hides or shows at once.
   static final hideAmounts = ValueNotifier<bool>(false);
 
-  static void loadHideAmounts() => hideAmounts.value = _box.get('hideAmounts', defaultValue: false) as bool;
+  static void loadHideAmounts() {
+    hideAmounts.value = _box.get('hideAmounts', defaultValue: false) as bool;
+    Money.masked = hideAmounts.value;
+  }
 
   static Future<void> setHideAmounts(bool value) {
+    Money.masked = value;
     hideAmounts.value = value;
     return _box.put('hideAmounts', value);
   }
@@ -96,6 +101,7 @@ class Settings {
     await setDarkMode(dark);
     guest.value = false;
     hideAmounts.value = false;
+    Money.masked = false;
   }
 
   static DateTime? _date(String key) {

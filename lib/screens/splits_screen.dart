@@ -636,7 +636,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
   // a friendly message with the amount, through the share sheet
   Future<void> _remind(BuildContext context, SplitGroup g, Transfer t) async {
     final text = 'Hey ${g.members[t.from]} 👋 kleine Erinnerung: Aus „${g.name}“ bekomme ich noch '
-        '${Money.format(t.cents)} von dir. Danke dir! (aus BudgetBuddy)';
+        '${Money.raw(t.cents)} von dir. Danke dir! (aus BudgetBuddy)';
     try {
       await Share.share(text);
     } catch (_) {

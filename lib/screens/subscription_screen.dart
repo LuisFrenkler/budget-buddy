@@ -101,8 +101,8 @@ class _Details extends StatelessWidget {
               sub.cancelled
                   ? 'Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.'
                   : trial
-                      ? 'Erste Zahlung am ${Dates.full(sub.trialEnds)}: ${Money.format(sub.priceCents)}. Vorher kündigen kostet nichts.'
-                      : 'Nächste Zahlung am ${Dates.full(next)}: ${Money.format(sub.priceCents)}.',
+                      ? 'Erste Zahlung am ${Dates.full(sub.trialEnds)}: ${Money.raw(sub.priceCents)}. Vorher kündigen kostet nichts.'
+                      : 'Nächste Zahlung am ${Dates.full(next)}: ${Money.raw(sub.priceCents)}.',
               style: TextStyle(color: sub.cancelled ? AppColors.textDim : Colors.white70, fontSize: 13.5, height: 1.35),
             ),
           ]),
@@ -122,7 +122,7 @@ class _Details extends StatelessWidget {
             title: sub.cancelled ? 'Endet am' : 'Nächste Zahlung',
             subtitle: sub.cancelled
                 ? Dates.full(sub.endsAt!)
-                : '${Dates.full(next)} · ${Money.format(sub.priceCents)}',
+                : '${Dates.full(next)} · ${Money.raw(sub.priceCents)}',
           ),
           _row(
             leading: MethodLogo(sub.method),
@@ -160,7 +160,7 @@ class _Details extends StatelessWidget {
                 icon: Icons.receipt_long_rounded,
                 title: Dates.full(inv.date),
                 subtitle: inv.number,
-                trailing: Money.format(inv.cents),
+                trailing: Money.raw(inv.cents),
                 onTap: () => _showInvoice(context, inv),
               ),
         ]),
@@ -350,10 +350,10 @@ class _Details extends StatelessWidget {
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           line('Datum', Dates.full(inv.date)),
           line('Leistung', 'Plus ${inv.plan == PlusPlan.yearly ? 'jährlich' : 'monatlich'}'),
-          line('Netto', Money.format(net)),
-          line('MwSt. 19 %', Money.format(inv.cents - net)),
+          line('Netto', Money.raw(net)),
+          line('MwSt. 19 %', Money.raw(inv.cents - net)),
           Divider(color: AppColors.border),
-          line('Gesamt', Money.format(inv.cents), bold: true),
+          line('Gesamt', Money.raw(inv.cents), bold: true),
           const SizedBox(height: 8),
           Text('Testmodus: nicht abgebucht', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
         ]),

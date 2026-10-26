@@ -289,7 +289,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Row(children: [
           const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
-          Text(Money.format(0), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(Money.raw(0), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         ]),
         Divider(height: 24, color: AppColors.border),
         step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
