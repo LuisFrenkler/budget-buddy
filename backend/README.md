@@ -10,6 +10,12 @@ through Stripe. API keys stay on the server and are never stored in the app.
                                   --https--> [ Parqet ]
 ```
 
+## Configuration
+
+Keys go into `backend/.env` (git-ignored). Copy `.env.example` to `.env` and
+fill in what you use; environment variables with the same name take precedence.
+Restart the server after a change.
+
 ## Quick start (demo bank, no account needed)
 
 ```bash

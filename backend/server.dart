@@ -5,7 +5,8 @@
 //   dart pub get
 //   dart run server.dart
 //
-// Configure via environment variables (never commit these):
+// Configure via environment variables or a backend/.env file with KEY=value
+// lines (git-ignored; real environment variables win). Never commit these:
 //   EB_APP_ID, EB_PRIVATE_KEY_PATH   Enable Banking app id and its .pem key.
 //                                    Without them the server runs a demo bank.
 //   EB_REDIRECT_URL                  whitelisted redirect (default <PUBLIC_URL>/bank/callback)
@@ -39,7 +40,18 @@ import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
 import 'lib/splits.dart';
 
-String _env(String k) => Platform.environment[k] ?? '';
+String _env(String k) => Platform.environment[k] ?? _dotEnv[k] ?? '';
+
+// backend/.env, read once at start
+final Map<String, String> _dotEnv = () {
+  final file = File('${File.fromUri(Platform.script).parent.path}/.env');
+  if (!file.existsSync()) return <String, String>{};
+  return {
+    for (final line in file.readAsLinesSync())
+      if (line.contains('=') && !line.trimLeft().startsWith('#'))
+        line.substring(0, line.indexOf('=')).trim(): line.substring(line.indexOf('=') + 1).trim(),
+  };
+}();
 
 late final BankProvider _bank;
 late final String _publicUrl;
