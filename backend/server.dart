@@ -1,5 +1,5 @@
 // BudgetBuddy backend — a small local server so the app can link a real bank
-// account (Enable Banking / PSD2) and a Parqet depot without ever holding
+// account (Enable Banking / PSD2) and a depot (Parqet Connect) without ever holding
 // secrets in the client. Run it from this folder:
 //
 //   dart pub get
@@ -10,7 +10,14 @@
 //                                    Without them the server runs a demo bank.
 //   EB_REDIRECT_URL                  whitelisted redirect (default <PUBLIC_URL>/bank/callback)
 //   ANTHROPIC_API_KEY                optional, enables the AI features (lib/ai.dart)
-//   PARQET_TOKEN, PARQET_PORTFOLIO_ID  optional, for the depot
+//   PARQET_CLIENT_ID                 Parqet Connect integration (depot sync, lib/depot.dart).
+//   PARQET_CLIENT_SECRET             only if the integration has one.
+//                                    Without the id the server runs a demo depot.
+//   PARQET_REDIRECT_URL              whitelisted redirect (default <PUBLIC_URL>/depot/callback)
+//   STRIPE_SECRET_KEY                Plus payments on the web (lib/billing.dart). Without it
+//                                    the server runs a demo checkout that never charges.
+//   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY  the two Stripe price ids
+//   STRIPE_WEBHOOK_SECRET            optional, for /stripe/webhook (whsec_...)
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
 //
 // The server only listens on localhost. Users sign in with email and
@@ -26,17 +33,20 @@ import 'package:http/http.dart' as http;
 import 'lib/accounts.dart';
 import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
+import 'lib/billing.dart';
 import 'lib/demo_bank.dart';
+import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
 import 'lib/splits.dart';
-
-const _parqetBase = 'https://api.parqet.com/v1';
 
 String _env(String k) => Platform.environment[k] ?? '';
 
 late final BankProvider _bank;
 late final String _publicUrl;
 late final String _redirectUrl;
+late final DepotProvider _depot;
+late final String _depotRedirect;
+late final Billing _billing;
 
 // consent started but not finished yet: state -> (bank name, owner id)
 final _pending = <String, ({String bank, String owner})>{};
@@ -46,6 +56,18 @@ final _failed = <String, String>{};
 final _sessions = <String, Map<String, dynamic>>{};
 final _dataDir = '${File.fromUri(Platform.script).parent.path}/.data';
 final _store = File('$_dataDir/sessions.json');
+// linked depots: state -> {owner, tokens, linkedAt}; consent in progress: state -> owner + PKCE verifier
+final _depots = <String, Map<String, dynamic>>{};
+final _depotPending = <String, ({String owner, String verifier})>{};
+final _depotFailed = <String, String>{};
+final _depotStore = File('$_dataDir/depots.json');
+// who has Plus: user id -> entitlement
+final _plus = <String, Entitlement>{};
+final _plusStore = File('$_dataDir/plus.json');
+
+// extra free days on top of the 7-day trial (the same codes as in the app)
+const _trialDays = 7;
+const _promoCodes = {'BUDDY30': 30, 'FREUND': 30, 'CREATOR60': 60, 'START14': 14};
 final _accounts = Accounts(File('$_dataDir/users.json'));
 final _splits = SharedSplits(File('$_dataDir/splits.json'));
 final _ai = Ai(_env('ANTHROPIC_API_KEY'));
@@ -65,6 +87,17 @@ Future<void> main() async {
   } else {
     _bank = DemoBank(_publicUrl);
   }
+  _depotRedirect =
+      _env('PARQET_REDIRECT_URL').isNotEmpty ? _env('PARQET_REDIRECT_URL') : '$_publicUrl/depot/callback';
+  _depot = _env('PARQET_CLIENT_ID').isNotEmpty
+      ? ParqetConnect(_env('PARQET_CLIENT_ID'), _env('PARQET_CLIENT_SECRET'))
+      : DemoDepot(_publicUrl);
+  _billing = _env('STRIPE_SECRET_KEY').isNotEmpty
+      ? StripeBilling(
+          secretKey: _env('STRIPE_SECRET_KEY'),
+          priceMonthly: _env('STRIPE_PRICE_MONTHLY'),
+          priceYearly: _env('STRIPE_PRICE_YEARLY'))
+      : DemoBilling(_publicUrl);
   await _load();
   await _accounts.load();
   await _splits.load();
@@ -73,13 +106,16 @@ Future<void> main() async {
   stdout.writeln('BudgetBuddy backend on $_publicUrl');
   stdout.writeln('  Bank:   ${_bank.mode == 'live' ? 'Enable Banking (live)' : 'Demo-Bank (set EB_APP_ID + EB_PRIVATE_KEY_PATH for real banks)'}');
   stdout.writeln('  KI:     ${_ai.enabled ? 'Claude (live)' : 'not configured (set ANTHROPIC_API_KEY)'}');
-  stdout.writeln('  Parqet: ${_env('PARQET_TOKEN').isEmpty ? 'not configured' : 'configured'}');
+  stdout.writeln('  Plus:   ${_billing.mode == 'live' ? 'Stripe (live)' : 'Demo-Checkout (set STRIPE_SECRET_KEY for real payments)'}');
+  stdout.writeln('  Depot:  ${_depot.mode == 'live' ? 'Parqet Connect (live)' : 'Demo-Depot (set PARQET_CLIENT_ID for real depots)'}');
 
   await for (final req in server) {
     try {
       await _handle(req);
     } on AuthError catch (e) {
       await _json(req, e.status, {'error': e.message});
+    } on BillingError catch (e) {
+      await _json(req, 502, {'error': e.message});
     } on AiError catch (e) {
       await _json(req, 502, {'error': e.message});
     } catch (e) {
@@ -89,14 +125,33 @@ Future<void> main() async {
 }
 
 Future<void> _load() async {
-  if (!await _store.exists()) return;
-  final map = jsonDecode(await _store.readAsString()) as Map<String, dynamic>;
-  map.forEach((k, v) => _sessions[k] = (v as Map).cast<String, dynamic>());
+  if (await _store.exists()) {
+    final map = jsonDecode(await _store.readAsString()) as Map<String, dynamic>;
+    map.forEach((k, v) => _sessions[k] = (v as Map).cast<String, dynamic>());
+  }
+  if (await _plusStore.exists()) {
+    final map = jsonDecode(await _plusStore.readAsString()) as Map<String, dynamic>;
+    map.forEach((k, v) => _plus[k] = Entitlement.fromJson(v as Map));
+  }
+  if (await _depotStore.exists()) {
+    final map = jsonDecode(await _depotStore.readAsString()) as Map<String, dynamic>;
+    map.forEach((k, v) => _depots[k] = (v as Map).cast<String, dynamic>());
+  }
 }
 
 Future<void> _save() async {
   await _store.parent.create(recursive: true);
   await _store.writeAsString(jsonEncode(_sessions));
+}
+
+Future<void> _savePlus() async {
+  await _plusStore.parent.create(recursive: true);
+  await _plusStore.writeAsString(jsonEncode({for (final e in _plus.entries) e.key: e.value.toJson()}));
+}
+
+Future<void> _saveDepots() async {
+  await _depotStore.parent.create(recursive: true);
+  await _depotStore.writeAsString(jsonEncode(_depots));
 }
 
 String _newState() {
@@ -162,7 +217,7 @@ Future<void> _handle(HttpRequest req) async {
   final q = req.uri.queryParameters;
   switch (req.uri.path) {
     case '/health':
-      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'parqet': _env('PARQET_TOKEN').isNotEmpty});
+      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode});
     case '/auth/register':
       final b = await _body(req);
       return _json(req, 200,
@@ -223,8 +278,42 @@ Future<void> _handle(HttpRequest req) async {
       return _sync(req);
     case '/bank/disconnect':
       return _disconnect(req);
-    case '/parqet/portfolio':
-      return _parqetPortfolio(req);
+    case '/plus/status':
+      return _plusStatus(req);
+    case '/plus/checkout':
+      return _plusCheckout(req);
+    case '/plus/demo-checkout':
+      return _plusDemoCheckout(req);
+    case '/plus/demo-pay':
+      return _plusDemoPay(req);
+    case '/plus/return':
+      return _plusReturn(req);
+    case '/plus/portal':
+      return _plusPortal(req);
+    case '/plus/demo-portal':
+      return _html(req, '''
+<div class="tag">DEMO · keine echten Daten</div>
+<h1>Kundenportal</h1>
+<p>Hier änderst du im echten Betrieb bei Stripe deine Zahlungsmethode und deinen Tarif und lädst Rechnungen herunter.</p>
+<p class="dim">Im Demo-Modus gibt es dafür nichts zu tun. Du kannst dieses Fenster schließen.</p>''');
+    case '/plus/cancel':
+      return _plusCancel(req);
+    case '/plus/withdraw':
+      return _plusWithdraw(req);
+    case '/stripe/webhook':
+      return _stripeWebhook(req);
+    case '/depot/connect':
+      return _depotConnect(req);
+    case '/depot/demo-consent':
+      return _depotDemoConsent(req);
+    case '/depot/callback':
+      return _depotCallback(req);
+    case '/depot/status':
+      return _depotStatus(req);
+    case '/depot/sync':
+      return _depotSync(req);
+    case '/depot/disconnect':
+      return _depotDisconnect(req);
     case '/splits/share':
       final user = _user(req);
       final b = await _body(req);
@@ -398,6 +487,18 @@ Future<void> _deleteAccount(HttpRequest req) async {
     }
   }
   await _save();
+  _depots.removeWhere((_, d) => d['owner'] == user['id']);
+  // a deleted account must not keep paying
+  final plus = _plus.remove(user['id']);
+  if (plus != null && plus.active) {
+    try {
+      await _billing.setCancel(plus, true);
+    } catch (_) {
+      // logged by Stripe; the user can still cancel there
+    }
+  }
+  await _savePlus();
+  await _saveDepots();
   await _splits.forget(user['id'] as String);
   await _accounts.delete(user['id'] as String);
   return _json(req, 200, {'ok': true});
@@ -452,29 +553,263 @@ Future<void> _aiChat(HttpRequest req) async {
   await res.close();
 }
 
-// --- Parqet (depot) ---
+// --- Plus (payments) ---
 
-// GET /parqet/portfolio -> holdings + total value
-Future<void> _parqetPortfolio(HttpRequest req) async {
-  _user(req);
-  final token = _env('PARQET_TOKEN');
-  final id = req.uri.queryParameters['id'] ?? _env('PARQET_PORTFOLIO_ID');
-  if (token.isEmpty) return _json(req, 400, {'error': 'Parqet nicht eingerichtet (PARQET_TOKEN fehlt)'});
-  if (id.isEmpty) return _json(req, 400, {'error': 'Portfolio-ID fehlt (PARQET_PORTFOLIO_ID oder ?id=)'});
+// GET -> {mode, plus: entitlement or null}; re-reads Stripe when the copy is
+// older than 30 minutes (or ?fresh=1), so renewals and failed payments show
+// up even without webhooks
+Future<void> _plusStatus(HttpRequest req) async {
+  final user = _user(req);
+  final id = user['id'] as String;
+  var e = _plus[id];
+  final stale = e != null && DateTime.now().difference(e.checked) > const Duration(minutes: 30);
+  if (e != null && (stale || req.uri.queryParameters['fresh'] == '1')) {
+    e = await _billing.refresh(e);
+    _plus[id] = e;
+    await _savePlus();
+  }
+  return _json(req, 200, {'mode': _billing.mode, 'plus': e?.active == true ? e!.toJson() : null});
+}
 
-  final res = await http.get(Uri.parse('$_parqetBase/portfolios/$id'), headers: {'Authorization': 'Bearer $token'});
-  if (res.statusCode != 200) return _json(req, res.statusCode, {'error': res.body});
+// POST {plan, promo?} -> {url}: the payment page
+Future<void> _plusCheckout(HttpRequest req) async {
+  final user = _user(req);
+  final b = await _body(req);
+  final plan = b['plan'] == 'yearly' ? 'yearly' : 'monthly';
+  final current = _plus[user['id']];
+  if (current != null && current.active) return _json(req, 409, {'error': 'Du hast Plus schon.'});
+  final promo = '${b['promo'] ?? ''}'.trim().toUpperCase();
+  if (promo.isNotEmpty && !_promoCodes.containsKey(promo)) return _json(req, 400, {'error': 'Code unbekannt'});
+  // whoever had Plus before gets no second trial
+  final trial = current == null ? _trialDays + (_promoCodes[promo] ?? 0) : (_promoCodes[promo] ?? 0);
+  final url = await _billing.checkout(
+    user: user['id'] as String,
+    email: '${user['email']}',
+    plan: plan,
+    trialDays: trial,
+    returnUrl: '$_publicUrl/plus/return',
+    cancelUrl: '$_publicUrl/plus/return?cancelled=1',
+    customer: current?.customer,
+  );
+  return _json(req, 200, {'url': url, 'trialDays': trial});
+}
 
-  // Parqet's exact shape can vary by plan; pass through the holdings/value we find.
-  final map = jsonDecode(res.body) as Map<String, dynamic>;
-  final holdings = (map['holdings'] as List?) ?? (map['positions'] as List?) ?? [];
-  final out = holdings.map((h) {
-    final name = h['name'] ?? h['assetName'] ?? h['asset']?['name'];
-    final shares = (h['shares'] ?? h['quantity'] ?? 0) as num;
-    final value = (h['value'] ?? h['marketValue'] ?? 0) as num;
-    return {'name': name, 'shares': shares.toDouble(), 'valueCents': (value * 100).round()};
-  }).toList();
-  return _json(req, 200, {'holdings': out});
+Future<void> _plusDemoCheckout(HttpRequest req) {
+  final id = req.uri.queryParameters['session'] ?? '';
+  final s = (_billing as DemoBilling).session(id);
+  if (s == null) return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte den Kauf in BudgetBuddy erneut.</p>');
+  final price = s.plan == 'yearly' ? '39,99 € im Jahr' : '4,99 € im Monat';
+  final enc = Uri.encodeQueryComponent(id);
+  return _html(req, '''
+<div class="tag">DEMO · es wird nichts abgebucht</div>
+<h1>BudgetBuddy Plus</h1>
+<p>${s.trialDays > 0 ? '<b>${s.trialDays} Tage gratis</b>, danach $price.' : price}</p>
+<p class="dim">Im echten Betrieb ist das die Zahlungsseite von Stripe. Dort wählst du Karte, PayPal, SEPA-Lastschrift, Apple Pay, Google Pay oder Klarna. BudgetBuddy sieht deine Zahlungsdaten nie.</p>
+<a class="btn" href="/plus/demo-pay?session=$enc">Test-Zahlung bestätigen</a>
+<a class="link" href="/plus/return?cancelled=1">Abbrechen</a>''');
+}
+
+Future<void> _plusDemoPay(HttpRequest req) async {
+  final id = req.uri.queryParameters['session'] ?? '';
+  (_billing as DemoBilling).markPaid(id);
+  req.response
+    ..statusCode = 303
+    ..headers.set('Location', '/plus/return?session_id=${Uri.encodeQueryComponent(id)}');
+  await req.response.close();
+}
+
+// the payment page sends the browser here; the app notices Plus by polling /plus/status
+Future<void> _plusReturn(HttpRequest req) async {
+  final q = req.uri.queryParameters;
+  if (q['cancelled'] == '1' || q['session_id'] == null) {
+    return _html(req, '<h1>Abgebrochen</h1><p>Es wurde nichts gebucht. Du kannst dieses Fenster schließen.</p>');
+  }
+  final e = await _billing.fromSession(q['session_id']!);
+  final user = e == null ? null : await _ownerOf(q['session_id']!, e);
+  if (e == null || user == null) {
+    return _html(req, '<h1>Noch nicht bezahlt</h1><p>Die Zahlung ist nicht abgeschlossen. Bitte versuche es erneut.</p>');
+  }
+  _plus[user] = e;
+  await _savePlus();
+  return _html(req, '''
+<div class="check">✓</div>
+<h1>Willkommen bei Plus</h1>
+<p>Alles ist freigeschaltet. Du kannst dieses Fenster schließen und zu BudgetBuddy zurückkehren.</p>
+<script>setTimeout(() => window.close(), 1800)</script>''');
+}
+
+// the user a checkout belongs to: Stripe keeps it in the session, the demo in memory
+Future<String?> _ownerOf(String sessionId, Entitlement e) async {
+  if (_billing is DemoBilling) return (_billing as DemoBilling).session(sessionId)?.user;
+  final s = await http.get(Uri.parse('https://api.stripe.com/v1/checkout/sessions/${Uri.encodeComponent(sessionId)}'),
+      headers: {'Authorization': 'Bearer ${_env('STRIPE_SECRET_KEY')}'});
+  return (jsonDecode(s.body) as Map)['client_reference_id'] as String?;
+}
+
+Entitlement _ownPlus(HttpRequest req) {
+  final user = _user(req);
+  final e = _plus[user['id']];
+  if (e == null || !e.active) throw const AuthError(404, 'Kein Plus-Abo gefunden.');
+  return e;
+}
+
+// POST -> {url}: Stripe's customer portal (payment method, plan, invoices)
+Future<void> _plusPortal(HttpRequest req) async {
+  final e = _ownPlus(req);
+  return _json(req, 200, {'url': await _billing.portal(e, '$_publicUrl/plus/return?cancelled=1')});
+}
+
+// POST {cancel: true|false}: cancel at the end of the period, or take it back
+Future<void> _plusCancel(HttpRequest req) async {
+  final user = _user(req);
+  final e = _ownPlus(req);
+  final cancel = (await _body(req))['cancel'] != false;
+  final next = await _billing.setCancel(e, cancel);
+  _plus[user['id'] as String] = next;
+  await _savePlus();
+  return _json(req, 200, {'plus': next.toJson()});
+}
+
+// POST: the 14-day withdrawal, ends Plus now and refunds
+Future<void> _plusWithdraw(HttpRequest req) async {
+  final user = _user(req);
+  final e = _ownPlus(req);
+  if (DateTime.now().difference(e.started) > const Duration(days: 14)) {
+    return _json(req, 400, {'error': 'Die 14-Tage-Frist für den Widerruf ist vorbei.'});
+  }
+  _plus[user['id'] as String] = await _billing.withdraw(e);
+  await _savePlus();
+  return _json(req, 200, {'ok': true});
+}
+
+// Stripe tells us about renewals, failed payments and cancellations
+Future<void> _stripeWebhook(HttpRequest req) async {
+  final secret = _env('STRIPE_WEBHOOK_SECRET');
+  final payload = await utf8.decodeStream(req);
+  if (secret.isEmpty || !StripeBilling.verifyWebhook(payload, req.headers.value('stripe-signature') ?? '', secret)) {
+    return _json(req, 400, {'error': 'invalid signature'});
+  }
+  final event = jsonDecode(payload) as Map<String, dynamic>;
+  final obj = ((event['data'] as Map?)?['object'] as Map?) ?? const {};
+  if ('${event['type']}'.startsWith('customer.subscription.')) {
+    final user = '${(obj['metadata'] as Map?)?['user'] ?? ''}';
+    final known = _plus[user];
+    if (user.isNotEmpty) {
+      final base = known ??
+          Entitlement.fromJson({
+            'plan': 'monthly',
+            'status': 'incomplete',
+            'started': DateTime.now().toIso8601String(),
+            'trialEnds': DateTime.now().toIso8601String(),
+            'periodEnd': DateTime.now().toIso8601String(),
+            'customer': '${obj['customer'] ?? ''}',
+            'subscription': '${obj['id']}',
+          });
+      _plus[user] = await _billing.refresh(base);
+      await _savePlus();
+    }
+  }
+  return _json(req, 200, {'received': true});
+}
+
+// --- depot (Parqet Connect) ---
+
+// POST -> {state, link}: the page where the user allows BudgetBuddy to read their depot
+Future<void> _depotConnect(HttpRequest req) async {
+  final user = _user(req);
+  final state = _newState();
+  final p = pkce();
+  _depotPending[state] = (owner: user['id'] as String, verifier: p.verifier);
+  return _json(req, 200, {
+    'state': state,
+    'link': _depot.authUrl(state: state, challenge: p.challenge, redirectUrl: _depotRedirect),
+  });
+}
+
+Future<void> _depotDemoConsent(HttpRequest req) {
+  final state = Uri.encodeQueryComponent(req.uri.queryParameters['state'] ?? '');
+  return _html(req, '''
+<div class="tag">DEMO · keine echten Daten</div>
+<h1>Parqet</h1>
+<p>BudgetBuddy möchte <b>lesend</b> auf deine Depots zugreifen:</p>
+<ul><li>Positionen und Stückzahlen</li><li>Kaufkurse und aktuelle Kurse</li></ul>
+<p class="dim">Bei Parqet meldest du dich hier an. Dein Trade-Republic-Login bleibt bei Parqet, BudgetBuddy sieht ihn nie.</p>
+<a class="btn" href="/depot/callback?state=$state&code=$state">Zugriff erlauben</a>
+<a class="link" href="/depot/callback?state=$state&error=access_denied">Abbrechen</a>''');
+}
+
+Future<void> _depotCallback(HttpRequest req) async {
+  final q = req.uri.queryParameters;
+  final state = q['state'] ?? '';
+  final pending = _depotPending.remove(state);
+  if (pending == null) {
+    return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in BudgetBuddy erneut.</p>');
+  }
+  if (q['code'] == null) {
+    _depotFailed[state] = q['error_description'] ?? q['error'] ?? 'abgebrochen';
+    return _html(req, '<h1>Nicht verbunden</h1><p>Der Zugriff wurde nicht erteilt. Du kannst dieses Fenster schließen.</p>');
+  }
+  try {
+    final tokens = await _depot.exchange(code: q['code']!, verifier: pending.verifier, redirectUrl: _depotRedirect);
+    _depots[state] = {'owner': pending.owner, 'tokens': tokens.toJson(), 'linkedAt': DateTime.now().toIso8601String()};
+    await _saveDepots();
+    return _html(req, '''
+<div class="check">✓</div>
+<h1>Verbunden</h1>
+<p>Dein Depot ist jetzt mit BudgetBuddy verbunden. Du kannst dieses Fenster schließen.</p>
+<script>setTimeout(() => window.close(), 1500)</script>''');
+  } catch (e) {
+    _depotFailed[state] = '$e';
+    return _html(req, '<h1>Fehler</h1><p>${_escape('$e')}</p>');
+  }
+}
+
+Map<String, dynamic> _ownDepot(HttpRequest req, String state) {
+  final user = _user(req);
+  final d = _depots[state];
+  if (d == null || d['owner'] != user['id']) throw const AuthError(404, 'Kein Depot verbunden. Bitte neu verbinden.');
+  return d;
+}
+
+// GET ?state= -> {status: pending|linked|failed|unknown}
+Future<void> _depotStatus(HttpRequest req) {
+  final user = _user(req);
+  final state = req.uri.queryParameters['state'] ?? '';
+  if (_depots[state]?['owner'] == user['id']) return _json(req, 200, {'status': 'linked', 'mode': _depot.mode});
+  if (_depotPending[state]?.owner == user['id']) return _json(req, 200, {'status': 'pending'});
+  if (_depotFailed.containsKey(state)) return _json(req, 200, {'status': 'failed', 'error': _depotFailed[state]});
+  return _json(req, 200, {'status': 'unknown'});
+}
+
+// GET ?state= -> {positions, broker}; refreshes the access token when needed
+Future<void> _depotSync(HttpRequest req) async {
+  final state = req.uri.queryParameters['state'] ?? '';
+  final d = _ownDepot(req, state);
+  var tokens = DepotTokens.fromJson(d['tokens'] as Map);
+  Future<void> renew() async {
+    tokens = await _depot.refresh(tokens);
+    d['tokens'] = tokens.toJson();
+    await _saveDepots();
+  }
+
+  if (DateTime.now().isAfter(tokens.expires)) await renew();
+  List<DepotPosition> positions;
+  try {
+    positions = await _depot.positions(tokens);
+  } on DepotAuthExpired {
+    await renew();
+    positions = await _depot.positions(tokens);
+  }
+  return _json(req, 200, {'positions': [for (final p in positions) p.toJson()], 'mode': _depot.mode});
+}
+
+// POST {state}
+Future<void> _depotDisconnect(HttpRequest req) async {
+  final state = '${(await _body(req))['state'] ?? ''}';
+  _ownDepot(req, state);
+  _depots.remove(state);
+  await _saveDepots();
+  return _json(req, 200, {'ok': true});
 }
 
 // --- market data ---

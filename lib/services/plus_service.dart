@@ -4,12 +4,17 @@
 // Plus: everything without limits, 7 days free, then monthly or yearly.
 //
 // The subscription (plan, payment method, trial, renewal, cancellation) is
-// kept in the settings box. Payments are not connected yet: the checkout runs
-// in a clearly labelled test mode and never charges anything. In the store
-// builds the purchase goes through App Store / Google Play (e.g. RevenueCat),
-// on the web through a payment provider such as Stripe.
+// kept in the settings box.
+//
+// Signed in with the server reachable, the purchase runs on the server
+// (Stripe Checkout, see backend/lib/billing.dart): the app never sees payment
+// details, and the server's copy decides who has Plus ("managed"). Without a
+// server the checkout runs in a clearly labelled local test mode that never
+// charges anything. Store builds will buy through App Store / Google Play.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'account_service.dart';
+import 'backend_service.dart';
 
 enum PlusFeature { aiQuestion, receiptScan, goal }
 
@@ -47,6 +52,7 @@ class Subscription {
   final DateTime started;
   final DateTime trialEnds;
   final DateTime? endsAt; // set when cancelled: access runs until then
+  final bool managed; // bought through the server; changes go through it
 
   const Subscription({
     required this.plan,
@@ -55,6 +61,7 @@ class Subscription {
     required this.started,
     required this.trialEnds,
     this.endsAt,
+    this.managed = false,
   });
 
   bool get cancelled => endsAt != null;
@@ -106,6 +113,7 @@ class Subscription {
         started: started,
         trialEnds: trialEnds ?? this.trialEnds,
         endsAt: resume ? null : endsAt ?? this.endsAt,
+        managed: managed,
       );
 
   Map<String, dynamic> toMap() => {
@@ -115,6 +123,7 @@ class Subscription {
         'started': started.toIso8601String(),
         'trialEnds': trialEnds.toIso8601String(),
         if (endsAt != null) 'endsAt': endsAt!.toIso8601String(),
+        if (managed) 'managed': true,
       };
 
   static Subscription fromMap(Map m) => Subscription(
@@ -124,6 +133,18 @@ class Subscription {
         started: DateTime.parse(m['started'] as String),
         trialEnds: DateTime.parse(m['trialEnds'] as String),
         endsAt: m['endsAt'] == null ? null : DateTime.parse(m['endsAt'] as String),
+        managed: m['managed'] == true,
+      );
+
+  // the server's entitlement (backend/lib/billing.dart) as a subscription
+  static Subscription fromServer(Map e) => Subscription(
+        plan: e['plan'] == 'yearly' ? PlusPlan.yearly : PlusPlan.monthly,
+        method: PayMethod.values.asNameMap()['${e['method']}'] ?? PayMethod.card,
+        methodDetail: '${e['methodDetail'] ?? ''}',
+        started: DateTime.parse('${e['started']}'),
+        trialEnds: DateTime.parse('${e['trialEnds']}'),
+        endsAt: e['cancelAtPeriodEnd'] == true ? DateTime.parse('${e['periodEnd']}') : null,
+        managed: true,
       );
 }
 
@@ -177,6 +198,39 @@ class PlusService {
     active.value = sub != null;
   }
 
+  // --- server (signed in) ---
+
+  // takes over the server's copy: it decides whether a managed Plus exists
+  static Future<void> applyServer(Map<String, dynamic>? entitlement) async {
+    if (entitlement != null) {
+      await _store(Subscription.fromServer(entitlement));
+    } else if (subscription.value?.managed == true) {
+      await _store(null);
+    }
+  }
+
+  // asks the server what this account has; false when it cannot be asked
+  static Future<bool> syncWithServer({bool fresh = false}) async {
+    if (AccountService.token == null) return false;
+    try {
+      await applyServer(await BackendService.plusStatus(fresh: fresh));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // signing in brings a bought Plus along, signing out takes it away
+  static void watchAccount() {
+    AccountService.current.addListener(() {
+      if (AccountService.current.value != null) {
+        syncWithServer();
+      } else if (subscription.value?.managed == true) {
+        _store(null);
+      }
+    });
+  }
+
   // days added by a promo code, or null for an unknown code
   static int? promoDays(String code) => promoCodes[code.trim().toUpperCase()];
 
@@ -223,11 +277,13 @@ class PlusService {
   // access stays until the end of the period that is already paid (or the trial)
   static Future<void> cancel({DateTime? now}) async {
     final sub = subscription.value;
+    if (sub?.managed == true) return applyServer(await BackendService.plusCancel(true));
     if (sub != null) await _store(sub.copyWith(endsAt: sub.periodEnd(now ?? DateTime.now())));
   }
 
   static Future<void> resume() async {
     final sub = subscription.value;
+    if (sub?.managed == true) return applyServer(await BackendService.plusCancel(false));
     if (sub != null) await _store(sub.copyWith(resume: true));
   }
 
@@ -235,12 +291,15 @@ class PlusService {
   static bool canWithdraw(Subscription sub, {DateTime? now}) =>
       (now ?? DateTime.now()).difference(sub.started) < const Duration(days: 14);
 
-  static Future<void> withdraw() => end();
+  static Future<void> withdraw() async {
+    if (subscription.value?.managed == true) await BackendService.plusWithdraw();
+    await end();
+  }
 
-  // "Käufe wiederherstellen": in test mode there is no store to ask, so this
-  // only reloads what this device knows
-  static bool restore() {
-    load();
+  // "Käufe wiederherstellen": asks the server when signed in, otherwise
+  // reloads what this device knows
+  static Future<bool> restore() async {
+    if (!await syncWithServer(fresh: true)) load();
     return active.value;
   }
 

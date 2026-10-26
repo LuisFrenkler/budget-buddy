@@ -53,6 +53,8 @@ void main() async {
   Settings.loadGuest();
   PlusService.load();
   await AccountService.restore();
+  PlusService.watchAccount();
+  PlusService.syncWithServer();
 
   // the Inter font ships with the app, so its licence belongs on the licences page
   LicenseRegistry.addLicense(() async* {

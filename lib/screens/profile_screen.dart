@@ -40,6 +40,15 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   
+  // "ING und Depot verbunden", or what linking brings
+  static String _linkedText() {
+    final linked = [
+      if (Settings.bankName.isNotEmpty) Settings.bankName,
+      if (Settings.depotState.isNotEmpty) 'Depot',
+    ];
+    return linked.isEmpty ? 'Umsätze und Depot kommen automatisch' : '${linked.join(' und ')} verbunden';
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Box>(
@@ -129,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _row(
                     Icons.account_balance_rounded,
                     'Bank & Depot verbinden',
-                    Settings.bankName.isNotEmpty ? '${Settings.bankName} verbunden' : 'Umsätze kommen automatisch',
+                    _linkedText(),
                     _openConnections),
                 _row(Icons.receipt_long_rounded, 'Verträge & Abos', 'Erkannt, mit Kündigung per Tipp',
                     () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen()))),

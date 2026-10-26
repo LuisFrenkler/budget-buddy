@@ -62,13 +62,19 @@ class LegalTexts {
                 'Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertrag). Die Daten werden gelöscht, sobald '
                 'du dein Konto löschst. Gast-Nutzung ist ohne Konto möglich.'),
         const LegalSection(
-            '4. Bankverbindung',
+            '4. Bank- und Depotverbindung',
             'Wenn du dein Girokonto verbindest, läuft der Zugriff über Enable Banking Oy (Otaniemi, Finnland), '
                 'einen nach der Zahlungsdiensterichtlinie (PSD2) zugelassenen Kontoinformationsdienst. Du '
                 'bestätigst den Zugriff direkt bei deiner Bank; deine Zugangsdaten sehen weder wir noch die App. '
                 'Übertragen werden Kontostand und Umsätze, um sie in der App anzuzeigen. Die Zustimmung gilt '
                 'höchstens 180 Tage und kann jederzeit in der App oder bei deiner Bank beendet werden. '
-                'Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.'),
+                'Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.\n\n'
+                'Verbindest du dein Depot, läuft der Zugriff über Parqet (Parqet Fintech GmbH, Deutschland), '
+                'wo du dein Depot selbst angebunden hast. Du erlaubst den Zugriff direkt bei Parqet; deine '
+                'Zugangsdaten bei Parqet oder deinem Broker sehen weder wir noch die App. Übertragen werden '
+                'Positionen, Stückzahlen, Kaufkurse und aktuelle Kurse, nur lesend. Du kannst die Freigabe '
+                'jederzeit in der App oder bei Parqet unter Integrationen beenden. Rechtsgrundlage ist '
+                'Art. 6 Abs. 1 lit. b DSGVO.'),
         const LegalSection(
             '5. Buddy (KI-Assistent) und Belegscan',
             'Stellst du Buddy eine Frage oder scannst einen Beleg, senden wir deine Frage bzw. das Foto und '
@@ -87,9 +93,11 @@ class LegalTexts {
                 'Interesse an aktuellen Kursen).'),
         const LegalSection(
             '7. BudgetBuddy Plus und Zahlungen',
-            'Plus kaufst du über den App Store von Apple, Google Play oder im Web über einen Zahlungsanbieter. '
-                'Die Zahlungsdaten verarbeitet der jeweilige Anbieter in eigener Verantwortung; wir erhalten nur '
-                'die Information, ob und welches Abo aktiv ist. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; '
+            'Plus kaufst du über den App Store von Apple, Google Play oder im Web über Stripe (Stripe Payments '
+                'Europe Ltd., Dublin, Irland). Die Zahlungsdaten gibst du direkt auf der Zahlungsseite des '
+                'Anbieters ein; er verarbeitet sie in eigener Verantwortung. Wir erhalten nur, ob und welches '
+                'Abo aktiv ist, bis wann es läuft und eine gekürzte Angabe der Zahlungsart (z. B. „Visa •••• '
+                '4242“), damit du sie in der App siehst. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO; '
                 'steuerrechtliche Aufbewahrungspflichten (bis zu zehn Jahre) bleiben unberührt.'),
         const LegalSection(
             '8. Mitteilungen',

@@ -1,8 +1,9 @@
-# BudgetBuddy Backend (bank and depot sync)
+# BudgetBuddy Backend (bank, depot and payments)
 
 This is a small local server. It lets the app link a real **bank account** through
 [Enable Banking](https://enablebanking.com) (PSD2, 2,500+ European banks) and a
-**depot** through Parqet. API keys stay on the server and are never stored in the app.
+**depot** (Trade Republic and others) through Parqet Connect, and takes Plus payments
+through Stripe. API keys stay on the server and are never stored in the app.
 
 ```
 [ App ] --http--> [ this server ] --https--> [ Enable Banking -> your bank ]
@@ -71,15 +72,85 @@ the app falls back to offline answers and the offline parser.
 | POST | `/ai/parse` | `{text, categories}` → `{booking}` |
 | POST | `/ai/receipt` | `{image (base64), mediaType, categories}` → `{booking}` |
 
-## Depot (Parqet, optional)
+## Depot: Trade Republic and other brokers (Parqet Connect)
 
-```bash
-export PARQET_TOKEN=...
-export PARQET_PORTFOLIO_ID=...
+Trade Republic, Scalable and most other brokers have no open interface for
+depots. [Parqet](https://parqet.com) syncs them (Autosync) and lets other apps
+read the result with the user's consent through
+[Parqet Connect](https://developer.parqet.com): OAuth 2.0 with PKCE, scope
+`portfolio:read`. The user links their broker with Parqet once, then allows
+BudgetBuddy to read it. BudgetBuddy never sees the broker login.
+
+```
+[ Trade Republic ] --Autosync--> [ Parqet ] --OAuth, read only--> [ this server ] --> [ App ]
 ```
 
-Trade Republic and Scalable Capital have no open API for this. Export the
-positions there and import the CSV in the app under **Profil → Depot importieren**.
+Without configuration the server runs a **demo depot** with the same steps.
+For real depots:
+
+1. Sign in at <https://developer.parqet.com/console> and create an integration
+   (name, logo, scope `portfolio:read`).
+2. Add the redirect URL `http://localhost:8090/depot/callback` (or your public
+   address, see `PARQET_REDIRECT_URL`).
+3. Start the server with:
+
+```bash
+export PARQET_CLIENT_ID=<client id>
+export PARQET_CLIENT_SECRET=<only if the integration has one>
+dart run server.dart
+```
+
+In the app: **Profil → Bank & Depot verbinden → Mit Parqet verbinden**. The
+positions arrive with ISIN, shares, buy price and current price. Every sync
+updates them; sold positions disappear. Positions added by hand stay untouched.
+
+The Trade Republic **cash account** (balance, card payments, interest) is a
+normal bank account and goes through the bank connection above. Without Parqet,
+the Trade Republic CSV export can be imported under
+**Profil → Import, Export & Backup → Depot importieren**.
+
+## Plus payments (Stripe)
+
+The app never sees card or bank details. It asks the server for a Stripe
+Checkout page, the user pays there, and the server records who has Plus.
+Payment method, plan changes and invoices live in Stripe's customer portal.
+Without `STRIPE_SECRET_KEY` the server runs a **demo checkout** that never
+charges anything.
+
+1. Create a Stripe account (business details, bank account for payouts).
+2. Create one product "BudgetBuddy Plus" with two recurring prices:
+   4,99 € monthly and 39,99 € yearly. Note both price ids (`price_...`).
+3. In *Settings → Payment methods*, switch on what you want to offer: cards,
+   PayPal, SEPA Direct Debit, Apple Pay, Google Pay, Klarna.
+4. In *Settings → Billing → Customer portal*, allow updating the payment method,
+   switching between the two prices and viewing invoices.
+5. Start the server with:
+
+```bash
+export STRIPE_SECRET_KEY=sk_test_...      # test mode first, sk_live_... later
+export STRIPE_PRICE_MONTHLY=price_...
+export STRIPE_PRICE_YEARLY=price_...
+export STRIPE_WEBHOOK_SECRET=whsec_...    # optional, see below
+dart run server.dart
+```
+
+The entitlement is updated three ways, so it works with and without webhooks:
+on the return from checkout, from webhooks, and by re-reading the subscription
+when the app asks and the copy is older than 30 minutes. For webhooks, point
+Stripe at `<PUBLIC_URL>/stripe/webhook` with the events
+`customer.subscription.created`, `.updated` and `.deleted`. Locally:
+`stripe listen --forward-to localhost:8090/stripe/webhook`.
+`dart run tool/check_webhook_signature.dart` checks the signature verification.
+
+Promo codes (`BUDDY30`, `FREUND`, `CREATOR60`, `START14`) add free days on top of
+the 7-day trial. Anyone who had Plus before gets no second trial. The 14-day
+withdrawal cancels at once and refunds what was paid. Deleting an account
+cancels its subscription.
+
+**In the store apps** Apple and Google require their own in-app purchase for
+digital subscriptions. There the purchase goes through App Store / Google Play
+(for example with RevenueCat), and the server must check those receipts as well
+before launch.
 
 ## How syncing works in the app
 
@@ -99,7 +170,7 @@ positions there and import the CSV in the app under **Profil → Depot importier
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/health` | status: `bank` is `live` or `demo`, `parqet` true/false |
+| GET | `/health` | status: `bank`, `depot` and `billing` are each `live` or `demo` |
 | POST | `/auth/register` | `{name, email, password}` → `{token, user}` |
 | POST | `/auth/login` | `{email, password}` → `{token, user}` |
 | GET | `/auth/me` | the signed-in user |
@@ -111,7 +182,18 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | GET | `/bank/status?state=` | `pending`, `linked`, `failed` or `unknown` |
 | GET | `/bank/sync?state=&days=90` | balance in cents and normalized bookings |
 | POST | `/bank/disconnect` | `{state}`; revokes the session |
-| GET | `/parqet/portfolio?id=` | depot positions |
+| POST | `/depot/connect` | → `{state, link}`; open `link` to allow access at Parqet |
+| GET | `/depot/callback` | redirect target of Parqet (code → tokens) |
+| GET | `/depot/status?state=` | `pending`, `linked`, `failed` or `unknown` |
+| GET | `/depot/sync?state=` | positions with ISIN, shares, buy and current price |
+| POST | `/depot/disconnect` | `{state}`; forgets the tokens |
+| GET | `/plus/status` | this account's Plus, or `null` (`?fresh=1` re-reads Stripe) |
+| POST | `/plus/checkout` | `{plan, promo?}` → `{url}` of the payment page |
+| GET | `/plus/return` | where the payment page returns to |
+| POST | `/plus/portal` | → `{url}` of Stripe's customer portal |
+| POST | `/plus/cancel` | `{cancel}`; cancel at the period end, or take it back |
+| POST | `/plus/withdraw` | the 14-day withdrawal: ends now and refunds |
+| POST | `/stripe/webhook` | Stripe events, checked against `STRIPE_WEBHOOK_SECRET` |
 | POST | `/auth/profile` | `{name}`; change the display name |
 | POST | `/auth/email` | `{email, password}`; change the email, confirmed with the password |
 | POST | `/auth/password` | `{current, next}`; new password, signs out every other device |
@@ -123,8 +205,9 @@ positions there and import the CSV in the app under **Profil → Depot importier
 | POST | `/splits/leave` | `{id}`; leave, or delete for all when you created it |
 | GET | `/market/chart?symbol=&range=` | stock and ETF prices for the web app (Yahoo, cached 5 min, no sign-in) |
 
-All `/bank/*` and `/parqet/*` endpoints need `Authorization: Bearer <token>`. A
-bank link belongs to the account that created it.
+All `/bank/*`, `/depot/*` and `/plus/*` endpoints except the browser pages
+(callbacks, demo pages, return) need `Authorization: Bearer <token>`. A bank or
+depot link belongs to the account that created it.
 
 ## Security notes
 

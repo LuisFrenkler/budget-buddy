@@ -87,6 +87,24 @@ class Settings {
 
   static Future<void> setLastSync(DateTime? value) => _box.put('lastSync', value?.millisecondsSinceEpoch);
 
+  // token of the linked depot (Parqet Connect) on the backend, empty = none
+  static String get depotState => _box.get('depotState', defaultValue: '') as String;
+  static String get depotBroker => _box.get('depotBroker', defaultValue: '') as String;
+  static DateTime? get depotSync => _date('depotSync');
+
+  static Future<void> setDepot(String state, {String broker = ''}) async {
+    await _box.put('depotState', state);
+    await _box.put('depotBroker', broker);
+  }
+
+  static Future<void> setDepotSync(DateTime value) => _box.put('depotSync', value.millisecondsSinceEpoch);
+
+  static Future<void> clearDepot() async {
+    for (final k in ['depotState', 'depotBroker', 'depotSync']) {
+      await _box.delete(k);
+    }
+  }
+
   // forgets the linked bank; the imported bookings stay
   static Future<void> clearBank() async {
     for (final k in ['bankState', 'bankOwner', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync']) {

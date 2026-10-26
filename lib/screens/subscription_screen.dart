@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../services/backend_service.dart';
 import '../services/plus_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -115,7 +117,7 @@ class _Details extends StatelessWidget {
             title: yearly ? 'Jährlich' : 'Monatlich',
             subtitle: yearly ? '${PlusService.yearlyPrice} im Jahr' : '${PlusService.monthlyPrice} im Monat',
             trailing: yearly ? null : 'Sparen',
-            onTap: sub.cancelled ? null : () => _choosePlan(context),
+            onTap: sub.cancelled ? null : () => sub.managed ? _portal(context) : _choosePlan(context),
           ),
           _row(
             icon: Icons.event_rounded,
@@ -129,6 +131,7 @@ class _Details extends StatelessWidget {
             title: 'Zahlungsmethode',
             subtitle: sub.methodText,
             onTap: () async {
+              if (sub.managed) return _portal(context);
               if (await changePaymentMethod(context) && context.mounted) {
                 _snack(context, 'Zahlungsmethode gespeichert');
               }
@@ -138,7 +141,14 @@ class _Details extends StatelessWidget {
 
         _label('Rechnungen'),
         _group([
-          if (invoices.isEmpty)
+          if (sub.managed)
+            _row(
+              icon: Icons.receipt_long_rounded,
+              title: 'Rechnungen ansehen',
+              subtitle: 'Als PDF im Kundenportal von Stripe',
+              onTap: () => _portal(context),
+            )
+          else if (invoices.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(children: [
@@ -167,12 +177,17 @@ class _Details extends StatelessWidget {
 
         _label('Mehr'),
         _group([
-          _row(icon: Icons.redeem_rounded, title: 'Gutscheincode einlösen', onTap: () => _redeem(context)),
+          // with a real payment a code is entered at checkout
+          if (!sub.managed)
+            _row(icon: Icons.redeem_rounded, title: 'Gutscheincode einlösen', onTap: () => _redeem(context)),
           _row(
             icon: Icons.restore_rounded,
             title: 'Käufe wiederherstellen',
             subtitle: 'Nach einem neuen Gerät oder einer Neuinstallation',
-            onTap: () => _snack(context, PlusService.restore() ? 'Dein Plus-Abo ist aktiv' : 'Kein Abo gefunden'),
+            onTap: () async {
+              final found = await PlusService.restore();
+              if (context.mounted) _snack(context, found ? 'Dein Plus-Abo ist aktiv' : 'Kein Abo gefunden');
+            },
           ),
           if (sub.cancelled)
             _row(
@@ -180,7 +195,7 @@ class _Details extends StatelessWidget {
               title: 'Abo fortsetzen',
               subtitle: 'Läuft dann einfach weiter wie bisher',
               onTap: () async {
-                await PlusService.resume();
+                if (!await _attempt(context, PlusService.resume)) return;
                 HapticFeedback.mediumImpact();
                 if (context.mounted) _snack(context, 'Schön, dass du bleibst 💜');
               },
@@ -211,8 +226,11 @@ class _Details extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und '
-          'Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.',
+          sub.managed
+              ? 'Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. '
+                  'Deine Zahlungsdaten liegen nur dort.'
+              : 'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und '
+                  'Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
         ),
@@ -290,6 +308,29 @@ class _Details extends StatelessWidget {
 
   static void _snack(BuildContext context, String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
+
+  // runs a change that may go to the server; false (with a message) when it failed
+  static Future<bool> _attempt(BuildContext context, Future<void> Function() change) async {
+    try {
+      await change();
+      return true;
+    } catch (e) {
+      if (context.mounted) _snack(context, 'Das hat gerade nicht geklappt: $e');
+      return false;
+    }
+  }
+
+  // payment method, plan and invoices of a real subscription live at Stripe
+  static Future<void> _portal(BuildContext context) async {
+    try {
+      final url = await BackendService.plusPortal();
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      // whatever changed there shows up here once the user is back
+      await PlusService.syncWithServer(fresh: true);
+    } catch (e) {
+      if (context.mounted) _snack(context, 'Kundenportal gerade nicht erreichbar: $e');
+    }
+  }
 
   Future<void> _choosePlan(BuildContext context) async {
     final chosen = await showModalBottomSheet<PlusPlan>(
@@ -421,8 +462,8 @@ class _Details extends StatelessWidget {
         ],
       ),
     );
-    if (ok != true) return;
-    await PlusService.withdraw();
+    if (ok != true || !context.mounted) return;
+    if (!await _attempt(context, PlusService.withdraw)) return;
     HapticFeedback.mediumImpact();
     if (context.mounted) _snack(context, 'Widerruf bestätigt. Plus ist beendet.');
   }
@@ -488,10 +529,11 @@ class _Details extends StatelessWidget {
     );
     if (!context.mounted) return;
     if (choice == 'yearly') {
+      if (sub.managed) return _portal(context);
       await PlusService.changePlan(PlusPlan.yearly);
       if (context.mounted) _snack(context, 'Jährlich: du sparst ab jetzt 33 %');
     } else if (choice == 'cancel') {
-      await PlusService.cancel();
+      if (!await _attempt(context, PlusService.cancel)) return;
       HapticFeedback.mediumImpact();
       if (context.mounted) _snack(context, 'Gekündigt. Plus läuft noch bis ${Dates.full(end)}.');
     }

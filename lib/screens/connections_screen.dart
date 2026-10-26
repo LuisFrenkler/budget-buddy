@@ -2,20 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/holding.dart';
 import '../services/account_service.dart';
 import 'auth_screens.dart';
 import '../services/backend_service.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
+import '../services/depot_sync.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/instrument_avatar.dart';
 
-// Links a real bank account (Enable Banking / PSD2) and a depot (Parqet)
-// through the local backend. See backend/README.md.
+// Links a real bank account (Enable Banking / PSD2) and a depot (Trade
+// Republic and other brokers through Parqet Connect) through the backend.
+// See backend/README.md.
 //
 // Linking a bank: pick it, log in on the bank's own page in the browser,
 // and the app notices the granted access by itself (it polls the backend),
@@ -32,7 +33,12 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   // null = server not reachable, otherwise 'live' or 'demo'
   String? _mode;
   bool _syncing = false;
-  bool _loadingDepot = false;
+  // null = server not reachable, otherwise 'live' or 'demo'
+  String? _depotMode;
+  bool _depotBusy = false;
+  String? _depotPending;
+  String? _depotLink;
+  Timer? _depotPoll;
 
   // consent started in the browser and not finished yet
   String? _pendingState;
@@ -49,15 +55,17 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   @override
   void dispose() {
     _poll?.cancel();
+    _depotPoll?.cancel();
     super.dispose();
   }
 
   Future<void> _check() async {
     setState(() => _checking = true);
-    final mode = await BackendService.bankMode();
+    final health = await BackendService.health();
     if (mounted) {
       setState(() {
-        _mode = mode;
+        _mode = health?['bank'] as String?;
+        _depotMode = health == null ? null : '${health['depot'] ?? 'demo'}';
         _checking = false;
       });
     }
@@ -126,6 +134,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           _point(Icons.visibility_rounded, 'Nur Lesezugriff, Überweisungen sind nicht möglich'),
           _point(Icons.lock_rounded, 'Login direkt bei deiner Bank, BudgetBuddy sieht keine Zugangsdaten'),
           _point(Icons.link_off_rounded, 'Jederzeit trennbar, Freigabe gilt bis zu 180 Tage'),
+          _point(Icons.account_balance_wallet_outlined,
+              'Auch dein Trade-Republic-Konto: Guthaben, Kartenzahlungen und Zinsen'),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
@@ -141,18 +151,22 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   }
 
   // bank links belong to an account, so guests sign up first
-  Widget _needsAccountCard() {
+  Widget _needsAccountCard({bool depot = false}) {
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          _iconTile(Icons.account_balance_rounded, AppColors.primary),
+          _iconTile(depot ? Icons.show_chart_rounded : Icons.account_balance_rounded,
+              depot ? AppColors.accentBlue : AppColors.primary),
           const SizedBox(width: 14),
-          const Expanded(
-            child: Text('Bankkonto verbinden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          Expanded(
+            child: Text(depot ? 'Depot verbinden' : 'Bankkonto verbinden',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
           ),
         ]),
         const SizedBox(height: 12),
-        Text('Dafür brauchst du ein kostenloses Konto. So bleibt deine Bankverbindung nur für dich sichtbar.',
+        Text(
+            'Dafür brauchst du ein kostenloses Konto. So bleibt deine '
+            '${depot ? 'Depotverbindung' : 'Bankverbindung'} nur für dich sichtbar.',
             style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
         const SizedBox(height: 16),
         SizedBox(
@@ -282,6 +296,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   // --- depot card ---
 
   Widget _depotCard() {
+    if (Settings.depotState.isNotEmpty) return _depotLinkedCard();
+    if (AccountService.current.value == null) return _needsAccountCard(depot: true);
+    if (_depotPending != null) return _depotWaitingCard();
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,39 +307,149 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             _iconTile(Icons.show_chart_rounded, AppColors.accentBlue),
             const SizedBox(width: 14),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Parqet', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text('Depots aller Broker an einem Ort', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
-                ],
-              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Depot verbinden', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text('Trade Republic, Scalable, ING und mehr',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+              ]),
             ),
-            FilledButton(
-              style: _secondary,
-              onPressed: _mode == null || _loadingDepot ? null : _loadParqet,
-              child: _loadingDepot
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Laden'),
-            ),
+            if (_depotMode == 'demo') _chip('Demo', AppColors.warning),
           ]),
-          const SizedBox(height: 14),
-          Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 14),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textDim),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Trade Republic und Scalable bieten keine offene Schnittstelle. Exportiere dort deine Positionen '
-                'und lade sie unter Profil → Depot importieren. Kurse aktualisiert die App danach selbst.',
-                style: TextStyle(color: AppColors.textDim, fontSize: 13),
-              ),
+          const SizedBox(height: 16),
+          // brokers like Trade Republic have no open interface; Parqet syncs them
+          // and passes the depot on with the user's consent
+          _step(1, 'Verbinde dein Depot einmal mit Parqet', 'Kostenlos, Parqet hält es dann automatisch aktuell'),
+          _step(2, 'Gib es hier für BudgetBuddy frei', 'Nur Lesezugriff, deine Broker-Zugangsdaten sieht BudgetBuddy nie'),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              onPressed: _depotMode == null || _depotBusy ? null : _connectDepot,
+              child: const Text('Mit Parqet verbinden'),
             ),
-          ]),
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: TextButton(
+              onPressed: () => launchUrl(Uri.parse('https://parqet.com'), mode: LaunchMode.externalApplication),
+              child: const Text('Noch kein Parqet? Hier kostenlos anlegen'),
+            ),
+          ),
+          Text('Ohne Parqet: Exportiere deine Umsätze bei Trade Republic als CSV und lade sie unter '
+              'Profil → Import, Export & Backup → Depot importieren.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
         ],
       ),
+    );
+  }
+
+  Widget _step(int n, String title, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: AppColors.accentBlue.withValues(alpha: 0.15), shape: BoxShape.circle),
+            child: Text('$n',
+                style: TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w800, fontSize: 12.5)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 1),
+              Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+            ]),
+          ),
+        ]),
+      );
+
+  Widget _depotWaitingCard() {
+    return _card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          _iconTile(Icons.show_chart_rounded, AppColors.accentBlue),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Parqet', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text('Warte auf deine Freigabe …', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            ]),
+          ),
+          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+        ]),
+        const SizedBox(height: 14),
+        Text('Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier '
+            'automatisch weiter.', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(
+            child: FilledButton(style: _secondary, onPressed: _cancelDepot, child: const Text('Abbrechen')),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton(
+              style: _secondary,
+              onPressed: () => launchUrl(Uri.parse(_depotLink!), mode: LaunchMode.externalApplication),
+              child: const Text('Erneut öffnen'),
+            ),
+          ),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _depotLinkedCard() {
+    final synced = DB.getHoldings().where((h) => h.id.startsWith(DepotSync.prefix)).toList();
+    final value = synced.fold<int>(0, (s, h) => s + h.valueCents);
+    final last = Settings.depotSync;
+    final broker = Settings.depotBroker;
+    return _card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          InstrumentAvatar(broker.isEmpty ? 'Parqet' : broker, size: 44),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(broker.isEmpty ? 'Depot' : broker,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 2),
+              Text('über Parqet · ${synced.length} ${synced.length == 1 ? 'Position' : 'Positionen'}',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            ]),
+          ),
+          _chip('Aktiv', AppColors.positive),
+        ]),
+        const SizedBox(height: 20),
+        Text('Depotwert', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        const SizedBox(height: 2),
+        Text(Money.format(value), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+        const SizedBox(height: 4),
+        Text(last == null ? 'Noch nicht aktualisiert' : 'Aktualisiert ${_ago(last)}',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        const SizedBox(height: 18),
+        Row(children: [
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: _depotBusy ? null : _syncDepot,
+              icon: _depotBusy
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.sync_rounded, size: 18),
+              label: Text(_depotBusy ? 'Aktualisiere …' : 'Aktualisieren'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          FilledButton(
+            onPressed: _depotBusy ? null : _disconnectDepot,
+            style: _secondary.copyWith(foregroundColor: WidgetStatePropertyAll(AppColors.error)),
+            child: const Text('Trennen'),
+          ),
+        ]),
+      ]),
     );
   }
 
@@ -335,9 +462,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ? 'Suche Server …'
         : !ok
             ? 'Server nicht erreichbar'
-            : _mode == 'demo'
-                ? 'Server verbunden · Demo-Bank, keine echten Daten'
-                : 'Server verbunden · Enable Banking';
+            : _mode == 'demo' && _depotMode == 'demo'
+                ? 'Server verbunden · Demo-Bank und Demo-Depot, keine echten Daten'
+                : 'Server verbunden · Bank ${_mode == 'live' ? 'live' : 'Demo'} · Depot ${_depotMode == 'live' ? 'live' : 'Demo'}';
     return Column(
       children: [
         GestureDetector(
@@ -524,28 +651,89 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   // --- depot flow ---
 
-  Future<void> _loadParqet() async {
-    setState(() => _loadingDepot = true);
+  Future<void> _connectDepot() async {
     try {
-      final positions = await BackendService.parqetPortfolio();
-      for (final p in positions) {
-        final perShare = p.shares > 0 ? (p.valueCents / p.shares).round() : p.valueCents;
-        await DB.addHolding(Holding(
-          id: 'parqet_${p.name}', // stable so re-loading updates instead of duplicating
-          name: p.name,
-          symbol: '',
-          type: 'Aktie',
-          shares: p.shares,
-          buyPriceCents: perShare,
-          currentPriceCents: perShare,
-        ));
-      }
-      _snack('${positions.length} Positionen aus Parqet geladen');
+      final link = await BackendService.depotConnect();
+      setState(() {
+        _depotPending = link.state;
+        _depotLink = link.link;
+      });
+      await launchUrl(Uri.parse(link.link), mode: LaunchMode.externalApplication);
+      _depotPoll?.cancel();
+      final started = DateTime.now();
+      _depotPoll = Timer.periodic(const Duration(seconds: 2), (timer) async {
+        final state = _depotPending;
+        if (state == null || DateTime.now().difference(started).inMinutes >= 10) {
+          timer.cancel();
+          return;
+        }
+        try {
+          final s = await BackendService.depotStatus(state);
+          if (s.status == 'linked') {
+            timer.cancel();
+            HapticFeedback.mediumImpact();
+            await Settings.setDepot(state);
+            if (mounted) setState(() => _depotPending = null);
+            await _syncDepot(first: true);
+          } else if (s.status == 'failed' || s.status == 'unknown') {
+            timer.cancel();
+            _cancelDepot();
+            _snack(s.status == 'failed' ? 'Nicht verbunden: ${s.error}' : 'Verbindung abgelaufen', error: true);
+          }
+        } catch (_) {
+          // a hiccup while polling; the next tick tries again
+        }
+      });
     } catch (e) {
-      _snack('$e', error: true);
-    } finally {
-      if (mounted) setState(() => _loadingDepot = false);
+      _snack('Fehler: $e', error: true);
     }
+  }
+
+  void _cancelDepot() {
+    _depotPoll?.cancel();
+    if (mounted) setState(() => _depotPending = null);
+  }
+
+  Future<void> _syncDepot({bool first = false}) async {
+    setState(() => _depotBusy = true);
+    try {
+      final count = await DepotSync.run();
+      _snack(first
+          ? 'Depot verbunden · $count ${count == 1 ? 'Position' : 'Positionen'} übernommen'
+          : 'Depot aktualisiert');
+    } catch (e) {
+      _snack('Aktualisieren fehlgeschlagen: $e', error: true);
+    } finally {
+      if (mounted) setState(() => _depotBusy = false);
+    }
+  }
+
+  Future<void> _disconnectDepot() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Depot trennen?'),
+        content: const Text('BudgetBuddy liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben '
+            'in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Trennen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await BackendService.depotDisconnect(Settings.depotState);
+    } catch (_) {
+      // forget it locally even when the server is offline
+    }
+    await Settings.clearDepot();
+    if (mounted) setState(() {});
+    _snack('Depot getrennt');
   }
 }
 

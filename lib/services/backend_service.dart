@@ -1,5 +1,6 @@
 // Talks to the BudgetBuddy backend (backend/server.dart) which links real
-// banks through Enable Banking (PSD2) and the depot through Parqet. The base
+// banks through Enable Banking (PSD2), depots through Parqet Connect and takes
+// Plus payments through Stripe. The base
 // URL can be overridden with --dart-define=BACKEND_URL=... ; it defaults to
 // the local dev server.
 import 'dart:convert';
@@ -31,22 +32,42 @@ class BankLink {
   const BankLink(this.status, {this.bank, this.iban, this.validUntil, this.error});
 }
 
-class ParqetPosition {
+class DepotPosition {
+  final String id; // ISIN or crypto symbol, stable across syncs
   final String name;
+  final String symbol;
+  final String type;
   final double shares;
-  final int valueCents;
-  const ParqetPosition(this.name, this.shares, this.valueCents);
+  final int buyPriceCents;
+  final int priceCents;
+  final String broker;
+  const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
+      this.broker);
+
+  static DepotPosition fromJson(Map m) => DepotPosition(
+        '${m['id']}',
+        '${m['name']}',
+        '${m['symbol'] ?? ''}',
+        '${m['type'] ?? 'Aktie'}',
+        (m['shares'] as num).toDouble(),
+        (m['buyPriceCents'] as num).toInt(),
+        (m['priceCents'] as num).toInt(),
+        '${m['broker'] ?? ''}',
+      );
 }
 
 class BackendService {
   static const base = String.fromEnvironment('BACKEND_URL', defaultValue: 'http://localhost:8090');
 
   // null when the server is not reachable, otherwise 'live' or 'demo'
-  static Future<String?> bankMode() async {
+  static Future<String?> bankMode() async => (await health())?['bank'] as String?;
+
+  // what the server offers: {bank, depot, billing, ai}, or null when offline
+  static Future<Map<String, dynamic>?> health() async {
     try {
       final res = await http.get(Uri.parse('$base/health')).timeout(const Duration(seconds: 4));
       if (res.statusCode != 200) return null;
-      return (jsonDecode(res.body) as Map)['bank'] as String?;
+      return jsonDecode(res.body) as Map<String, dynamic>;
     } catch (_) {
       return null;
     }
@@ -119,13 +140,44 @@ class BackendService {
 
   static Future<void> disconnect(String state) => _post('/bank/disconnect', {'state': state});
 
-  // --- depot (Parqet) ---
+  // --- depot (Parqet Connect) ---
 
-  static Future<List<ParqetPosition>> parqetPortfolio({String? id}) async {
-    final body = await _get('/parqet/portfolio${id != null ? '?id=$id' : ''}');
-    return [
-      for (final h in (body['holdings'] as List))
-        ParqetPosition('${h['name']}', (h['shares'] as num).toDouble(), (h['valueCents'] as num).toInt())
-    ];
+  static Future<({String state, String link})> depotConnect() async {
+    final body = await _post('/depot/connect', {});
+    return (state: body['state'] as String, link: body['link'] as String);
   }
+
+  // pending, linked, failed or unknown
+  static Future<({String status, String? error})> depotStatus(String state) async {
+    final body = await _get('/depot/status?state=$state');
+    return (status: '${body['status']}', error: body['error'] as String?);
+  }
+
+  static Future<List<DepotPosition>> depotSync(String state) async {
+    final body = await _get('/depot/sync?state=$state');
+    return [for (final p in (body['positions'] as List)) DepotPosition.fromJson(p as Map)];
+  }
+
+  static Future<void> depotDisconnect(String state) => _post('/depot/disconnect', {'state': state});
+
+  // --- Plus (payments) ---
+
+  // the server's copy of this account's Plus, or null when there is none
+  static Future<Map<String, dynamic>?> plusStatus({bool fresh = false}) async {
+    final body = await _get('/plus/status${fresh ? '?fresh=1' : ''}');
+    return (body['plus'] as Map?)?.cast<String, dynamic>();
+  }
+
+  // the payment page for [plan] ('monthly' or 'yearly')
+  static Future<String> plusCheckout(String plan, {String? promo}) async {
+    final body = await _post('/plus/checkout', {'plan': plan, if (promo != null) 'promo': promo});
+    return body['url'] as String;
+  }
+
+  static Future<String> plusPortal() async => (await _post('/plus/portal', {}))['url'] as String;
+
+  static Future<Map<String, dynamic>> plusCancel(bool cancel) async =>
+      ((await _post('/plus/cancel', {'cancel': cancel}))['plus'] as Map).cast<String, dynamic>();
+
+  static Future<void> plusWithdraw() => _post('/plus/withdraw', {});
 }

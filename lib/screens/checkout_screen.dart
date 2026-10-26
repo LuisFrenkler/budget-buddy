@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/account_service.dart';
+import '../services/backend_service.dart';
 import '../services/plus_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -12,6 +15,11 @@ import 'about_screen.dart';
 
 // Checkout for Plus: what it costs and when, the payment method, a promo
 // code, then a welcome page. Returns true when Plus was started.
+//
+// Signed in with the server reachable, payment happens on the server's
+// payment page (Stripe Checkout): the app opens it, waits until the server
+// confirms Plus and never touches card or bank details. Otherwise the local
+// test mode below runs and charges nothing.
 Future<bool> showCheckout(BuildContext context, PlusPlan plan) async {
   final ok = await Navigator.push<bool>(
     context,
@@ -73,17 +81,31 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String? _promoError;
   bool _busy = false;
 
+  // 'live' or 'demo' when the purchase runs on the server, null for the local test mode
+  String? _billing;
+  // the server's payment page is open and we wait for the confirmation
+  String? _payUrl;
+  Timer? _poll;
+
   bool get _checkout => widget.plan != null;
+  bool get _server => _checkout && _billing != null;
 
   @override
   void initState() {
     super.initState();
     if (!_methods.contains(_method)) _method = _methods.first;
     _holder.text = AccountService.current.value?.name ?? '';
+    if (_checkout && AccountService.token != null) _askServer();
+  }
+
+  Future<void> _askServer() async {
+    final health = await BackendService.health();
+    if (mounted && health?['billing'] != null) setState(() => _billing = '${health!['billing']}');
   }
 
   @override
   void dispose() {
+    _poll?.cancel();
     for (final c in [_cardNumber, _expiry, _cvc, _holder, _iban, _paypal, _promo]) {
       c.dispose();
     }
@@ -133,6 +155,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _submit() async {
+    if (_server) return _payOnServer();
     if (!_valid) {
       HapticFeedback.heavyImpact();
       setState(() => _showErrors = true);
@@ -160,6 +183,54 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (mounted) Navigator.pop(context, true);
   }
 
+  Future<void> _payOnServer() async {
+    setState(() => _busy = true);
+    try {
+      final url = await BackendService.plusCheckout(_plan == PlusPlan.yearly ? 'yearly' : 'monthly',
+          promo: _promoApplied);
+      if (!mounted) return;
+      setState(() => _payUrl = url);
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      _poll?.cancel();
+      final started = DateTime.now();
+      _poll = Timer.periodic(const Duration(seconds: 2), (timer) async {
+        if (_payUrl == null || DateTime.now().difference(started).inMinutes >= 15) {
+          timer.cancel();
+          if (mounted) setState(() => _payUrl = null);
+          return;
+        }
+        try {
+          final plus = await BackendService.plusStatus();
+          if (plus == null) return;
+          timer.cancel();
+          await PlusService.applyServer(plus);
+          await _welcome(PlusService.subscription.value!);
+        } catch (_) {
+          // a hiccup while polling; the next tick tries again
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(duration: const Duration(milliseconds: 3500), content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _welcome(Subscription sub) async {
+    HapticFeedback.heavyImpact();
+    if (!mounted) return;
+    setState(() => _payUrl = null);
+    await Navigator.push(context, PageRouteBuilder(
+      opaque: true,
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (_, a, __) => FadeTransition(opacity: a, child: _Welcome(sub: sub)),
+    ));
+    if (mounted) Navigator.pop(context, true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,22 +241,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
               children: [
-                _testModeBanner(),
+                if (!_server) _testModeBanner() else if (_billing == 'demo') _demoBanner(),
                 if (_checkout) ...[
                   const SizedBox(height: 16),
                   _planSwitch(),
                   const SizedBox(height: 16),
                   _timeline(),
                 ],
-                _label(_methods.length == 1 ? 'Bezahlt wird über' : 'Wie möchtest du zahlen?'),
-                for (final m in _methods) _methodTile(m),
-                if (_checkout) _promoSection(),
+                if (_server)
+                  _serverMethods()
+                else ...[
+                  _label(_methods.length == 1 ? 'Bezahlt wird über' : 'Wie möchtest du zahlen?'),
+                  for (final m in _methods) _methodTile(m),
+                ],
+                if (_checkout) ...[if (_server) const SizedBox(height: 8), _promoSection()],
               ],
             ),
           ),
           _bottomBar(),
         ]),
         if (_busy) _processing(),
+        if (_payUrl != null) _waiting(),
       ]),
     );
   }
@@ -209,6 +285,91 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 style: TextStyle(fontSize: 12.5, color: AppColors.text)),
           ),
         ]),
+      );
+
+  Widget _demoBanner() => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(children: [
+          const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('Demo-Zahlung über den Server: Es wird nichts abgebucht.',
+                style: TextStyle(fontSize: 12.5, color: AppColors.text)),
+          ),
+        ]),
+      );
+
+  // with the server the method is picked on the payment page itself
+  Widget _serverMethods() {
+    final shown = availableMethods().where((m) => m != PayMethod.appStore && m != PayMethod.googlePlay).toList();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _label('So kannst du zahlen'),
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final m in shown) SizedBox(height: 28, child: FittedBox(child: MethodLogo(m))),
+          ]),
+          const SizedBox(height: 14),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.lock_rounded, size: 16, color: AppColors.positive),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. '
+                'BudgetBuddy sieht deine Karten- und Kontodaten nie.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
+              ),
+            ),
+          ]),
+        ]),
+      ),
+    ]);
+  }
+
+  Widget _waiting() => Positioned.fill(
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.6),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 320),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const BuddyOrb(size: 56, active: true),
+              const SizedBox(height: 16),
+              const Text('Zahlung im neuen Fenster abschließen',
+                  textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              const SizedBox(height: 6),
+              Text('Sobald sie bestätigt ist, geht es hier von selbst weiter.',
+                  textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+              const SizedBox(height: 18),
+              Row(children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () {
+                      _poll?.cancel();
+                      setState(() => _payUrl = null);
+                    },
+                    child: const Text('Abbrechen'),
+                  ),
+                ),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => launchUrl(Uri.parse(_payUrl!), mode: LaunchMode.externalApplication),
+                    child: const Text('Erneut öffnen'),
+                  ),
+                ),
+              ]),
+            ]),
+          ),
+        ),
       );
 
   Widget _planSwitch() {
@@ -527,14 +688,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _bottomBar() {
     final label = !_checkout
         ? 'Zahlungsmethode speichern'
-        : switch (_method) {
+        : _server
+            ? 'Weiter zur Zahlung'
+            : switch (_method) {
             PayMethod.applePay => 'Mit Apple Pay gratis starten',
             PayMethod.googlePay => 'Mit Google Pay gratis starten',
             PayMethod.paypal => 'Weiter mit PayPal',
             _ => '${PlusService.trialDays + _extraDays} Tage gratis starten',
           };
     // Apple's rule: a white Apple Pay button on dark backgrounds, black on light
-    final wallet = _method == PayMethod.applePay;
+    final wallet = !_server && _method == PayMethod.applePay;
     final dark = ThemeController.isDark.value;
     return Container(
       padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
@@ -589,7 +752,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const BuddyOrb(size: 56, active: true),
               const SizedBox(height: 16),
-              Text(_checkout ? 'Plus wird freigeschaltet …' : 'Wird gespeichert …',
+              Text(_server ? 'Zahlungsseite wird geöffnet …' : _checkout ? 'Plus wird freigeschaltet …' : 'Wird gespeichert …',
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
