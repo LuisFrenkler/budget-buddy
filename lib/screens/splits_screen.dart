@@ -14,6 +14,15 @@ import '../utils/theme.dart';
 
 // "Geteilt": groups for shared spending (flat share, couple, trip) and who
 // owes whom. Kept on this device; the others get their balance as a message.
+
+// the server's own messages are German already; anything technical means no connection
+String splitError(Object e) {
+  final s = '$e';
+  return RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(s)
+      ? 'Gerade keine Verbindung. Bitte versuch es gleich noch einmal.'
+      : s;
+}
+
 class SplitsScreen extends StatelessWidget {
   const SplitsScreen({super.key});
 
@@ -199,9 +208,9 @@ class _JoinSheetState extends State<_JoinSheet> {
     });
     try {
       final p = await SplitService.preview(_code.text);
-      setState(() => _preview = p);
+      if (mounted) setState(() => _preview = p);
     } catch (e) {
-      setState(() => _error = '$e');
+      if (mounted) setState(() => _error = splitError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -214,8 +223,9 @@ class _JoinSheetState extends State<_JoinSheet> {
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context, g);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = '$e';
+        _error = splitError(e);
         _busy = false;
       });
     }
@@ -406,7 +416,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       await SplitService.markSeen(await SplitService.refresh(g));
       if (mounted) setState(() => _syncError = null);
     } catch (e) {
-      if (mounted) setState(() => _syncError = '$e');
+      if (mounted) setState(() => _syncError = splitError(e));
     }
   }
 
@@ -416,8 +426,79 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       await change();
       HapticFeedback.mediumImpact();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
     }
+  }
+
+  // deleting a group, or leaving a shared one, loses every expense in it: asked first
+  Future<void> _remove(BuildContext context, SplitGroup g, int mine) async {
+    final creator = g.shared && g.me == 0;
+    final open = mine == 0
+        ? ''
+        : mine > 0
+            ? '\n\nDu bekommst noch ${Money.raw(mine)}.'
+            : '\n\nDu schuldest noch ${Money.raw(-mine)}.';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(g.shared ? (creator ? 'Gruppe für alle löschen?' : 'Gruppe verlassen?') : 'Gruppe löschen?'),
+        content: Text('${g.shared && creator ? 'Alle Mitglieder verlieren „${g.name}“ mit allen Ausgaben.' : 'Alle Ausgaben in „${g.name}“ sind dann von diesem Gerät weg.'}$open'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(g.shared && !creator ? 'Verlassen' : 'Löschen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await SplitService.remove(g);
+    } catch (_) {
+      if (!context.mounted) return;
+      // offline: the others would not notice; removing only here is the user's call
+      final local = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Gerade keine Verbindung'),
+          content: const Text('Die anderen bekommen das erst mit, wenn du wieder online bist. '
+              'Nur von diesem Gerät entfernen?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Später')),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Nur hier entfernen')),
+          ],
+        ),
+      );
+      if (local != true || !context.mounted) return;
+      await SplitService.remove(g, localOnly: true);
+    }
+    HapticFeedback.mediumImpact();
+    if (context.mounted) Navigator.pop(context);
+  }
+
+  // swiped away: removed at once with an undo; offline the row simply stays
+  Future<bool> _removeExpense(SplitGroup g, SplitExpense e) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await SplitService.removeExpense(g, e.id);
+    } catch (err) {
+      messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(err))));
+      return false;
+    }
+    HapticFeedback.mediumImpact();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: Text('„${e.title}“ entfernt'),
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
+        final now = SplitService.byId(g.id);
+        if (now != null) SplitService.addExpense(now, e);
+      }),
+    ));
+    // the box already dropped the row; returning false avoids a lingering dismissed tile
+    return false;
   }
 
   @override
@@ -440,11 +521,9 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 onPressed: () => _invite(context, g),
               ),
               PopupMenuButton<String>(
+                tooltip: 'Mehr',
                 color: AppColors.surfaceAlt,
-                onSelected: (_) async {
-                  await SplitService.remove(g);
-                  if (context.mounted) Navigator.pop(context);
-                },
+                onSelected: (_) => _remove(context, g, mine),
                 itemBuilder: (_) => [
                   PopupMenuItem(value: 'delete', child: Text(g.shared ? 'Gruppe verlassen' : 'Gruppe löschen')),
                 ],
@@ -535,7 +614,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                       padding: const EdgeInsets.only(right: 20),
                       child: const Icon(Icons.delete_rounded, color: AppColors.error),
                     ),
-                    onDismissed: (_) => _run(() => SplitService.removeExpense(g, e.id)),
+                    confirmDismiss: (_) => _removeExpense(g, e),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(e.title, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -581,7 +660,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       try {
         group = await SplitService.share(group, account.firstName);
       } catch (e) {
-        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
         return;
       }
     }
@@ -701,7 +780,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
             txId: widget.tx?.id,
           ));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
       return;
     }
     HapticFeedback.mediumImpact();

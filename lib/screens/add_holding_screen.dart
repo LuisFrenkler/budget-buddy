@@ -15,6 +15,25 @@ class AddHoldingScreen extends StatefulWidget {
   final Holding? holding;
   const AddHoldingScreen({super.key, this.holding});
 
+  // shows a share count without trailing zeros, with every decimal it has
+  // (crypto goes down to satoshis), so saving unchanged keeps it exactly
+  static String trimNum(double v) {
+    final s = v.toStringAsFixed(10);
+    return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '').replaceAll('.', ',');
+  }
+
+  // German first, like the price fields: "1.000,5" and "1.000" are thousands,
+  // "0,25" and "0.25" a fraction
+  static double? parseShares(String input) {
+    var s = input.trim().replaceAll(' ', '');
+    if (s.contains(',')) {
+      s = s.replaceAll('.', '').replaceAll(',', '.');
+    } else if (RegExp(r'^\d{1,3}(\.\d{3})+$').hasMatch(s)) {
+      s = s.replaceAll('.', '');
+    }
+    return double.tryParse(s);
+  }
+
   @override
   State<AddHoldingScreen> createState() => _AddHoldingScreenState();
 }
@@ -55,13 +74,9 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     super.dispose();
   }
 
-  // shows a share count without trailing ".0"
-  String _trimNum(double v) {
-    final s = v.toStringAsFixed(4);
-    return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '').replaceAll('.', ',');
-  }
+  String _trimNum(double v) => AddHoldingScreen.trimNum(v);
 
-  static double? _parseShares(String s) => double.tryParse(s.trim().replaceAll(',', '.'));
+  static double? _parseShares(String s) => AddHoldingScreen.parseShares(s);
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +301,9 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 2800),
+            content: Text('Speichern hat nicht geklappt. Bitte prüf die Eingaben.')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

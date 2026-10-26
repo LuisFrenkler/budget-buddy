@@ -167,8 +167,9 @@ class _RecurringScreenState extends State<RecurringScreen> {
   void _toggle(RecurringRule r, bool active) async {
     HapticFeedback.selectionClick();
     r.active = active;
+    // back on: carries on from today, without the dates missed while paused
+    if (active) RecurringService.skipPaused(r, DateTime.now());
     await DB.updateRule(r);
-    // catch up immediately when re-enabling
     if (active) await RecurringService.process();
     if (mounted) setState(() {});
   }

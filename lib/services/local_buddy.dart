@@ -104,7 +104,7 @@ class LocalBuddy {
     final lines = [
       for (final b in s.budgets)
         '- ${b.category}: ${_eur(b.spentCents)} von ${_eur(b.limitCents)}'
-            '${b.spentCents > b.limitCents ? ' – **überschritten**' : ' (${(b.spentCents / b.limitCents * 100).round()} %)'}'
+            '${b.spentCents > b.limitCents ? ' – **überschritten**' : ' (${b.percentUsed} %)'}'
     ];
     return 'So stehen deine Budgets, noch ${s.daysLeftInMonth} Tage im Monat:\n${lines.join('\n')}';
   }

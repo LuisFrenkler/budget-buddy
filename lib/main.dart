@@ -110,18 +110,21 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
   void initState() {
     super.initState();
     ThemeController.isDark.addListener(_repaintEverything);
+    Settings.hideAmounts.addListener(_repaintEverything);
   }
 
   @override
   void dispose() {
     ThemeController.isDark.removeListener(_repaintEverything);
+    Settings.hideAmounts.removeListener(_repaintEverything);
     super.dispose();
   }
 
-  // The colours are read straight from AppColors, not passed down the tree,
-  // so widgets Flutter considers unchanged (const ones, open pages below the
-  // current one) would keep the old mode. After a switch every element is
-  // rebuilt once, so light and dark apply everywhere at the same moment.
+  // The colours and the privacy mask are read straight from AppColors and
+  // Money, not passed down the tree, so widgets Flutter considers unchanged
+  // (const ones, tabs kept alive, open pages below the current one) would keep
+  // the old state. After a switch every element is rebuilt once, so light and
+  // dark, hidden and shown amounts apply everywhere at the same moment.
   void _repaintEverything() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       void mark(Element e) {

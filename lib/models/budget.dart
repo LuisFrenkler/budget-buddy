@@ -46,11 +46,17 @@ class Budget {
     return (spentCents / limitCents).clamp(0.0, 1.0);
   }
 
+  // spent as a whole percentage, may pass 100; 0 for a budget without limit
+  int get percentUsed => limitCents <= 0 ? 0 : (spentCents * 100 / limitCents).round();
+
   // true if over budget
   bool get isOver => spentCents > limitCents;
 
-  // formatted date range
+  // the month this budget covers
+  bool covers(DateTime day) => !day.isBefore(startDate) && day.isBefore(endDate.add(const Duration(days: 1)));
+
+  // formatted date range, e.g. "1.10.–31.10.2026"
   String get dateRange {
-    return '${startDate.day}.${startDate.month} - ${endDate.day}.${endDate.month}.${endDate.year}';
+    return '${startDate.day}.${startDate.month}.–${endDate.day}.${endDate.month}.${endDate.year}';
   }
 }

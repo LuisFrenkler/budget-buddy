@@ -73,8 +73,9 @@ class PriceService {
       if (res.statusCode != 200) return null;
       final usdCents = parseFinnhubQuote(res.body);
       if (usdCents == null) return null;
+      // without the rate a dollar price would be shown as euros: better none
       final fx = await _fxUsdToEur();
-      return fx == null ? usdCents : (usdCents * fx).round();
+      return fx == null ? null : (usdCents * fx).round();
     } catch (_) {
       return null;
     }

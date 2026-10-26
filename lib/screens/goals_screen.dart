@@ -503,16 +503,32 @@ class _AutoSaveSheet extends StatefulWidget {
 
 class _AutoSaveSheetState extends State<_AutoSaveSheet> {
   late bool _roundUp = widget.goal.roundUp;
+  // the amount the user set, with its cents; empty until they choose one
   late final _monthly = TextEditingController(
-      text: widget.goal.monthlyCents > 0 ? '${widget.goal.monthlyCents ~/ 100}' : _suggestion());
+      text: widget.goal.monthlyCents > 0 ? _euros(widget.goal.monthlyCents) : '');
   late final int _estimate = AutoSave.roundUpEstimate(DB.getTx(), DateTime.now());
+  late final String _suggested = _suggestion();
 
-  // what the deadline needs, else a tenth of the usual surplus, in full 10 €
+  static String _euros(int cents) =>
+      (cents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), '');
+
+  // what the deadline needs, else a tenth of the usual surplus, in full 10 €;
+  // only offered, never filled in for the user
   String _suggestion() {
     final need = widget.goal.monthlyNeeded(DateTime.now()) ?? (_surplus() ~/ 10);
     if (need <= 0) return '';
     return '${((need / 1000).ceil() * 10)}';
   }
+
+  // the first of next month, when a new monthly amount starts counting
+  static DateTime get _nextMonth {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + 1, 1);
+  }
+
+  // another goal that already rounds up: one coffee can only be rounded up once
+  Goal? get _otherRounding =>
+      GoalsService.all().where((g) => g.id != widget.goal.id && g.roundUp).firstOrNull;
 
   @override
   void dispose() {
@@ -524,12 +540,21 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
     final g = widget.goal;
     final cents = Money.parseToCents(_monthly.text) ?? 0;
     final wasRounding = g.roundUp;
+    final before = g.monthlyCents;
     g.monthlyCents = cents < 0 ? 0 : cents;
+    // a new or changed amount counts from next month: nothing is added
+    // behind the user's back for a month they did not plan it for
+    if (g.monthlyCents > 0 && g.monthlyCents != before) g.lastMonthly = AutoSave.monthKey(DateTime.now());
     g.roundUp = _roundUp;
     // rounding starts with today's bookings, not the whole history
     if (_roundUp && !wasRounding) {
       g.roundUpSince = DateTime.now();
       g.roundedIds = [];
+      final other = _otherRounding;
+      if (other != null) {
+        other.roundUp = false;
+        await GoalsService.save(other);
+      }
     }
     await GoalsService.save(g);
     final added = await AutoSave.run();
@@ -556,12 +581,29 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           controller: _monthly,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            hintText: '0',
+            hintText: _suggested.isEmpty ? '0' : _suggested,
             suffixText: '€ am Monatsanfang',
             suffixStyle: TextStyle(fontSize: 14, color: AppColors.textDim, fontWeight: FontWeight.w600),
           ),
         ),
+        if (_suggested.isNotEmpty && _monthly.text.isEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => setState(() => _monthly.text = _suggested),
+              icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+              label: Text('Buddy schlägt $_suggested € vor'),
+            ),
+          )
+        else if ((Money.parseToCents(_monthly.text) ?? 0) > 0 &&
+            Money.parseToCents(_monthly.text) != widget.goal.monthlyCents)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 4),
+            child: Text('Zählt ab dem ${Dates.full(_nextMonth)}.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+          ),
         const SizedBox(height: 14),
         Container(
           decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
@@ -570,7 +612,8 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             onChanged: (v) => setState(() => _roundUp = v),
             title: const Text('Ausgaben aufrunden', style: TextStyle(fontWeight: FontWeight.w700)),
             subtitle: Text(
-                'Kaffee 3,20 € → 0,80 € fürs Ziel.${_estimate > 0 ? ' Bei dir wären das etwa ${Money.format(_estimate)} im Monat.' : ''}',
+                'Kaffee 3,20 € → 0,80 € fürs Ziel.${_estimate > 0 ? ' Bei dir wären das etwa ${Money.format(_estimate)} im Monat.' : ''}'
+                '${!widget.goal.roundUp && _otherRounding != null ? ' Rundet bisher für „${_otherRounding!.name}“, das hört dann auf.' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
           ),
         ),

@@ -20,8 +20,11 @@ class BudgetView extends StatelessWidget {
       builder: (_, __, ___) => ValueListenableBuilder<Box>(
         valueListenable: Hive.box('transactions').listenable(),
         builder: (context, __, ___) {
-          // load all budgets from database
-          final budgets = DB.getBudgets();
+          // the running ones: every month adds a new record, past months are history
+          final today = DateTime.now();
+          final start = DateTime(today.year, today.month, today.day);
+          final budgets = DB.getBudgets().where((b) => !b.endDate.isBefore(start)).toList()
+            ..sort((a, b) => b.progress.compareTo(a.progress));
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
