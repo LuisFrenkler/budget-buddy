@@ -101,11 +101,12 @@ Live prices are optional. To enable them, pass a free [Finnhub](https://finnhub.
 flutter run --dart-define=FINNHUB_KEY=your_key
 ```
 
-Build the web version without the offline cache, so a reload always shows the latest build:
+Build the web version and serve it locally. Every build gets its own id in the
+script URLs, so a normal reload always runs the latest build:
 
 ```bash
-flutter build web --pwa-strategy=none
-python3 tool/serve_web.py   # http://127.0.0.1:8765, sent with no-cache so reloads pick up new builds
+tool/build_web.sh
+python3 tool/serve_web.py   # http://127.0.0.1:8765
 ```
 
 Run the tests:
