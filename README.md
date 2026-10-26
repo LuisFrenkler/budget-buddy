@@ -105,6 +105,7 @@ Build the web version without the offline cache, so a reload always shows the la
 
 ```bash
 flutter build web --pwa-strategy=none
+python3 tool/serve_web.py   # http://127.0.0.1:8765, sent with no-cache so reloads pick up new builds
 ```
 
 Run the tests:
