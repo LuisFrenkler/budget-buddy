@@ -9,3 +9,5 @@ dependencies:
   dart_jsonwebtoken: ^3.4.1
   bcrypt: ^1.2.0
   crypto: ^3.0.7
+dev_dependencies:
+  test: ^1.31.1

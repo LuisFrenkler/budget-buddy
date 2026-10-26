@@ -19,6 +19,15 @@
 //                                    the server runs a demo checkout that never charges.
 //   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY  the two Stripe price ids
 //   STRIPE_WEBHOOK_SECRET            optional, for /stripe/webhook (whsec_...)
+//   APPLE_BUNDLE_ID, APPLE_ISSUER_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY_PATH
+//                                    Plus bought in the iPhone app (lib/store_billing.dart):
+//                                    an In-App Purchase key (.p8) from App Store Connect.
+//   GOOGLE_PACKAGE_NAME, GOOGLE_SERVICE_ACCOUNT_PATH
+//                                    Plus bought in the Android app: a service account
+//                                    JSON key with access to the app in the Play Console.
+//                                    Without them purchases from that store are refused.
+//   PLUS_PRODUCT_MONTHLY, PLUS_PRODUCT_YEARLY  store product ids (default
+//                                    budgetbuddy_plus_monthly / budgetbuddy_plus_yearly)
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
 //   HTTPS_PORT (default 8443)        with a certificate in .data/tls (see README), the
 //                                    server also answers on https://localhost:<HTTPS_PORT>,
@@ -40,6 +49,7 @@ import 'lib/accounts.dart';
 import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
 import 'lib/billing.dart';
+import 'lib/store_billing.dart';
 import 'lib/demo_bank.dart';
 import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
@@ -64,6 +74,7 @@ late final String _redirectUrl;
 late final DepotProvider _depot;
 late final String _depotRedirect;
 late final Billing _billing;
+late final StoreBilling _stores;
 
 // consent started but not finished yet: state -> (bank name, owner id)
 final _pending = <String, ({String bank, String owner})>{};
@@ -116,6 +127,7 @@ Future<void> main() async {
           priceMonthly: _env('STRIPE_PRICE_MONTHLY'),
           priceYearly: _env('STRIPE_PRICE_YEARLY'))
       : DemoBilling(_publicUrl);
+  _stores = await _storeBilling();
   await _load();
   await _accounts.load();
   await _splits.load();
@@ -130,6 +142,7 @@ Future<void> main() async {
   stdout.writeln('  Bank:   ${_bank.mode == 'live' ? 'Enable Banking (live)' : 'Demo-Bank (set EB_APP_ID + EB_PRIVATE_KEY_PATH for real banks)'}');
   stdout.writeln('  KI:     ${_ai.enabled ? 'Claude (live)' : 'not configured (set ANTHROPIC_API_KEY)'}');
   stdout.writeln('  Plus:   ${_billing.mode == 'live' ? 'Stripe (live)' : 'Demo-Checkout (set STRIPE_SECRET_KEY for real payments)'}');
+  stdout.writeln('  Stores: ${_stores.mode.isEmpty ? 'not configured (App Store / Google Play purchases are refused)' : _stores.mode}');
   stdout.writeln('  Depot:  ${_depot.mode == 'live' ? 'Parqet Connect (live)' : 'Demo-Depot (set PARQET_CLIENT_ID for real depots)'}');
 
   await _serve(server);
@@ -256,7 +269,7 @@ Future<void> _handle(HttpRequest req) async {
   final q = req.uri.queryParameters;
   switch (req.uri.path) {
     case '/health':
-      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode});
+      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
     case '/auth/register':
       final b = await _body(req);
       return _json(req, 200,
@@ -321,6 +334,8 @@ Future<void> _handle(HttpRequest req) async {
       return _plusStatus(req);
     case '/plus/checkout':
       return _plusCheckout(req);
+    case '/plus/store':
+      return _plusFromStore(req);
     case '/plus/demo-checkout':
       return _plusDemoCheckout(req);
     case '/plus/demo-pay':
@@ -537,7 +552,7 @@ Future<void> _deleteAccount(HttpRequest req) async {
   _depots.removeWhere((_, d) => d['owner'] == user['id']);
   // a deleted account must not keep paying
   final plus = _plus.remove(user['id']);
-  if (plus != null && plus.active) {
+  if (plus != null && plus.active && !StoreBilling.owns(plus)) {
     try {
       await _billing.setCancel(plus, true);
     } catch (_) {
@@ -611,7 +626,7 @@ Future<void> _plusStatus(HttpRequest req) async {
   var e = _plus[id];
   final stale = e != null && DateTime.now().difference(e.checked) > const Duration(minutes: 30);
   if (e != null && (stale || req.uri.queryParameters['fresh'] == '1')) {
-    e = await _billing.refresh(e);
+    e = StoreBilling.owns(e) ? await _stores.refresh(e) : await _billing.refresh(e);
     _plus[id] = e;
     await _savePlus();
   }
@@ -693,11 +708,66 @@ Future<String?> _ownerOf(String sessionId, Entitlement e) async {
   return (jsonDecode(s.body) as Map)['client_reference_id'] as String?;
 }
 
+// a Stripe subscription of the signed-in user; store ones are managed in the store
 Entitlement _ownPlus(HttpRequest req) {
   final user = _user(req);
   final e = _plus[user['id']];
   if (e == null || !e.active) throw const AuthError(404, 'Kein Plus-Abo gefunden.');
+  if (StoreBilling.owns(e)) {
+    throw AuthError(409, 'Dein Abo verwaltest du in ${e.method == 'appStore' ? 'den Abos deiner Apple-ID' : 'Google Play'}.');
+  }
   return e;
+}
+
+// POST {platform: apple|google, id} -> {plus}: a purchase from the App Store
+// (id = transaction id) or Google Play (id = purchase token), checked with the
+// store itself. Signed in, the subscription belongs to the account from then
+// on; for a guest the answer is only returned.
+Future<void> _plusFromStore(HttpRequest req) async {
+  final user = _accounts.userFor(_bearer(req));
+  final b = await _body(req);
+  final e = await _stores.verify('${b['platform']}', '${b['id'] ?? ''}');
+  if (user != null) {
+    final id = user['id'] as String;
+    // one store subscription unlocks one account
+    final taken = _plus.entries.any((p) => p.key != id && p.value.active && p.value.subscription == e.subscription);
+    if (taken) return _json(req, 409, {'error': 'Dieses Abo gehört schon zu einem anderen BudgetBuddy-Konto.'});
+    final current = _plus[id];
+    // a running Stripe subscription is not replaced by an expired store purchase
+    if (e.active || current == null || !current.active || StoreBilling.owns(current)) {
+      _plus[id] = e;
+      await _savePlus();
+    }
+  }
+  return _json(req, 200, {'plus': e.active ? e.toJson() : null});
+}
+
+// the stores whose credentials are set
+Future<StoreBilling> _storeBilling() async {
+  final products = PlusProducts(
+    monthly: _env('PLUS_PRODUCT_MONTHLY').isNotEmpty ? _env('PLUS_PRODUCT_MONTHLY') : 'budgetbuddy_plus_monthly',
+    yearly: _env('PLUS_PRODUCT_YEARLY').isNotEmpty ? _env('PLUS_PRODUCT_YEARLY') : 'budgetbuddy_plus_yearly',
+  );
+  final appleKey = _env('APPLE_PRIVATE_KEY_PATH');
+  final googleKey = _env('GOOGLE_SERVICE_ACCOUNT_PATH');
+  return StoreBilling(
+    apple: _env('APPLE_BUNDLE_ID').isEmpty || appleKey.isEmpty
+        ? null
+        : AppleStore(
+            bundleId: _env('APPLE_BUNDLE_ID'),
+            issuerId: _env('APPLE_ISSUER_ID'),
+            keyId: _env('APPLE_KEY_ID'),
+            privateKeyPem: await File(appleKey).readAsString(),
+            products: products,
+          ),
+    google: _env('GOOGLE_PACKAGE_NAME').isEmpty || googleKey.isEmpty
+        ? null
+        : GooglePlay(
+            packageName: _env('GOOGLE_PACKAGE_NAME'),
+            serviceAccount: jsonDecode(await File(googleKey).readAsString()) as Map<String, dynamic>,
+            products: products,
+          ),
+  );
 }
 
 // POST -> {url}: Stripe's customer portal (payment method, plan, invoices)

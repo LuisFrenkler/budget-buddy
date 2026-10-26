@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/account_service.dart';
 import '../services/backend_service.dart';
 import '../services/plus_service.dart';
+import '../services/store_purchases.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -88,14 +89,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Timer? _poll;
 
   bool get _checkout => widget.plan != null;
-  bool get _server => _checkout && _billing != null;
+  // in the iPhone and Android app Plus is bought through the store
+  bool get _inStore => _checkout && StorePurchases.supported;
+  bool get _server => _checkout && !_inStore && _billing != null;
 
   @override
   void initState() {
     super.initState();
     if (!_methods.contains(_method)) _method = _methods.first;
     _holder.text = AccountService.current.value?.name ?? '';
-    if (_checkout && AccountService.token != null) _askServer();
+    if (_inStore) {
+      // the store's own prices replace ours once they are loaded
+      StorePurchases.loadProducts().then((_) {
+        if (mounted) setState(() {});
+      });
+    } else if (_checkout && AccountService.token != null) {
+      _askServer();
+    }
   }
 
   Future<void> _askServer() async {
@@ -155,6 +165,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _submit() async {
+    if (_inStore) return _buyInStore();
     if (_server) return _payOnServer();
     if (!_valid) {
       HapticFeedback.heavyImpact();
@@ -219,6 +230,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  // the store's purchase sheet; Plus comes once the server has confirmed it
+  Future<void> _buyInStore() async {
+    setState(() => _busy = true);
+    try {
+      final result = await StorePurchases.buy(_plan!);
+      if (!mounted) return;
+      setState(() => _busy = false);
+      switch (result) {
+        case StoreResult.done:
+          return _welcome(PlusService.subscription.value!);
+        case StoreResult.pending:
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              duration: Duration(milliseconds: 4500),
+              content: Text('Der Kauf wartet noch auf eine Bestätigung. Plus kommt, sobald sie da ist.')));
+        case StoreResult.cancelled:
+          break;
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(duration: const Duration(milliseconds: 4500), content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _welcome(Subscription sub) async {
     HapticFeedback.heavyImpact();
     if (!mounted) return;
@@ -241,7 +279,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
               children: [
-                if (!_server) _testModeBanner() else if (_billing == 'demo') _demoBanner(),
+                if (_inStore)
+                  const SizedBox.shrink()
+                else if (!_server)
+                  _testModeBanner()
+                else if (_billing == 'demo')
+                  _demoBanner(),
                 if (_checkout) ...[
                   const SizedBox(height: 16),
                   _planSwitch(),
@@ -253,8 +296,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 else ...[
                   _label(_methods.length == 1 ? 'Bezahlt wird über' : 'Wie möchtest du zahlen?'),
                   for (final m in _methods) _methodTile(m),
+                  if (_inStore) _storeNote(),
                 ],
-                if (_checkout) ...[if (_server) const SizedBox(height: 8), _promoSection()],
+                // in the stores codes are redeemed there (Apple offer codes, Google promo codes)
+                if (_checkout && !_inStore) ...[if (_server) const SizedBox(height: 8), _promoSection()],
               ],
             ),
           ),
@@ -285,6 +330,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 style: TextStyle(fontSize: 12.5, color: AppColors.text)),
           ),
         ]),
+      );
+
+  // the trial only once per store account; the store shows the exact terms
+  Widget _storeNote() => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+        child: _note(
+          Icons.info_outline_rounded,
+          'Den Gratis-Zeitraum gibt es einmal pro '
+          '${StorePurchases.platform == 'apple' ? 'Apple-ID' : 'Google-Konto'}. '
+          'Die genauen Bedingungen zeigt dir der ${StorePurchases.storeName} vor dem Kauf.',
+        ),
       );
 
   Widget _demoBanner() => Container(
@@ -403,7 +459,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
               ]),
               const SizedBox(height: 4),
-              Text(yearly ? PlusService.yearlyPrice : PlusService.monthlyPrice,
+              Text(PlusService.price(p),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               Text(yearly ? 'im Jahr · ${PlusService.yearlyPerMonth}/Monat' : 'im Monat',
                   style: TextStyle(color: AppColors.textDim, fontSize: 12)),
@@ -418,7 +474,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   // when what happens: builds trust that nothing is charged by surprise
   Widget _timeline() {
-    final price = _plan == PlusPlan.yearly ? '${PlusService.yearlyPrice} im Jahr' : '${PlusService.monthlyPrice} im Monat';
+    final price = '${PlusService.price(_plan!)} ${_plan == PlusPlan.yearly ? 'im Jahr' : 'im Monat'}';
     final lastFree = _trialEnd.subtract(const Duration(days: 1));
     Widget step(IconData icon, Color color, String when, String what, {bool last = false}) => IntrinsicHeight(
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -688,7 +744,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _bottomBar() {
     final label = !_checkout
         ? 'Zahlungsmethode speichern'
-        : _server
+        : _inStore
+            ? 'Weiter mit ${StorePurchases.storeName}'
+            : _server
             ? 'Weiter zur Zahlung'
             : switch (_method) {
             PayMethod.applePay => 'Mit Apple Pay gratis starten',
@@ -719,8 +777,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         if (_checkout) ...[
           const SizedBox(height: 8),
           Text(
-            'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. '
-            'Mit dem Start akzeptierst du die Nutzungsbedingungen.',
+            _inStore
+                ? 'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit in den Abos '
+                    '${StorePurchases.platform == 'apple' ? 'deiner Apple-ID' : 'bei Google Play'}. '
+                    'Mit dem Start akzeptierst du die Nutzungsbedingungen.'
+                : 'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. '
+                    'Mit dem Start akzeptierst du die Nutzungsbedingungen.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textDim, fontSize: 11),
           ),

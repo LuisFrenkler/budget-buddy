@@ -10,11 +10,13 @@
 // (Stripe Checkout, see backend/lib/billing.dart): the app never sees payment
 // details, and the server's copy decides who has Plus ("managed"). Without a
 // server the checkout runs in a clearly labelled local test mode that never
-// charges anything. Store builds will buy through App Store / Google Play.
+// charges anything. The iPhone and Android apps buy through the App Store and
+// Google Play (store_purchases.dart), also checked by the server.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'store_purchases.dart';
 
 enum PlusFeature { aiQuestion, receiptScan, goal }
 
@@ -65,6 +67,9 @@ class Subscription {
   });
 
   bool get cancelled => endsAt != null;
+
+  // bought in the App Store or Google Play: managed there, not here
+  bool get fromStore => managed && (method == PayMethod.appStore || method == PayMethod.googlePlay);
 
   bool inTrial(DateTime now) => now.isBefore(trialEnds);
 
@@ -157,9 +162,13 @@ class PlusService {
   static const monthlyCents = 499;
   static const yearlyCents = 3999;
 
-  // monthly and yearly price as shown on the paywall
+  // monthly and yearly price as shown on the paywall (the same in the stores)
   static const monthlyPrice = '4,99 €';
   static const yearlyPrice = '39,99 €';
+
+  // in the apps the store's own price, as soon as it is loaded
+  static String price(PlusPlan plan) =>
+      StorePurchases.prices.value[plan] ?? (plan == PlusPlan.yearly ? yearlyPrice : monthlyPrice);
   static const yearlyPerMonth = '3,33 €';
 
   // codes for creators and friends: extra free days on top of the trial
@@ -209,11 +218,31 @@ class PlusService {
     }
   }
 
-  // asks the server what this account has; false when it cannot be asked
+  // a store purchase as the server checked it (null: not active). The store's
+  // id stays on the device, so it is checked again later, and a guest's Plus
+  // moves to the account at sign-in.
+  static Future<void> applyStore(Map<String, dynamic>? entitlement,
+      {required String platform, required String id}) async {
+    if (entitlement != null) {
+      await _box.put('plusStore', {'platform': platform, 'id': id});
+      await _store(Subscription.fromServer(entitlement));
+    } else if ((_box.get('plusStore') as Map?)?['id'] == id) {
+      await _box.delete('plusStore');
+      if (subscription.value?.fromStore == true) await _store(null);
+    }
+  }
+
+  // asks the server what this device and account have; false when it cannot be asked
   static Future<bool> syncWithServer({bool fresh = false}) async {
-    if (AccountService.token == null) return false;
+    final store = _box.get('plusStore') as Map?;
+    if (AccountService.token == null && store == null) return false;
     try {
-      await applyServer(await BackendService.plusStatus(fresh: fresh));
+      if (store != null) {
+        // checked with the store again; signed in, this also binds it to the account
+        final platform = '${store['platform']}', id = '${store['id']}';
+        await applyStore(await BackendService.plusStore(platform, id), platform: platform, id: id);
+      }
+      if (AccountService.token != null) await applyServer(await BackendService.plusStatus(fresh: fresh));
       return true;
     } catch (_) {
       return false;
@@ -225,7 +254,8 @@ class PlusService {
     AccountService.current.addListener(() {
       if (AccountService.current.value != null) {
         syncWithServer();
-      } else if (subscription.value?.managed == true) {
+      } else if (subscription.value?.managed == true && subscription.value?.fromStore != true) {
+        // a store purchase belongs to the Apple ID or Google account, not to ours
         _store(null);
       }
     });
@@ -255,6 +285,7 @@ class PlusService {
 
   static Future<void> changePlan(PlusPlan plan) async {
     final sub = subscription.value;
+    if (sub?.fromStore == true) return StorePurchases.manage();
     if (sub != null) await _store(sub.copyWith(plan: plan));
   }
 
@@ -277,12 +308,14 @@ class PlusService {
   // access stays until the end of the period that is already paid (or the trial)
   static Future<void> cancel({DateTime? now}) async {
     final sub = subscription.value;
+    if (sub?.fromStore == true) return StorePurchases.manage();
     if (sub?.managed == true) return applyServer(await BackendService.plusCancel(true));
     if (sub != null) await _store(sub.copyWith(endsAt: sub.periodEnd(now ?? DateTime.now())));
   }
 
   static Future<void> resume() async {
     final sub = subscription.value;
+    if (sub?.fromStore == true) return StorePurchases.manage();
     if (sub?.managed == true) return applyServer(await BackendService.plusCancel(false));
     if (sub != null) await _store(sub.copyWith(resume: true));
   }
@@ -292,19 +325,25 @@ class PlusService {
       (now ?? DateTime.now()).difference(sub.started) < const Duration(days: 14);
 
   static Future<void> withdraw() async {
+    // the store decides about refunds of its purchases
+    if (subscription.value?.fromStore == true) return StorePurchases.requestRefund();
     if (subscription.value?.managed == true) await BackendService.plusWithdraw();
     await end();
   }
 
-  // "Käufe wiederherstellen": asks the server when signed in, otherwise
-  // reloads what this device knows
+  // "Käufe wiederherstellen": asks the store (in the apps) and the server,
+  // otherwise reloads what this device knows
   static Future<bool> restore() async {
+    if (StorePurchases.supported) await StorePurchases.restore();
     if (!await syncWithServer(fresh: true)) load();
     return active.value;
   }
 
   // for tests and the app reset
-  static Future<void> end() => _store(null);
+  static Future<void> end() async {
+    await _box.delete('plusStore');
+    await _store(null);
+  }
 
   // a quick switch used by tests
   static Future<void> activateTest() =>

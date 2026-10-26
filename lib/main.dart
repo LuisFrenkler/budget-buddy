@@ -13,6 +13,7 @@ import 'services/depot_sync.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
 import 'services/split_service.dart';
+import 'services/store_purchases.dart';
 import 'screens/contracts_screen.dart';
 import 'screens/connections_screen.dart';
 import 'screens/goals_screen.dart';
@@ -53,6 +54,8 @@ void main() async {
   Settings.loadHideAmounts();
   Settings.loadGuest();
   PlusService.load();
+  // App Store / Google Play: purchases, renewals and ones left from a crash
+  StorePurchases.init();
   await AccountService.restore();
   PlusService.watchAccount();
   PlusService.syncWithServer();

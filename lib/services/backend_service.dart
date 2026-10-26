@@ -1,6 +1,6 @@
 // Talks to the BudgetBuddy backend (backend/server.dart) which links real
 // banks through Enable Banking (PSD2), depots through Parqet Connect and takes
-// Plus payments through Stripe. The base
+// Plus payments through Stripe and checks App Store / Google Play purchases. The base
 // URL can be overridden with --dart-define=BACKEND_URL=... ; it defaults to
 // the local dev server.
 import 'dart:convert';
@@ -188,4 +188,12 @@ class BackendService {
       ((await _post('/plus/cancel', {'cancel': cancel}))['plus'] as Map).cast<String, dynamic>();
 
   static Future<void> plusWithdraw() => _post('/plus/withdraw', {});
+
+  // a purchase from the App Store ('apple', the transaction id) or Google Play
+  // ('google', the purchase token), checked by the server with the store
+  // itself; null when it is not active. Works signed in and as a guest.
+  static Future<Map<String, dynamic>?> plusStore(String platform, String id) async {
+    final body = await _post('/plus/store', {'platform': platform, 'id': id});
+    return (body['plus'] as Map?)?.cast<String, dynamic>();
+  }
 }

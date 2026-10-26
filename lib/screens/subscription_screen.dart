@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/backend_service.dart';
 import '../services/plus_service.dart';
+import '../services/store_purchases.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -56,6 +57,7 @@ class _Details extends StatelessWidget {
     final next = sub.periodEnd(now);
     final invoices = sub.invoices(now);
     final yearly = sub.plan == PlusPlan.yearly;
+    final store = sub.fromStore;
 
     final status = sub.cancelled
         ? 'Gekündigt · läuft bis ${Dates.full(sub.endsAt!)}'
@@ -145,7 +147,9 @@ class _Details extends StatelessWidget {
             _row(
               icon: Icons.receipt_long_rounded,
               title: 'Rechnungen ansehen',
-              subtitle: 'Als PDF im Kundenportal von Stripe',
+              subtitle: store
+                  ? 'Die Kaufbelege schickt dir ${StorePurchases.storeName} per E-Mail'
+                  : 'Als PDF im Kundenportal von Stripe',
               onTap: () => _portal(context),
             )
           else if (invoices.isEmpty)
@@ -195,6 +199,7 @@ class _Details extends StatelessWidget {
               title: 'Abo fortsetzen',
               subtitle: 'Läuft dann einfach weiter wie bisher',
               onTap: () async {
+                if (store) return StorePurchases.manage();
                 if (!await _attempt(context, PlusService.resume)) return;
                 HapticFeedback.mediumImpact();
                 if (context.mounted) _snack(context, 'Schön, dass du bleibst 💜');
@@ -203,17 +208,19 @@ class _Details extends StatelessWidget {
           else
             _row(
               icon: Icons.cancel_outlined,
-              title: 'Vertrag hier kündigen',
+              title: store ? 'Im ${StorePurchases.storeName} kündigen' : 'Vertrag hier kündigen',
               danger: true,
-              onTap: () => _cancel(context, sub),
+              onTap: () => store ? StorePurchases.manage() : _cancel(context, sub),
             ),
           if (PlusService.canWithdraw(sub))
             _row(
               icon: Icons.undo_rounded,
-              title: 'Vertrag widerrufen',
-              subtitle: 'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen',
+              title: store ? 'Erstattung anfragen' : 'Vertrag widerrufen',
+              subtitle: store
+                  ? 'Über Erstattungen von Käufen im ${StorePurchases.storeName} entscheidet der Store'
+                  : 'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen',
               danger: true,
-              onTap: () => _withdraw(context, sub),
+              onTap: () => store ? StorePurchases.requestRefund() : _withdraw(context, sub),
             ),
         ]),
         const SizedBox(height: 10),
@@ -226,7 +233,10 @@ class _Details extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          sub.managed
+          store
+              ? 'Gekauft über ${StorePurchases.storeName}. Zahlung, Kündigung und Belege laufen über '
+                  '${StorePurchases.platform == 'apple' ? 'deine Apple-ID' : 'dein Google-Konto'}.'
+              : sub.managed
               ? 'Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. '
                   'Deine Zahlungsdaten liegen nur dort.'
               : 'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und '
@@ -322,6 +332,7 @@ class _Details extends StatelessWidget {
 
   // payment method, plan and invoices of a real subscription live at Stripe
   static Future<void> _portal(BuildContext context) async {
+    if (PlusService.subscription.value?.fromStore == true) return StorePurchases.manage();
     try {
       final url = await BackendService.plusPortal();
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
