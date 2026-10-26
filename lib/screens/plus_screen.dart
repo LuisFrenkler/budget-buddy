@@ -29,7 +29,7 @@ class _PlusScreenState extends State<PlusScreen> {
   static const _features = [
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
     (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Jeder Kassenbon in Sekunden erfasst'),
-    (Icons.flag_rounded, 'Unbegrenzt Sparziele', 'Mit Buddys Sparplan für jedes Ziel'),
+    (Icons.flag_rounded, 'Sparziele auf Autopilot', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
     (Icons.insights_rounded, 'Buddys Wochenbericht', 'Jeden Sonntag: was auffiel und wo du sparen kannst'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
   ];
@@ -105,7 +105,23 @@ class _PlusScreenState extends State<PlusScreen> {
                         ),
                       ]),
                     ),
-                  const SizedBox(height: 8),
+                  // what never costs anything: trust before the price
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Icon(Icons.verified_rounded, color: AppColors.positive, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, '
+                          'Hinweise, Gruppen und dein Monatsrückblick.',
+                          style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
+                        ),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
                   _plan(true),
                   const SizedBox(height: 10),
                   _plan(false),

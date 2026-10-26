@@ -8,6 +8,7 @@ import '../services/plus_service.dart';
 import 'plus_screen.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import 'buddy_actions.dart';
 import 'auth_screens.dart';
 
 // Chat with Buddy, the finance coach that knows your numbers.
@@ -140,7 +141,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
         });
       },
       onDone: () {
-        if (mounted) setState(() => _thinking = false);
+        if (mounted) {
+          setState(() {
+            _thinking = false;
+            if (!answer.error) answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
+          });
+          _scrollDown();
+        }
         HapticFeedback.lightImpact();
       },
     );
@@ -316,6 +323,23 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Text('Offline berechnet aus deinen Daten',
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
+            if (m.actions.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (final a in m.actions)
+                    ActionChip(
+                      avatar: Icon(a.icon, size: 18, color: AppColors.primary),
+                      label: Text(a.label),
+                      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        a.run(context);
+                      },
+                    ),
+                ]),
+              ),
           ]),
         ),
       ]),
@@ -383,6 +407,7 @@ class _Message {
   String text;
   final bool offline;
   bool error = false;
+  List<BuddyAction> actions = const []; // next steps under an answer
   _Message(this.fromUser, this.text, {this.offline = false});
 }
 

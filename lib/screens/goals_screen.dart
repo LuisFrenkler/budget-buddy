@@ -23,7 +23,7 @@ int _surplus() {
 }
 
 // Starts a new goal, or opens the Plus page when the free goal is used.
-Future<void> addGoal(BuildContext context) async {
+Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
     return showPlus(context, reason: 'Mehr Ziele, mehr Träume');
   }
@@ -33,7 +33,7 @@ Future<void> addGoal(BuildContext context) async {
     backgroundColor: AppColors.surface,
     showDragHandle: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-    builder: (_) => const _NewGoal(),
+    builder: (_) => _NewGoal(name: name, cents: cents),
   );
 }
 
@@ -165,32 +165,53 @@ class GoalCard extends StatelessWidget {
       if (goal.monthlyCents > 0) '${Money.format(goal.monthlyCents)} im Monat',
       if (goal.roundUp) 'Aufrunden',
     ];
+    final plus = PlusService.active.value;
+    // set up earlier, Plus ended since: shown as paused, nothing is lost
+    final paused = goal.automated && !plus;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: AppColors.surface,
-          showDragHandle: true,
-          builder: (_) => _AutoSaveSheet(goal),
-        ),
+        onTap: () async {
+          if (!plus) {
+            await showPlus(context, reason: 'Sparziele, die sich von selbst füllen');
+            if (!PlusService.active.value || !context.mounted) return;
+          }
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: AppColors.surface,
+            showDragHandle: true,
+            builder: (_) => _AutoSaveSheet(goal),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
           child: Row(children: [
-            Icon(goal.automated ? Icons.bolt_rounded : Icons.bolt_outlined,
-                size: 20, color: goal.automated ? AppColors.positive : AppColors.textDim),
+            Icon(goal.automated && !paused ? Icons.bolt_rounded : Icons.bolt_outlined,
+                size: 20, color: goal.automated && !paused ? AppColors.positive : AppColors.textDim),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                goal.automated ? 'Automatisch: ${parts.join(' · ')}' : 'Automatisch sparen einrichten',
+                paused
+                    ? 'Autopilot pausiert · mit Plus geht es weiter'
+                    : goal.automated
+                        ? 'Automatisch: ${parts.join(' · ')}'
+                        : 'Automatisch sparen einrichten',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13.5,
-                    color: goal.automated ? AppColors.text : AppColors.primary),
+                    color: goal.automated && !paused ? AppColors.text : AppColors.primary),
               ),
             ),
+            if (!plus && !paused)
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: AppColors.heroBrand), borderRadius: BorderRadius.circular(999)),
+                child: const Text('PLUS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+              ),
             Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textDim),
           ]),
         ),
@@ -334,15 +355,17 @@ class _RingPainter extends CustomPainter {
 }
 
 class _NewGoal extends StatefulWidget {
-  const _NewGoal();
+  final String? name;
+  final int? cents;
+  const _NewGoal({this.name, this.cents});
 
   @override
   State<_NewGoal> createState() => _NewGoalState();
 }
 
 class _NewGoalState extends State<_NewGoal> {
-  final _name = TextEditingController();
-  final _amount = TextEditingController();
+  late final _name = TextEditingController(text: widget.name ?? '');
+  late final _amount = TextEditingController(text: widget.cents == null ? '' : '${widget.cents! ~/ 100}');
   String _emoji = '🏖️';
   DateTime? _deadline;
 

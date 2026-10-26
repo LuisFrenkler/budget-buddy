@@ -34,16 +34,22 @@ class LocalBuddy {
     return 'Diesen Monat hast du bisher **${_eur(m.expenses)}** ausgegeben, vor allem für:\n${lines.join('\n')}$merchant';
   }
 
+  // categories clearly above their usual level this month (at least 10 €
+  // and 15 % more), biggest first; small wobbles are no saving tip
+  static List<MapEntry<String, int>> overUsual(FinanceSnapshot s) {
+    final avg = s.avgByCategory;
+    final over = <MapEntry<String, int>>[];
+    s.current.byCategory.forEach((k, v) {
+      final usual = avg[k] ?? 0;
+      final diff = v - usual;
+      if (usual > 0 && diff >= 1000 && diff >= usual * 0.15) over.add(MapEntry(k, diff));
+    });
+    return over..sort((a, b) => b.value.compareTo(a.value));
+  }
+
   static String _save(FinanceSnapshot s) {
     final avg = s.avgByCategory;
-    final now = s.current.byCategory;
-    // categories above their usual level this month
-    final over = <MapEntry<String, int>>[];
-    now.forEach((k, v) {
-      final usual = avg[k] ?? 0;
-      if (usual > 0 && v > usual) over.add(MapEntry(k, v - usual));
-    });
-    over.sort((a, b) => b.value.compareTo(a.value));
+    final over = overUsual(s);
 
     final tips = <String>[];
     for (final e in over.take(2)) {

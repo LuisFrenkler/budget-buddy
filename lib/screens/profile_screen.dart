@@ -12,7 +12,7 @@ import '../services/auth_service.dart';
 import '../services/file_saver.dart';
 import '../utils/theme.dart';
 import '../utils/dates.dart';
-import '../models/badge.dart' as badge_model;
+import '../models/transaction.dart';
 import 'recurring_screen.dart';
 import 'connections_screen.dart';
 import 'auth_screens.dart';
@@ -41,8 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       valueListenable: Hive.box('transactions').listenable(),
       builder: (context, box, child) {
         final tx = DB.getTx();
-        final badges = DB.getBadges();
-        final unlocked = badges.where((b) => b.isUnlocked).length;
+        final rate = _savingsRate(tx);
         // oldest transaction = the user's start with the app
         final since = tx.isEmpty ? null : tx.last.date;
         final account = AccountService.current.value;
@@ -82,14 +81,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Row(children: [
                     _stat('${tx.length}', 'Umsätze'),
                     _stat(since == null ? '–' : Dates.month(since), 'Dabei seit'),
-                    _stat('$unlocked/${badges.length}', 'Erfolge'),
+                    _stat(rate == null ? '–' : '$rate %', 'Sparquote'),
                   ]),
                 ),
               ]),
-
-              // achievements, kept low-key here instead of on the home screen
-              _sectionLabel('Erfolge'),
-              _badgeGrid(badges),
 
               const SizedBox(height: 20),
               _plusCard(),
@@ -343,55 +338,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // icons instead of emojis, so badges match the rest of the app
-  static const _badgeIcons = {
-    'first': Icons.flag_rounded,
-    'saver': Icons.savings_rounded,
-    'master': Icons.insights_rounded,
-    'week': Icons.event_available_rounded,
-  };
-
-  // two-column grid of achievement badges; locked ones are dimmed
-  Widget _badgeGrid(List<badge_model.Badge> badges) {
-    return LayoutBuilder(builder: (context, c) {
-      final w = (c.maxWidth - 10) / 2;
-      return Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [for (final b in badges) _badgeTile(b, w)],
-      );
-    });
-  }
-
-  Widget _badgeTile(badge_model.Badge b, double width) {
-    final color = b.isUnlocked ? AppColors.warning : AppColors.textDim;
-    return Opacity(
-      opacity: b.isUnlocked ? 1 : 0.5,
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-        child: Row(
-          children: [
-            _icon(_badgeIcons[b.id] ?? Icons.emoji_events_rounded, color),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(b.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                      overflow: TextOverflow.ellipsis),
-                  Text(b.isUnlocked ? b.description : 'Noch offen: ${b.description}',
-                      style: TextStyle(color: AppColors.textDim, fontSize: 11),
-                      overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  // share of income kept over the last three complete months, the one
+  // number that says whether money builds up; null without income
+  static int? _savingsRate(List<Transaction> tx) {
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month - 3);
+    final to = DateTime(now.year, now.month);
+    var income = 0, spent = 0;
+    for (final t in tx) {
+      if (t.date.isBefore(from) || !t.date.isBefore(to)) continue;
+      if (t.isIncome) {
+        income += t.amountCents;
+      } else {
+        spent += t.amountCents;
+      }
+    }
+    if (income <= 0) return null;
+    return ((income - spent) / income * 100).round();
   }
 
   Widget _sectionLabel(String text) {

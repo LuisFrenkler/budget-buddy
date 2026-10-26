@@ -249,18 +249,19 @@ class _BudgetCardState extends State<_BudgetCard> {
 // shows dialog to create a new budget (default: the current month)
 // New monthly budget as a sheet. Buddy preselects the category with the
 // highest spending that has no budget yet and suggests its usual amount.
-void showAddBudgetDialog(BuildContext context) {
+void showAddBudgetDialog(BuildContext context, {String? category}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
-    builder: (_) => const _BudgetSheet(),
+    builder: (_) => _BudgetSheet(category: category),
   );
 }
 
 class _BudgetSheet extends StatefulWidget {
-  const _BudgetSheet();
+  final String? category; // preselected, e.g. from a Buddy answer
+  const _BudgetSheet({this.category});
 
   @override
   State<_BudgetSheet> createState() => _BudgetSheetState();
@@ -279,10 +280,15 @@ class _BudgetSheetState extends State<_BudgetSheet> {
   @override
   void initState() {
     super.initState();
-    // the biggest category without a budget yet
+    // the asked-for category, else the biggest one without a budget yet
     final open = _usual.entries.where((e) => !_taken.contains(e.key)).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    if (open.isNotEmpty) _pick(open.first.key);
+    final wanted = widget.category;
+    if (wanted != null && !_taken.contains(wanted)) {
+      _pick(wanted);
+    } else if (open.isNotEmpty) {
+      _pick(open.first.key);
+    }
   }
 
   @override

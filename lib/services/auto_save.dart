@@ -11,6 +11,7 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'db.dart';
 import 'goals_service.dart';
+import 'plus_service.dart';
 
 class AutoSave {
   static String _month(DateTime d) => '${d.year}-${d.month}';
@@ -65,6 +66,9 @@ class AutoSave {
 
   // runs over all goals and saves the changed ones; returns the total added
   static Future<int> run({DateTime? now}) async {
+    // the autopilot is part of Plus: without it, goals keep what they have
+    // and the automation waits until Plus is back
+    if (!PlusService.active.value) return 0;
     final today = now ?? DateTime.now();
     final tx = DB.getTx();
     var total = 0;
