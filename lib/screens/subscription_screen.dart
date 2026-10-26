@@ -6,6 +6,8 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'checkout_screen.dart';
 import 'plus_screen.dart';
+import 'about_screen.dart';
+import '../legal/legal_texts.dart';
 
 // "Mein Abo": status, plan, payment method, invoices, codes and cancelling,
 // all in one place so nobody has to search for how to quit.
@@ -186,11 +188,27 @@ class _Details extends StatelessWidget {
           else
             _row(
               icon: Icons.cancel_outlined,
-              title: 'Abo kündigen',
+              title: 'Vertrag hier kündigen',
               danger: true,
               onTap: () => _cancel(context, sub),
             ),
+          if (PlusService.canWithdraw(sub))
+            _row(
+              icon: Icons.undo_rounded,
+              title: 'Vertrag widerrufen',
+              subtitle: 'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen',
+              danger: true,
+              onTap: () => _withdraw(context, sub),
+            ),
         ]),
+        const SizedBox(height: 10),
+        Center(
+          child: TextButton(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.terms))),
+            child: const Text('Nutzungsbedingungen'),
+          ),
+        ),
         const SizedBox(height: 18),
         Text(
           'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und '
@@ -381,6 +399,34 @@ class _Details extends StatelessWidget {
     }
   }
 
+  // the legal withdrawal: ends Plus now; paid amounts come back
+  Future<void> _withdraw(BuildContext context, Subscription sub) async {
+    final paid = sub.invoices(DateTime.now()).isNotEmpty;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Vertrag widerrufen?'),
+        content: Text(paid
+            ? 'Plus endet sofort. Bereits gezahlte Beträge erstatten wir dir binnen 14 Tagen, '
+                'abzüglich des Anteils für die Zeit, in der du Plus schon genutzt hast.'
+            : 'Plus endet sofort. Es entstehen keine Kosten.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Jetzt widerrufen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await PlusService.withdraw();
+    HapticFeedback.mediumImpact();
+    if (context.mounted) _snack(context, 'Widerruf bestätigt. Plus ist beendet.');
+  }
+
   // honest, two taps, no maze; offers the cheaper plan only when it helps
   Future<void> _cancel(BuildContext context, Subscription sub) async {
     final now = DateTime.now();
@@ -435,7 +481,7 @@ class _Details extends StatelessWidget {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('Kündigen'),
+            child: const Text('Jetzt kündigen'),
           ),
         ]),
       ),

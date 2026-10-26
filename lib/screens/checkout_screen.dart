@@ -7,6 +7,8 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import '../legal/legal_texts.dart';
+import 'about_screen.dart';
 
 // Checkout for Plus: what it costs and when, the payment method, a promo
 // code, then a welcome page. Returns true when Plus was started.
@@ -555,10 +557,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 8),
           Text(
             'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. '
-            'Mit dem Start akzeptierst du AGB und Datenschutzerklärung.',
+            'Mit dem Start akzeptierst du die Nutzungsbedingungen.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textDim, fontSize: 11),
           ),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (final doc in [LegalTexts.terms, LegalTexts.privacy, LegalTexts.withdrawal])
+              TextButton(
+                style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    textStyle: const TextStyle(fontSize: 11.5)),
+                onPressed: () =>
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: doc))),
+                child: Text(doc.title == 'Nutzungsbedingungen' ? 'AGB' : doc.title.replaceAll('erklärung', '')),
+              ),
+          ]),
         ],
       ]),
     );

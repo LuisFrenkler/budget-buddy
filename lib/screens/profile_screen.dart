@@ -20,6 +20,11 @@ import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
+import 'about_screen.dart';
+import 'account_settings_screen.dart';
+import 'notification_settings_screen.dart';
+import '../legal/legal_info.dart';
+import '../services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -47,8 +52,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
             children: [
-              // header: avatar and a few personal numbers
-              Row(
+              // header: avatar and a few personal numbers; leads to the account
+              InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: account != null ? _openAccount : _signUp,
+                child: Row(
                 children: [
                   _avatar(account),
                   const SizedBox(width: 16),
@@ -58,12 +66,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(account?.name ?? 'Gast', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 2),
-                        Text(account?.email ?? 'Ohne Konto · Daten nur auf diesem Gerät',
+                        Text(account?.email ?? 'Gast · Tippen, um ein Konto zu erstellen',
                             style: TextStyle(color: AppColors.textDim, fontSize: 13), overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
                 ],
+              ),
               ),
               const SizedBox(height: 20),
               _group([
@@ -83,14 +93,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 20),
               _plusCard(),
-              _sectionLabel('Sicherheit & Darstellung'),
+              _sectionLabel('Konto & Sicherheit'),
               _group([
+                if (account != null)
+                  _row(Icons.manage_accounts_rounded, 'Mein Konto', 'Name, E-Mail, Passwort', _openAccount)
+                else
+                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung und neue Geräte',
+                      _signUp),
                 _switchRow(Icons.lock_rounded, 'App-Sperre', 'Face ID / PIN beim Öffnen',
                     Settings.appLockEnabled, _toggleAppLock),
+                ValueListenableBuilder<bool>(
+                  valueListenable: NotificationService.enabled,
+                  builder: (context, on, _) => _row(Icons.notifications_rounded, 'Mitteilungen',
+                      on ? 'An · Buddy sagt Bescheid, wenn es zählt' : 'Aus', _openNotifications),
+                ),
+              ]),
+
+              _sectionLabel('Darstellung'),
+              _group([
                 _switchRow(Icons.dark_mode_rounded, 'Dunkler Modus', null, ThemeController.isDark.value,
                     _toggleDarkMode),
               ]),
-
               _sectionLabel('Automatisierung'),
               _group([
                 _row(Icons.repeat_rounded, 'Wiederkehrende Buchungen', 'Miete, Gehalt, Abos', _openRecurring),
@@ -111,22 +134,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
               ]),
 
-              _sectionLabel('Konto'),
+              _sectionLabel('Über BudgetBuddy'),
               _group([
-                if (account == null) ...[
-                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung', _signUp),
+                _row(Icons.info_outline_rounded, 'Über BudgetBuddy', 'Hilfe, Impressum, Datenschutz, AGB', _openAbout),
+              ]),
+
+              _sectionLabel('Neu starten'),
+              _group([
+                if (account == null)
                   _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest),
-                ] else ...[
-                  _row(Icons.logout_rounded, 'Abmelden', null, _logout),
-                  _row(Icons.person_remove_rounded, 'Konto löschen', 'Konto und Bankverbindungen entfernen',
-                      _deleteAccount, danger: true),
-                ],
-                _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten löschen und neu starten',
+                _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten auf diesem Gerät löschen',
                     _resetApp, danger: true),
               ]),
               const SizedBox(height: 24),
               Center(
-                child: Text('BudgetBuddy 1.0', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                child: Text('BudgetBuddy ${LegalInfo.appVersion}', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ),
             ],
           ),
@@ -203,28 +225,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _signUp() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
 
-  Future<void> _logout() async {
-    final ok = await _confirm('Abmelden?', 'Deine Daten bleiben auf diesem Gerät. Zum Öffnen meldest du dich wieder an.',
-        'Abmelden');
-    if (!ok) return;
-    await AccountService.logout();
-    if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
-  }
+  void _openAccount() =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountSettingsScreen()));
 
-  Future<void> _deleteAccount() async {
-    final ok = await _confirm(
-        'Konto löschen?',
-        'Dein Konto und alle Bankverbindungen werden dauerhaft gelöscht. '
-            'Umsätze auf diesem Gerät bleiben, bis du sie unter „Alle Daten löschen“ entfernst.',
-        'Endgültig löschen');
-    if (!ok) return;
-    try {
-      await AccountService.deleteAccount();
-      if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    }
-  }
+  void _openNotifications() =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()));
+
+  void _openAbout() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
 
   Future<bool> _confirm(String title, String text, String action) async {
     final ok = await showDialog<bool>(

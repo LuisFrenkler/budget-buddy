@@ -27,6 +27,9 @@ import 'subscription_screen.dart';
 import '../services/hints_service.dart';
 import '../services/plus_service.dart';
 import '../widgets/hints_bell.dart';
+import '../services/notification_service.dart';
+import '../services/weekly_report.dart';
+import 'weekly_report_screen.dart';
 import 'profile_screen.dart';
 
 // The start screen: total net worth with an interactive chart and a glance at
@@ -94,6 +97,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
               + Settings.openingBalanceCents;
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
+          // data changed: hints and reminders may have, too
+          NotificationService.syncSoon();
 
           return SafeArea(
             bottom: false,
@@ -111,6 +116,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   _accountsCard(tx, cash, depotNow),
                   const SizedBox(height: 16),
                   const BuddyCard(),
+                  ..._weekly(tx),
                   ..._goals(),
                   ..._budgets(),
                   ..._insight(tx),
@@ -122,6 +128,61 @@ class _OverviewScreenState extends State<OverviewScreen> {
         },
       ),
     );
+  }
+
+  // this week's report, until it has been opened
+  List<Widget> _weekly(List<Transaction> tx) {
+    final report = WeeklyReportService.build(tx);
+    if (report == null || WeeklyReportScreen.seen(report)) return [];
+    final change = report.change;
+    return [
+      const SizedBox(height: 16),
+      Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () async {
+            HapticFeedback.selectionClick();
+            await Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReportScreen()));
+            if (mounted) setState(() {});
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
+                child: const Icon(Icons.insights_rounded, color: AppColors.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Dein Wochenbericht · KW ${report.week}',
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Text(
+                    change == null
+                        ? '${Money.format(report.spentCents)} ausgegeben'
+                        : '${Money.format(report.spentCents)} · ${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13),
+                  ),
+                ]),
+              ),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+            ]),
+          ),
+        ),
+      ),
+    ];
   }
 
   // takes the user to where a hint can be acted on

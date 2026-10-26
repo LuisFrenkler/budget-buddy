@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/account_service.dart';
@@ -8,6 +9,8 @@ import '../services/settings_service.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import 'connections_screen.dart';
+import 'about_screen.dart';
+import '../legal/legal_texts.dart';
 
 // First screen for anyone not signed in: what the app does (a slowly
 // turning carousel) and the three ways in. Replaces a separate intro, so a
@@ -183,6 +186,14 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // a tappable legal page inside the consent sentence
+  TextSpan _link(String text, LegalDoc doc) => TextSpan(
+        text: text,
+        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: doc))),
+      );
+
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -301,8 +312,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: Text('Ich akzeptiere die Nutzungsbedingungen und habe die Datenschutzerklärung gelesen.',
-                    style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.4)),
+                child: Text.rich(
+                  TextSpan(children: [
+                    const TextSpan(text: 'Ich akzeptiere die '),
+                    _link('Nutzungsbedingungen', LegalTexts.terms),
+                    const TextSpan(text: ' und habe die '),
+                    _link('Datenschutzerklärung', LegalTexts.privacy),
+                    const TextSpan(text: ' gelesen.'),
+                  ]),
+                  style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.4),
+                ),
               ),
             ),
           ]),

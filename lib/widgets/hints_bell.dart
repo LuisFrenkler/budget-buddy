@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/hints_service.dart';
+import '../services/notification_service.dart';
 import '../utils/theme.dart';
 
 // Bell in the top bar with the number of open hints; tapping it opens the
@@ -164,6 +165,43 @@ class _HintsSheetState extends State<_HintsSheet> {
                 },
               ),
             ),
+          // the gentle ask, at the moment hints make the value obvious
+          ValueListenableBuilder<bool>(
+            valueListenable: NotificationService.enabled,
+            builder: (context, on, _) => on
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.notifications_active_rounded, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text('Soll Buddy dir Bescheid sagen, auch wenn die App zu ist?',
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                          onPressed: () async {
+                            final ok = await NotificationService.enable();
+                            if (ok) await NotificationService.hello();
+                            if (!ok && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                  content: Text('Mitteilungen sind in den Einstellungen deines Geräts blockiert')));
+                            }
+                          },
+                          child: const Text('Ja, gern'),
+                        ),
+                      ]),
+                    ),
+                  ),
+          ),
         ]),
       ),
     );

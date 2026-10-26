@@ -1,11 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
+import 'services/notification_service.dart';
 import 'services/plus_service.dart';
+import 'screens/contracts_screen.dart';
+import 'screens/connections_screen.dart';
+import 'screens/goals_screen.dart';
+import 'screens/subscription_screen.dart';
+import 'screens/weekly_report_screen.dart';
 import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
 import 'utils/theme.dart';
@@ -38,8 +46,32 @@ void main() async {
   PlusService.load();
   await AccountService.restore();
 
+  // the Inter font ships with the app, so its licence belongs on the licences page
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(['Inter'], await rootBundle.loadString('assets/fonts/Inter-OFL.txt'));
+  });
+
+  // reminders: open the matching page on tap, then bring them up to date
+  NotificationService.onTap = _openFromNotification;
+  await NotificationService.init();
+  NotificationService.sync();
+
   // start the app
   runApp(const BudgetBuddyApp());
+}
+
+final navigatorKey = GlobalKey<NavigatorState>();
+
+void _openFromNotification(String payload) {
+  final Widget? page = switch (payload) {
+    'weekly' => const WeeklyReportScreen(),
+    'contracts' || 'hint:contracts' => const ContractsScreen(),
+    'subscription' || 'hint:subscription' => const SubscriptionScreen(),
+    'connections' || 'hint:connections' => const ConnectionsScreen(),
+    'goals' || 'hint:goals' => const GoalsScreen(),
+    _ => null, // budgets and bookings: the start screen is the right place
+  };
+  if (page != null) navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
 }
 
 class BudgetBuddyApp extends StatelessWidget {
@@ -52,6 +84,7 @@ class BudgetBuddyApp extends StatelessWidget {
       valueListenable: ThemeController.isDark,
       builder: (_, dark, __) => MaterialApp(
         title: 'BudgetBuddy',
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,  // hide debug banner
         theme: AppTheme.theme(dark),        // reactive light/dark theme
         home: const RootGate(),             // onboarding -> lock -> app

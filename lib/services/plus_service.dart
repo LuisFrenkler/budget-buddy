@@ -231,6 +231,12 @@ class PlusService {
     if (sub != null) await _store(sub.copyWith(resume: true));
   }
 
+  // the 14-day right of withdrawal; ends Plus right away
+  static bool canWithdraw(Subscription sub, {DateTime? now}) =>
+      (now ?? DateTime.now()).difference(sub.started) < const Duration(days: 14);
+
+  static Future<void> withdraw() => end();
+
   // "Käufe wiederherstellen": in test mode there is no store to ask, so this
   // only reloads what this device knows
   static bool restore() {

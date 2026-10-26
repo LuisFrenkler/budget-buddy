@@ -94,6 +94,42 @@ class AccountService {
     } catch (_) {}
   }
 
+  // a signed-in request; throws the server's German message on failure
+  static Future<Map<String, dynamic>> _authedPost(String path, Map<String, String> body) async {
+    final http.Response res;
+    try {
+      res = await http
+          .post(Uri.parse('${BackendService.base}$path'),
+              headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $_token'},
+              body: jsonEncode(body))
+          .timeout(const Duration(seconds: 15));
+    } catch (_) {
+      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+    }
+    final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    if (res.statusCode == 401) {
+      await _forget();
+      throw 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+    }
+    if (res.statusCode != 200) throw map['error'] ?? 'Fehler ${res.statusCode}';
+    return map;
+  }
+
+  static Future<void> _update(Map<String, dynamic> map) async {
+    final account = Account.fromJson(map['user'] as Map);
+    await _box.put('account', account.toJson());
+    current.value = account;
+  }
+
+  static Future<void> changeName(String name) async => _update(await _authedPost('/auth/profile', {'name': name}));
+
+  static Future<void> changeEmail(String email, String password) async =>
+      _update(await _authedPost('/auth/email', {'email': email, 'password': password}));
+
+  // other devices are signed out by the server, this one stays signed in
+  static Future<void> changePassword(String current, String next) =>
+      _authedPost('/auth/password', {'current': current, 'next': next});
+
   // deletes the account on the server (with all bank links), then locally
   static Future<void> deleteAccount() async {
     final res = await http.delete(Uri.parse('${BackendService.base}/auth/account'),

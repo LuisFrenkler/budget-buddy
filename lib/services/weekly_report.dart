@@ -1,10 +1,14 @@
 // Buddy's weekly report: how the last week went against the usual, where
 // the money went, and one concrete thing to try next week.
 //
+// Fixed costs (rent, subscriptions, detected as contracts) are left out:
+// they land in one week or another and would make any comparison jump.
+//
 // A week runs Monday to Sunday. The report for a week is ready on Sunday
 // at 18:00; before that the previous week is shown.
 import '../models/transaction.dart';
 import '../utils/money.dart';
+import 'contracts.dart';
 
 class CategoryWeek {
   final String category;
@@ -96,6 +100,11 @@ class WeeklyReportService {
 
   static WeeklyReport? build(List<Transaction> tx, {DateTime? now, DateTime? week}) {
     final monday = week ?? reportWeek(now ?? DateTime.now());
+    final fixed = {
+      for (final c in Contracts.detect(tx, now: now))
+        for (final p in c.payments) p.id
+    };
+    tx = tx.where((t) => t.isIncome || !fixed.contains(t.id)).toList();
     final thisWeek = tx.where((t) => _inWeek(t, monday)).toList();
     final expenses = thisWeek.where((t) => !t.isIncome).toList();
     if (expenses.isEmpty) return null;

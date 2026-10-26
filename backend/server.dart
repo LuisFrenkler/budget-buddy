@@ -173,6 +173,22 @@ Future<void> _handle(HttpRequest req) async {
       final token = _bearer(req);
       if (token != null) await _accounts.logout(token);
       return _json(req, 200, {'ok': true});
+    case '/auth/profile':
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200, {'user': await _accounts.changeName(user['id'] as String, '${b['name'] ?? ''}')});
+    case '/auth/email':
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200, {
+        'user': await _accounts.changeEmail(user['id'] as String, '${b['email'] ?? ''}', '${b['password'] ?? ''}')
+      });
+    case '/auth/password':
+      final user = _user(req);
+      final b = await _body(req);
+      await _accounts.changePassword(
+          user['id'] as String, '${b['current'] ?? ''}', '${b['next'] ?? ''}', _bearer(req) ?? '');
+      return _json(req, 200, {'ok': true});
     case '/auth/account':
       if (req.method != 'DELETE') return _json(req, 405, {'error': 'DELETE only'});
       return _deleteAccount(req);

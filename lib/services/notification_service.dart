@@ -10,6 +10,7 @@
 //
 // Everything is off until the user turns it on; each topic can be switched
 // off on its own.
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
@@ -190,7 +191,15 @@ class NotificationService {
 
   static int _idFor(String key) => key.hashCode & 0x3fffffff;
 
-  // brings notifications in line with the data; cheap enough to call often
+  static Timer? _debounce;
+
+  // after a burst of changes (a bank sync, an import) sync once
+  static void syncSoon() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(seconds: 2), sync);
+  }
+
+  // brings notifications in line with the data
   static Future<void> sync({DateTime? now}) async {
     if (!_ready || !enabled.value) return;
     final today = now ?? DateTime.now();

@@ -122,6 +122,54 @@ class Accounts {
     await _save();
   }
 
+  // the password check shared by the changes below, with the same lockout as sign-in
+  void _checkPassword(Map<String, dynamic> user, String password) {
+    final mail = user['email'] as String;
+    final fail = _failures[mail];
+    if (fail != null && fail.count >= _maxFailures && DateTime.now().isBefore(fail.until)) {
+      throw const AuthError(429, 'Zu viele Versuche. Bitte warte ein paar Minuten.');
+    }
+    if (!BCrypt.checkpw(password, user['hash'] as String)) {
+      final count = (fail != null && DateTime.now().isBefore(fail.until) ? fail.count : 0) + 1;
+      _failures[mail] = (count: count, until: DateTime.now().add(_lockout));
+      throw const AuthError(403, 'Das aktuelle Passwort stimmt nicht.');
+    }
+    _failures.remove(mail);
+  }
+
+  Future<Map<String, dynamic>> changeName(String userId, String name) async {
+    final user = _users[userId]!;
+    final clean = name.trim();
+    if (clean.isEmpty || clean.length > 60) throw const AuthError(400, 'Bitte gib einen Namen mit bis zu 60 Zeichen ein.');
+    user['name'] = clean;
+    await _save();
+    return public(user);
+  }
+
+  Future<Map<String, dynamic>> changeEmail(String userId, String email, String password) async {
+    final user = _users[userId]!;
+    final mail = email.trim().toLowerCase();
+    if (!_emailPattern.hasMatch(mail)) throw const AuthError(400, 'Bitte gib eine gültige E-Mail-Adresse ein.');
+    _checkPassword(user, password);
+    if (mail == user['email']) return public(user);
+    if (_byEmail(mail) != null) throw const AuthError(409, 'Für diese E-Mail gibt es schon ein Konto.');
+    user['email'] = mail;
+    await _save();
+    return public(user);
+  }
+
+  // new password; every other device is signed out, this one stays
+  Future<void> changePassword(String userId, String current, String next, String keepToken) async {
+    final user = _users[userId]!;
+    _checkPassword(user, current);
+    if (next.length < 8) throw const AuthError(400, 'Das neue Passwort braucht mindestens 8 Zeichen.');
+    if (next == current) throw const AuthError(400, 'Das neue Passwort muss sich vom alten unterscheiden.');
+    user['hash'] = BCrypt.hashpw(next, BCrypt.gensalt(logRounds: 11));
+    final keep = _digest(keepToken);
+    _tokens.removeWhere((digest, t) => t['user'] == userId && digest != keep);
+    await _save();
+  }
+
   // removes the user and every session of theirs
   Future<void> delete(String userId) async {
     _users.remove(userId);
