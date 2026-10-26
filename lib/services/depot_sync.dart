@@ -59,4 +59,18 @@ class DepotSync {
     await Settings.setDepotSync(DateTime.now());
     return result.keep.length;
   }
+
+  // syncs quietly when linked and the last sync is older than [maxAge], or
+  // when a synced security still has no symbol (no chart without one)
+  static Future<void> refreshIfStale({Duration maxAge = const Duration(hours: 4)}) async {
+    if (Settings.depotState.isEmpty) return;
+    final last = Settings.depotSync;
+    final noSymbol = DB.getHoldings().any((h) => h.id.startsWith(prefix) && h.symbol.isEmpty);
+    if (!noSymbol && last != null && DateTime.now().difference(last) < maxAge) return;
+    try {
+      await run();
+    } catch (_) {
+      // offline or server not running: try again next start
+    }
+  }
 }

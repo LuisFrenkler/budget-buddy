@@ -73,6 +73,7 @@ final _depots = <String, Map<String, dynamic>>{};
 final _depotPending = <String, ({String owner, String verifier})>{};
 final _depotFailed = <String, String>{};
 final _depotStore = File('$_dataDir/depots.json');
+final _symbols = SymbolLookup();
 // who has Plus: user id -> entitlement
 final _plus = <String, Entitlement>{};
 final _plusStore = File('$_dataDir/plus.json');
@@ -812,6 +813,7 @@ Future<void> _depotSync(HttpRequest req) async {
     await renew();
     positions = await _depot.positions(tokens);
   }
+  positions = await _symbols.complete(positions);
   return _json(req, 200, {'positions': [for (final p in positions) p.toJson()], 'mode': _depot.mode});
 }
 

@@ -9,6 +9,7 @@ import 'services/account_service.dart';
 import 'services/bank_sync.dart';
 import 'services/auto_save.dart';
 import 'services/db.dart';
+import 'services/depot_sync.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
 import 'services/split_service.dart';
@@ -55,6 +56,7 @@ void main() async {
   await AccountService.restore();
   PlusService.watchAccount();
   PlusService.syncWithServer();
+  DepotSync.refreshIfStale();
 
   // the Inter font ships with the app, so its licence belongs on the licences page
   LicenseRegistry.addLicense(() async* {

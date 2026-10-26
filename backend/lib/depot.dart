@@ -26,6 +26,9 @@ class DepotPosition {
   const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
       this.broker);
 
+  DepotPosition withSymbol(String symbol) =>
+      DepotPosition(id, name, symbol, type, shares, buyPriceCents, priceCents, broker);
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
@@ -169,6 +172,45 @@ class ParqetConnect implements DepotProvider {
     }
     return 'Aktie';
   }
+}
+
+// Parqet names securities by ISIN, while price histories (and so the depot
+// chart) work with exchange symbols. Yahoo's search maps one to the other,
+// e.g. IE00B4L5Y983 -> IWDA.L, US0378331005 -> AAPL. A German listing (EUR)
+// wins when there is one. Answers are cached for the life of the server.
+class SymbolLookup {
+  final _cache = <String, String>{};
+
+  static final _isin = RegExp(r'^[A-Z]{2}[A-Z0-9]{9}[0-9]$');
+  static const _germanExchanges = {'GER', 'FRA', 'STU', 'MUN', 'BER', 'DUS', 'HAM'};
+
+  Future<String> forIsin(String isin) async {
+    if (!_isin.hasMatch(isin)) return '';
+    final hit = _cache[isin];
+    if (hit != null) return hit;
+    try {
+      final res = await http.get(
+        Uri.parse('https://query2.finance.yahoo.com/v1/finance/search?q=$isin&quotesCount=10&newsCount=0'),
+        headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
+      );
+      if (res.statusCode != 200) return '';
+      final quotes = ((jsonDecode(res.body) as Map)['quotes'] as List? ?? const [])
+          .cast<Map>()
+          .where((q) => const {'EQUITY', 'ETF', 'MUTUALFUND'}.contains(q['quoteType']) && q['symbol'] != null)
+          .toList();
+      if (quotes.isEmpty) return '';
+      final german = quotes.where((q) => _germanExchanges.contains(q['exchange'])).firstOrNull;
+      return _cache[isin] = '${(german ?? quotes.first)['symbol']}';
+    } catch (_) {
+      return ''; // the chart stays flat for this one, nothing else breaks
+    }
+  }
+
+  // fills in the symbol of every security that has none
+  Future<List<DepotPosition>> complete(List<DepotPosition> positions) => Future.wait([
+        for (final p in positions)
+          p.symbol.isNotEmpty ? Future.value(p) : forIsin(p.id).then((s) => s.isEmpty ? p : p.withSymbol(s)),
+      ]);
 }
 
 class DepotAuthExpired implements Exception {
