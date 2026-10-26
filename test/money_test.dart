@@ -18,6 +18,11 @@ void main() {
     test('handles thousands separators in both styles', () {
       expect(Money.parseToCents('1.234,56'), 123456); // German
       expect(Money.parseToCents('1,234.56'), 123456); // English
+      // a dot with three digits after it and no comma is a German thousands dot
+      expect(Money.parseToCents('1.250'), 125000);
+      expect(Money.parseToCents('12.500'), 1250000);
+      expect(Money.parseToCents('1.250.000'), 125000000);
+      expect(Money.parseToCents('-1.250'), -125000);
     });
 
     test('parses whole numbers', () {

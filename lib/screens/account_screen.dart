@@ -11,6 +11,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
+import '../widgets/getting_started.dart';
 import '../widgets/tx_row.dart';
 import 'budget_screen.dart';
 import 'stats_screen.dart';
@@ -92,7 +93,16 @@ class _AccountScreenState extends State<AccountScreen> {
                           Row(children: [
                             const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                             const Spacer(),
-                            if (Settings.bankState.isNotEmpty) const _SyncPill(),
+                            if (Settings.bankState.isNotEmpty)
+                              const _SyncPill()
+                            else
+                              // kept by hand: the real balance can be set any time
+                              TextButton.icon(
+                                onPressed: () => showBalanceSheet(context),
+                                icon: const Icon(Icons.edit_rounded, size: 16),
+                                label: const Text('Kontostand anpassen'),
+                                style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                              ),
                           ]),
                           const SizedBox(height: 20),
                           ChartHeader(

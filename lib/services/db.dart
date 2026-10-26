@@ -173,16 +173,58 @@ class DB {
     }
   }
 
-  // save a budget
-  static Future<void> addBudget(Budget b) {
+  // save a budget; a category with a budget again is no longer "stopped"
+  static Future<void> addBudget(Budget b) async {
     final key = '${b.category}_${b.startDate.millisecondsSinceEpoch}';
-    return _budgetBox.put(key, b.toMap());
+    await _budgetBox.put(key, b.toMap());
+    if (Hive.isBoxOpen('settings') && _stopped.contains(b.category)) {
+      await Hive.box('settings').put('budgetsStopped', (_stopped..remove(b.category)).toList());
+    }
   }
-  
-  // delete a budget
-  static Future<void> deleteBudget(Budget b) {
+
+  // delete a budget; a deleted monthly budget does not come back next month
+  static Future<void> deleteBudget(Budget b) async {
     final key = '${b.category}_${b.startDate.millisecondsSinceEpoch}';
-    return _budgetBox.delete(key);
+    await _budgetBox.delete(key);
+    if (isMonthly(b) && Hive.isBoxOpen('settings')) {
+      await Hive.box('settings').put('budgetsStopped', (_stopped..add(b.category)).toList());
+    }
+  }
+
+  static Set<String> get _stopped => Hive.isBoxOpen('settings')
+      ? ((Hive.box('settings').get('budgetsStopped') as List?) ?? const []).cast<String>().toSet()
+      : <String>{};
+
+  // a budget over exactly one calendar month repeats every month
+  static bool isMonthly(Budget b) {
+    final start = _dateOnly(b.startDate);
+    return start.day == 1 && _dateOnly(b.endDate) == DateTime(start.year, start.month + 1, 0);
+  }
+
+  // carries every monthly budget into the current month (same limit);
+  // past months stay as they were. Returns how many were added.
+  static Future<int> rollOverBudgets({DateTime? now}) async {
+    final today = now ?? DateTime.now();
+    final month = DateTime(today.year, today.month);
+    final latest = <String, Budget>{};
+    for (final b in getBudgets()) {
+      if (!isMonthly(b)) continue;
+      final current = latest[b.category];
+      if (current == null || b.startDate.isAfter(current.startDate)) latest[b.category] = b;
+    }
+    final stopped = _stopped;
+    var added = 0;
+    for (final b in latest.values) {
+      if (!b.startDate.isBefore(month) || stopped.contains(b.category)) continue;
+      await _budgetBox.put('${b.category}_${month.millisecondsSinceEpoch}', Budget(
+        category: b.category,
+        limitCents: b.limitCents,
+        startDate: month,
+        endDate: DateTime(month.year, month.month + 1, 0),
+      ).toMap());
+      added++;
+    }
+    return added;
   }
   
   // get all budgets /calculate how much was spent

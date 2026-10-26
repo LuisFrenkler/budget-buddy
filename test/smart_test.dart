@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:budget_buddy/models/budget.dart';
 import 'package:budget_buddy/models/goal.dart';
 import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/services/cancellation_service.dart';
@@ -111,6 +112,27 @@ void main() {
       expect(QuickParser.parse('Kiosk Müller 4,50')!.category, 'Essen & Trinken');
       // but not for income of the same name
       expect(CategoryRules.forName('Kiosk Müller', isIncome: true), isNull);
+    });
+
+    test('monthly budgets continue, deleted ones stay deleted, custom ranges do not repeat', () async {
+      await DB.addBudget(Budget(
+          category: 'Lebensmittel', limitCents: 30000, startDate: DateTime(2026, 9, 1), endDate: DateTime(2026, 9, 30)));
+      await DB.addBudget(Budget(
+          category: 'Kleidung', limitCents: 10000, startDate: DateTime(2026, 9, 10), endDate: DateTime(2026, 9, 20)));
+      expect(await DB.rollOverBudgets(now: DateTime(2026, 11, 3)), 1);
+      final nov = DB.getBudgets().where((b) => b.startDate == DateTime(2026, 11, 1)).toList();
+      expect(nov.map((b) => b.category), ['Lebensmittel']);
+      expect(nov.single.limitCents, 30000);
+      expect(nov.single.endDate, DateTime(2026, 11, 30));
+      // nothing twice
+      expect(await DB.rollOverBudgets(now: DateTime(2026, 11, 20)), 0);
+      // deleting this month's budget stops it for good
+      await DB.deleteBudget(nov.single);
+      expect(await DB.rollOverBudgets(now: DateTime(2026, 12, 2)), 0);
+      // a new budget for the category brings it back
+      await DB.addBudget(Budget(
+          category: 'Lebensmittel', limitCents: 25000, startDate: DateTime(2026, 12, 1), endDate: DateTime(2026, 12, 31)));
+      expect(await DB.rollOverBudgets(now: DateTime(2027, 1, 5)), 1);
     });
   });
 }

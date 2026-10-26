@@ -120,6 +120,14 @@ class _ChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     var minV = values.reduce(math.min);
     var maxV = values.reduce(math.max);
+    // show at least 4 % of the value as range, so a coffee does not look
+    // like a crash on a 1.250 € balance
+    final minSpan = math.max(maxV.abs(), minV.abs()) * 0.04;
+    if (maxV - minV < minSpan) {
+      final mid = (maxV + minV) / 2;
+      maxV = mid + minSpan / 2;
+      minV = mid - minSpan / 2;
+    }
     if (maxV == minV) {
       maxV += 1;
       minV -= 1;

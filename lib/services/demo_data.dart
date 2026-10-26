@@ -130,7 +130,11 @@ class DemoData {
     }
 
     // savings from before the six months, so the Kontostand does not start at 0 €
-    if (Hive.isBoxOpen('settings')) await Settings.setOpeningBalanceCents(420000);
+    if (Hive.isBoxOpen('settings')) {
+      await Settings.setOpeningBalanceCents(420000);
+      // the demo is complete; the getting-started list is for real starts
+      await Hive.box('settings').put('onboardingHidden', true);
+    }
 
     await DB.checkBadges();
   }

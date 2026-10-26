@@ -29,6 +29,8 @@ import '../services/hints_service.dart';
 import '../services/plus_service.dart';
 import '../widgets/hints_bell.dart';
 import '../widgets/forecast_card.dart';
+import '../widgets/getting_started.dart';
+import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
 import '../services/notification_service.dart';
 import '../services/weekly_report.dart';
@@ -140,7 +142,15 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   _welcome()
                 else ...[
                   const RecapBanner(),
-                  ..._netWorth(tx, cash, depotNow),
+                  if (!OnboardingService.hidden && !OnboardingService.complete) ...[
+                    const GettingStartedCard(),
+                    const SizedBox(height: 24),
+                  ],
+                  // without the real balance a chart of "−3,20 €" would only confuse
+                  if (!OnboardingService.balanceKnown && depotNow == 0)
+                    _balancePrompt(cash)
+                  else
+                    ..._netWorth(tx, cash, depotNow),
                   const SizedBox(height: 28),
                   _accountsCard(tx, cash, depotNow),
                   ..._forecast(tx),
@@ -159,6 +169,33 @@ class _OverviewScreenState extends State<OverviewScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _balancePrompt(int cash) {
+    return Material(
+      color: AppColors.primary.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () => showBalanceSheet(context),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(children: [
+            const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary, size: 30),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Wie viel hast du gerade?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                const SizedBox(height: 2),
+                Text('Trag deinen Kontostand ein, dann zeigt BudgetBuddy dein Vermögen und was frei ist.',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+          ]),
+        ),
       ),
     );
   }
@@ -627,46 +664,23 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   // first launch without any data
+  // first start without data: a short hello, then the guided first steps
   Widget _welcome() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Willkommen 👋', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text('Verbinde dein Girokonto, dann kommen Kontostand und Umsätze von selbst. '
-              'Oder erfasse deine Buchungen von Hand.',
-              style: TextStyle(color: AppColors.textDim, height: 1.4)),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
-              icon: const Icon(Icons.account_balance_rounded, size: 20),
-              label: const Text('Bankkonto verbinden'),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceAlt, foregroundColor: AppColors.text),
-              onPressed: () => TxRow.openEditor(context),
-              child: const Text('Selbst erfassen'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => DemoData.load(),
-              child: const Text('Mit Beispieldaten ausprobieren'),
-            ),
-          ),
-        ],
+    final name = AccountService.current.value?.firstName;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(name == null || name.isEmpty ? 'Willkommen 👋' : 'Hallo $name 👋',
+          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+      const SizedBox(height: 6),
+      Text('In fünf kurzen Schritten weiß BudgetBuddy, was du ausgeben kannst und wo du sparst.',
+          style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 15)),
+      const SizedBox(height: 20),
+      const GettingStartedCard(),
+      const SizedBox(height: 12),
+      TextButton.icon(
+        onPressed: () => DemoData.load(),
+        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+        label: const Text('Erst mal mit Beispieldaten umschauen'),
       ),
-    );
+    ]);
   }
 }

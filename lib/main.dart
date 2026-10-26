@@ -7,6 +7,7 @@ import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
+import 'services/db.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
 import 'screens/contracts_screen.dart';
@@ -35,6 +36,8 @@ void main() async {
 
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();
+  // monthly budgets continue into the new month
+  await DB.rollOverBudgets();
 
   // fetch new bookings from a linked bank in the background
   BankSync.refreshIfStale();

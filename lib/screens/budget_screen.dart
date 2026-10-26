@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/budget.dart';
+import '../services/contracts.dart';
 import '../services/db.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
@@ -197,112 +198,147 @@ class _BudgetCardState extends State<_BudgetCard> {
 }
 
 // shows dialog to create a new budget (default: the current month)
+// New monthly budget as a sheet. Buddy preselects the category with the
+// highest spending that has no budget yet and suggests its usual amount.
 void showAddBudgetDialog(BuildContext context) {
-  // variables for the form
-  String? selectedCategory;
-  final limitController = TextEditingController();
-  final now = DateTime.now();
-  var startDate = DateTime(now.year, now.month, 1);
-  var endDate = DateTime(now.year, now.month + 1, 0);
-
-  showDialog(
+  showModalBottomSheet(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (dialogContext, setDialogState) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Neues Budget'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Kategorie', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              // category chips
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in Categories.expense)
-                    ChoiceChip(
-                      label: Text(c['name']!),
-                      selected: selectedCategory == c['name'],
-                      onSelected: (_) => setDialogState(() => selectedCategory = c['name']),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text('Limit (€)', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: limitController,
-                keyboardType: TextInputType.number,
-                // only allow digits
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  hintText: 'z.B. 200',
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text('Zeitraum', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _dateButton(dialogContext, startDate, (d) => setDialogState(() => startDate = d)),
-                  ),
-                  const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('bis')),
-                  // end date cant be before start date
-                  Expanded(
-                    child: _dateButton(dialogContext, endDate, (d) => setDialogState(() => endDate = d),
-                        firstDate: startDate),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Abbrechen')),
-          ElevatedButton(
-            onPressed: () async {
-              if (await _saveBudget(dialogContext, selectedCategory, limitController.text, startDate, endDate) &&
-                  dialogContext.mounted) {
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('Speichern'),
-          ),
-        ],
-      ),
-    ),
+    isScrollControlled: true,
+    backgroundColor: AppColors.surface,
+    showDragHandle: true,
+    builder: (_) => const _BudgetSheet(),
   );
 }
 
-// button that opens date picker
-Widget _dateButton(BuildContext context, DateTime date, ValueChanged<DateTime> onPicked, {DateTime? firstDate}) {
-  return InkWell(
-    onTap: () async {
-      final picked = await showDatePicker(
-        context: context,
-        initialDate: date,
-        firstDate: firstDate ?? DateTime(2020),
-        lastDate: DateTime(2035),
-      );
-      if (picked != null) onPicked(picked);
-    },
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(8)),
-      child: Text('${date.day}.${date.month}.${date.year}', textAlign: TextAlign.center),
-    ),
-  );
+class _BudgetSheet extends StatefulWidget {
+  const _BudgetSheet();
+
+  @override
+  State<_BudgetSheet> createState() => _BudgetSheetState();
+}
+
+class _BudgetSheetState extends State<_BudgetSheet> {
+  final _limit = TextEditingController();
+  late final Map<String, int> _usual = _usualSpending();
+  late final Set<String> _taken = {
+    for (final b in DB.getBudgets())
+      if (!DateTime.now().isBefore(b.startDate) && !DateTime.now().isAfter(b.endDate.add(const Duration(days: 1))))
+        b.category
+  };
+  String? _category;
+
+  @override
+  void initState() {
+    super.initState();
+    // the biggest category without a budget yet
+    final open = _usual.entries.where((e) => !_taken.contains(e.key)).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    if (open.isNotEmpty) _pick(open.first.key);
+  }
+
+  @override
+  void dispose() {
+    _limit.dispose();
+    super.dispose();
+  }
+
+  // average monthly spending per category over the last three full months
+  static Map<String, int> _usualSpending() {
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month - 3);
+    final to = DateTime(now.year, now.month);
+    final sums = <String, int>{};
+    final tx = DB.getTx();
+    // rent and subscriptions are fixed, a budget would not change them
+    final fixed = {for (final c in Contracts.detect(tx)) for (final p in c.payments) p.id};
+    for (final t in tx) {
+      if (t.isIncome || fixed.contains(t.id) || t.date.isBefore(from) || !t.date.isBefore(to)) continue;
+      sums[t.category] = (sums[t.category] ?? 0) + t.amountCents;
+    }
+    return {for (final e in sums.entries) e.key: e.value ~/ 3};
+  }
+
+  void _pick(String category) {
+    setState(() => _category = category);
+    final usual = _usual[category];
+    // a round suggestion a little under the usual, so the budget nudges
+    _limit.text = usual == null || usual < 1000 ? '' : '${(usual * 0.9 / 1000).round() * 10}';
+  }
+
+  Future<void> _save() async {
+    if (await _saveBudget(context, _category, _limit.text, DateTime.now(), DateTime.now(), monthly: true) &&
+        mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final usual = _category == null ? null : _usual[_category];
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Text('Monatsbudget', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4),
+        Text('Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.',
+            style: TextStyle(color: AppColors.textDim, height: 1.4)),
+        const SizedBox(height: 16),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final c in Categories.expense)
+            ChoiceChip(
+              selected: _category == c['name'],
+              showCheckmark: false,
+              side: BorderSide(color: AppColors.border),
+              selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
+              avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
+              label: Text(c['name']!),
+              onSelected: _taken.contains(c['name']) ? null : (_) => _pick(c['name']!),
+            ),
+        ]),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _limit,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+          onSubmitted: (_) => _save(),
+          decoration: InputDecoration(
+            hintText: 'z. B. 300',
+            suffixText: '€ im Monat',
+            suffixStyle: TextStyle(fontSize: 16, color: AppColors.textDim, fontWeight: FontWeight.w600),
+          ),
+        ),
+        if (usual != null && usual > 0) ...[
+          const SizedBox(height: 8),
+          Row(children: [
+            const Icon(Icons.auto_awesome_rounded, size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text('Du gibst dafür im Schnitt ${Money.format(usual)} im Monat aus.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            ),
+          ]),
+        ],
+        const SizedBox(height: 18),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          onPressed: _category == null ? null : _save,
+          child: const Text('Budget anlegen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ),
+      ]),
+    );
+  }
 }
 
 // validates input and saves the budget; returns true on success
-Future<bool> _saveBudget(
-    BuildContext context, String? category, String limitText, DateTime startDate, DateTime endDate) async {
+Future<bool> _saveBudget(BuildContext context, String? category, String limitText, DateTime startDate,
+    DateTime endDate, {bool monthly = false}) async {
+  // a monthly budget covers the current calendar month and repeats
+  if (monthly) {
+    startDate = DateTime(startDate.year, startDate.month, 1);
+    endDate = DateTime(startDate.year, startDate.month + 1, 0);
+  }
   final messenger = ScaffoldMessenger.of(context);
   if (category == null) {
     messenger.showSnackBar(const SnackBar(content: Text('Kategorie wählen')));

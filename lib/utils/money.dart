@@ -42,7 +42,9 @@ class Money {
     // everything before it that is '.' or ',' is a thousands separator
     final lastComma = s.lastIndexOf(',');
     final lastDot = s.lastIndexOf('.');
-    final decPos = lastComma > lastDot ? lastComma : lastDot;
+    var decPos = lastComma > lastDot ? lastComma : lastDot;
+    // "1.250" or "12.500.000" without a comma: German thousands, not decimals
+    if (lastComma == -1 && lastDot != -1 && RegExp(r'^\d{1,3}(\.\d{3})+$').hasMatch(s)) decPos = -1;
 
     String intPart;
     String fracPart;
