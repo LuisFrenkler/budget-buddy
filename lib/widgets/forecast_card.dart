@@ -42,14 +42,14 @@ class ForecastCard extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 6),
-            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            // wraps onto a second line on narrow phones instead of overflowing
+            Wrap(crossAxisAlignment: WrapCrossAlignment.end, spacing: 10, runSpacing: 2, children: [
               Text(Money.format(f.freeCents),
                   style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.8,
                       color: f.freeCents < 0 ? AppColors.error : AppColors.text)),
-              const SizedBox(width: 10),
               if (f.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),

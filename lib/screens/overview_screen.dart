@@ -484,6 +484,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(16),
+        // name and value on top, the change below across the full width,
+        // so nothing is cut off on small phones
         child: Row(
           children: [
             Container(
@@ -492,23 +494,25 @@ class _OverviewScreenState extends State<OverviewScreen> {
               decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Row(children: [
+                    Expanded(
+                      child: Text(title,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                    Text(Money.format(value), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  ]),
                   const SizedBox(height: 2),
                   Text(change,
                       style: TextStyle(fontSize: 13, color: up ? AppColors.positive : AppColors.error),
                       overflow: TextOverflow.ellipsis),
                 ],
               ),
-            ),
-            ValueListenableBuilder<bool>(
-              valueListenable: Settings.hideAmounts,
-              builder: (_, hidden, __) => Text(hidden ? Money.hidden : Money.format(value),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
