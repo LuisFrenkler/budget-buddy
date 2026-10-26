@@ -202,7 +202,7 @@ class _ChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ChartPainter old) =>
-      old.values != values || old.progress != progress || old.index != index || old.color != color;
+      old.values != values || old.progress != progress || old.index != index || old.color != color || old.dim != dim;
 }
 
 // Row of range buttons like "1M 3M 6M 1J Max".

@@ -620,7 +620,8 @@ class _PiePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PiePainter old) => old.selected != selected || old.t != t || old.entries != entries;
+  bool shouldRepaint(covariant _PiePainter old) =>
+      old.selected != selected || old.t != t || old.entries != entries || old.hole != hole;
 }
 
 // income and expenses of one month (cents), for the trend chart

@@ -90,8 +90,40 @@ void _openFromNotification(String payload) {
   if (page != null) navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
 }
 
-class BudgetBuddyApp extends StatelessWidget {
+class BudgetBuddyApp extends StatefulWidget {
   const BudgetBuddyApp({super.key});
+
+  @override
+  State<BudgetBuddyApp> createState() => _BudgetBuddyAppState();
+}
+
+class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
+  @override
+  void initState() {
+    super.initState();
+    ThemeController.isDark.addListener(_repaintEverything);
+  }
+
+  @override
+  void dispose() {
+    ThemeController.isDark.removeListener(_repaintEverything);
+    super.dispose();
+  }
+
+  // The colours are read straight from AppColors, not passed down the tree,
+  // so widgets Flutter considers unchanged (const ones, open pages below the
+  // current one) would keep the old mode. After a switch every element is
+  // rebuilt once, so light and dark apply everywhere at the same moment.
+  void _repaintEverything() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      void mark(Element e) {
+        e.markNeedsBuild();
+        e.visitChildren(mark);
+      }
+
+      if (mounted) (context as Element).visitChildren(mark);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

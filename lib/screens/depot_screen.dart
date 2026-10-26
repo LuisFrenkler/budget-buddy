@@ -465,5 +465,6 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DonutPainter old) => old.selected != selected || old.t != t || old.entries != entries;
+  bool shouldRepaint(covariant _DonutPainter old) =>
+      old.selected != selected || old.t != t || old.entries != entries || old.hole != hole;
 }
