@@ -76,18 +76,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ].indexed)
             IgnorePointer(
               ignoring: i != _tab,
-              child: TickerMode(
-                enabled: i == _tab,
-                child: AnimatedOpacity(
-                  opacity: i == _tab ? 1 : 0,
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOut,
-                  child: AnimatedSlide(
-                    offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeOutCubic,
-                    child: tab,
-                  ),
+              // the fade itself must keep running when a tab goes inactive,
+              // so only the tab's own content is paused (TickerMode inside)
+              child: AnimatedOpacity(
+                opacity: i == _tab ? 1 : 0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                child: AnimatedSlide(
+                  offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  child: TickerMode(enabled: i == _tab, child: tab),
                 ),
               ),
             ),
