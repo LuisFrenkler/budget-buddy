@@ -247,6 +247,8 @@ class ChartHeader extends StatelessWidget {
   final ChartPoint? scrub;
   // first day of the shown range, named while scrubbing ("seit 26. Sep.")
   final DateTime? startDate;
+  // a percentage means little for a bank balance, so it can be left out
+  final bool showPercent;
 
   const ChartHeader({
     super.key,
@@ -256,6 +258,7 @@ class ChartHeader extends StatelessWidget {
     required this.period,
     this.scrub,
     this.startDate,
+    this.showPercent = true,
   });
 
   @override
@@ -268,7 +271,7 @@ class ChartHeader extends StatelessWidget {
       animate: scrub == null,
       below: ChangeLabel(
         cents: change,
-        percent: startCents > 0 ? change / startCents * 100 : null,
+        percent: showPercent && startCents > 0 ? change / startCents * 100 : null,
         suffix: scrub == null ? period : (startDate != null ? 'seit ${Dates.dayMonth(startDate!)}' : null),
       ),
     );

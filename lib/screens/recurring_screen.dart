@@ -141,7 +141,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
           padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
           child: Row(
             children: [
-              CategoryAvatar(r.category, isIncome: r.isIncome),
+              CategoryAvatar(r.category, isIncome: r.isIncome, merchant: r.note),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

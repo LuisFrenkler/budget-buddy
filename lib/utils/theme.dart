@@ -213,6 +213,23 @@ class Categories {
     }
   }
 
+  // one colour per category, so lists and charts are easy to scan
+  static Color color(String c) => switch (c) {
+        'Lebensmittel' => const Color(0xFF22C55E),
+        'Transport' => const Color(0xFF38BDF8),
+        'Unterhaltung' => const Color(0xFFF472B6),
+        'Wohnen' => const Color(0xFFF59E0B),
+        'Kleidung' => const Color(0xFFA78BFA),
+        'Gesundheit' => const Color(0xFFFF5D73),
+        'Bildung' => const Color(0xFF6366F1),
+        'Essen & Trinken' => const Color(0xFFFB923C),
+        'Gehalt' => const Color(0xFF2BD17E),
+        'Nebenjob' => const Color(0xFF14B8A6),
+        'Investition' => const Color(0xFF38BDF8),
+        'Geschenk' => const Color(0xFFF472B6),
+        _ => const Color(0xFF94A3B8),
+      };
+
   // all category names (for csv validation)
   static List<String> get all {
     final list = <String>[];

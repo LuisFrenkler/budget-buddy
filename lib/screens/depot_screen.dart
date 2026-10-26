@@ -113,7 +113,9 @@ class _DepotScreenState extends State<DepotScreen> {
                       ],
                       const Text('Positionen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
-                      ...holdings.map(_holdingCard),
+                      // same colour per position as in the allocation chart above
+                      for (var i = 0, slot = 0; i < holdings.length; i++)
+                        _holdingCard(holdings[i], holdings.length > 1 && holdings[i].valueCents > 0 ? slot++ : null),
                       // room for the floating navigation bar
                       const SizedBox(height: 110),
                     ],
@@ -304,7 +306,7 @@ class _DepotScreenState extends State<DepotScreen> {
   }
 
   // single holding row in the same calm style as the transaction list
-  Widget _holdingCard(Holding h) {
+  Widget _holdingCard(Holding h, int? slot) {
     final color = h.isUp ? AppColors.positive : AppColors.error;
 
     return Dismissible(
@@ -324,7 +326,7 @@ class _DepotScreenState extends State<DepotScreen> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              InstrumentAvatar(h.name),
+              InstrumentAvatar(h.name, color: slot == null ? null : AppColors.chart[slot % AppColors.chart.length]),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

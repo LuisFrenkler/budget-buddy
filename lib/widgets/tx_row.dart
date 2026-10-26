@@ -30,7 +30,7 @@ class TxRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            CategoryAvatar(tx.category, isIncome: tx.isIncome),
+            CategoryAvatar(tx.category, isIncome: tx.isIncome, merchant: tx.note),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

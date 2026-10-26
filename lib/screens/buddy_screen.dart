@@ -542,34 +542,31 @@ class _BuddyCardState extends State<BuddyCard> {
                 Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
               ]),
               const SizedBox(height: 14),
-              Row(children: [
-                for (final q in s.take(2)) ...[
-                  Expanded(
-                    child: Material(
-                      color: AppColors.surfaceAlt,
+              // all suggestions, full text, swipeable
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: s.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) => Material(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () => _open(q.text),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                          child: Row(children: [
-                            Icon(q.icon, size: 16, color: AppColors.primary),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(q.text,
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis),
-                            ),
-                          ]),
-                        ),
+                      onTap: () => _open(s[i].text),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(children: [
+                          Icon(s[i].icon, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(s[i].text, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                        ]),
                       ),
                     ),
                   ),
-                  if (q != s[1]) const SizedBox(width: 8),
-                ],
-              ]),
+                ),
+              ),
             ]),
           ),
         ),

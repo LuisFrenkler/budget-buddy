@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
 import '../services/account_service.dart';
+import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/history.dart';
@@ -73,6 +74,28 @@ class _OverviewScreenState extends State<OverviewScreen> {
     super.dispose();
   }
 
+  // pull to refresh: new bank bookings and current prices in one go
+  Future<void> _refresh() async {
+    HapticFeedback.selectionClick();
+    String? problem;
+    try {
+      final added = await BankSync.run();
+      if (added > 0 && mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}')));
+      }
+    } catch (_) {
+      problem = 'Bank gerade nicht erreichbar';
+    }
+    try {
+      await PriceService.refreshAll();
+    } catch (_) {}
+    await _loadDepot();
+    if (problem != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+    }
+  }
+
   Future<void> _loadDepot() async {
     final days = _days;
     final series = await PriceService.portfolioHistory(days: days);
@@ -102,7 +125,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
           return SafeArea(
             bottom: false,
-            child: ListView(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: _refresh,
+              child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
               children: [
                 _topBar(),
@@ -123,6 +150,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ..._recent(tx),
                 ],
               ],
+            ),
             ),
           );
         },

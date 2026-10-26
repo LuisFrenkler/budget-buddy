@@ -204,7 +204,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
       ),
       child: Row(children: [
-        CategoryAvatar(b.category, isIncome: b.isIncome),
+        CategoryAvatar(b.category, isIncome: b.isIncome, merchant: b.note),
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

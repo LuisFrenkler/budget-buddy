@@ -46,7 +46,7 @@ class TransactionScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
             children: [
-              Center(child: CategoryAvatar(tx.category, isIncome: tx.isIncome, size: 64)),
+              Center(child: CategoryAvatar(tx.category, isIncome: tx.isIncome, size: 64, merchant: tx.note)),
               const SizedBox(height: 14),
               Text(title,
                   textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),

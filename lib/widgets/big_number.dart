@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/brands.dart';
 import '../services/settings_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -118,24 +119,27 @@ class ChangeLabel extends StatelessWidget {
   }
 }
 
-// Round, softly tinted category icon used as the leading element of list rows.
+// Round avatar leading list rows: a known merchant in its brand colour
+// (from [merchant], e.g. the booking note), otherwise the category icon
+// tinted in the category's colour.
 class CategoryAvatar extends StatelessWidget {
   final String category;
   final bool isIncome;
   final double size;
+  final String? merchant;
 
-  const CategoryAvatar(this.category, {super.key, required this.isIncome, this.size = 42});
+  const CategoryAvatar(this.category, {super.key, required this.isIncome, this.size = 42, this.merchant});
 
   @override
   Widget build(BuildContext context) {
+    final brand = Brands.of(merchant);
+    if (brand != null) return BrandAvatar(brand, size: size);
+    final color = Categories.color(category);
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: isIncome ? AppColors.positive.withValues(alpha: 0.14) : AppColors.surfaceAlt,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(Categories.icon(category), color: isIncome ? AppColors.positive : AppColors.text, size: size * 0.48),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.16), shape: BoxShape.circle),
+      child: Icon(Categories.icon(category), color: color, size: size * 0.48),
     );
   }
 }

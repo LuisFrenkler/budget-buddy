@@ -92,7 +92,7 @@ class ContractsScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 16, 12),
         child: Row(children: [
-          CategoryAvatar(c.category, isIncome: false),
+          CategoryAvatar(c.category, isIncome: false, merchant: c.name),
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

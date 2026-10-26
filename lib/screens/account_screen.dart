@@ -102,6 +102,7 @@ class _AccountScreenState extends State<AccountScreen> {
                             period: _periods[_range]!,
                             scrub: _scrub,
                             startDate: points.isEmpty ? null : points.first.date,
+                            showPercent: false,
                           ),
                           const SizedBox(height: 16),
                           InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
