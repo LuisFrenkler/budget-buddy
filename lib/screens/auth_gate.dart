@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../utils/theme.dart';
+import '../widgets/brand.dart';
 
 // Wraps the app and enforces the biometric / PIN lock when it is enabled.
 // Re-locks automatically when the app is sent to the background.
@@ -16,6 +17,11 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   bool _unlocked = false;
   bool _authenticating = false;
+  // the app switcher shows a snapshot of the app: covered while not in front
+  bool _covered = false;
+  DateTime? _leftAt;
+  // a quick switch (copying a code from a text) does not lock
+  static const _grace = Duration(seconds: 60);
 
   @override
   void initState() {
@@ -32,12 +38,24 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // re-lock when the app goes to the background (ignore changes caused by
-    // the auth dialog itself, which briefly backgrounds the app)
-    if (state == AppLifecycleState.paused &&
-        !_authenticating &&
-        Settings.appLockEnabled) {
-      setState(() => _unlocked = false);
+    // the auth dialog itself briefly takes the app out of front: ignore that
+    if (_authenticating) return;
+    switch (state) {
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        _leftAt ??= DateTime.now();
+        if (Settings.appLockEnabled && !_covered) setState(() => _covered = true);
+      case AppLifecycleState.resumed:
+        final away = _leftAt == null ? Duration.zero : DateTime.now().difference(_leftAt!);
+        _leftAt = null;
+        setState(() {
+          _covered = false;
+          if (Settings.appLockEnabled && away > _grace) _unlocked = false;
+        });
+        if (!_unlocked) _authenticate();
+      case AppLifecycleState.detached:
+        break;
     }
   }
 
@@ -69,7 +87,19 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    if (_unlocked) return widget.child;
+    if (_unlocked) {
+      return Stack(children: [
+        widget.child,
+        // privacy cover for the app switcher: the logo instead of the balance
+        if (_covered)
+          Positioned.fill(
+            child: ColoredBox(
+              color: AppColors.bg,
+              child: const Center(child: BrandMark(size: 72)),
+            ),
+          ),
+      ]);
+    }
 
     // lock screen shown until the user authenticates
     return Scaffold(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 // Thin wrapper around local_auth for the app lock.
 //
 // Everything is defensive: on platforms or devices without biometrics/PIN
@@ -8,8 +9,15 @@ import 'package:local_auth/local_auth.dart';
 class AuthService {
   static final LocalAuthentication _auth = LocalAuthentication();
 
+  // tests replace the device check and the prompt
+  @visibleForTesting
+  static Future<bool> Function()? debugAvailable;
+  @visibleForTesting
+  static Future<bool> Function()? debugAuthenticate;
+
   // true if the device can do biometrics or a device passcode
   static Future<bool> isAvailable() async {
+    if (debugAvailable != null) return debugAvailable!();
     try {
       return await _auth.isDeviceSupported();
     } catch (_) {
@@ -20,6 +28,7 @@ class AuthService {
   // prompts the user to authenticate. returns true on success.
   // biometricOnly is false so a device PIN/passcode works as a fallback.
   static Future<bool> authenticate(String reason) async {
+    if (debugAuthenticate != null) return debugAuthenticate!();
     try {
       return await _auth.authenticate(
         localizedReason: reason,
