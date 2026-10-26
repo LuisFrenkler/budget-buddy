@@ -6,7 +6,11 @@
 //
 // Fixed costs are the detected contracts (rent, subscriptions); the ones
 // not yet booked this month are listed as still due. Income is the average
-// of the last three complete months, so one bonus does not inflate it.
+// of the last three complete months, so one bonus does not inflate it, and a
+// salary that lands on the 31st instead of the 1st does not count twice.
+//
+// It never promises more than the account holds: with the balance known,
+// "free" is at most the balance minus what is still due this month.
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
@@ -29,6 +33,7 @@ class MonthForecast {
   final int daysLeft; // including today
   final int paceCents; // spending at the usual pace until month end
   final List<DueItem> due; // fixed costs still to come this month
+  final bool limitedByBalance; // the account holds less than the plan says
 
   const MonthForecast({
     required this.incomeCents,
@@ -39,6 +44,7 @@ class MonthForecast {
     required this.daysLeft,
     required this.paceCents,
     required this.due,
+    this.limitedByBalance = false,
   });
 
   int get perDayCents => daysLeft <= 0 ? freeCents : freeCents ~/ daysLeft;
@@ -58,24 +64,32 @@ class MonthForecast {
 class ForecastService {
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  static MonthForecast? build(List<Transaction> tx, {List<Goal> goals = const [], DateTime? now}) {
+  // [balanceCents]: the real account balance, when the user has told it
+  static MonthForecast? build(List<Transaction> tx, {List<Goal> goals = const [], DateTime? now, int? balanceCents}) {
     final today = _day(now ?? DateTime.now());
     final monthStart = DateTime(today.year, today.month);
     final monthEnd = DateTime(today.year, today.month + 1, 0);
     final daysLeft = monthEnd.difference(today).inDays + 1;
+    if (tx.isEmpty) return null;
+    final first = tx.map((t) => t.date).reduce((a, b) => a.isBefore(b) ? a : b);
 
-    // usual income: the last three complete months that had any
-    final incomes = <int>[];
+    // usual income: the last three complete months the app knows about, all
+    // of them counted, so a salary paid on the 31st (two in one month, none in
+    // the next) averages out to one per month
+    var incomeSum = 0;
+    var months = 0;
     for (var m = 1; m <= 3; m++) {
       final start = DateTime(today.year, today.month - m);
       final end = DateTime(today.year, today.month - m + 1);
-      final sum = tx
+      // a month before the first booking says nothing
+      if (!first.isBefore(end)) continue;
+      months++;
+      incomeSum += tx
           .where((t) => t.isIncome && !t.date.isBefore(start) && t.date.isBefore(end))
           .fold<int>(0, (s, t) => s + t.amountCents);
-      if (sum > 0) incomes.add(sum);
     }
-    if (incomes.isEmpty) return null;
-    final income = incomes.reduce((a, b) => a + b) ~/ incomes.length;
+    if (months == 0 || incomeSum == 0) return null;
+    final income = incomeSum ~/ months;
 
     final contracts = Contracts.detect(tx, now: today);
     final fixedIds = {for (final c in contracts) for (final p in c.payments) p.id};
@@ -98,22 +112,35 @@ class ForecastService {
         .where((t) => !t.isIncome && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
         .fold<int>(0, (s, t) => s + t.amountCents);
 
-    // the usual daily variable spending over the last 60 days
-    final since = today.subtract(const Duration(days: 60));
+    // the usual daily variable spending over the last 60 days, or over the
+    // shorter time the app has known the user (at least a week)
+    final known = today.difference(_day(first)).inDays.clamp(7, 60);
+    final since = today.subtract(Duration(days: known));
     final recent = tx
         .where((t) => !t.isIncome && !fixedIds.contains(t.id) && !t.date.isBefore(since) && t.date.isBefore(today))
         .fold<int>(0, (s, t) => s + t.amountCents);
-    final pace = recent ~/ 60 * daysLeft;
+    final pace = recent * daysLeft ~/ known;
+
+    var free = income - fixed - goalsMonthly - spent;
+    var limited = false;
+    if (balanceCents != null) {
+      final available = balanceCents - due.fold<int>(0, (s, d) => s + d.cents);
+      if (available < free) {
+        free = available;
+        limited = true;
+      }
+    }
 
     return MonthForecast(
       incomeCents: income,
       fixedCents: fixed,
       goalsCents: goalsMonthly,
       spentCents: spent,
-      freeCents: income - fixed - goalsMonthly - spent,
+      freeCents: free,
       daysLeft: daysLeft,
       paceCents: pace,
       due: due,
+      limitedByBalance: limited,
     );
   }
 }

@@ -120,6 +120,14 @@ class ForecastCard extends StatelessWidget {
             line('Bisher ausgegeben', f.spentCents, minus: true),
             Divider(color: AppColors.border, height: 20),
             line('Noch frei', f.freeCents, bold: true),
+            if (f.limitedByBalance)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                    'Begrenzt durch deinen Kontostand: Auf dem Konto ist gerade weniger, '
+                    'als die Rechnung hergibt (z. B. bevor das Gehalt kommt).',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
+              ),
             if (f.due.isNotEmpty) ...[
               const SizedBox(height: 18),
               Text('Noch fällig diesen Monat',

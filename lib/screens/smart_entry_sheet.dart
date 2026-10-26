@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +16,8 @@ import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
 
 // Booking by writing a note ("Döner 8,50 gestern") or snapping a receipt.
-// The preview updates with every key press; saving lets Buddy refine it.
+// The preview updates with every key press (offline parser); when typing
+// pauses, Buddy refines it. What the preview shows is exactly what is saved.
 Future<void> showSmartEntry(BuildContext context, {bool scan = false}) {
   return showModalBottomSheet(
     context: context,
@@ -41,6 +43,9 @@ class _SmartEntryState extends State<_SmartEntry> {
   bool _fromReceipt = false;
   String? _busy; // what Buddy is doing right now
   String? _error;
+  // Buddy refines the preview once typing pauses
+  Timer? _refine;
+  bool _refining = false;
 
   static const _examples = ['Kaffee 3,20', 'Tanken 65 gestern', 'Gehalt 2.850 am 1.10.', 'Kino 24 freitag'];
 
@@ -52,6 +57,7 @@ class _SmartEntryState extends State<_SmartEntry> {
 
   @override
   void dispose() {
+    _refine?.cancel();
     _text.dispose();
     super.dispose();
   }
@@ -61,6 +67,22 @@ class _SmartEntryState extends State<_SmartEntry> {
       _preview = QuickParser.parse(value);
       _fromReceipt = false;
       _error = null;
+      _refining = false;
+    });
+    _refine?.cancel();
+    if (_preview != null && value.trim().length >= 4) {
+      _refine = Timer(const Duration(milliseconds: 900), () => _refineNow(value));
+    }
+  }
+
+  // Buddy's reading of the same words; shown only if nothing changed meanwhile
+  Future<void> _refineNow(String value) async {
+    setState(() => _refining = true);
+    final better = await BuddyService.parse(value);
+    if (!mounted || _text.text != value || _fromReceipt) return;
+    setState(() {
+      if (better != null) _preview = better;
+      _refining = false;
     });
   }
 
@@ -82,24 +104,29 @@ class _SmartEntryState extends State<_SmartEntry> {
       final booking = await BuddyService.receipt(file.bytes!, mime);
       await PlusService.count(PlusFeature.receiptScan);
       HapticFeedback.mediumImpact();
+      if (!mounted) return;
       setState(() {
         _preview = booking;
         _fromReceipt = true;
       });
     } catch (e) {
-      setState(() => _error = '$e');
+      // the server's reasons are German; a dropped connection is not
+      final s = '$e';
+      if (mounted) {
+        setState(() => _error = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(s)
+            ? 'Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.'
+            : s);
+      }
     } finally {
       if (mounted) setState(() => _busy = null);
     }
   }
 
+  // saves exactly the booking the user sees
   Future<void> _save() async {
-    var booking = _preview;
+    final booking = _preview;
     if (booking == null) return;
-    if (!_fromReceipt) {
-      setState(() => _busy = 'Buddy prüft …');
-      booking = await BuddyService.parse(_text.text) ?? booking;
-    }
+    _refine?.cancel();
     final tx = Transaction(
       id: const Uuid().v4(),
       amountCents: booking.cents,
@@ -210,11 +237,14 @@ class _SmartEntryState extends State<_SmartEntry> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
-            Text('${b.category} · ${Dates.relativeDay(b.date)}${_fromReceipt ? ' · vom Beleg' : ''}',
+            Text(
+                '${b.category} · ${Dates.relativeDay(b.date)}'
+                '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           ]),
         ),
-        Text(Money.withSign(b.cents, b.isIncome),
+        // the user's own input, so shown even in privacy mode
+        Text('${b.isIncome ? '+' : Money.minus}${Money.raw(b.cents)}',
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
