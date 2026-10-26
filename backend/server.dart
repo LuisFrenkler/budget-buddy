@@ -20,6 +20,9 @@
 //   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY  the two Stripe price ids
 //   STRIPE_WEBHOOK_SECRET            optional, for /stripe/webhook (whsec_...)
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
+//   HTTPS_PORT (default 8443)        with a certificate in .data/tls (see README), the
+//                                    server also answers on https://localhost:<HTTPS_PORT>,
+//                                    for providers that only redirect to https
 //
 // The server only listens on localhost. Users sign in with email and
 // password (see lib/accounts.dart); every bank link belongs to one user and
@@ -117,11 +120,32 @@ Future<void> main() async {
 
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
   stdout.writeln('BudgetBuddy backend on $_publicUrl');
+  final secure = await _bindHttps();
+  if (secure != null) {
+    stdout.writeln('  HTTPS:  https://localhost:${secure.port}');
+    unawaited(_serve(secure));
+  }
   stdout.writeln('  Bank:   ${_bank.mode == 'live' ? 'Enable Banking (live)' : 'Demo-Bank (set EB_APP_ID + EB_PRIVATE_KEY_PATH for real banks)'}');
   stdout.writeln('  KI:     ${_ai.enabled ? 'Claude (live)' : 'not configured (set ANTHROPIC_API_KEY)'}');
   stdout.writeln('  Plus:   ${_billing.mode == 'live' ? 'Stripe (live)' : 'Demo-Checkout (set STRIPE_SECRET_KEY for real payments)'}');
   stdout.writeln('  Depot:  ${_depot.mode == 'live' ? 'Parqet Connect (live)' : 'Demo-Depot (set PARQET_CLIENT_ID for real depots)'}');
 
+  await _serve(server);
+}
+
+// the same server on https, when .data/tls has a certificate (mkcert)
+Future<HttpServer?> _bindHttps() async {
+  final cert = File('$_dataDir/tls/localhost.pem');
+  final key = File('$_dataDir/tls/localhost-key.pem');
+  if (!await cert.exists() || !await key.exists()) return null;
+  final context = SecurityContext()
+    ..useCertificateChain(cert.path)
+    ..usePrivateKey(key.path);
+  final port = int.tryParse(_env('HTTPS_PORT')) ?? 8443;
+  return HttpServer.bindSecure(InternetAddress.loopbackIPv4, port, context);
+}
+
+Future<void> _serve(HttpServer server) async {
   await for (final req in server) {
     try {
       await _handle(req);

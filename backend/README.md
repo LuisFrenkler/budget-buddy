@@ -55,11 +55,21 @@ real German banks, and the login happens on your bank's own page.
 
 ### Redirect notes
 
-After the login, the bank sends the browser to `EB_REDIRECT_URL`. The default is
-`http://localhost:8090/bank/callback`. That address must be whitelisted exactly in
-the Enable Banking app. If you need HTTPS, expose the server, for example with
-`cloudflared tunnel --url http://localhost:8090`. Then set both `PUBLIC_URL` and
-`EB_REDIRECT_URL` to the tunnel address.
+Enable Banking only redirects to `https` addresses. For running on your own Mac
+the server therefore also answers on `https://localhost:8443` once a local
+certificate exists:
+
+```bash
+brew install mkcert
+mkcert -install          # once: lets the browser trust local certificates (asks for your password)
+cd backend && mkdir -p .data/tls
+mkcert -cert-file .data/tls/localhost.pem -key-file .data/tls/localhost-key.pem localhost 127.0.0.1
+```
+
+Register `https://localhost:8443/bank/callback` as the redirect URL in the
+Enable Banking application and put the same address into `.env` as
+`EB_REDIRECT_URL`. On a public server use its own address instead
+(`PUBLIC_URL` and `EB_REDIRECT_URL`).
 
 ## AI features (Buddy, optional)
 
