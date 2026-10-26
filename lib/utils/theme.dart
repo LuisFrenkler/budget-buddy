@@ -19,6 +19,12 @@ class AppColors {
   static const error = Color(0xFFFF5D73);
   static const warning = Color(0xFFFFB020);
 
+  // the same meaning for small text: on the light background the bright
+  // fills are too faint to read (2:1), these reach 4.5:1
+  static Color get positiveText => _d ? positive : const Color(0xFF0A7A43);
+  static Color get errorText => _d ? error : const Color(0xFFC9283E);
+  static Color get warningText => _d ? warning : const Color(0xFF9A5B00);
+
   // brand gradient for hero areas (onboarding, sign-in)
   static const heroBrand = [Color(0xFFA48BFF), Color(0xFF7C5CFF), Color(0xFF5B3DF5)];
 

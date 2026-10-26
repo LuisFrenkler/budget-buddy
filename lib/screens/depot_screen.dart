@@ -30,10 +30,10 @@ class _DepotScreenState extends State<DepotScreen> {
 
   static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
   static const _periods = {
-    '1W': 'in einer Woche',
-    '1M': 'im letzten Monat',
+    '1W': 'in 7 Tagen',
+    '1M': 'in 30 Tagen',
     '3M': 'in 3 Monaten',
-    '1J': 'im letzten Jahr',
+    '1J': 'in 12 Monaten',
   };
 
   int get _days => _ranges[_range]!;

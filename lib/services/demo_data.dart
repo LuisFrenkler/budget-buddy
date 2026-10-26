@@ -4,6 +4,9 @@
 // Generates six months of everyday German finances up to `now`, a small
 // portfolio and budgets for the current month. A fixed random seed keeps the
 // data identical on every run, which also makes it testable.
+//
+// Everything it adds is remembered, so the Start screen can say "Beispieldaten"
+// and remove exactly those records again, never the user's own.
 import 'dart:math' as math;
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
@@ -18,7 +21,44 @@ import 'recurring_service.dart';
 import 'settings_service.dart';
 
 class DemoData {
+  static const _boxes = ['transactions', 'budgets', 'holdings', 'recurring', 'goals'];
+
+  static Box? get _settings => Hive.isBoxOpen('settings') ? Hive.box('settings') : null;
+
+  // sample data is on this device right now
+  static bool get active => _settings?.get('demoKeys') != null;
+
+  // takes out exactly what [load] added, and puts the settings back
+  static Future<void> remove() async {
+    final settings = _settings;
+    final keys = settings?.get('demoKeys') as Map?;
+    if (settings == null || keys == null) return;
+    for (final name in _boxes) {
+      final list = keys[name] as List?;
+      if (list == null || !Hive.isBoxOpen(name)) continue;
+      await Hive.box(name).deleteAll(list);
+    }
+    await Settings.setOpeningBalanceCents((settings.get('demoOpeningBefore') as int?) ?? 0);
+    await settings.put('onboardingHidden', false);
+    await settings.deleteAll(['demoKeys', 'demoOpeningBefore']);
+  }
+
   static Future<void> load({DateTime? now}) async {
+    final before = {
+      for (final name in _boxes)
+        if (Hive.isBoxOpen(name)) name: Hive.box(name).keys.toSet(),
+    };
+    final openingBefore = Hive.isBoxOpen('settings') ? Settings.openingBalanceCents : 0;
+    await _generate(now: now);
+    final settings = _settings;
+    if (settings == null) return;
+    await settings.put('demoKeys', {
+      for (final e in before.entries) e.key: Hive.box(e.key).keys.where((k) => !e.value.contains(k)).toList(),
+    });
+    await settings.put('demoOpeningBefore', openingBefore);
+  }
+
+  static Future<void> _generate({DateTime? now}) async {
     final today = now ?? DateTime.now();
     final rnd = math.Random(42);
     const uuid = Uuid();
