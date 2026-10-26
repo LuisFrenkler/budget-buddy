@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'checkout_screen.dart';
 import '../services/plus_service.dart';
+import '../services/store_purchases.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 
@@ -144,8 +145,9 @@ class _PlusScreenState extends State<PlusScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Danach ${_yearly ? '${PlusService.yearlyPrice} im Jahr' : '${PlusService.monthlyPrice} im Monat'}. '
-                  'Heute 0 €, jederzeit kündbar unter Profil › Mein Abo.',
+                  'Danach ${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
+                  '${_yearly ? 'im Jahr' : 'im Monat'}. Heute 0 €, jederzeit kündbar '
+                  '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
                 ),
@@ -199,7 +201,7 @@ class _PlusScreenState extends State<PlusScreen> {
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
-          Text(yearly ? PlusService.yearlyPrice : PlusService.monthlyPrice,
+          Text(PlusService.price(yearly ? PlusPlan.yearly : PlusPlan.monthly),
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
         ]),
       ),

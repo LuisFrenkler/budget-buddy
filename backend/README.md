@@ -3,7 +3,7 @@
 This is a small local server. It lets the app link a real **bank account** through
 [Enable Banking](https://enablebanking.com) (PSD2, 2,500+ European banks) and a
 **depot** (Trade Republic and others) through Parqet Connect, and takes Plus payments
-through Stripe. API keys stay on the server and are never stored in the app.
+through Stripe (web) or the App Store and Google Play (apps). API keys stay on the server and are never stored in the app.
 
 ```
 [ App ] --http--> [ this server ] --https--> [ Enable Banking -> your bank ]
@@ -163,10 +163,95 @@ the 7-day trial. Anyone who had Plus before gets no second trial. The 14-day
 withdrawal cancels at once and refunds what was paid. Deleting an account
 cancels its subscription.
 
-**In the store apps** Apple and Google require their own in-app purchase for
-digital subscriptions. There the purchase goes through App Store / Google Play
-(for example with RevenueCat), and the server must check those receipts as well
-before launch.
+## Plus in the iPhone and Android app (App Store, Google Play)
+
+Apple and Google require their own in-app purchase for digital subscriptions,
+so the apps buy Plus through the store (`in_app_purchase`,
+`lib/services/store_purchases.dart`) and the web app through Stripe.
+
+The store takes the payment, **the server decides**: after every purchase,
+restore or renewal the app sends the store's id for it to `/plus/store`
+(Apple: the transaction id, Google: the purchase token). The server asks Apple
+or Google itself with its own credentials (`lib/store_billing.dart`) and only
+that answer unlocks Plus. It checks that the purchase belongs to this app and
+to one of the two products, keeps a subscription on one BudgetBuddy account
+only, and re-reads it with the store when the app asks and the copy is older
+than 30 minutes (renewals, cancellations, refunds). A purchase is finished
+with the store only after the server has seen it, so one that could not be
+checked comes back on the next start. Without credentials for a store, its
+purchases are refused: nothing unverified ever unlocks Plus.
+
+Guests can buy too (Apple does not allow forcing a sign-up first). The app then
+keeps the store id and has the server check it again on each start. Signing in
+later moves the subscription to the account.
+
+Cancelling, changing the plan, receipts and refunds happen in the store; the
+app's *Mein Abo* page links there. Promo codes become Apple offer codes and
+Google promo codes, created in the consoles.
+
+### Products (both stores, same ids)
+
+| Product id | Price | Trial |
+|---|---|---|
+| `budgetbuddy_plus_monthly` | 4,99 € / month | 7 days free (introductory offer) |
+| `budgetbuddy_plus_yearly` | 39,99 € / year | 7 days free (introductory offer) |
+
+Keep the store prices equal to the web prices; the app shows the store's own
+price once it has loaded. Other ids: set `PLUS_PRODUCT_MONTHLY` /
+`PLUS_PRODUCT_YEARLY` on the server and change `StorePurchases.ids` in the app.
+
+### App Store Connect
+
+1. Sign the *Paid Applications Agreement* and add tax and bank details
+   (*Business*). Without it no product loads, not even in the sandbox.
+2. *Your app → Monetization → Subscriptions*: create a subscription group
+   "BudgetBuddy Plus" with the two products above, each with prices for all
+   countries, a localized name and description, and an *introductory offer*:
+   free, 1 week, new subscribers.
+3. *Users and Access → Integrations → In-App Purchase*: generate a key. Download
+   the `.p8` (only possible once) and note the key id and the issuer id.
+4. In Xcode add the capability *In-App Purchase* to the Runner target.
+5. Test with a sandbox account (*Users and Access → Sandbox*) or a TestFlight
+   build. The server asks production first and then the sandbox, so both work
+   with the same configuration.
+
+### Google Play Console
+
+1. Set up a payments profile (*Settings → Payments profile*). The app needs a
+   real application id; `com.example.*` is rejected by Google Play, so change
+   `applicationId` in `android/app/build.gradle.kts` first.
+2. Upload a build to a testing track once; products can only be created for an
+   app that declares the billing permission (the plugin adds it).
+3. *Monetize → Subscriptions*: create the two products above, each with one
+   auto-renewing base plan (monthly / yearly) and an offer *free trial, 7 days,
+   new customers only*.
+4. In Google Cloud create a service account and a JSON key; enable the
+   *Google Play Android Developer API*. In the Play Console (*Users and
+   permissions*) invite the service account's email with *View financial data*
+   and *Manage orders and subscriptions*. Permissions can take up to a day.
+5. Add testers under *Settings → License testing*; their purchases are free and
+   renew every few minutes.
+
+### Server configuration
+
+```bash
+# keep the keys in backend/.data/ (git-ignored)
+export APPLE_BUNDLE_ID=com.luisfrenkler.budgetBuddy
+export APPLE_ISSUER_ID=...                     # App Store Connect issuer id
+export APPLE_KEY_ID=...                        # In-App Purchase key id
+export APPLE_PRIVATE_KEY_PATH=.data/SubscriptionKey_XXXX.p8
+export GOOGLE_PACKAGE_NAME=...                 # the application id
+export GOOGLE_SERVICE_ACCOUNT_PATH=.data/play-service-account.json
+dart run server.dart
+```
+
+At start the server prints which stores it can check (`Stores: apple,google`).
+`/health` reports the same under `stores`. `dart test` in `backend/` covers how
+Apple's and Google's answers are read.
+
+Not built yet: Apple's *App Store Server Notifications* and Google's *Real-time
+developer notifications*. They would tell the server about renewals and refunds
+the moment they happen; until then the 30-minute re-read covers them.
 
 ## How syncing works in the app
 
@@ -186,7 +271,7 @@ before launch.
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/health` | status: `bank`, `depot` and `billing` are each `live` or `demo` |
+| GET | `/health` | status: `bank`, `depot` and `billing` are each `live` or `demo`; `stores` lists the stores it can check |
 | POST | `/auth/register` | `{name, email, password}` → `{token, user}` |
 | POST | `/auth/login` | `{email, password}` → `{token, user}` |
 | GET | `/auth/me` | the signed-in user |
@@ -210,6 +295,7 @@ before launch.
 | POST | `/plus/cancel` | `{cancel}`; cancel at the period end, or take it back |
 | POST | `/plus/withdraw` | the 14-day withdrawal: ends now and refunds |
 | POST | `/stripe/webhook` | Stripe events, checked against `STRIPE_WEBHOOK_SECRET` |
+| POST | `/plus/store` | `{platform: apple\|google, id}` → `{plus}`; a store purchase, checked with the store |
 | POST | `/auth/profile` | `{name}`; change the display name |
 | POST | `/auth/email` | `{email, password}`; change the email, confirmed with the password |
 | POST | `/auth/password` | `{current, next}`; new password, signs out every other device |
@@ -222,7 +308,8 @@ before launch.
 | GET | `/market/chart?symbol=&range=` | stock and ETF prices for the web app (Yahoo, cached 5 min, no sign-in) |
 
 All `/bank/*`, `/depot/*` and `/plus/*` endpoints except the browser pages
-(callbacks, demo pages, return) need `Authorization: Bearer <token>`. A bank or
+(callbacks, demo pages, return) and `/plus/store` need `Authorization: Bearer <token>`.
+`/plus/store` also answers guests, without saving anything for them. A bank or
 depot link belongs to the account that created it.
 
 ## Security notes
