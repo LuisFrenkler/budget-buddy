@@ -51,6 +51,37 @@ void main() {
       expect(f.freeCents, 250000 - 91400 - 60000 - f.goalsCents);
     });
 
+    test('a salary paid on the 31st does not count one and a half times', () {
+      // August salary arrives early on 31 July: July 2×, August 0×, September 1×
+      final shifted = [
+        for (final t in tx)
+          if (t.id != 's8') t,
+        _tx('s8', 250000, 'Gehalt', DateTime(2026, 7, 31), note: 'Gehalt', income: true),
+      ];
+      expect(ForecastService.build(shifted, now: now)!.incomeCents, 250000);
+    });
+
+    test('never more than the account holds minus what is still due', () {
+      // 300 € on the account, Netflix still to come
+      final f = ForecastService.build(tx, now: now, balanceCents: 30000)!;
+      expect(f.freeCents, 30000 - 1400);
+      expect(f.limitedByBalance, isTrue);
+      final rich = ForecastService.build(tx, now: now, balanceCents: 1000000)!;
+      expect(rich.limitedByBalance, isFalse);
+      expect(rich.freeCents, 250000 - 91400 - 60000);
+    });
+
+    test('a short history does not make the pace look slower', () {
+      // the app knows the user for 10 days, 200 € spent in them
+      final fresh = [
+        _tx('inc', 250000, 'Gehalt', DateTime(2026, 9, 30), note: 'Gehalt', income: true),
+        _tx('a', 20000, 'Lebensmittel', DateTime(2026, 10, 15)),
+      ];
+      final f = ForecastService.build(fresh, now: DateTime(2026, 10, 21))!;
+      // 200 € over 21 known days, times 11 days left: about 104 €, not 36 €
+      expect(f.paceCents, 20000 * 11 ~/ 21);
+    });
+
     test('no income history, no forecast', () {
       expect(ForecastService.build([_tx('x', 500, 'Sonstiges', now)], now: now), isNull);
     });

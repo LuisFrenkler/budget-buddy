@@ -198,8 +198,9 @@ class ContractsCard extends StatelessWidget {
 }
 
 // One contract: what it costs, its payments, and cancelling it with a ready
-// letter. After sending, the row shows "Gekündigt" and Buddy watches whether
-// the payments stop.
+// letter. Copying the letter or opening the mail app doesn't cancel anything
+// yet; only once the user says it went out does the row show "Gekündigt" and
+// Buddy watch whether the payments stop.
 class _ContractSheet extends StatefulWidget {
   final Contract contract;
   const _ContractSheet(this.contract);
@@ -219,6 +220,8 @@ class _ContractSheet extends StatefulWidget {
 class _ContractSheetState extends State<_ContractSheet> {
   final _customerNo = TextEditingController();
   bool _writing = false;
+  // the letter was copied or handed to the mail app; sent only once confirmed
+  bool _prepared = false;
 
   @override
   void dispose() {
@@ -237,13 +240,13 @@ class _ContractSheetState extends State<_ContractSheet> {
     );
   }
 
-  Future<void> _sent(String how) async {
+  Future<void> _sent() async {
     await CancellationService.markSent(widget.contract.name);
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
-        content: Text('$how. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500),
+        content: Text('Vermerkt. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
   }
 
   Future<void> _mail() async {
@@ -251,7 +254,7 @@ class _ContractSheetState extends State<_ContractSheet> {
       'subject': CancellationService.subject(widget.contract.name, _customerNo.text.trim()),
       'body': _letter,
     }));
-    if (await launchUrl(uri)) await _sent('E-Mail vorbereitet');
+    if (await launchUrl(uri) && mounted) setState(() => _prepared = true);
   }
 
   static String _query(Map<String, String> p) =>
@@ -259,7 +262,26 @@ class _ContractSheetState extends State<_ContractSheet> {
 
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: _letter));
-    await _sent('Kündigung kopiert');
+    HapticFeedback.selectionClick();
+    if (!mounted) return;
+    setState(() => _prepared = true);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        duration: Duration(milliseconds: 2400), content: Text('Kündigung kopiert. Füg sie beim Anbieter ein.')));
+  }
+
+  // a regular payment that isn't a contract (pocket money, a rent share)
+  Future<void> _notAContract() async {
+    final name = widget.contract.name;
+    await Contracts.hide(name);
+    HapticFeedback.selectionClick();
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    messenger.showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: Text('„$name“ wird nicht mehr als Vertrag gezählt'),
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () => Contracts.hide(name, hide: false)),
+    ));
   }
 
   @override
@@ -355,7 +377,24 @@ class _ContractSheetState extends State<_ContractSheet> {
                 ),
               ),
             ]),
+            if (_prepared) ...[
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: AppColors.surfaceAlt,
+                    foregroundColor: AppColors.text),
+                onPressed: _sent,
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('Ich habe sie abgeschickt'),
+              ),
+            ],
           ],
+          if (sent == null)
+            TextButton(
+              onPressed: _notAContract,
+              child: Text('Kein Vertrag? Nicht mehr mitzählen', style: TextStyle(color: AppColors.textDim)),
+            ),
         ]),
       ),
     );

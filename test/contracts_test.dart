@@ -49,6 +49,36 @@ void main() {
     expect(Contracts.monthlyTotal([c]), 1199);
   });
 
+  test('a big price rise is reported, not hidden', () {
+    final tx = [
+      for (int m = 6; m <= 9; m++) _t('Netflix', 1399, DateTime(2026, m, 12)),
+      _t('Netflix', 1799, DateTime(2026, 10, 12)),
+    ];
+    final c = Contracts.detect(tx, now: now).single;
+    expect(c.priceChange, 400);
+    expect(c.monthlyCents, 1799);
+  });
+
+  test('one skipped debit does not end a contract', () {
+    final tx = [
+      _t('Fitness', 3490, DateTime(2026, 6, 5)),
+      _t('Fitness', 3490, DateTime(2026, 7, 5)),
+      // August skipped, September carries on
+      _t('Fitness', 3490, DateTime(2026, 9, 5)),
+      _t('Fitness', 3490, DateTime(2026, 10, 5)),
+    ];
+    expect(Contracts.detect(tx, now: now).single.name, 'Fitness');
+  });
+
+  test('an old irregularity is forgiven, a recent one is not', () {
+    final old = [
+      _t('Handy', 1500, DateTime(2026, 1, 3)),
+      _t('Handy', 1500, DateTime(2026, 1, 20)), // years ago a duplicate
+      for (int m = 2; m <= 10; m++) _t('Handy', 1500, DateTime(2026, m, 3)),
+    ];
+    expect(Contracts.detect(old, now: now).single.name, 'Handy');
+  });
+
   test('next date stays inside short months', () {
     final tx = [for (int m = 8; m <= 10; m++) _t('Miete', 89000, DateTime(2026, m, m == 9 ? 30 : 31))];
     final c = Contracts.detect(tx, now: DateTime(2026, 11, 1)).single;

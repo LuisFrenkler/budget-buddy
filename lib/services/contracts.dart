@@ -1,6 +1,12 @@
 // Finds contracts and subscriptions in the bookings: payments to the same
 // counterparty, about once a month, for about the same amount (rent, phone,
 // streaming, gym, ...). Works on bank imports and manual entries alike.
+//
+// Real life is a little messy, so the rules look at how a payment behaves
+// lately: the latest amount may jump (that is the price rise worth reporting),
+// one skipped debit doesn't end a contract, and the user can say "kein
+// Vertrag" for a regular payment that isn't one (pocket money, a rent share).
+import 'package:hive/hive.dart';
 import '../models/transaction.dart';
 
 class Contract {
@@ -27,15 +33,30 @@ class Contract {
 }
 
 class Contracts {
-  // how far amounts of one contract may differ from their median (15 %)
+  // how far earlier amounts of one contract may differ from their median (15 %)
   static const _tolerance = 0.15;
+  // how far the latest amount may move: a price rise, not a different purchase
+  static const _latestTolerance = 0.6;
+
+  // regular payments the user marked as "kein Vertrag"
+  static Set<String> get hidden {
+    if (!Hive.isBoxOpen('settings')) return const {};
+    return ((Hive.box('settings').get('contractsHidden') as List?) ?? const []).cast<String>().toSet();
+  }
+
+  static Future<void> hide(String name, {bool hide = true}) async {
+    final set = {...hidden};
+    hide ? set.add(name.toLowerCase().trim()) : set.remove(name.toLowerCase().trim());
+    await Hive.box('settings').put('contractsHidden', set.toList());
+  }
 
   static List<Contract> detect(List<Transaction> tx, {DateTime? now}) {
     final today = now ?? DateTime.now();
+    final skip = hidden;
     final groups = <String, List<Transaction>>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
-      if (t.isIncome || name.isEmpty) continue;
+      if (t.isIncome || name.isEmpty || skip.contains(name.toLowerCase())) continue;
       groups.putIfAbsent(name.toLowerCase(), () => []).add(t);
     }
 
@@ -55,19 +76,25 @@ class Contracts {
 
   static int monthlyTotal(List<Contract> contracts) => contracts.fold(0, (sum, c) => sum + c.monthlyCents);
 
-  // one payment per month with gaps of roughly a month
+  // lately one payment per month: the last three gaps are about a month,
+  // one of them may be two (a debit the bank skipped or merged)
   static bool _monthly(List<Transaction> p) {
-    for (int i = 1; i < p.length; i++) {
+    var doubles = 0;
+    for (int i = p.length - 1; i >= 1 && i >= p.length - 3; i--) {
       final gap = p[i].date.difference(p[i - 1].date).inDays;
-      if (gap < 25 || gap > 36) return false;
+      if (gap >= 25 && gap <= 36) continue;
+      if (gap >= 52 && gap <= 70 && ++doubles == 1) continue;
+      return false;
     }
     return true;
   }
 
+  // the earlier payments agree; the latest may have moved (a price change)
   static bool _steadyAmount(List<Transaction> p) {
-    final amounts = [for (final t in p) t.amountCents]..sort();
-    final median = amounts[amounts.length ~/ 2];
+    final before = [for (final t in p.sublist(0, p.length - 1)) t.amountCents]..sort();
+    final median = before[before.length ~/ 2];
     if (median <= 0) return false;
-    return amounts.every((a) => (a - median).abs() <= median * _tolerance);
+    if (!before.every((a) => (a - median).abs() <= median * _tolerance)) return false;
+    return (p.last.amountCents - median).abs() <= median * _latestTolerance;
   }
 }

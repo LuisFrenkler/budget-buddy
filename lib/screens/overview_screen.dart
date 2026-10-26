@@ -161,7 +161,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     ..._netWorth(tx, cash, depotNow),
                   const SizedBox(height: 28),
                   _accountsCard(tx, cash, depotNow),
-                  ..._forecast(tx),
+                  ..._forecast(tx, cash),
                   const SizedBox(height: 16),
                   const BuddyCard(),
                   ..._weekly(tx),
@@ -209,9 +209,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  // what is still free this month; needs some income history
-  List<Widget> _forecast(List<Transaction> tx) {
-    final f = ForecastService.build(tx, goals: GoalsService.all());
+  // what is still free this month; needs some income history. With a known
+  // balance it never promises more than the account holds.
+  List<Widget> _forecast(List<Transaction> tx, int cash) {
+    final f = ForecastService.build(tx,
+        goals: GoalsService.all(), balanceCents: OnboardingService.balanceKnown ? cash : null);
     if (f == null) return [];
     return [const SizedBox(height: 16), ForecastCard(f)];
   }
