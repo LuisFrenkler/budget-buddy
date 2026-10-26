@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import '../services/db.dart';
 import '../services/recap_service.dart';
 import '../utils/dates.dart';
@@ -10,6 +9,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/recap_story.dart';
 
 // The month as a story: a few full-screen cards that turn by themselves,
 // tap right for the next, left for the previous, and a share at the end.
@@ -89,14 +89,9 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
       'Und dein Monat? 👉 BudgetBuddy',
     ];
     final text = parts.join('\n');
-    try {
-      await Share.share(text);
-    } catch (_) {
-      await Clipboard.setData(ClipboardData(text: text));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Text kopiert, füg ihn in deine Story ein')));
-      }
-    }
+    // the story waits while the share sheet is open
+    _timer.stop();
+    await showStoryShare(context, r, fallbackText: text);
   }
 
   @override
@@ -260,7 +255,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
         top: const BrandMark(size: 72),
         kicker: 'Das war dein',
         big: '$_monthName.',
-        small: 'Teil deinen Rückblick, ohne Beträge, nur Prozente.',
+        small: 'Teil deinen Monat als Story, ohne Beträge, nur Prozente.',
         bottom: Column(children: [
           FilledButton.icon(
             style: FilledButton.styleFrom(
@@ -270,7 +265,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
             ),
             onPressed: _share,
             icon: const Icon(Icons.ios_share_rounded),
-            label: const Text('Rückblick teilen', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            label: const Text('Als Story teilen', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ),
           const SizedBox(height: 10),
           TextButton(

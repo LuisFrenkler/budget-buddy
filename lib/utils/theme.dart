@@ -136,9 +136,11 @@ class AppTheme {
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected) ? Colors.white : AppColors.textDim),
+      // the off track gets an outline, so the switch reads as one on any card
       trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected) ? AppColors.primary : AppColors.surfaceAlt),
-      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? Colors.transparent : AppColors.textDim.withValues(alpha: 0.5)),
     ),
 
     // floating snackbars above the navigation bar

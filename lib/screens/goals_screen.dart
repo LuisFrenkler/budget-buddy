@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/goal.dart';
+import '../services/auto_save.dart';
 import '../services/buddy_service.dart';
+import '../services/db.dart';
 import '../services/goals_service.dart';
 import '../services/plus_service.dart';
 import '../utils/dates.dart';
@@ -138,7 +140,9 @@ class GoalCard extends StatelessWidget {
           ]),
         ),
         if (!goal.reached) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          _autoRow(context),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
@@ -151,6 +155,45 @@ class GoalCard extends StatelessWidget {
           ),
         ],
       ]),
+    );
+  }
+
+  // "Automatisch sparen": what is switched on, tap to change
+  Widget _autoRow(BuildContext context) {
+    final parts = [
+      if (goal.monthlyCents > 0) '${Money.format(goal.monthlyCents)} im Monat',
+      if (goal.roundUp) 'Aufrunden',
+    ];
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: AppColors.surface,
+          showDragHandle: true,
+          builder: (_) => _AutoSaveSheet(goal),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+          child: Row(children: [
+            Icon(goal.automated ? Icons.bolt_rounded : Icons.bolt_outlined,
+                size: 20, color: goal.automated ? AppColors.positive : AppColors.textDim),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                goal.automated ? 'Automatisch: ${parts.join(' · ')}' : 'Automatisch sparen einrichten',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.5,
+                    color: goal.automated ? AppColors.text : AppColors.primary),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textDim),
+          ]),
+        ),
+      ),
     );
   }
 
@@ -395,6 +438,110 @@ class _NewGoalState extends State<_NewGoal> {
           ),
           onPressed: (cents ?? 0) > 0 && _name.text.trim().isNotEmpty ? _save : null,
           child: const Text('Ziel anlegen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ),
+      ]),
+    );
+  }
+}
+
+// Sets up saving on autopilot for one goal.
+class _AutoSaveSheet extends StatefulWidget {
+  final Goal goal;
+  const _AutoSaveSheet(this.goal);
+
+  @override
+  State<_AutoSaveSheet> createState() => _AutoSaveSheetState();
+}
+
+class _AutoSaveSheetState extends State<_AutoSaveSheet> {
+  late bool _roundUp = widget.goal.roundUp;
+  late final _monthly = TextEditingController(
+      text: widget.goal.monthlyCents > 0 ? '${widget.goal.monthlyCents ~/ 100}' : _suggestion());
+  late final int _estimate = AutoSave.roundUpEstimate(DB.getTx(), DateTime.now());
+
+  // what the deadline needs, else a tenth of the usual surplus, in full 10 €
+  String _suggestion() {
+    final need = widget.goal.monthlyNeeded(DateTime.now()) ?? (_surplus() ~/ 10);
+    if (need <= 0) return '';
+    return '${((need / 1000).ceil() * 10)}';
+  }
+
+  @override
+  void dispose() {
+    _monthly.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final g = widget.goal;
+    final cents = Money.parseToCents(_monthly.text) ?? 0;
+    final wasRounding = g.roundUp;
+    g.monthlyCents = cents < 0 ? 0 : cents;
+    g.roundUp = _roundUp;
+    // rounding starts with today's bookings, not the whole history
+    if (_roundUp && !wasRounding) {
+      g.roundUpSince = DateTime.now();
+      g.roundedIds = [];
+    }
+    await GoalsService.save(g);
+    final added = await AutoSave.run();
+    HapticFeedback.mediumImpact();
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(g.automated
+            ? '${g.name} spart jetzt automatisch${added > 0 ? ' · ${Money.format(added)} schon dazu' : ''}'
+            : 'Automatisches Sparen aus')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('${widget.goal.emoji} ${widget.goal.name} automatisch füllen',
+            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 16),
+        Text('Jeden Monat', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _monthly,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          decoration: InputDecoration(
+            hintText: '0',
+            suffixText: '€ am Monatsanfang',
+            suffixStyle: TextStyle(fontSize: 14, color: AppColors.textDim, fontWeight: FontWeight.w600),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Container(
+          decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+          child: SwitchListTile(
+            value: _roundUp,
+            onChanged: (v) => setState(() => _roundUp = v),
+            title: const Text('Ausgaben aufrunden', style: TextStyle(fontWeight: FontWeight.w700)),
+            subtitle: Text(
+                'Kaffee 3,20 € → 0,80 € fürs Ziel.${_estimate > 0 ? ' Bei dir wären das etwa ${Money.format(_estimate)} im Monat.' : ''}',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textDim),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+                'BudgetBuddy zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen '
+                'Dauerauftrag auf dein Sparkonto ein.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
+          ),
+        ]),
+        const SizedBox(height: 18),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          onPressed: _save,
+          child: const Text('Speichern', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );

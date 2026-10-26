@@ -90,7 +90,8 @@ class ForecastService {
 
     final goalsMonthly = goals
         .where((g) => !g.reached)
-        .map((g) => g.monthlyNeeded(today) ?? 0)
+        // a fixed monthly amount the user chose wins over the computed need
+        .map((g) => g.monthlyCents > 0 ? g.monthlyCents : (g.monthlyNeeded(today) ?? 0))
         .fold<int>(0, (s, v) => s + v);
 
     final spent = tx

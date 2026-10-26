@@ -33,6 +33,7 @@ import '../widgets/getting_started.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
 import '../services/notification_service.dart';
+import '../services/auto_save.dart';
 import '../services/weekly_report.dart';
 import 'weekly_report_screen.dart';
 import 'profile_screen.dart';
@@ -126,6 +127,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           final empty = tx.isEmpty && depotNow == 0;
           // data changed: hints and reminders may have, too
           NotificationService.syncSoon();
+          AutoSave.runSoon();
 
           return SafeArea(
             bottom: false,

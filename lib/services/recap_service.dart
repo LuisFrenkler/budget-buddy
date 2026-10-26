@@ -2,6 +2,7 @@
 // it went, the favourite merchant, the savings rate and the change against
 // the month before.
 import '../models/transaction.dart';
+import 'contracts.dart';
 
 class MonthRecap {
   final DateTime month;
@@ -49,6 +50,10 @@ class RecapService {
     bool inMonth(Transaction t, DateTime m) => t.date.year == m.year && t.date.month == m.month;
     final these = tx.where((t) => inMonth(t, month)).toList();
     if (these.isEmpty) return null;
+    final fixed = {
+      for (final c in Contracts.detect(tx, now: DateTime(month.year, month.month + 1, 0)))
+        for (final p in c.payments) p.id
+    };
     final prev = DateTime(month.year, month.month - 1);
 
     int income = 0, expenses = 0;
@@ -61,6 +66,8 @@ class RecapService {
         continue;
       }
       expenses += t.amountCents;
+      // rent and subscriptions are no surprise: the highlights are about the rest
+      if (fixed.contains(t.id)) continue;
       byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amountCents;
       final day = DateTime(t.date.year, t.date.month, t.date.day);
       byDay[day] = (byDay[day] ?? 0) + t.amountCents;

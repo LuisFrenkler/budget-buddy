@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:budget_buddy/models/budget.dart';
 import 'package:budget_buddy/models/goal.dart';
 import 'package:budget_buddy/models/transaction.dart';
+import 'package:budget_buddy/services/auto_save.dart';
 import 'package:budget_buddy/services/cancellation_service.dart';
 import 'package:budget_buddy/services/category_rules.dart';
 import 'package:budget_buddy/services/contracts.dart';
@@ -133,6 +134,50 @@ void main() {
       await DB.addBudget(Budget(
           category: 'Lebensmittel', limitCents: 25000, startDate: DateTime(2026, 12, 1), endDate: DateTime(2026, 12, 31)));
       expect(await DB.rollOverBudgets(now: DateTime(2027, 1, 5)), 1);
+    });
+  });
+
+  group('Saving on autopilot', () {
+    Goal goal() => Goal(id: 'g', name: 'Urlaub', emoji: '🏖', targetCents: 10000, createdAt: DateTime(2026, 1, 1));
+
+    test('round-up per booking', () {
+      expect(AutoSave.roundUpOf(320), 80);
+      expect(AutoSave.roundUpOf(1999), 1);
+      expect(AutoSave.roundUpOf(500), 0);
+    });
+
+    test('monthly amount once per month, round-ups once per booking, never past the target', () {
+      final g = goal()
+        ..monthlyCents = 5000
+        ..roundUp = true
+        ..roundUpSince = DateTime(2026, 10, 10);
+      final tx = [
+        _tx('old', 310, 'Essen & Trinken', DateTime(2026, 10, 1)), // before switching on
+        _tx('a', 320, 'Essen & Trinken', DateTime(2026, 10, 12)),
+        _tx('b', 1450, 'Lebensmittel', DateTime(2026, 10, 13)),
+        _tx('in', 250000, 'Gehalt', DateTime(2026, 10, 14), income: true),
+      ];
+      expect(AutoSave.apply(g, tx, DateTime(2026, 10, 20)), 5000 + 80 + 50);
+      // again the same day: nothing new
+      expect(AutoSave.apply(g, tx, DateTime(2026, 10, 21)), 0);
+      // next month: the monthly amount, capped at the target
+      expect(AutoSave.apply(g, tx, DateTime(2026, 11, 2)), 10000 - 5130);
+      expect(g.reached, isTrue);
+      expect(AutoSave.apply(g, tx, DateTime(2026, 12, 2)), 0);
+    });
+
+    test('the settings survive saving', () {
+      final g = goal()
+        ..monthlyCents = 2500
+        ..roundUp = true
+        ..roundUpSince = DateTime(2026, 10, 10)
+        ..roundedIds.add('x');
+      final back = Goal.fromMap(Map<String, dynamic>.from(g.toMap()));
+      expect(back.monthlyCents, 2500);
+      expect(back.roundUp, isTrue);
+      expect(back.roundUpSince, DateTime(2026, 10, 10));
+      expect(back.roundedIds, ['x']);
+      expect(Goal.fromMap({'id': 'o', 'name': 'Alt', 'targetCents': 100, 'createdAt': 0}).automated, isFalse);
     });
   });
 }
