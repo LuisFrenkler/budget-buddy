@@ -89,7 +89,7 @@ class AccountSettingsScreen extends StatelessWidget {
         ]),
         const SectionLabel('Konto'),
         SettingsGroup([
-          SettingsRow(icon: Icons.logout_rounded, title: 'Abmelden', onTap: () => _logout(context)),
+          SettingsRow(icon: Icons.logout_rounded, title: 'Abmelden', onTap: () => logout(context)),
           SettingsRow(
             icon: Icons.person_remove_rounded,
             title: 'Konto löschen',
@@ -122,7 +122,7 @@ class AccountSettingsScreen extends StatelessWidget {
     }
   }
 
-  Future<bool> _confirm(BuildContext context, String title, String text, String action) async {
+  static Future<bool> _confirm(BuildContext context, String title, String text, String action) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -142,9 +142,11 @@ class AccountSettingsScreen extends StatelessWidget {
     return ok == true;
   }
 
-  Future<void> _logout(BuildContext context) async {
+  // also on Profil, where people look for it first
+  static Future<void> logout(BuildContext context) async {
     if (!await _confirm(context, 'Abmelden?',
-        'Deine Daten bleiben auf diesem Gerät, aber nur für dich: Zum Öffnen meldest du dich wieder an.',
+        'Deine Daten sind in deinem Konto gesichert. Hier und auf jedem anderen Gerät öffnest du sie, '
+            'sobald du dich wieder anmeldest.',
         'Abmelden')) {
       return;
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/sync_pill.dart';
 import '../models/transaction.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
@@ -86,7 +87,7 @@ class _AccountScreenState extends State<AccountScreen> {
             child: RefreshIndicator(
               color: AppColors.primary,
               notificationPredicate: (_) => Settings.bankState.isNotEmpty,
-              onRefresh: () => _SyncPill.sync(context),
+              onRefresh: () => _syncBank(context),
               child: CustomScrollView(
                 slivers: [
                   SliverPadding(
@@ -99,7 +100,10 @@ class _AccountScreenState extends State<AccountScreen> {
                             const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                             const Spacer(),
                             if (Settings.bankState.isNotEmpty)
-                              const _SyncPill()
+                              SyncPill(
+                                  label: Settings.bankName,
+                                  last: Settings.lastSync,
+                                  onSync: () => _syncBank(context))
                             else
                               // kept by hand: the real balance can be set any time
                               TextButton.icon(
@@ -367,69 +371,16 @@ class _DayGroup {
   _DayGroup(this.day);
 }
 
-// Small "ING · vor 3 Min." button next to the title of a linked account;
-// tapping it fetches new bookings.
-class _SyncPill extends StatefulWidget {
-  const _SyncPill();
-
-  // syncs and reports the outcome; shared with pull-to-refresh
-  static Future<void> sync(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    String text;
-    try {
-      final added = await BankSync.run();
-      text = added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}';
-    } catch (_) {
-      text = 'Bank gerade nicht erreichbar';
-    }
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
+// what a sync brought, in one sentence; shared with pull-to-refresh
+Future<void> _syncBank(BuildContext context) async {
+  final messenger = ScaffoldMessenger.of(context);
+  String text;
+  try {
+    final added = await BankSync.run();
+    text = added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}';
+  } catch (_) {
+    text = 'Bank gerade nicht erreichbar';
   }
-
-  @override
-  State<_SyncPill> createState() => _SyncPillState();
-}
-
-class _SyncPillState extends State<_SyncPill> {
-  bool _busy = false;
-
-  String get _when {
-    final last = Settings.lastSync;
-    if (last == null) return '';
-    final d = DateTime.now().difference(last);
-    if (d.inMinutes < 1) return ' · jetzt';
-    if (d.inMinutes < 60) return ' · ${d.inMinutes} Min.';
-    if (d.inHours < 24) return ' · ${d.inHours} Std.';
-    return ' · ${Dates.dayMonth(last)}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: _busy
-            ? null
-            : () async {
-                HapticFeedback.selectionClick();
-                setState(() => _busy = true);
-                await _SyncPill.sync(context);
-                if (mounted) setState(() => _busy = false);
-              },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            _busy
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                : Icon(Icons.sync_rounded, size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text('${Settings.bankName}$_when',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim)),
-          ]),
-        ),
-      ),
-    );
-  }
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
 }

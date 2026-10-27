@@ -17,7 +17,19 @@ import '../legal/legal_texts.dart';
 class BuddyScreen extends StatefulWidget {
   // asked right away, e.g. from a suggestion on the home screen
   final String? question;
-  const BuddyScreen({super.key, this.question});
+  // the Buddy tab of the app shell: the one chat the rest of the app talks to
+  final bool tab;
+  const BuddyScreen({super.key, this.question, this.tab = false});
+
+  // a question for the Buddy tab ('' just opens it); the shell switches to the tab
+  static final ask = ValueNotifier<String?>(null);
+
+  // from anywhere: back to the shell and on into the Buddy chat
+  static void open(BuildContext context, [String? question]) {
+    HapticFeedback.selectionClick();
+    Navigator.popUntil(context, (r) => r.isFirst);
+    ask.value = question ?? '';
+  }
 
   static const suggestions = [
     (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
@@ -47,11 +59,23 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (!mounted) return;
       setState(() => _live = v);
       if (widget.question != null) _send(widget.question!);
+      if (widget.tab) _asked();
     });
+    if (widget.tab) BuddyScreen.ask.addListener(_asked);
+  }
+
+  void _asked() {
+    final q = BuddyScreen.ask.value;
+    // until Buddy knows whether it is online, the question waits (initState asks again)
+    if (q == null || _live == null) return;
+    // cleared after this round, so the shell sees the question too
+    WidgetsBinding.instance.addPostFrameCallback((_) => BuddyScreen.ask.value = null);
+    if (q.isNotEmpty) _send(q);
   }
 
   @override
   void dispose() {
+    if (widget.tab) BuddyScreen.ask.removeListener(_asked);
     _sub?.cancel();
     _input.dispose();
     _scroll.dispose();
@@ -187,7 +211,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
+        // without a back button the tab's title keeps the page margin
+        titleSpacing: widget.tab ? 20 : 0,
         title: Row(children: [
           BuddyOrb(size: 30, active: _thinking),
           const SizedBox(width: 12),
@@ -549,10 +574,7 @@ class _BuddyCardState extends State<BuddyCard> {
     super.dispose();
   }
 
-  void _open([String? question]) {
-    HapticFeedback.selectionClick();
-    Navigator.push(context, MaterialPageRoute(builder: (_) => BuddyScreen(question: question)));
-  }
+  void _open([String? question]) => BuddyScreen.open(context, question);
 
   @override
   Widget build(BuildContext context) {

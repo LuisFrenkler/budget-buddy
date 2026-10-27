@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/sync_pill.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
 import '../services/account_service.dart';
@@ -81,6 +82,17 @@ class _OverviewScreenState extends State<OverviewScreen> {
   void dispose() {
     Hive.box('holdings').listenable().removeListener(_loadDepot);
     super.dispose();
+  }
+
+  // the oldest of the fetched numbers behind the total: the bank's bookings
+  // and the live prices; null when nothing comes from outside
+  DateTime? _fetchedAt() {
+    final times = [
+      if (Settings.bankState.isNotEmpty && Settings.lastSync != null) Settings.lastSync!,
+      for (final h in DB.getHoldings())
+        if (h.priceAt != null) h.priceAt!,
+    ];
+    return times.isEmpty ? null : times.reduce((a, b) => a.isBefore(b) ? a : b);
   }
 
   // pull to refresh: new bank bookings and current prices in one go
@@ -479,14 +491,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ),
     ];
     return [
-      ChartHeader(
-        label: 'Gesamtvermögen',
-        cents: cash + depotNow,
-        startCents: points.isEmpty ? cash + depotNow : points.first.cents,
-        period: _periods[_range]!,
-        scrubbing: _scrub,
-        startDate: points.isEmpty ? null : points.first.date,
-      ),
+      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+          child: ChartHeader(
+            label: 'Gesamtvermögen',
+            cents: cash + depotNow,
+            startCents: points.isEmpty ? cash + depotNow : points.first.cents,
+            period: _periods[_range]!,
+            scrubbing: _scrub,
+            startDate: points.isEmpty ? null : points.first.date,
+          ),
+        ),
+        SyncPill(last: _fetchedAt(), onSync: _refresh),
+      ]),
       const SizedBox(height: 16),
       InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),

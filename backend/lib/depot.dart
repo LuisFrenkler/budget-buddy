@@ -150,7 +150,7 @@ class ParqetConnect implements DepotProvider {
     });
     // the brokers behind the portfolios for display, e.g. "Trade Republic"
     // (performance holdings do not say which portfolio they belong to)
-    final broker = {for (final p in portfolios) ...((p['distinctBrokers'] as List?) ?? const []).map((b) => '$b')}
+    final broker = {for (final p in portfolios) ...((p['distinctBrokers'] as List?) ?? const []).map((b) => brokerName('$b'))}
         .join(', ');
     final out = <DepotPosition>[];
     for (final h in (perf['holdings'] as List? ?? []).cast<Map>()) {
@@ -231,6 +231,13 @@ class ParqetConnect implements DepotProvider {
     if (shares < 1e-6) return (shares: 0, buyPrice: 0);
     return (shares: shares, buyPrice: cost / shares);
   }
+
+  // Parqet's ids ("trade_republic") as people write them ("Trade Republic")
+  static String brokerName(String id) => id
+      .split(RegExp(r'[_\s]+'))
+      .where((w) => w.isNotEmpty)
+      .map((w) => w[0].toUpperCase() + w.substring(1))
+      .join(' ');
 
   // the chart's "history" is the depot value at the end of each day
   static List<(DateTime, int)> _history(List charts) {
