@@ -46,9 +46,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static String _linkedText() {
     final linked = [
       if (Settings.bankName.isNotEmpty) Settings.bankName,
-      if (Settings.depotState.isNotEmpty) 'Depot',
+      for (final l in Settings.extraBanks) l.bank,
+      if (Settings.depotState.isNotEmpty) Settings.depotBroker.isNotEmpty ? Settings.depotBroker : 'Depot',
     ];
-    return linked.isEmpty ? 'Umsätze und Depot kommen automatisch' : '${linked.join(' und ')} verbunden';
+    return linked.isEmpty ? 'ING, Sparkasse, Trade Republic & Co. verbinden' : '${linked.join(', ')} verbunden';
   }
 
   @override
@@ -150,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _group([
                 _row(
                     Icons.account_balance_rounded,
-                    'Bank & Depot verbinden',
+                    'Banken & Depots',
                     _linkedText(),
                     _openConnections),
                 _row(Icons.receipt_long_rounded, 'Verträge & Abos', 'Erkannt, mit Kündigung per Tipp',

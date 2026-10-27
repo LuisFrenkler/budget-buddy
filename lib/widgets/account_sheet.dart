@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/money_account.dart';
+import '../screens/connections_screen.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
 import '../utils/money.dart';
@@ -93,6 +94,22 @@ class _AccountSheetState extends State<_AccountSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(_isNew ? 'Konto hinzufügen' : a!.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        // no dead end: an account at a bank is better linked than typed in
+        if (_isNew)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              onPressed: () {
+                // the sheet's context is gone after the pop: keep the navigator
+                final nav = Navigator.of(context);
+                nav.pop();
+                nav.push(MaterialPageRoute(builder: (_) => const ConnectionsScreen(start: 'bank')));
+              },
+              icon: const Icon(Icons.link_rounded, size: 18),
+              label: const Text('Lieber mit der Bank verbinden'),
+            ),
+          ),
         if (a?.link != null) ...[
           const SizedBox(height: 6),
           Text('Wird über ${a!.bank ?? 'deine Bank'} abgeglichen.', style: TextStyle(color: AppColors.textDim)),
