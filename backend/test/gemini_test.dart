@@ -50,7 +50,7 @@ void main() {
     expect(Ai('').enabled, isFalse);
     final g = Ai('', geminiKey: 'k');
     expect(g.enabled, isTrue);
-    expect(g.name, 'Gemini (gemini-2.5-flash)');
+    expect(g.name, 'Gemini (gemini-3.5-flash)');
     expect(Ai('sk', geminiKey: 'k').name, 'Claude');
   });
 }
