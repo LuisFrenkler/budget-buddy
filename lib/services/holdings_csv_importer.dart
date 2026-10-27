@@ -56,7 +56,11 @@ class HoldingsCsvImporter {
       final type = _types.firstWhere(
           (t) => t.toLowerCase() == rawType, orElse: () => 'Aktie');
 
-      final shares = double.tryParse(parts[3].trim().replaceAll(',', '.'));
+      // "1.234,5" is German with a thousands dot; without a comma a dot is
+      // the decimal point, so crypto amounts like 0.001 stay what they are
+      final rawShares = parts[3].trim();
+      final shares = double.tryParse(
+          rawShares.contains(',') ? rawShares.replaceAll('.', '').replaceAll(',', '.') : rawShares);
       if (shares == null || shares <= 0) return null;
 
       final buyCents = Money.parseToCents(parts[4]);

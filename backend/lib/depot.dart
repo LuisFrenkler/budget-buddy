@@ -12,7 +12,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
+import 'net.dart';
 
 class DepotPosition {
   final String id; // stable across syncs (ISIN or crypto symbol)
@@ -104,7 +104,7 @@ class ParqetConnect implements DepotProvider {
       }).toString();
 
   Future<DepotTokens> _token(Map<String, String> form) async {
-    final res = await http.post(Uri.parse('$_base/oauth2/token'), body: {
+    final res = await net.post(Uri.parse('$_base/oauth2/token'), body: {
       ...form,
       'client_id': clientId,
       if (clientSecret.isNotEmpty) 'client_secret': clientSecret,
@@ -132,8 +132,8 @@ class ParqetConnect implements DepotProvider {
     final headers = {'Authorization': 'Bearer ${t.access}', 'Content-Type': 'application/json'};
     final uri = Uri.parse('$_base$path');
     final res = method == 'GET'
-        ? await http.get(uri, headers: headers)
-        : await http.post(uri, headers: headers, body: jsonEncode(body));
+        ? await net.get(uri, headers: headers)
+        : await net.post(uri, headers: headers, body: jsonEncode(body));
     if (res.statusCode == 401) throw const DepotAuthExpired();
     if (res.statusCode != 200) throw Exception('Parqet antwortet gerade nicht (${res.statusCode})');
     return jsonDecode(res.body) as Map<String, dynamic>;
@@ -272,7 +272,7 @@ class SymbolLookup {
     final hit = _cache[isin];
     if (hit != null) return hit;
     try {
-      final res = await http.get(
+      final res = await net.get(
         Uri.parse('https://query2.finance.yahoo.com/v1/finance/search?q=$isin&quotesCount=10&newsCount=0'),
         headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
       );

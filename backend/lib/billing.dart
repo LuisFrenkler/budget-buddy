@@ -15,7 +15,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
+import 'net.dart';
 
 // what the app needs to know about one user's Plus
 class Entitlement {
@@ -136,9 +136,9 @@ class StripeBilling implements Billing {
     final headers = {'Authorization': 'Bearer $secretKey'};
     final uri = Uri.parse('$_base$path');
     final res = switch (method) {
-      'GET' => await http.get(uri, headers: headers),
-      'DELETE' => await http.delete(uri, headers: headers),
-      _ => await http.post(uri, headers: headers, body: form),
+      'GET' => await net.get(uri, headers: headers),
+      'DELETE' => await net.delete(uri, headers: headers),
+      _ => await net.post(uri, headers: headers, body: form),
     };
     final body = jsonDecode(res.body) as Map<String, dynamic>;
     if (res.statusCode >= 300) {
