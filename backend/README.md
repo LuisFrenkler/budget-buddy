@@ -16,6 +16,10 @@ Keys go into `backend/.env` (git-ignored). Copy `.env.example` to `.env` and
 fill in what you use; environment variables with the same name take precedence.
 Restart the server after a change.
 
+The server listens on localhost only. In production put a reverse proxy
+(Caddy, nginx) in front that adds the client address to `X-Forwarded-For`:
+the login and sign-up limits per address read it.
+
 ## Quick start (demo bank, no account needed)
 
 ```bash
