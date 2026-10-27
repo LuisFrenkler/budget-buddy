@@ -135,7 +135,8 @@ final _splits = SharedSplits(File('$_dataDir/splits.json'));
 final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
 
 // AI calls cost money: at most this many per user and day
-const _aiDailyLimit = 150;
+// about 5 cents a day at most per person with Haiku
+const _aiDailyLimit = 50;
 final _aiUsage = <String, ({String day, int count})>{};
 
 Future<void> main() async {
