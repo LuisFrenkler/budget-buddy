@@ -57,10 +57,18 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
     // the snapshot goes into the first user turn, so the system prompt stays cacheable
     final messages = <Map<String, dynamic>>[];
+    // every turn is paid again with each question: a long chat keeps its
+    // first question (it carries the finances) and the latest 20 turns
+    if (history.length > 21) {
+      var tail = history.sublist(history.length - 20);
+      if (tail.first['role'] != 'assistant') tail = tail.sublist(1);
+      history = [history.first, ...tail];
+    }
     for (int i = 0; i < history.length; i++) {
       final m = history[i];
       final role = m['role'] == 'assistant' ? 'assistant' : 'user';
       var text = '${m['text'] ?? ''}';
+      if (text.length > 4000) text = text.substring(0, 4000);
       if (i == 0 && role == 'user') {
         text = 'Meine Finanzen (Stand heute):\n${jsonEncode(finances)}\n\nMeine Frage: $text';
       }
