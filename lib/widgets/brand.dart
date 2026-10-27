@@ -31,18 +31,19 @@ class BrandMark extends StatelessWidget {
 class _MarkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // same geometry as assets/icon/icon.png, on a 1024 grid
+    // same geometry as assets/icon/icon.png, on a 1024 grid; the glyph's
+    // extent (277..747) is centred on 512
     final s = size.width / 1024;
     final paint = Paint()..color = Colors.white;
     const w = 118.0;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(322 * s, 210 * s, w * s, 602 * s), Radius.circular(w / 2 * s)),
+      RRect.fromRectAndRadius(Rect.fromLTWH(277 * s, 210 * s, w * s, 602 * s), Radius.circular(w / 2 * s)),
       paint,
     );
     final ring = Path()
       ..fillType = PathFillType.evenOdd
-      ..addOval(Rect.fromCircle(center: Offset(574 * s, 594 * s), radius: 218 * s))
-      ..addOval(Rect.fromCircle(center: Offset(574 * s, 594 * s), radius: 104 * s));
+      ..addOval(Rect.fromCircle(center: Offset(529 * s, 594 * s), radius: 218 * s))
+      ..addOval(Rect.fromCircle(center: Offset(529 * s, 594 * s), radius: 104 * s));
     canvas.drawPath(ring, paint);
   }
 
