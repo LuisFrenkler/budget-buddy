@@ -25,7 +25,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 10 | Schnell erfassen | Nach „Speichern“ kann die KI Betrag/Kategorie noch ändern | ✅ |
 | 11 | Depot | Position löschen schließt vermutlich zwei Screens (schwarzer Bildschirm) | ✅ |
 | 12 | Depot | Bearbeiten rundet die Stückzahl auf 4 Stellen (0,123456 BTC → 0,1235) | ✅ |
-| 13 | Depot | Kurse unter 1 Cent (HBAR, DOGE) werden auf ganze Cent gerundet | ⏳ (Preis-Modell mit Bruchteil-Cent nötig) |
+| 13 | Depot | Kurse unter 1 Cent (HBAR, DOGE) werden auf ganze Cent gerundet | ✅ |
 | 14 | Depot | Kurse ohne Datum/Quelle; Referenzkurse wirken wie aktuelle | ✅ |
 | 15 | Depot | USD-Kurs wird als EUR gezeigt, wenn der Wechselkurs fehlt | ✅ |
 | 16 | Geteilt | Gruppe löschen/verlassen ohne Rückfrage; Server-Fehler wird verschluckt | ✅ |
@@ -54,7 +54,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 34 | Erfassen | Tastatur für Beschreibung lässt den Screen überlaufen | ✅ |
 | 35 | Erfassen | Datumswähler immer dunkel, Absturz bei Buchungen vor 2020 | ✅ |
 | 36 | Daueraufträge | Startdatum in der Vergangenheit trägt still hunderte Umsätze nach | ✅ (Rückfrage) |
-| 37 | Daueraufträge | Nicht bearbeitbar; doppelt mit verbundener Bank | ⏳ |
+| 37 | Daueraufträge | Nicht bearbeitbar; doppelt mit verbundener Bank | ✅ |
 | 38 | Budgets | Limit nicht änderbar; Fehlermeldung unter dem Sheet unsichtbar | ✅ |
 | 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ⏳ |
 | 40 | Verträge | Fehlalarme (Taschengeld) nicht ausblendbar; eine verpasste Abbuchung lässt Vertrag verschwinden | ✅ |
@@ -62,18 +62,18 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ (Symbol-Feld für eigene Positionen ⏳) |
 | 43 | Depot | „1.000“ bedeutet bei Anzahl 1, beim Preis 1.000 | ✅ |
 | 44 | Depot | Synchronisierte Positionen editierbar, nächster Sync macht es rückgängig | ✅ |
-| 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | teils ✅ (Code); Begleichen-Verlauf, Mitglieder ⏳ |
+| 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | ✅ (Rückfrage, Verlauf, Rückgängig, Code); Mitglieder ändern ⏳ |
 | 46 | Sparziele | Ziele nicht bearbeitbar, Einzahlung ohne Rückgängig; Plan ignoriert Automatik und überfällige Ziele; Aufrunden doppelt gezählt | ✅ (bearbeiten, entnehmen, Rückgängig; Plan vs. Automatik ⏳) |
-| 47 | Plus | Gratis-Test versprochen, auch wenn nicht (mehr) möglich; feste Preise neben Store-Preisen | ⏳ |
+| 47 | Plus | Gratis-Test versprochen, auch wenn nicht (mehr) möglich; feste Preise neben Store-Preisen | ✅ (Google erkennt es; bei Apple entscheidet der Store-Dialog) |
 | 48 | Plus | Paywall ohne „verlängert sich automatisch“ und ohne AGB/Datenschutz-Links | ✅ |
-| 49 | Abo | „Nächste Zahlung“ falsch am 31.; Server-Datum ignoriert | ⏳ |
+| 49 | Abo | „Nächste Zahlung“ falsch am 31.; Server-Datum ignoriert | ✅ |
 | 50 | Buddy | Fehlgeschlagene Antwort verbraucht Gratis-Frage; KI-Einwilligung nicht widerrufbar | ✅ |
 | 51 | Buddy | Schlägt vorhandenes Sparziel erneut vor | ✅ |
 | 52 | Verbindungen | Spinner läuft nach Timeout ewig; Demo-Bank wirkt verbunden echt | ✅ |
 | 53 | überall | Rohe Fehlermeldungen (Exception-Text) | ✅ (die meisten Stellen) |
-| 54 | Barrierefreiheit | Keine einzige Semantics-Beschriftung; Diagramme stumm; Tap-Flächen < 44 pt | teils ✅ (Navigation, Plus-Button, Profil, Tabs, viele Tooltips) |
-| 55 | Kontrast | Grün/Rot als Text im hellen Modus 2:1 bzw. 3:1 (nötig 4,5:1) | teils ✅ (neue Textfarben, auf Start angewendet) |
-| 56 | Tempo | Diagramm-Scrubben baut die ganze Startseite neu, inkl. Prognose & Verträge | ⏳ |
+| 54 | Barrierefreiheit | Keine einzige Semantics-Beschriftung; Diagramme stumm; Tap-Flächen < 44 pt | ✅ (Navigation, Diagramme, Zeitraum-Knöpfe, Tooltips) |
+| 55 | Kontrast | Grün/Rot als Text im hellen Modus 2:1 bzw. 3:1 (nötig 4,5:1) | ✅ |
+| 56 | Tempo | Diagramm-Scrubben baut die ganze Startseite neu, inkl. Prognose & Verträge | ✅ |
 | 57 | Willkommen | Kein Zurück auf „Los geht's“, obere Hälfte leer | ✅ |
 
 ## P2 (Auswahl)
