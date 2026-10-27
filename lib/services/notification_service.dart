@@ -193,6 +193,8 @@ class NotificationService {
   static Set<String> get _shown => ((_box.get('notifiedHints') as List?) ?? const []).cast<String>().toSet();
 
   static Future<void> _markShown(Iterable<String> ids) async {
+    // writing an unchanged list would rebuild every screen that listens to settings
+    if (ids.isEmpty) return;
     final list = [..._shown, ...ids];
     await _box.put('notifiedHints', list.length > 300 ? list.sublist(list.length - 300) : list);
   }

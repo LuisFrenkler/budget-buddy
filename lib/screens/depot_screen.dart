@@ -285,7 +285,7 @@ class _DepotScreenState extends State<DepotScreen> {
                   ),
                   Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(sel == null ? 'Gesamt' : '${pct[sel]} %',
-                        style: TextStyle(fontSize: 10, color: AppColors.textDim)),
+                        style: TextStyle(fontSize: 11, color: AppColors.textDim)),
                     Text(Money.format(sel == null ? totalValue : entries[sel].value),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                   ]),

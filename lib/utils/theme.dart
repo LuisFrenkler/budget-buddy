@@ -24,6 +24,9 @@ class AppColors {
   static Color get positiveText => _d ? positive : const Color(0xFF0A7A43);
   static Color get errorText => _d ? error : const Color(0xFFC9283E);
   static Color get warningText => _d ? warning : const Color(0xFF9A5B00);
+  // the brand violet for links and small text: the fill itself reaches only
+  // about 4:1 on the cards, this stays above 4.5:1 in both modes
+  static Color get primaryText => _d ? const Color(0xFFA48BFF) : primaryDeep;
 
   // brand gradient for hero areas (onboarding, sign-in)
   static const heroBrand = [Color(0xFFA48BFF), Color(0xFF7C5CFF), Color(0xFF5B3DF5)];
@@ -127,7 +130,7 @@ class AppTheme {
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
+        foregroundColor: AppColors.primaryText,
         textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),

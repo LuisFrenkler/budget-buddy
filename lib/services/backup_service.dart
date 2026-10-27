@@ -32,8 +32,15 @@ class BackupService {
 
   // --- JSON backup / restore (all boxes) ---
 
+  // settings that change what the money adds up to; device things (theme,
+  // app lock, bank link) stay on the device
+  static const _settingKeys = [
+    'openingBalanceCents', 'balanceSet', 'categoryRules', 'budgetsStopped', 'cancellations', 'contractsHidden',
+  ];
+
   // serializes every box into a single pretty-printed JSON document
   static String toBackupJson() {
+    final settings = Hive.box('settings');
     final data = {
       'version': 1,
       'transactions': _boxMaps('transactions'),
@@ -41,6 +48,9 @@ class BackupService {
       'badges': _boxMaps('badges'),
       'holdings': _boxMaps('holdings'),
       'recurring': _boxMaps('recurring'),
+      'goals': _boxMaps('goals'),
+      'splits': _boxMaps('splits'),
+      'settings': {for (final k in _settingKeys) if (settings.containsKey(k)) k: settings.get(k)},
     };
     return const JsonEncoder.withIndent('  ').convert(data);
   }
@@ -52,31 +62,49 @@ class BackupService {
         .toList();
   }
 
-  // restores a backup, REPLACING all current data. throws on malformed input.
+  // restores a backup, REPLACING all current data. Throws on anything that
+  // is not a BudgetBuddy backup, before a single record is touched.
   static Future<void> restoreFromJson(String json) async {
-    final data = jsonDecode(json) as Map<String, dynamic>;
-
-    await _restoreBox('transactions', data['transactions'], (m) => '${m['id']}');
-    await _restoreBox(
-        'budgets', data['budgets'], (m) => '${m['category']}_${m['startDate']}');
-    await _restoreBox('badges', data['badges'], (m) => '${m['id']}');
-    await _restoreBox('holdings', data['holdings'], (m) => '${m['id']}');
-    await _restoreBox('recurring', data['recurring'], (m) => '${m['id']}');
+    final data = jsonDecode(json);
+    if (data is! Map || data['version'] != 1 || data['transactions'] is! List) {
+      throw const FormatException('Keine BudgetBuddy-Sicherung');
+    }
+    // build everything first, then replace box by box
+    final boxes = {
+      'transactions': _entries('transactions', data['transactions'], (m) => '${m['id']}'),
+      'budgets': _entries('budgets', data['budgets'], (m) => '${m['category']}_${m['startDate']}'),
+      'badges': _entries('badges', data['badges'], (m) => '${m['id']}'),
+      'holdings': _entries('holdings', data['holdings'], (m) => '${m['id']}'),
+      'recurring': _entries('recurring', data['recurring'], (m) => '${m['id']}'),
+      // older backups had no goals or splits; keep what is there then
+      if (data['goals'] is List) 'goals': _entries('goals', data['goals'], (m) => '${m['id']}'),
+      if (data['splits'] is List) 'splits': _entries('splits', data['splits'], (m) => '${m['id']}'),
+    };
+    for (final e in boxes.entries) {
+      final box = Hive.box(e.key);
+      await box.clear();
+      await box.putAll(e.value);
+    }
+    final settings = data['settings'];
+    if (settings is Map) {
+      for (final k in _settingKeys) {
+        if (settings.containsKey(k)) await Hive.box('settings').put(k, settings[k]);
+      }
+    }
   }
 
-  static Future<void> _restoreBox(
-      String name, dynamic list, String Function(Map) keyOf) async {
-    final box = Hive.box(name);
-    await box.clear();
-    if (list is! List) return;
+  static Map<String, Map<String, dynamic>> _entries(String name, dynamic list, String Function(Map) keyOf) {
+    final out = <String, Map<String, dynamic>>{};
+    if (list is! List) return out;
     for (int i = 0; i < list.length; i++) {
       try {
         final m = Map<String, dynamic>.from(list[i] as Map);
         var key = keyOf(m);
         // never collapse records onto a missing/duplicate key (data loss)
-        if (key.isEmpty || key.contains('null')) key = '${name}_$i';
-        await box.put(key, m);
+        if (key.isEmpty || key.contains('null') || out.containsKey(key)) key = '${name}_$i';
+        out[key] = m;
       } catch (_) {}
     }
+    return out;
   }
 }

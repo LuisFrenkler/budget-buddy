@@ -8,6 +8,7 @@
 // "Amount (EUR)") and a counterparty ("Empfänger", "Auftraggeber",
 // "Payee"). The category is guessed like for bank sync, and a merchant the
 // user sorted before keeps their category.
+import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import 'categorizer.dart';
@@ -140,7 +141,13 @@ class BankCsvImporter {
     final iType = _find(header, _typeNames);
 
     // what is already there, so importing the same file twice adds nothing
-    final known = {for (final t in existing) '${t.date.year}-${t.date.month}-${t.date.day}|${t.amountCents}|${t.isIncome}'};
+    // how often each booking is already there: two equal coffees on one day
+    // are two bookings, and only as many as exist count as duplicates
+    final known = <String, int>{};
+    for (final t in existing) {
+      final k = '${t.date.year}-${t.date.month}-${t.date.day}|${t.amountCents}|${t.isIncome}';
+      known[k] = (known[k] ?? 0) + 1;
+    }
     final out = <Transaction>[];
     var skipped = 0, duplicates = 0;
     for (var i = headerAt + 1; i < lines.length; i++) {
@@ -164,13 +171,13 @@ class BankCsvImporter {
       final title = party.isNotEmpty ? _tidy(party) : (purpose.isNotEmpty ? _tidy(purpose) : 'Buchung');
 
       final key = '${date.year}-${date.month}-${date.day}|${cents.abs()}|$income';
-      if (known.contains(key)) {
+      if ((known[key] ?? 0) > 0) {
+        known[key] = known[key]! - 1;
         duplicates++;
         continue;
       }
-      known.add(key);
       out.add(Transaction(
-        id: 'csv_${date.millisecondsSinceEpoch}_${cents.abs()}_${out.length}',
+        id: 'csv_${const Uuid().v4()}',
         amountCents: cents.abs(),
         category: CategoryRules.forName(title, isIncome: income) ??
             Categorizer.guess('$party $purpose', isIncome: income),

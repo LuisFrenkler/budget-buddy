@@ -40,6 +40,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -53,6 +54,7 @@ import 'lib/store_billing.dart';
 import 'lib/demo_bank.dart';
 import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
+import 'lib/json_store.dart';
 import 'lib/splits.dart';
 
 String _env(String k) => Platform.environment[k] ?? _dotEnv[k] ?? '';
@@ -160,8 +162,16 @@ Future<HttpServer?> _bindHttps() async {
   return HttpServer.bindSecure(InternetAddress.loopbackIPv4, port, context);
 }
 
+// every request runs on its own, so one slow upstream call (a Buddy stream,
+// a bank sync) never makes the others wait
 Future<void> _serve(HttpServer server) async {
   await for (final req in server) {
+    unawaited(_handleSafe(req));
+  }
+}
+
+Future<void> _handleSafe(HttpRequest req) async {
+  try {
     try {
       await _handle(req);
     } on AuthError catch (e) {
@@ -170,9 +180,16 @@ Future<void> _serve(HttpServer server) async {
       await _json(req, 502, {'error': e.message});
     } on AiError catch (e) {
       await _json(req, 502, {'error': e.message});
-    } catch (e) {
-      await _json(req, 500, {'error': '$e'});
+    } on FormatException {
+      await _json(req, 400, {'error': 'Ungültige Anfrage.'});
+    } on TypeError {
+      await _json(req, 400, {'error': 'Ungültige Anfrage.'});
+    } catch (e, st) {
+      stderr.writeln('${req.method} ${req.uri.path}: $e\n$st');
+      await _json(req, 500, {'error': 'Interner Fehler.'});
     }
+  } catch (_) {
+    // the response had already started or the client is gone; nothing to send
   }
 }
 
@@ -191,20 +208,12 @@ Future<void> _load() async {
   }
 }
 
-Future<void> _save() async {
-  await _store.parent.create(recursive: true);
-  await _store.writeAsString(jsonEncode(_sessions));
-}
+Future<void> _save() => writeJsonAtomic(_store, _sessions);
 
-Future<void> _savePlus() async {
-  await _plusStore.parent.create(recursive: true);
-  await _plusStore.writeAsString(jsonEncode({for (final e in _plus.entries) e.key: e.value.toJson()}));
-}
+Future<void> _savePlus() =>
+    writeJsonAtomic(_plusStore, {for (final e in _plus.entries) e.key: e.value.toJson()});
 
-Future<void> _saveDepots() async {
-  await _depotStore.parent.create(recursive: true);
-  await _depotStore.writeAsString(jsonEncode(_depots));
-}
+Future<void> _saveDepots() => writeJsonAtomic(_depotStore, _depots);
 
 String _newState() {
   final rnd = math.Random.secure();
@@ -233,9 +242,19 @@ Future<void> _html(HttpRequest req, String body) async {
   await req.response.close();
 }
 
+// receipts arrive as photos; everything else is small
 Future<Map<String, dynamic>> _body(HttpRequest req) async {
-  final text = await utf8.decodeStream(req);
-  return text.isEmpty ? {} : jsonDecode(text) as Map<String, dynamic>;
+  final limit = req.uri.path == '/ai/receipt' ? 8 << 20 : 256 << 10;
+  final bytes = BytesBuilder(copy: false);
+  await for (final chunk in req) {
+    bytes.add(chunk);
+    if (bytes.length > limit) throw AuthError(413, 'Die Anfrage ist zu groß.');
+  }
+  final text = utf8.decode(bytes.takeBytes());
+  if (text.isEmpty) return {};
+  final body = jsonDecode(text);
+  if (body is! Map<String, dynamic>) throw const FormatException('body is no object');
+  return body;
 }
 
 String? _bearer(HttpRequest req) {
@@ -626,9 +645,14 @@ Future<void> _plusStatus(HttpRequest req) async {
   var e = _plus[id];
   final stale = e != null && DateTime.now().difference(e.checked) > const Duration(minutes: 30);
   if (e != null && (stale || req.uri.queryParameters['fresh'] == '1')) {
-    e = StoreBilling.owns(e) ? await _stores.refresh(e) : await _billing.refresh(e);
-    _plus[id] = e;
-    await _savePlus();
+    try {
+      e = StoreBilling.owns(e) ? await _stores.refresh(e) : await _billing.refresh(e);
+      _plus[id] = e;
+      await _savePlus();
+    } on BillingError catch (err) {
+      // Stripe or a store is down: a paying user keeps Plus as last seen
+      stderr.writeln('plus refresh for $id failed: ${err.message}');
+    }
   }
   return _json(req, 200, {'mode': _billing.mode, 'plus': e?.active == true ? e!.toJson() : null});
 }
@@ -810,7 +834,14 @@ Future<void> _stripeWebhook(HttpRequest req) async {
   final obj = ((event['data'] as Map?)?['object'] as Map?) ?? const {};
   if ('${event['type']}'.startsWith('customer.subscription.')) {
     final user = '${(obj['metadata'] as Map?)?['user'] ?? ''}';
-    final known = _plus[user];
+    var known = _plus[user];
+    // a new subscription after the old one ended: follow the new one, but
+    // never let a late event of an old subscription replace a live one
+    final sub = '${obj['id'] ?? ''}';
+    if (known != null && sub.isNotEmpty && known.subscription != sub && !known.active &&
+        {'active', 'trialing'}.contains(obj['status'])) {
+      known = Entitlement.fromJson({...known.toJson(), 'subscription': sub});
+    }
     if (user.isNotEmpty) {
       final base = known ??
           Entitlement.fromJson({

@@ -417,7 +417,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           const SizedBox(height: 6),
           if (_live == true && !PlusService.active.value)
             Text('Noch ${PlusService.left(PlusFeature.aiQuestion)} von ${PlusService.freeAiQuestions} Gratis-Fragen diesen Monat',
-                style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                style: TextStyle(fontSize: 11, color: AppColors.primaryText, fontWeight: FontWeight.w600)),
           Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
               style: TextStyle(fontSize: 11, color: AppColors.textDim)),
         ]),

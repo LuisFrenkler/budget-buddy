@@ -11,6 +11,8 @@ import 'dart:math' as math;
 import 'package:bcrypt/bcrypt.dart';
 import 'package:crypto/crypto.dart';
 
+import 'json_store.dart';
+
 class AuthError implements Exception {
   final int status;
   final String message;
@@ -38,10 +40,7 @@ class Accounts {
     (map['tokens'] as Map? ?? {}).forEach((k, v) => _tokens[k as String] = (v as Map).cast<String, dynamic>());
   }
 
-  Future<void> _save() async {
-    await _store.parent.create(recursive: true);
-    await _store.writeAsString(jsonEncode({'users': _users, 'tokens': _tokens}));
-  }
+  Future<void> _save() => writeJsonAtomic(_store, {'users': _users, 'tokens': _tokens});
 
   static String _random(int bytes) {
     final rnd = math.Random.secure();
