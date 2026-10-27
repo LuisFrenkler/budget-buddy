@@ -1,7 +1,9 @@
 // What Buddy can do right after an answer: the next step as a button, so
 // "Wo kann ich sparen?" ends in a budget, not just in a paragraph.
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../services/finance_snapshot.dart';
+import '../services/goals_service.dart';
 import '../services/local_buddy.dart';
 import 'budget_screen.dart';
 import 'contracts_screen.dart';
@@ -33,10 +35,18 @@ class BuddyActions {
               : q.contains('auto')
                   ? 'Auto'
                   : null;
+      // a goal of that name exists already: go there instead of a second one
+      final existing = name == null || !Hive.isBoxOpen('goals')
+          ? null
+          : GoalsService.all().where((g) => g.name.toLowerCase() == name.toLowerCase()).firstOrNull;
       return [
-        BuddyAction(Icons.flag_rounded,
-            euros == null ? 'Als Sparziel anlegen' : 'Sparziel${name == null ? '' : ' „$name“'} · $euros €',
-            (c) => addGoal(c, name: name, cents: euros == null ? null : euros * 100)),
+        if (existing != null)
+          BuddyAction(Icons.flag_rounded, 'Zu deinem Ziel „${existing.name}“',
+              (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const GoalsScreen())))
+        else
+          BuddyAction(Icons.flag_rounded,
+              euros == null ? 'Als Sparziel anlegen' : 'Sparziel${name == null ? '' : ' „$name“'} · $euros €',
+              (c) => addGoal(c, name: name, cents: euros == null ? null : euros * 100)),
       ];
     }
     if (_has(q, ['abo', 'vertr', 'fixkost'])) return s.contracts.isEmpty ? [] : [contracts];

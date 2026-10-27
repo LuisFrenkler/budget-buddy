@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -124,8 +125,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 else
                   _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung und neue Geräte',
                       _signUp),
-                _switchRow(Icons.lock_rounded, 'App-Sperre', 'Face ID / PIN beim Öffnen',
+                _switchRow(Icons.lock_rounded, 'App-Sperre',
+                    defaultTargetPlatform == TargetPlatform.iOS ? 'Face ID oder Code beim Öffnen' : 'Fingerabdruck oder PIN beim Öffnen',
                     Settings.appLockEnabled, _toggleAppLock),
+                // the consent from Buddy's first question, to give or take back any time
+                _switchRow(Icons.auto_awesome_rounded, 'Buddy mit KI',
+                    'Schickt eine Zusammenfassung deiner Finanzen an die KI, ohne Kontonummern',
+                    Hive.box('settings').get('aiConsent') == true, (v) async {
+                  await Hive.box('settings').put('aiConsent', v);
+                  if (mounted) setState(() {});
+                }),
                 ValueListenableBuilder<bool>(
                   valueListenable: NotificationService.enabled,
                   builder: (context, on, _) => _row(Icons.notifications_rounded, 'Mitteilungen',

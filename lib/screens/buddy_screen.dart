@@ -10,6 +10,8 @@ import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import 'buddy_actions.dart';
 import 'auth_screens.dart';
+import 'about_screen.dart';
+import '../legal/legal_texts.dart';
 
 // Chat with Buddy, the finance coach that knows your numbers.
 class BuddyScreen extends StatefulWidget {
@@ -56,9 +58,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
     super.dispose();
   }
 
-  // the finance summary leaves the device only after the user agreed once
+  // the finance summary leaves the device only after the user agreed once;
+  // a "no" is remembered too (and both can be changed in Profil)
   Future<bool> _consent() async {
-    if (_settings.get('aiConsent', defaultValue: false) == true) return true;
+    final given = _settings.get('aiConsent');
+    if (given == true) return true;
+    if (given == false) return false;
     final ok = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -78,7 +83,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
               'Keine Kontonummern, keine Zugangsdaten. Anthropic nutzt die Daten nicht zum Training.',
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
-            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                onPressed: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy))),
+                child: const Text('Datenschutzerklärung lesen'),
+              ),
+            ),
+            const SizedBox(height: 8),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               onPressed: () => Navigator.pop(context, true),
@@ -95,7 +109,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       ),
     );
-    if (ok == true) await _settings.put('aiConsent', true);
+    // closing the sheet without choosing asks again next time
+    if (ok != null) await _settings.put('aiConsent', ok);
     return ok == true;
   }
 
@@ -111,7 +126,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
       await showPlus(context, reason: 'Du hast deine ${PlusService.freeAiQuestions} Gratis-Fragen genutzt');
       if (!PlusService.active.value) return;
     }
-    if (live) await PlusService.count(PlusFeature.aiQuestion);
     if (!mounted) return;
 
     _input.clear();
@@ -134,13 +148,20 @@ class _BuddyScreenState extends State<BuddyScreen> {
       },
       onError: (e) {
         HapticFeedback.heavyImpact();
+        final text = '$e';
+        if (!mounted) return;
         setState(() {
-          answer.text = '$e';
+          // the server's reasons are German; a dropped connection is not
+          answer.text = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
+              ? 'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'
+              : text;
           answer.error = true;
           _thinking = false;
         });
       },
       onDone: () {
+        // only an answer that arrived uses up one of the free questions
+        if (live && !answer.error) PlusService.count(PlusFeature.aiQuestion);
         if (mounted) {
           setState(() {
             _thinking = false;
