@@ -142,7 +142,8 @@ class AccountSettingsScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     if (!await _confirm(context, 'Abmelden?',
-        'Deine Daten bleiben auf diesem Gerät. Zum Öffnen meldest du dich wieder an.', 'Abmelden')) {
+        'Deine Daten bleiben auf diesem Gerät, aber nur für dich: Zum Öffnen meldest du dich wieder an.',
+        'Abmelden')) {
       return;
     }
     await AccountService.logout();

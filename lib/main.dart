@@ -151,6 +151,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
         supportedLocales: const [Locale('de', 'DE')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         home: const RootGate(),             // onboarding -> lock -> app
+        // the lock sits above the Navigator, so it covers every open page;
         // on wide screens (desktop browser, Mac) keep a phone-width column
         // in the middle instead of stretching every screen edge to edge
         builder: (context, child) => ColoredBox(
@@ -158,7 +159,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
-              child: child,
+              child: AuthGate(child: child ?? const SizedBox.shrink()),
             ),
           ),
         ),
@@ -168,7 +169,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
 }
 
 // Decides what to show: the welcome screen until someone signs in or chooses
-// to try the app without an account, then the app behind the lock gate.
+// to try the app without an account, then the app (the lock wraps it all).
 class RootGate extends StatelessWidget {
   const RootGate({super.key});
 
@@ -180,7 +181,7 @@ class RootGate extends StatelessWidget {
         final inApp = AccountService.current.value != null || Settings.guest.value;
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
-          child: inApp ? const AuthGate(child: HomeScreen()) : const WelcomeScreen(),
+          child: inApp ? const HomeScreen() : const WelcomeScreen(),
         );
       },
     );

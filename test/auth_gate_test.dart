@@ -38,4 +38,29 @@ void main() {
     expect(find.text('14.188,82 €'), findsOneWidget);
     expect(asked, 0);
   });
+
+  testWidgets('the lock covers pages opened on top of the home screen', (tester) async {
+    final key = GlobalKey<NavigatorState>();
+    var ok = false;
+    AuthService.debugAuthenticate = () async => ok;
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: key,
+      builder: (context, child) => AuthGate(child: child!),
+      home: const Text('Start'),
+    ));
+    await tester.pumpAndSettle();
+    // still locked: a page pushed on top (e.g. from a notification) stays hidden
+    key.currentState!.push(MaterialPageRoute(builder: (_) => const Text('Verträge 897,88 €')));
+    await tester.pumpAndSettle();
+    expect(find.text('BudgetBuddy ist gesperrt'), findsOneWidget);
+    expect(find.text('Verträge 897,88 €', skipOffstage: false), findsOneWidget); // kept, not shown
+    expect(find.text('Verträge 897,88 €').hitTestable(), findsNothing);
+
+    // unlocking returns to exactly that page
+    ok = true;
+    await tester.tap(find.text('Entsperren'));
+    await tester.pumpAndSettle();
+    expect(find.text('BudgetBuddy ist gesperrt'), findsNothing);
+    expect(find.text('Verträge 897,88 €').hitTestable(), findsOneWidget);
+  });
 }

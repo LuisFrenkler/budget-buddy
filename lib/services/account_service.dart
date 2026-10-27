@@ -71,23 +71,34 @@ class AccountService {
     } catch (_) {
       throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
     }
-    final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-    if (res.statusCode != 200) throw map['error'] ?? 'Fehler ${res.statusCode}';
+    final Map<String, dynamic> map;
+    try {
+      map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    } catch (_) {
+      // e.g. a proxy's error page instead of the server's answer
+      throw 'Der Server antwortet gerade nicht richtig. Bitte versuch es gleich noch einmal.';
+    }
+    if (res.statusCode != 200) throw map['error'] ?? 'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.';
 
     final account = Account.fromJson(map['user'] as Map);
     _token = map['token'] as String;
     await _storage.write(key: _tokenKey, value: _token);
     await _box.put('account', account.toJson());
     await Settings.setGuest(false);
+    await Settings.setSignedOutEmail('');
     // a bank linked by someone else on this device is not theirs to see
     if (Settings.bankOwner.isNotEmpty && Settings.bankOwner != account.id) await Settings.clearBank();
     current.value = account;
     return account;
   }
 
+  // the data stays on the device for the next sign-in; until then it is
+  // closed to guests (see WelcomeScreen)
   static Future<void> logout() async {
     final token = _token;
+    final email = current.value?.email ?? '';
     await _forget();
+    await Settings.setSignedOutEmail(email);
     if (token == null) return;
     try {
       await http.post(Uri.parse('${BackendService.base}/auth/logout'), headers: {'Authorization': 'Bearer $token'});

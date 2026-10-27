@@ -6,6 +6,11 @@ import '../widgets/brand.dart';
 
 // Wraps the app and enforces the biometric / PIN lock when it is enabled.
 // Re-locks automatically when the app is sent to the background.
+//
+// It sits above the Navigator (MaterialApp.builder), so the lock and the
+// app-switcher cover hide every open page, not only the home screen, and a
+// page opened from a notification waits behind the lock. The app stays
+// mounted underneath, so unlocking returns to exactly where the user was.
 class AuthGate extends StatefulWidget {
   final Widget child;
   const AuthGate({super.key, required this.child});
@@ -87,43 +92,48 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    if (_unlocked) {
-      return Stack(children: [
-        widget.child,
-        // privacy cover for the app switcher: the logo instead of the balance
-        if (_covered)
-          Positioned.fill(
-            child: ColoredBox(
-              color: AppColors.bg,
-              child: const Center(child: BrandMark(size: 72)),
-            ),
-          ),
-      ]);
-    }
-
-    // lock screen shown until the user authenticates
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_outline, size: 72, color: AppColors.primary),
-            const SizedBox(height: 24),
-            const Text('BudgetBuddy gesperrt',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Bitte authentifizieren, um fortzufahren',
-                style: TextStyle(color: AppColors.textDim)),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _authenticating ? null : _authenticate,
-              icon: const Icon(Icons.fingerprint),
-              label: const Text('Entsperren'),
-            ),
-          ],
-        ),
+    final locked = !_unlocked;
+    return Stack(children: [
+      // nothing underneath is readable or tappable while locked or covered
+      ExcludeSemantics(
+        excluding: locked || _covered,
+        child: TickerMode(enabled: !locked, child: widget.child),
       ),
-    );
+      if (locked)
+        Positioned.fill(child: _lockScreen())
+      else if (_covered)
+        // privacy cover for the app switcher: the logo instead of the balance
+        Positioned.fill(
+          child: ColoredBox(
+            color: AppColors.bg,
+            child: const Center(child: BrandMark(size: 72)),
+          ),
+        ),
+    ]);
   }
+
+  // shown until the user unlocks; the app keeps its place underneath
+  Widget _lockScreen() => Scaffold(
+        backgroundColor: AppColors.bg,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const BrandMark(size: 72),
+              const SizedBox(height: 24),
+              const Text('BudgetBuddy ist gesperrt', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.',
+                  textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
+                onPressed: _authenticating ? null : _authenticate,
+                icon: const Icon(Icons.lock_open_rounded),
+                label: const Text('Entsperren'),
+              ),
+            ],
+          ),
+        ),
+      );
 }
