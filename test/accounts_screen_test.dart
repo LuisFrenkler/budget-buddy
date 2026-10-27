@@ -65,7 +65,16 @@ void main() {
     await tester.drag(find.text('Alle'), const Offset(-500, 0));
     await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.byIcon(Icons.add_rounded));
-    await tester.pump(const Duration(milliseconds: 500));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 100)); // the sheet slides in over a few frames
+    }
+    // a real bank or depot comes first, by hand second
+    expect(find.text('Bankkonto verbinden'), findsOneWidget);
+    expect(find.text('Depot verbinden'), findsOneWidget);
+    await tester.tap(find.text('Konto von Hand'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
     expect(find.text('Konto hinzufügen'), findsOneWidget);
     expect(tester.takeException(), isNull);
 

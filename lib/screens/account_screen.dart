@@ -6,6 +6,7 @@ import '../models/money_account.dart';
 import '../models/transaction.dart';
 import '../services/money_accounts.dart';
 import '../widgets/account_sheet.dart';
+import '../widgets/add_account_choice.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/history.dart';
@@ -241,10 +242,11 @@ class _AccountScreenState extends State<AccountScreen> {
           }),
           const SizedBox(width: 8),
         ],
-        chip('Konto', false, () async {
-          final added = await showAccountSheet(context);
-          if (added != null) AccountScreen.selected.value = added.id;
-        }, icon: Icons.add_rounded),
+        // a real bank first, by hand second
+        chip('Konto', false, () => showAddAccountChoice(context, byHand: () async {
+              final added = await showAccountSheet(context);
+              if (added != null) AccountScreen.selected.value = added.id;
+            }), icon: Icons.add_rounded),
       ]),
     );
   }

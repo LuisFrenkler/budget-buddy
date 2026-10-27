@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
 import '../widgets/sync_pill.dart';
+import '../widgets/add_account_choice.dart';
 import '../models/holding.dart';
 import '../services/db.dart';
 import '../services/depot_sync.dart';
@@ -15,6 +16,7 @@ import '../widgets/interactive_chart.dart';
 import '../widgets/instrument_avatar.dart';
 import '../services/history.dart';
 import 'add_holding_screen.dart';
+import 'connections_screen.dart';
 import 'holding_detail_screen.dart';
 
 class DepotScreen extends StatefulWidget {
@@ -94,7 +96,12 @@ class _DepotScreenState extends State<DepotScreen> {
                     onSync: _refreshPrices,
                   ),
                 ),
-              IconButton(icon: const Icon(Icons.add), onPressed: () => _add()),
+              // a real depot first, a position by hand second
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Depot oder Position hinzufügen',
+                onPressed: () => showAddAccountChoice(context, depot: true, byHand: () => _add()),
+              ),
             ],
           ),
           body: holdings.isEmpty
@@ -164,9 +171,20 @@ class _DepotScreenState extends State<DepotScreen> {
           children: [
             Icon(Icons.trending_up, size: 64, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Kein Depot', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Noch kein Depot', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Füge deine erste Position hinzu', style: TextStyle(color: AppColors.textDim)),
+            Text('Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.',
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(minimumSize: const Size(240, 50)),
+              onPressed: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const ConnectionsScreen(start: 'depot'))),
+              icon: const Icon(Icons.link_rounded, size: 18),
+              label: const Text('Depot verbinden'),
+            ),
+            const SizedBox(height: 4),
+            TextButton(onPressed: () => _add(), child: const Text('Position von Hand eintragen')),
           ],
         ),
       ),

@@ -24,7 +24,9 @@ import '../widgets/instrument_avatar.dart';
 // and the app notices the granted access by itself (it polls the backend),
 // then imports balance and bookings right away.
 class ConnectionsScreen extends StatefulWidget {
-  const ConnectionsScreen({super.key});
+  // 'bank' or 'depot': opened from "+ Konto" / Depot's +, the connection starts right away
+  final String? start;
+  const ConnectionsScreen({super.key, this.start});
 
   @override
   State<ConnectionsScreen> createState() => _ConnectionsScreenState();
@@ -72,6 +74,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         _depotMode = health == null ? null : '${health['depot'] ?? 'demo'}';
         _checking = false;
       });
+      // asked for from elsewhere: straight to the bank list or the Parqet login
+      final signedIn = AccountService.current.value != null;
+      if (signedIn && health != null && widget.start == 'bank' && _pendingState == null) {
+        _connectBank(extra: Settings.bankState.isNotEmpty);
+      } else if (signedIn && health != null && widget.start == 'depot' && Settings.depotState.isEmpty) {
+        _connectDepot();
+      }
     }
   }
 
@@ -525,6 +534,11 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         const SizedBox(height: 4),
         Text(last == null ? 'Noch nicht aktualisiert' : 'Aktualisiert ${_ago(last)}',
             style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+        const SizedBox(height: 10),
+        // Parqet gathers all brokers in one place, so one link brings every depot
+        Text('Weitere Depots wie Scalable oder ING fügst du in Parqet hinzu. '
+            'Beim nächsten Aktualisieren erscheinen sie hier, jedes für sich.',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4)),
         const SizedBox(height: 18),
         Row(children: [
           Expanded(
