@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:budget_buddy/services/price_service.dart';
+import 'package:budget_buddy/utils/money.dart';
 
 void main() {
   group('PriceService.parseFinnhubQuote', () {
@@ -100,5 +101,27 @@ void main() {
     // a typed-in price far from the market leaves the real quotes alone
     expect(PriceService.alignScale(150, 100), 1);
     expect(PriceService.alignScale(0, 100), 1);
+  });
+
+  test('crypto symbols from exports and tickers become the coin symbol', () {
+    expect(PriceService.coinSymbol('XF000BTC0017'), 'BTC');
+    expect(PriceService.coinSymbol('XF000XRP0018'), 'XRP');
+    expect(PriceService.coinSymbol('eth-eur'), 'ETH');
+    expect(PriceService.coinSymbol('SOLUSDT'), 'SOL');
+    expect(PriceService.coinSymbol('PEPE'), 'PEPE');
+  });
+
+  test('a coin search picks the exact symbol with the biggest market cap', () {
+    const body = '{"coins":[{"id":"pepe-fake","symbol":"PEPE","market_cap_rank":900},'
+        '{"id":"ape-and-pepe","symbol":"APEPE","market_cap_rank":153},'
+        '{"id":"pepe","symbol":"PEPE","market_cap_rank":53},'
+        '{"id":"pepe-unranked","symbol":"PEPE","market_cap_rank":null}]}';
+    expect(PriceService.parseCoinSearch(body, 'PEPE'), 'pepe');
+    expect(PriceService.parseCoinSearch(body, 'XYZ'), isNull);
+  });
+
+  test('tiny coin prices keep three significant digits', () {
+    expect(Money.unit(5, euros: 0.0543), '0,0543 €');
+    expect(Money.unit(0, euros: 0.00000384), '0,00000384 €');
   });
 }

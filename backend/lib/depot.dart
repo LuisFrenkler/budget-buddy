@@ -155,7 +155,20 @@ class ParqetConnect implements DepotProvider {
     final out = <DepotPosition>[];
     for (final h in (perf['holdings'] as List? ?? []).cast<Map>()) {
       final pos = (h['position'] as Map?) ?? const {};
-      final shares = (pos['shares'] as num?)?.toDouble() ?? 0;
+      var shares = (pos['shares'] as num?)?.toDouble() ?? 0;
+      var buy = ((pos['purchasePrice'] as num?) ?? 0).toDouble();
+      var price = ((pos['currentPrice'] as num?) ?? 0).toDouble();
+      // Parqet sends some positions with placeholders only (1 share, worth
+      // 1 €, bought at 1 €); their bookings are complete, so count those
+      if (shares == 1 && buy == 1 && price == 1) {
+        final acts = await _activities(portfolios, '${h['id']}', tokens);
+        final real = fromActivities(acts);
+        if (real.shares > 0) {
+          shares = real.shares;
+          buy = real.buyPrice;
+          price = ((h['quote'] as Map?)?['price'] as num?)?.toDouble() ?? 0;
+        }
+      }
       if (pos['isSold'] == true || shares <= 0) continue;
       final asset = (h['asset'] as Map?) ?? const {};
       final kind = '${asset['type']}';
@@ -169,12 +182,54 @@ class ParqetConnect implements DepotProvider {
         symbol,
         _type(kind, name),
         shares,
-        (((pos['purchasePrice'] as num?) ?? 0) * 100).round(),
-        (((pos['currentPrice'] as num?) ?? 0) * 100).round(),
+        (buy * 100).round(),
+        (price * 100).round(),
         broker,
       ));
     }
     return DepotSnapshot(out, _history(perf['charts'] as List? ?? const []));
+  }
+
+  // every booking of one holding, across all portfolios and pages
+  Future<List<Map>> _activities(List<Map> portfolios, String holdingId, DepotTokens tokens) async {
+    final out = <Map>[];
+    for (final p in portfolios) {
+      String? cursor;
+      do {
+        final page = await _call(
+            'GET',
+            '/portfolios/${p['id']}/activities?holdingId=${Uri.encodeQueryComponent(holdingId)}&limit=500'
+                '${cursor != null ? '&cursor=${Uri.encodeQueryComponent(cursor)}' : ''}',
+            tokens);
+        out.addAll(((page['activities'] as List?) ?? const []).whereType<Map>());
+        cursor = page['cursor'] as String?;
+      } while (cursor != null && cursor.isNotEmpty);
+    }
+    return out;
+  }
+
+  // shares held and the average price paid for them, from the bookings:
+  // buys and transfers in (staking rewards) add, sells and transfers out take
+  // away at the average price so far.
+  // shortcut: average cost, while Parqet itself may use FIFO for the buy price
+  static ({double shares, double buyPrice}) fromActivities(List<Map> activities) {
+    final sorted = [...activities]..sort((a, b) => '${a['datetime']}'.compareTo('${b['datetime']}'));
+    var shares = 0.0, cost = 0.0;
+    for (final a in sorted) {
+      final n = ((a['shares'] as num?) ?? 0).toDouble();
+      final price = ((a['price'] as num?) ?? 0).toDouble();
+      switch ('${a['type']}') {
+        case 'buy' || 'transfer_in':
+          shares += n;
+          cost += n * price;
+        case 'sell' || 'transfer_out':
+          if (shares > 0) cost -= cost * (n / shares).clamp(0, 1);
+          shares -= n;
+      }
+    }
+    // float leftovers of a fully sold coin are no position
+    if (shares < 1e-6) return (shares: 0, buyPrice: 0);
+    return (shares: shares, buyPrice: cost / shares);
   }
 
   // the chart's "history" is the depot value at the end of each day

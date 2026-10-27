@@ -70,11 +70,7 @@ class BankSync {
       ));
     }
 
-    int sum = 0;
-    for (final t in [...existing, ...added]) {
-      sum += t.isIncome ? t.amountCents : -t.amountCents;
-    }
-    return BankSyncResult(added, bankBalanceCents - sum);
+    return BankSyncResult(added, bankBalanceCents - DB.balanceOf([...existing, ...added]));
   }
 
   // the counterparty reads best ("REWE Markt GmbH"); the purpose is the fallback

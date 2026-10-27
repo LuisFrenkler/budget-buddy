@@ -101,17 +101,50 @@ class EnableBanking implements BankProvider {
     final body = await _get('/accounts/$accountUid/balances');
     final balances = (body['balances'] as List? ?? []).cast<Map<String, dynamic>>();
     if (balances.isEmpty) return 0;
-    // prefer the booked closing balance, then the available one
-    Map<String, dynamic> pick = balances.first;
-    for (final type in ['CLBD', 'ITBD', 'ITAV', 'XPCD', 'CLAV']) {
-      final match = balances.where((b) => b['balance_type'] == type);
-      if (match.isNotEmpty) {
-        pick = match.first;
-        break;
+    Map<String, dynamic>? ofType(String type) {
+      for (final b in balances) {
+        if (b['balance_type'] == type) return b;
       }
+      return null;
     }
-    final amount = double.tryParse('${pick['balance_amount']?['amount']}') ?? 0;
-    return (amount * 100).round();
+
+    // what the banking app shows: booked plus the pending ("vorgemerkt")
+    // card payments and debits. XPCD is exactly that when the bank sends it.
+    final expected = ofType('XPCD');
+    if (expected != null) return _cents(expected);
+    // otherwise the booked balance as of now (CLBD is yesterday's closing,
+    // ITAV may include the overdraft) minus what is pending
+    final booked = ofType('ITBD') ?? ofType('CLBD') ?? ofType('CLAV') ?? balances.first;
+    return _cents(booked) + await _pendingCents(accountUid);
+  }
+
+  static int _cents(Map<String, dynamic> balance) {
+    final amount = double.tryParse('${balance['balance_amount']?['amount']}') ?? 0;
+    // some banks give the amount unsigned with a debit indicator for an overdrawn account
+    final debit = balance['credit_debit_indicator'] == 'DBIT' && amount > 0;
+    return ((debit ? -amount : amount) * 100).round();
+  }
+
+  // the signed sum of transactions that are not booked yet
+  Future<int> _pendingCents(String accountUid) async {
+    final from = DateTime.now().subtract(const Duration(days: 30));
+    final day = '${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}';
+    var sum = 0;
+    String? continuation;
+    do {
+      final query = 'date_from=$day&transaction_status=PDNG'
+          '${continuation != null ? '&continuation_key=${Uri.encodeQueryComponent(continuation)}' : ''}';
+      final body = await _get('/accounts/$accountUid/transactions?$query');
+      for (final t in (body['transactions'] as List? ?? [])) {
+        // only what is marked pending: a bank that ignores the filter sends
+        // booked ones too, sometimes without any status
+        if (t['status'] != 'PDNG') continue;
+        final tx = _parse(t as Map<String, dynamic>);
+        if (tx != null) sum += tx.amountCents;
+      }
+      continuation = body['continuation_key'] as String?;
+    } while (continuation != null && continuation.isNotEmpty);
+    return sum;
   }
 
   @override
@@ -120,7 +153,7 @@ class EnableBanking implements BankProvider {
     final day = '${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}';
     String? continuation;
     do {
-      final query = 'date_from=$day${continuation != null ? '&continuation_key=$continuation' : ''}';
+      final query = 'date_from=$day${continuation != null ? '&continuation_key=${Uri.encodeQueryComponent(continuation)}' : ''}';
       final body = await _get('/accounts/$accountUid/transactions?$query');
       for (final t in (body['transactions'] as List? ?? [])) {
         if (t['status'] != null && t['status'] != 'BOOK') continue; // skip pending

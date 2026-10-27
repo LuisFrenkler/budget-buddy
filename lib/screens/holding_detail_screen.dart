@@ -40,6 +40,8 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
     _loadChart();
   }
 
+  static bool _tiny(Holding h) => (h.unitEur ?? h.currentPriceCents / 100) < 0.01;
+
   Future<void> _loadChart() async {
     setState(() => _loading = true);
     final h = widget.holding;
@@ -50,9 +52,11 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
       // the curve ends at the price shown above it when the two are close;
       // a typed-in or old price never bends the real quotes
       final last = pts.isEmpty ? 0.0 : pts.last.$2;
-      final scale = PriceService.alignScale(h.currentPriceCents / 100, last);
+      final scale = PriceService.alignScale(h.unitEur ?? h.currentPriceCents / 100, last);
+      // a coin under a cent would be a flat line at 0 €: chart the position instead
+      final times = _tiny(h) ? h.shares : 1.0;
       setState(() {
-        _points = [for (final p in pts) ChartPoint(p.$1, (p.$2 * scale * 100).round())];
+        _points = [for (final p in pts) ChartPoint(p.$1, (p.$2 * scale * times * 100).round())];
         _loading = false;
       });
     }
@@ -92,9 +96,9 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
             children: [
               // price with an interactive chart; scrubbing shows each day's price
               ChartHeader(
-                label: h.symbol.isNotEmpty ? 'Kurs · ${h.symbol}' : 'Kurs',
-                cents: h.currentPriceCents,
-                startCents: _points.length >= 2 ? _points.first.cents : h.buyPriceCents,
+                label: '${_tiny(h) ? 'Wert' : 'Kurs'}${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
+                cents: _tiny(h) ? h.valueCents : h.currentPriceCents,
+                startCents: _points.length >= 2 ? _points.first.cents : (_tiny(h) ? h.investedCents : h.buyPriceCents),
                 period: _points.length >= 2 ? _periods[_range]! : 'seit Kauf',
                 scrubbing: _scrub,
                 startDate: _points.isEmpty ? null : _points.first.date,
