@@ -338,7 +338,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   Text(
                     change == null
                         ? '${Money.format(report.spentCents)} ausgegeben'
-                        : '${Money.format(report.spentCents)} · ${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
+                        : (change * 100).round().abs() <= 3
+                            ? '${Money.format(report.spentCents)} · wie immer'
+                            : '${Money.format(report.spentCents)} · ${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
                     style: TextStyle(color: AppColors.textDim, fontSize: 13),
                   ),
                 ]),
