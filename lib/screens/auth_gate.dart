@@ -93,7 +93,8 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final locked = !_unlocked;
-    return Stack(children: [
+    // the app fills the whole window, exactly as without the gate
+    return Stack(fit: StackFit.expand, children: [
       // nothing underneath is readable or tappable while locked or covered
       ExcludeSemantics(
         excluding: locked || _covered,

@@ -47,6 +47,9 @@ class _PlusScreenState extends State<PlusScreen> {
     if (mounted) setState(() {});
   }
 
+  // the store said this account had its free week already: no promise of one
+  bool get _noTrial => StorePurchases.trial[_yearly ? PlusPlan.yearly : PlusPlan.monthly] == false;
+
   static const _features = [
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
     (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Jeder Kassenbon in Sekunden erfasst'),
@@ -107,7 +110,7 @@ class _PlusScreenState extends State<PlusScreen> {
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
                   const SizedBox(height: 8),
-                  Text('BudgetBuddy Plus · 7 Tage gratis, jederzeit kündbar',
+                  Text(_noTrial ? 'BudgetBuddy Plus · jederzeit kündbar' : 'BudgetBuddy Plus · 7 Tage gratis, jederzeit kündbar',
                       textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15)),
                   const SizedBox(height: 26),
                   for (final f in _features)
@@ -164,14 +167,15 @@ class _PlusScreenState extends State<PlusScreen> {
                 FilledButton(
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
                   onPressed: _buy,
-                  child: const Text('7 Tage gratis testen', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                  child: Text(_noTrial ? 'Plus starten' : '7 Tage gratis testen',
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(height: 8),
                 // what the stores require next to the button: price, period,
                 // automatic renewal, where to cancel, and the legal texts
                 Text(
-                  'Danach ${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
-                  '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar '
+                  '${_noTrial ? '' : 'Danach '}${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
+                  '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch.${_noTrial ? '' : ' Heute 0 €,'} jederzeit kündbar '
                   '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
