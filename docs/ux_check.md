@@ -1,6 +1,6 @@
 # UX-Check BudgetBuddy (26.10.2026)
 
-> **Stand 27.10.2026 morgens:** 55 der 57 Befunde behoben, in 25 Commits
+> **Stand 27.10.2026 morgens:** 55 der 57 Befunde behoben (dazu Erstattungen am 27.10.), in 25 Commits
 > (`bbf1a28` bis `93abbf8`). 211 App- und 15 Server-Tests grün, `flutter
 > analyze` ohne neue Hinweise, Web-Build kompiliert.
 >
@@ -8,8 +8,6 @@
 > E-Mail-Versand für den Server) und die Platzhalter in Impressum/Support
 > (#27, deine Angaben in `lib/legal/legal_info.dart`).
 >
-> **Offen, nächster Schritt:** Erstattungen (z. B. Rücksendung an Zalando)
-> mit der Ausgabe verrechnen statt als Einnahme zählen (Rest von #39).
 
 Alle 29 Screens, geprüft im Code (4 parallele Durchgänge) und im Browser
 (Handy-Größe, Beispieldaten). Kriterien: stimmen die Zahlen, ist es klar,
@@ -67,7 +65,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 36 | Daueraufträge | Startdatum in der Vergangenheit trägt still hunderte Umsätze nach | ✅ (Rückfrage) |
 | 37 | Daueraufträge | Nicht bearbeitbar; doppelt mit verbundener Bank | ✅ |
 | 38 | Budgets | Limit nicht änderbar; Fehlermeldung unter dem Sheet unsichtbar | ✅ |
-| 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ✅ (neue Kategorie „Umbuchung“; Erstattungen gegen Ausgaben ⏳) |
+| 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ✅ (Kategorie „Umbuchung“; Erstattungen werden mit der Ausgabe verrechnet) |
 | 40 | Verträge | Fehlalarme (Taschengeld) nicht ausblendbar; eine verpasste Abbuchung lässt Vertrag verschwinden | ✅ |
 | 41 | Depot | Verlauf rechnet heutige Stückzahlen rückwärts; Detail-Chart skaliert Historie auf gespeicherten Kurs | ✅ (echte Kurse statt umgerechnet; Hinweis „mit heutigem Bestand“) |
 | 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ |
