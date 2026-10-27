@@ -149,7 +149,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
               if (h.symbol.isNotEmpty) _detailRow('Symbol', h.symbol),
               _detailRow('Typ', h.type),
               _detailRow('Kaufpreis', Money.format(h.buyPriceCents)),
-              _detailRow('Aktueller Kurs', Money.format(h.currentPriceCents)),
+              _detailRow('Aktueller Kurs', Money.unit(h.currentPriceCents, euros: h.unitEur)),
               // where the price comes from, so an old one never passes for today's
               _detailRow('Kurs-Stand', h.priceAt == null ? 'eingegeben, nicht live' : 'live, ${Dates.stand(h.priceAt!)}'),
               _detailRow('Investiert', Money.format(h.investedCents)),

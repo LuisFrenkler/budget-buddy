@@ -79,6 +79,15 @@ class Money {
   }
 
   // formats a percentage German style, e.g. 35.24 -> "+35,24 %"
+  // a price per unit: coins under a euro keep their decimals ("0,0543 €")
+  static String unit(int cents, {double? euros}) {
+    if (masked) return hidden;
+    if (euros != null && euros < 1) {
+      return '${NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: 4).format(euros)} €';
+    }
+    return raw(cents);
+  }
+
   static String percent(double value, {int digits = 1, bool signed = true}) {
     final s = NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(value);
     return '${signed && value >= 0 ? '+' : ''}${s.replaceFirst('-', minus)} %';

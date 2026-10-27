@@ -126,7 +126,11 @@ class PriceService {
 
   // fetches many crypto prices in ONE call (symbol -> EUR cents), avoiding a
   // burst of per-coin requests that would hit the rate limit.
-  static Future<Map<String, int>> fetchCryptoPricesEur(List<String> symbols) async {
+  static Future<Map<String, int>> fetchCryptoPricesEur(List<String> symbols) async =>
+      {for (final e in (await fetchCryptoEuros(symbols)).entries) e.key: (e.value * 100).round()};
+
+  // the same in euros with every decimal (0,0543 € for HBAR)
+  static Future<Map<String, double>> fetchCryptoEuros(List<String> symbols) async {
     final symToId = <String, String>{};
     for (final s in symbols) {
       final id = _coinIds[s.toUpperCase()];
@@ -140,10 +144,10 @@ class PriceService {
       final res = await _cgThrottled(() => http.get(url));
       if (res.statusCode != 200) return {};
       final map = jsonDecode(res.body) as Map<String, dynamic>;
-      final out = <String, int>{};
+      final out = <String, double>{};
       symToId.forEach((sym, id) {
         final eur = (map[id] as Map?)?['eur'];
-        if (eur is num && eur > 0) out[sym] = (eur * 100).round();
+        if (eur is num && eur > 0) out[sym] = eur.toDouble();
       });
       return out;
     } catch (_) {
@@ -459,13 +463,14 @@ class PriceService {
         .where((h) => h.type == 'Krypto' && h.symbol.isNotEmpty)
         .map((h) => h.symbol)
         .toList();
-    final cryptoPrices =
-        cryptoSymbols.isEmpty ? <String, int>{} : await fetchCryptoPricesEur(cryptoSymbols);
+    final cryptoEuros =
+        cryptoSymbols.isEmpty ? <String, double>{} : await fetchCryptoEuros(cryptoSymbols);
 
     final now = DateTime.now();
     for (final h in holdings) {
+      final euros = h.type == 'Krypto' ? cryptoEuros[h.symbol.toUpperCase()] : null;
       final newPrice = h.type == 'Krypto'
-          ? cryptoPrices[h.symbol.toUpperCase()]
+          ? (euros == null ? null : (euros * 100).round())
           : await livePrice(symbol: h.symbol, type: h.type);
       if (newPrice == null || newPrice <= 0) {
         failed++;
@@ -474,7 +479,7 @@ class PriceService {
       live++;
       if (newPrice != h.currentPriceCents) updated++;
       // also an unchanged price is fresh now: the "Stand" moves on
-      await DB.addHolding(h.withLivePrice(newPrice, now));
+      await DB.addHolding(h.withLivePrice(newPrice, now, unitEur: euros));
     }
     return (updated: updated, live: live, failed: failed);
   }
