@@ -1,7 +1,7 @@
 # UX-Check BudgetBuddy (26.10.2026)
 
 > **Stand 27.10.2026 morgens:** 55 der 57 Befunde behoben, in 25 Commits
-> (`bbf1a28` bis `93abbf8`). 213 App- und 15 Server-Tests grün, `flutter
+> (`bbf1a28` bis `93abbf8`). 211 App- und 15 Server-Tests grün, `flutter
 > analyze` ohne neue Hinweise, Web-Build kompiliert.
 >
 > **Offen, braucht dich:** „Passwort vergessen“ (#24, braucht einen
