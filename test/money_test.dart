@@ -93,4 +93,8 @@ void main() {
     Money.masked = false;
     expect(Money.format(123450), Money.raw(123450));
   });
+
+  test('a leading plus is read like a bank writes it', () {
+    expect(Money.parseToCents('+1.234,56'), 123456);
+  });
 }

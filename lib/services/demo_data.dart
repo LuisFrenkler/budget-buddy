@@ -33,6 +33,23 @@ class DemoData {
     final settings = _settings;
     final keys = settings?.get('demoKeys') as Map?;
     if (settings == null || keys == null) return;
+    // what the demo's rules and budgets made later: bookings of a demo rule,
+    // and budgets carried into later months for a demo category
+    final rules = ((keys['recurring'] as List?) ?? const []).map((id) => 'rec_${id}_');
+    final txBox = Hive.box('transactions');
+    await txBox.deleteAll(txBox.keys.where((k) => rules.any((r) => '$k'.startsWith(r))).toList());
+    final demoBudgets = ((keys['budgets'] as List?) ?? const []).map((k) => '$k').toList();
+    if (demoBudgets.isNotEmpty && Hive.isBoxOpen('budgets')) {
+      int ms(String key) => int.tryParse(key.substring(key.lastIndexOf('_') + 1)) ?? 0;
+      String cat(String key) => key.substring(0, key.lastIndexOf('_'));
+      final cats = demoBudgets.map(cat).toSet();
+      final newest = demoBudgets.map(ms).reduce(math.max);
+      final budgetBox = Hive.box('budgets');
+      await budgetBox.deleteAll(budgetBox.keys
+          .map((k) => '$k')
+          .where((k) => k.contains('_') && cats.contains(cat(k)) && ms(k) > newest)
+          .toList());
+    }
     for (final name in _boxes) {
       final list = keys[name] as List?;
       if (list == null || !Hive.isBoxOpen(name)) continue;

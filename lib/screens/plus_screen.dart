@@ -210,7 +210,11 @@ class _PlusScreenState extends State<PlusScreen> {
 
   Widget _plan(bool yearly) {
     final selected = _yearly == yearly;
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      child: GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
         setState(() => _yearly = yearly);
@@ -249,6 +253,6 @@ class _PlusScreenState extends State<PlusScreen> {
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
         ]),
       ),
-    );
+    ));
   }
 }

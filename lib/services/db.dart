@@ -18,15 +18,25 @@ class DB {
   // strips the time component so comparisons happen on calendar dates only
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  // save a transaction
-  static Future<void> addTx(Transaction t) {
-    return _txBox.put(t.id, t.toMap());
+  // save a transaction (an undone delete of a bank booking brings it back for good)
+  static Future<void> addTx(Transaction t) async {
+    if (t.id.startsWith('bank_') && dismissedBankIds.contains(t.id)) {
+      await Hive.box('settings').put('bankDismissed', (dismissedBankIds..remove(t.id)).toList());
+    }
+    await _txBox.put(t.id, t.toMap());
   }
-  
-  // delete a transaction
-  static Future<void> deleteTx(String id) {
-    return _txBox.delete(id);
+
+  // delete a transaction; a deleted bank booking stays deleted on the next sync
+  static Future<void> deleteTx(String id) async {
+    if (id.startsWith('bank_') && Hive.isBoxOpen('settings')) {
+      await Hive.box('settings').put('bankDismissed', (dismissedBankIds..add(id)).toList());
+    }
+    await _txBox.delete(id);
   }
+
+  static Set<String> get dismissedBankIds => Hive.isBoxOpen('settings')
+      ? ((Hive.box('settings').get('bankDismissed') as List?) ?? const []).cast<String>().toSet()
+      : <String>{};
   
   // get all transactions, sorted by date (newest first)
   static List<Transaction> getTx() {
@@ -241,24 +251,21 @@ class DB {
       } catch (_) {}
     }
     
-    final tx = getTx();
+    // purchases per category once, so each budget only walks its own;
+    // refunds in the same category take some back
+    final byCategory = <String, List<Transaction>>{};
+    for (final t in getTx()) {
+      if (t.isSpending) byCategory.putIfAbsent(t.category, () => []).add(t);
+    }
 
-    // for each budget, calculate spent amount in cents
     for (var b in budgets) {
+      // compare on calendar dates only so a transaction's time-of-day can
+      // never push it just outside the budget window
+      final from = _dateOnly(b.startDate);
+      final until = DateTime(b.endDate.year, b.endDate.month, b.endDate.day + 1); // the day after
       int spent = 0;
-
-      for (var t in tx) {
-        // check if transaction is an expense, right category, and in date range.
-        // compare on calendar dates only so a transaction's time-of-day can
-        // never push it just outside the budget window.
-        // purchases count, refunds in the same category take some back
-        bool isExpense = t.isSpending;
-        bool rightCategory = t.category == b.category;
-        final txDay = _dateOnly(t.date);
-        bool inDateRange = !txDay.isBefore(_dateOnly(b.startDate)) &&
-            !txDay.isAfter(_dateOnly(b.endDate));
-
-        if (isExpense && rightCategory && inDateRange) {
+      for (final t in byCategory[b.category] ?? const <Transaction>[]) {
+        if (!t.date.isBefore(from) && t.date.isBefore(until)) {
           spent += t.spendCents;
         }
       }

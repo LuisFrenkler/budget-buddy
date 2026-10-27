@@ -269,7 +269,12 @@ class _StatsViewState extends State<StatsView> {
               children: [
                 for (final m in months)
                   Expanded(
-                    child: GestureDetector(
+                    child: Semantics(
+                      button: true,
+                      selected: m.month == _month,
+                      label: '${_monthNames[m.month.month - 1]}: ${Money.format(m.income)} Einnahmen, ${Money.format(m.expenses)} Ausgaben',
+                      excludeSemantics: true,
+                      child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _selectMonth(m.month),
                       child: Column(
@@ -293,7 +298,7 @@ class _StatsViewState extends State<StatsView> {
                               )),
                         ],
                       ),
-                    ),
+                    )),
                   ),
               ],
             ),

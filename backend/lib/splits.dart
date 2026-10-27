@@ -69,6 +69,7 @@ class SharedSplits {
   // uploads a group; the creator is the member at [me]
   Future<Map<String, dynamic>> share(String userId, Map<String, dynamic> group, int me) async {
     _check(group);
+    if (me < 0 || me >= (group['members'] as List).length) throw const AuthError(400, 'Unbekannte Person.');
     final id = '${group['id'] ?? ''}';
     if (id.isEmpty) throw const AuthError(400, 'Gruppe ohne ID.');
     final existing = _groups[id];
@@ -135,7 +136,7 @@ class SharedSplits {
         if (paidBy < 0 || paidBy >= members || shares.keys.any((k) => k < 0 || k >= members)) {
           throw const AuthError(400, 'Ungültige Person in der Ausgabe.');
         }
-        if (cents <= 0 || shares.values.fold<int>(0, (s, v) => s + v) != cents) {
+        if (cents <= 0 || shares.values.any((v) => v < 0) || shares.values.fold<int>(0, (s, v) => s + v) != cents) {
           throw const AuthError(400, 'Die Anteile ergeben nicht den Betrag.');
         }
         if (!expenses.any((y) => y['id'] == x['id'])) expenses.add(x);
@@ -146,6 +147,7 @@ class SharedSplits {
       case 'addMember':
         final name = '${op['name'] ?? ''}'.trim();
         if (name.isEmpty || name.length > 40) throw const AuthError(400, 'Ungültiger Name.');
+        if (members >= 20) throw const AuthError(400, 'Eine Gruppe hat höchstens 20 Personen.');
         (g['members'] as List).add(name);
       case 'renameMember':
         final i = (op['index'] as num?)?.toInt() ?? -1;

@@ -43,7 +43,7 @@ class Money {
 
     // remember and strip a leading minus
     final negative = s.startsWith('-');
-    if (negative) s = s.substring(1);
+    if (negative || s.startsWith('+')) s = s.substring(1); // banks write "+1.234,56" too
 
     // the LAST '.' or ',' is treated as the decimal separator,
     // everything before it that is '.' or ',' is a thousands separator

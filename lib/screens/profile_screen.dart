@@ -640,9 +640,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (r.skipped > 0) '${r.skipped} nicht lesbar',
         ].join(' · ');
       } else {
-        final r = CsvImporter.parse(content);
+        final r = CsvImporter.parse(content, existing: DB.getTx());
         txs = r.transactions;
-        msg = r.skipped > 0 ? '${txs.length} importiert, ${r.skipped} übersprungen' : '${txs.length} importiert';
+        msg = [
+          '${txs.length} importiert',
+          if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
+          if (r.skipped > 0) '${r.skipped} übersprungen',
+        ].join(' · ');
       }
       if (txs.isEmpty && msg.startsWith('0')) {
         msg = 'In dieser Datei wurden keine Umsätze gefunden. Exportiere sie im Online-Banking als CSV.';
