@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -253,6 +254,9 @@ class ChartHeader extends StatelessWidget {
   final int startCents;
   final String period;
   final ChartPoint? scrub;
+  // the point under the finger, listened to here: scrubbing then rebuilds
+  // only this header, not the whole screen with its forecasts and lists
+  final ValueListenable<ChartPoint?>? scrubbing;
   // first day of the shown range, named while scrubbing ("seit 26. Sep.")
   final DateTime? startDate;
   // a percentage means little for a bank balance, so it can be left out
@@ -265,16 +269,28 @@ class ChartHeader extends StatelessWidget {
     required this.startCents,
     required this.period,
     this.scrub,
+    this.scrubbing,
     this.startDate,
     this.showPercent = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final listenable = scrubbing;
+    if (listenable != null) {
+      return ValueListenableBuilder<ChartPoint?>(
+        valueListenable: listenable,
+        builder: (context, point, _) => _header(point),
+      );
+    }
+    return _header(scrub);
+  }
+
+  Widget _header(ChartPoint? scrub) {
     final value = scrub?.cents ?? cents;
     final change = value - startCents;
     return BigNumber(
-      label: scrub == null ? label : Dates.full(scrub!.date),
+      label: scrub == null ? label : Dates.full(scrub.date),
       cents: value,
       animate: scrub == null,
       below: ChangeLabel(

@@ -39,7 +39,8 @@ class _AccountScreenState extends State<AccountScreen> {
     'Max': 'seit Beginn',
   };
   String _range = '3M';
-  ChartPoint? _scrub;
+  // the point under the finger while scrubbing; only the chart header listens
+  final _scrub = ValueNotifier<ChartPoint?>(null);
 
   String _search = '';
   bool _searching = false;
@@ -114,12 +115,12 @@ class _AccountScreenState extends State<AccountScreen> {
                             cents: balance,
                             startCents: points.isEmpty ? balance : points.first.cents,
                             period: _periods[_range]!,
-                            scrub: _scrub,
+                            scrubbing: _scrub,
                             startDate: points.isEmpty ? null : points.first.date,
                             showPercent: false,
                           ),
                           const SizedBox(height: 16),
-                          InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
+                          InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
                           const SizedBox(height: 12),
                           RangeSelector(
                             labels: _ranges,
