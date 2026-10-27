@@ -83,8 +83,19 @@ class _HintsSheetState extends State<_HintsSheet> {
 
   Future<void> _dismiss(Hint h) async {
     HapticFeedback.lightImpact();
+    final index = _hints.indexOf(h);
     setState(() => _hints.remove(h));
     await HintsService.dismiss(h.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(seconds: 4),
+      content: const Text('Hinweis ausgeblendet'),
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () async {
+        await HintsService.undismiss(h.id);
+        if (mounted) setState(() => _hints.insert(index.clamp(0, _hints.length), h));
+      }),
+    ));
   }
 
   @override

@@ -202,7 +202,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // sits at the bottom like a title card; with large system text it scrolls
+  // instead of overflowing
   Widget _slide(({IconData icon, String title, String text}) s) {
+    return LayoutBuilder(
+      builder: (context, box) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: box.maxHeight),
+          child: _slideBody(s),
+        ),
+      ),
+    );
+  }
+
+  Widget _slideBody(({IconData icon, String title, String text}) s) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.end,

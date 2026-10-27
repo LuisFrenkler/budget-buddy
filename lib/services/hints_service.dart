@@ -36,6 +36,11 @@ class HintsService {
 
   static Set<String> get dismissed => ((_box.get('hintsDismissed') as List?) ?? const []).cast<String>().toSet();
 
+  // brings a hint back right after it was swiped away by mistake
+  static Future<void> undismiss(String id) async {
+    await _box.put('hintsDismissed', [...dismissed]..remove(id));
+  }
+
   static Future<void> dismiss(String id) async {
     // keep the list short: old periods never come back anyway
     final list = [...dismissed, id];
