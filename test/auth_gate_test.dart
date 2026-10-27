@@ -63,4 +63,19 @@ void main() {
     expect(find.text('BudgetBuddy ist gesperrt'), findsNothing);
     expect(find.text('Verträge 897,88 €').hitTestable(), findsOneWidget);
   });
+
+  testWidgets('the app fills the whole window under the lock layer', (tester) async {
+    tester.view.physicalSize = const Size(750, 1624);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    AuthService.debugAuthenticate = () async => true;
+    await tester.pumpWidget(MaterialApp(
+      builder: (context, child) => Center(
+        child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480), child: AuthGate(child: child!)),
+      ),
+      home: const Scaffold(bottomNavigationBar: SizedBox(height: 60, child: Text('nav'))),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.text('nav')).bottom, 812);
+  });
 }
