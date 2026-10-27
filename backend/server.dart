@@ -54,6 +54,7 @@ import 'lib/demo_bank.dart';
 import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
 import 'lib/json_store.dart';
+import 'lib/rate_limit.dart';
 import 'lib/splits.dart';
 import 'lib/net.dart';
 
@@ -90,6 +91,19 @@ final _store = File('$_dataDir/sessions.json');
 final _depots = <String, Map<String, dynamic>>{};
 final _depotPending = <String, ({String owner, String verifier})>{};
 final _depotFailed = <String, String>{};
+// failed logins and new accounts per address
+final _loginLimit = RateLimit(20, const Duration(minutes: 15));
+final _registerLimit = RateLimit(10, const Duration(hours: 1));
+
+// The server listens on localhost only, so a request comes from the reverse
+// proxy, which appends the real client to X-Forwarded-For. The last entry is
+// the proxy's own; earlier ones are whatever the client claimed.
+String _clientIp(HttpRequest req) {
+  final forwarded = req.headers.value('x-forwarded-for');
+  if (forwarded != null && forwarded.trim().isNotEmpty) return forwarded.split(',').last.trim();
+  return req.connectionInfo?.remoteAddress.address ?? 'unknown';
+}
+
 // when each consent above began: abandoned ones are dropped after an hour
 final _started = <String, DateTime>{};
 
@@ -306,12 +320,24 @@ Future<void> _handle(HttpRequest req) async {
     case '/health':
       return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
     case '/auth/register':
+      final ip = _clientIp(req);
+      if (_registerLimit.blocked(ip)) throw const AuthError(429, 'Zu viele neue Konten von hier. Bitte versuch es später.');
+      _registerLimit.hit(ip);
       final b = await _body(req);
       return _json(req, 200,
           await _accounts.register(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}', name: '${b['name'] ?? ''}'));
     case '/auth/login':
+      // the per-email lockout stops guessing one password; this stops one
+      // address from trying many accounts
+      final ip = _clientIp(req);
+      if (_loginLimit.blocked(ip)) throw const AuthError(429, 'Zu viele Versuche. Bitte warte ein paar Minuten.');
       final b = await _body(req);
-      return _json(req, 200, await _accounts.login(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}'));
+      try {
+        return _json(req, 200, await _accounts.login(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}'));
+      } on AuthError catch (e) {
+        if (e.status == 401) _loginLimit.hit(ip);
+        rethrow;
+      }
     case '/auth/me':
       return _json(req, 200, {'user': Accounts.public(_user(req))});
     case '/auth/logout':
