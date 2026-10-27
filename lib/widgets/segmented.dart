@@ -36,7 +36,13 @@ class Segmented extends StatelessWidget {
               children: [
                 for (int i = 0; i < labels.length; i++)
                   Expanded(
-                    child: GestureDetector(
+                    // read as a button that says which one is chosen
+                    child: Semantics(
+                      button: true,
+                      selected: i == index,
+                      label: labels[i],
+                      excludeSemantics: true,
+                      child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         if (i == index) return;
@@ -54,6 +60,7 @@ class Segmented extends StatelessWidget {
                           child: Text(labels[i]),
                         ),
                       ),
+                    ),
                     ),
                   ),
               ],

@@ -67,10 +67,11 @@ class DB {
   static int sumOf(List<Transaction> list, {required bool isIncome}) {
     int sum = 0;
     for (var t in list) {
-      // transfers between own accounts are neither income nor spending
-      if (t.isIncome == isIncome && Categories.counts(t.category)) {
-        sum += t.amountCents;
-      }
+      // transfers between own accounts are neither income nor spending;
+      // a refund lowers spending instead of counting as income
+      if (!Categories.counts(t.category)) continue;
+      if (isIncome && t.isEarning) sum += t.amountCents;
+      if (!isIncome && t.isSpending) sum += t.spendCents;
     }
     return sum;
   }
@@ -79,11 +80,14 @@ class DB {
   static Map<String, int> categoriesOf(List<Transaction> list, {required bool isIncome}) {
     final result = <String, int>{};
     for (var t in list) {
-      if (t.isIncome == isIncome && Categories.counts(t.category)) {
+      if (!Categories.counts(t.category)) continue;
+      if (isIncome ? t.isEarning : t.isSpending) {
         // if category exists, add to it. otherwise start at 0
-        result[t.category] = (result[t.category] ?? 0) + t.amountCents;
+        result[t.category] = (result[t.category] ?? 0) + (isIncome ? t.amountCents : t.spendCents);
       }
     }
+    // a category whose refunds cover its purchases has nothing left to show
+    if (!isIncome) result.removeWhere((_, v) => v <= 0);
     return result;
   }
 
@@ -247,17 +251,18 @@ class DB {
         // check if transaction is an expense, right category, and in date range.
         // compare on calendar dates only so a transaction's time-of-day can
         // never push it just outside the budget window.
-        bool isExpense = !t.isIncome;
+        // purchases count, refunds in the same category take some back
+        bool isExpense = t.isSpending;
         bool rightCategory = t.category == b.category;
         final txDay = _dateOnly(t.date);
         bool inDateRange = !txDay.isBefore(_dateOnly(b.startDate)) &&
             !txDay.isAfter(_dateOnly(b.endDate));
 
         if (isExpense && rightCategory && inDateRange) {
-          spent += t.amountCents;
+          spent += t.spendCents;
         }
       }
-      b.spentCents = spent;
+      b.spentCents = spent < 0 ? 0 : spent;
     }
     
     // sort newest first

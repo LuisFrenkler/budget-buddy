@@ -82,7 +82,8 @@ class TransactionScreen extends StatelessWidget {
                   ]),
                   onTap: () => _pickCategory(context, tx),
                 ),
-                _row('Art', Text(tx.isIncome ? 'Einnahme' : 'Ausgabe', style: const TextStyle(fontWeight: FontWeight.w600))),
+                _row('Art', Text(tx.isRefund ? 'Erstattung' : (tx.isIncome ? 'Einnahme' : 'Ausgabe'),
+                    style: const TextStyle(fontWeight: FontWeight.w600))),
                 _row(
                   'Quelle',
                   Text(fromBank ? '${Settings.bankName.isEmpty ? 'Bank' : Settings.bankName} · Girokonto' : 'Manuell erfasst',
@@ -205,7 +206,18 @@ class TransactionScreen extends StatelessWidget {
       );
 
   Future<void> _pickCategory(BuildContext context, Transaction tx) async {
-    final list = tx.isIncome ? Categories.income : Categories.expense;
+    final list = tx.isIncome ? Categories.income.where((c) => !Categories.isExpenseOnly(c['name']!)).toList() : Categories.expense;
+    // money coming in can also be a refund: then it belongs to what was bought
+    final refunds = tx.isIncome ? Categories.expense.where((c) => Categories.isExpenseOnly(c['name']!)).toList() : const [];
+    Widget chip(BuildContext context, Map<String, String> c) => ChoiceChip(
+          selected: c['name'] == tx.category,
+          showCheckmark: false,
+          side: BorderSide(color: AppColors.border),
+          selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
+          avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
+          label: Text(c['name']!),
+          onSelected: (_) => Navigator.pop(context, c['name']),
+        );
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -217,18 +229,17 @@ class TransactionScreen extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             const Text('Kategorie', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final c in list)
-                ChoiceChip(
-                  selected: c['name'] == tx.category,
-                  showCheckmark: false,
-                  side: BorderSide(color: AppColors.border),
-                  selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
-                  avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
-                  label: Text(c['name']!),
-                  onSelected: (_) => Navigator.pop(context, c['name']),
-                ),
-            ]),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (final c in list) chip(context, c)]),
+            if (refunds.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text('Erstattung, z. B. eine Rücksendung',
+                  style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text('Wird mit den Ausgaben dieser Kategorie verrechnet, statt als Einnahme zu zählen.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+              const SizedBox(height: 10),
+              Wrap(spacing: 8, runSpacing: 8, children: [for (final c in refunds) chip(context, c)]),
+            ],
           ]),
         ),
       ),

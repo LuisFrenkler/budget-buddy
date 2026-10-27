@@ -109,15 +109,21 @@ class WeeklyReportService {
     };
     tx = tx.where((t) => t.isIncome || !fixed.contains(t.id)).toList();
     final thisWeek = tx.where((t) => _inWeek(t, monday)).toList();
-    final expenses = thisWeek.where((t) => !t.isIncome).toList();
+    // purchases, and refunds that take some of them back
+    final spending = thisWeek.where((t) => t.isSpending).toList();
+    final expenses = spending.where((t) => !t.isIncome).toList();
     if (expenses.isEmpty) return null;
 
-    final spent = expenses.fold<int>(0, (s, t) => s + t.amountCents);
-    final income = thisWeek.where((t) => t.isIncome).fold<int>(0, (s, t) => s + t.amountCents);
+    final spent = spending.fold<int>(0, (s, t) => s + t.spendCents);
+    final income = thisWeek.where((t) => t.isEarning).fold<int>(0, (s, t) => s + t.amountCents);
 
     final perDay = List<int>.filled(7, 0);
-    for (final t in expenses) {
-      perDay[t.date.weekday - 1] += t.amountCents;
+    for (final t in spending) {
+      perDay[t.date.weekday - 1] += t.spendCents;
+    }
+    // a day whose refund outweighs its purchases simply had no spending
+    for (var i = 0; i < 7; i++) {
+      if (perDay[i] < 0) perDay[i] = 0;
     }
 
     // the four weeks before, for "the usual"; only weeks with any bookings count
@@ -126,25 +132,26 @@ class WeeklyReportService {
     var weeksWithData = 0;
     for (var w = 1; w <= 4; w++) {
       final m = DateTime(monday.year, monday.month, monday.day - 7 * w);
-      final list = tx.where((t) => !t.isIncome && _inWeek(t, m)).toList();
+      final list = tx.where((t) => t.isSpending && _inWeek(t, m)).toList();
       if (list.isEmpty) continue;
       weeksWithData++;
-      before.add(list.fold(0, (s, t) => s + t.amountCents));
+      before.add(list.fold(0, (s, t) => s + t.spendCents));
       for (final t in list) {
-        usualByCategory[t.category] = (usualByCategory[t.category] ?? 0) + t.amountCents;
+        usualByCategory[t.category] = (usualByCategory[t.category] ?? 0) + t.spendCents;
       }
     }
     final usual = before.isEmpty ? 0 : before.reduce((a, b) => a + b) ~/ before.length;
 
     final byCategory = <String, List<Transaction>>{};
-    for (final t in expenses) {
+    for (final t in spending) {
       byCategory.putIfAbsent(t.category, () => []).add(t);
     }
     final categories = [
       for (final e in byCategory.entries)
+        if (e.value.fold<int>(0, (s, t) => s + t.spendCents) > 0)
         CategoryWeek(
           e.key,
-          e.value.fold(0, (s, t) => s + t.amountCents),
+          e.value.fold(0, (s, t) => s + t.spendCents),
           weeksWithData == 0 ? 0 : (usualByCategory[e.key] ?? 0) ~/ weeksWithData,
           e.value.length,
         ),

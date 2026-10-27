@@ -212,6 +212,11 @@ class Categories {
   static const transfer = 'Umbuchung';
 
   static bool counts(String category) => category != transfer;
+
+  // a spending category with no income counterpart (not "Sonstiges"): money
+  // coming in under it is a refund for something bought there
+  static bool isExpenseOnly(String category) =>
+      expense.any((c) => c['name'] == category) && !income.any((c) => c['name'] == category);
   
   // maps a category name to a representative icon
   static IconData icon(String c) {

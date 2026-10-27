@@ -70,15 +70,17 @@ class RecapService {
     final merchants = <String, ({String name, int visits, int cents})>{};
     final byDay = <DateTime, int>{};
     for (final t in these) {
-      if (t.isIncome) {
+      if (t.isEarning) {
         income += t.amountCents;
         continue;
       }
-      expenses += t.amountCents;
+      // a refund takes back part of what went out, in its own category
+      expenses += t.spendCents;
       // rent and subscriptions are no surprise: the highlights are about the rest
       if (fixed.contains(t.id)) continue;
-      everyday += t.amountCents;
-      byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amountCents;
+      everyday += t.spendCents;
+      byCategory[t.category] = (byCategory[t.category] ?? 0) + t.spendCents;
+      if (t.isRefund) continue;
       final day = DateTime(t.date.year, t.date.month, t.date.day);
       byDay[day] = (byDay[day] ?? 0) + t.amountCents;
       final name = t.note?.trim() ?? '';
@@ -90,7 +92,7 @@ class RecapService {
     }
     int previous = 0;
     for (final t in tx) {
-      if (!t.isIncome && inMonth(t, prev)) previous += t.amountCents;
+      if (t.isSpending && inMonth(t, prev)) previous += t.spendCents;
     }
 
     MapEntry<String, int>? top;

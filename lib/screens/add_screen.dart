@@ -33,6 +33,7 @@ class _AddScreenState extends State<AddScreen> {
   // form state variables
   String _amount = '';         // typed amount, e.g. "12,5"
   bool _isIncome = false;      // false = expense, true = income
+  bool _refund = false;        // money back for a purchase: income under a spending category
   String? _category;
   DateTime _date = DateTime.now();
   String _repeat = 'Einmalig';  // 'Einmalig' or one of RecurringService.intervals
@@ -52,6 +53,7 @@ class _AddScreenState extends State<AddScreen> {
       _amount = AmountInput.fromCents(t.amountCents);
       _noteCtrl.text = t.note ?? '';
       _isIncome = t.isIncome;
+      _refund = t.isRefund;
       _category = t.category;
       _date = t.date;
     }
@@ -75,7 +77,7 @@ class _AddScreenState extends State<AddScreen> {
     final out = <Transaction>[];
     for (final t in DB.getTx()) {
       final name = t.note?.trim() ?? '';
-      if (t.isIncome != _isIncome || name.isEmpty || !seen.add(name.toLowerCase())) continue;
+      if (t.isIncome != _isIncome || t.isRefund != _refund || name.isEmpty || !seen.add(name.toLowerCase())) continue;
       if (typed.isNotEmpty && (!name.toLowerCase().startsWith(typed) || name.toLowerCase() == typed)) continue;
       out.add(t);
       if (out.length == 6) break;
@@ -133,7 +135,14 @@ class _AddScreenState extends State<AddScreen> {
 
   // categories of the current type, the most used ones first
   List<String> get _categories {
-    final names = (_isIncome ? Categories.income : Categories.expense).map((c) => c['name']!).toList();
+    // a refund goes back to what was bought: the spending categories
+    final names = (_refund
+            ? Categories.expense.where((c) => Categories.isExpenseOnly(c['name']!))
+            : _isIncome
+                ? Categories.income
+                : Categories.expense)
+        .map((c) => c['name']!)
+        .toList();
     final usage = <String, int>{};
     for (final t in DB.getTx()) {
       if (t.isIncome == _isIncome) usage[t.category] = (usage[t.category] ?? 0) + 1;
@@ -189,11 +198,12 @@ class _AddScreenState extends State<AddScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Segmented(
-                  labels: const ['Ausgabe', 'Einnahme'],
-                  index: _isIncome ? 1 : 0,
+                  labels: const ['Ausgabe', 'Einnahme', 'Erstattung'],
+                  index: _refund ? 2 : (_isIncome ? 1 : 0),
                   onChanged: (i) => setState(() {
-                    _isIncome = i == 1;
-                    // expense and income have different categories
+                    _isIncome = i != 0;
+                    _refund = i == 2;
+                    // expense, income and refund have different categories
                     if (!_categories.contains(_category)) _category = null;
                   }),
                 ),

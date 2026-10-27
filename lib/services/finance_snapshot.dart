@@ -68,11 +68,11 @@ class FinanceSnapshot {
       int income = 0, expenses = 0;
       for (final t in inMonth) {
         if (!Categories.counts(t.category)) continue;
-        if (t.isIncome) {
+        if (t.isEarning) {
           income += t.amountCents;
         } else {
-          expenses += t.amountCents;
-          byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amountCents;
+          expenses += t.spendCents;
+          byCategory[t.category] = (byCategory[t.category] ?? 0) + t.spendCents;
         }
       }
       months.add(MonthSummary(start, income, expenses, byCategory));

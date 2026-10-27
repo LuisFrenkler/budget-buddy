@@ -1,4 +1,5 @@
 import '../utils/money.dart';
+import '../utils/theme.dart';
 
 class Transaction {
   final String id;
@@ -7,6 +8,20 @@ class Transaction {
   final DateTime date;
   final bool isIncome;    // true = income, false = expense
   final String? note;
+
+  // money back for a purchase (a return, a refund): it comes in, but under the
+  // spending category it reverses, so it lowers that spending instead of
+  // counting as income
+  bool get isRefund => isIncome && Categories.isExpenseOnly(category);
+
+  // part of spending (a purchase, or a refund that takes some back)
+  bool get isSpending => !isIncome || isRefund;
+
+  // real income: salary, side jobs, gifts, not money back
+  bool get isEarning => isIncome && !isRefund;
+
+  // what this booking adds to spending: the amount, minus for a refund
+  int get spendCents => isIncome ? (isRefund ? -amountCents : 0) : amountCents;
 
   Transaction({
     required this.id,

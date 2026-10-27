@@ -19,9 +19,9 @@ class InsightsService {
     Map<String, int> byCat(DateTime m) {
       final out = <String, int>{};
       for (final t in all) {
-        if (t.isIncome || fixed.contains(t.id) || !Categories.counts(t.category)) continue;
+        if (!t.isSpending || fixed.contains(t.id) || !Categories.counts(t.category)) continue;
         if (t.date.year != m.year || t.date.month != m.month || t.date.day > cutDay) continue;
-        out[t.category] = (out[t.category] ?? 0) + t.amountCents;
+        out[t.category] = (out[t.category] ?? 0) + t.spendCents;
       }
       return out;
     }
