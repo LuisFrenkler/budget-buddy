@@ -46,6 +46,8 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   final _buyCtrl = TextEditingController();
   final _currentCtrl = TextEditingController();
   String _type = 'Aktie';
+  // the symbol field stays while the user types into it
+  bool _customSymbol = false;
   bool _saving = false;
 
   bool get _isEdit => widget.holding != null;
@@ -154,6 +156,20 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                 ],
               ),
             ),
+            // a position from the custom entry has no ticker yet: with one it gets live prices
+            if (_nameCtrl.text.isNotEmpty && (_customSymbol || _symbolCtrl.text.isEmpty)) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _symbolCtrl,
+                textCapitalization: TextCapitalization.characters,
+                onChanged: (_) => setState(() => _customSymbol = true),
+                decoration: const InputDecoration(
+                  labelText: 'Symbol (optional)',
+                  hintText: 'z. B. SAP.DE, AAPL oder BTC',
+                  helperText: 'Damit holt BudgetBuddy den Kurs automatisch.',
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             _preview(),
             const SizedBox(height: 24),
