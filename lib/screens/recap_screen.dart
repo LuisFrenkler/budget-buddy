@@ -28,8 +28,18 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
         ..addStatusListener((s) {
           // the last card waits for the user instead of closing itself
           if (s == AnimationStatus.completed && _i < _slides.length - 1) _next();
-        })
-        ..forward();
+        });
+
+  // with a screen reader or reduced motion the cards wait for the user
+  bool _auto = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final media = MediaQuery.of(context);
+    _auto = !media.accessibleNavigation && !media.disableAnimations;
+    if (_auto && !_timer.isAnimating && _timer.value == 0) _timer.forward();
+  }
   int _i = 0;
 
   MonthRecap get r => widget.recap;
@@ -70,8 +80,8 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
     }
     HapticFeedback.selectionClick();
     setState(() => _i = i);
-    // the last card waits for the user
-    if (i == _slides.length - 1) {
+    // the last card waits for the user; without auto-advance the bar just fills
+    if (i == _slides.length - 1 || !_auto) {
       _timer.value = 1;
     } else {
       _timer.forward(from: 0);
@@ -143,7 +153,21 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
                 Text('Dein $_monthName',
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                 const Spacer(),
+                if (!_auto) ...[
+                  // without the timer: explicit buttons instead of invisible tap zones
+                  IconButton(
+                    tooltip: 'Zurück',
+                    icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
+                    onPressed: _i > 0 ? () => _go(_i - 1) : null,
+                  ),
+                  IconButton(
+                    tooltip: 'Weiter',
+                    icon: const Icon(Icons.chevron_right_rounded, color: Colors.white),
+                    onPressed: _next,
+                  ),
+                ],
                 IconButton(
+                  tooltip: 'Schließen',
                   icon: const Icon(Icons.close_rounded, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -181,7 +205,10 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeOutCubic,
           builder: (_, dy, child) => Transform.translate(offset: Offset(0, dy), child: child),
+          // long merchant names or large system text shrink instead of overflowing
           child: Text(big,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                   color: Colors.white, fontSize: 46, fontWeight: FontWeight.w800, letterSpacing: -1.6, height: 1.05)),
         ),

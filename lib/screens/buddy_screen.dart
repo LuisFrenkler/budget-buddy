@@ -204,7 +204,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
               ),
               const SizedBox(width: 6),
               Text(
-                _live == null ? 'verbindet …' : (_live! ? 'KI-Finanzcoach' : 'Offline-Modus'),
+                _live == null
+                    ? 'verbindet …'
+                    : (_live! ? 'KI-Finanzcoach' : (AccountService.current.value == null ? 'ohne Konto' : 'Offline-Modus')),
                 style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
               ),
             ]),
@@ -266,12 +268,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
       child: Row(children: [
-        Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.textDim),
+        // a guest isn't offline, just without the account the AI runs through
+        Icon(guest ? Icons.phone_iphone_rounded : Icons.wifi_off_rounded, size: 18, color: AppColors.textDim),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             guest
-                ? 'Offline-Modus: Buddy rechnet direkt auf deinem Gerät. Mit einem Konto antwortet er mit KI.'
+                ? 'Buddy rechnet direkt auf deinem Gerät. Mit einem Konto antwortet er mit KI.'
                 : 'Offline-Modus: Buddy rechnet direkt auf deinem Gerät, die KI ist gerade nicht verbunden.',
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),

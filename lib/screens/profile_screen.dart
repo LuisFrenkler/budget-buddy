@@ -22,6 +22,7 @@ import 'connections_screen.dart';
 import 'auth_screens.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
+import '../services/store_purchases.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
@@ -679,6 +680,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'App zurücksetzen?',
         'Alle Umsätze, Budgets, Depot-Positionen und Einstellungen auf diesem Gerät werden gelöscht. '
             '${AccountService.current.value != null ? 'Du wirst abgemeldet, dein Konto bleibt bestehen. ' : ''}'
+            // a store subscription keeps running and is brought back with "Käufe wiederherstellen"
+            '${PlusService.subscription.value?.fromStore == true ? 'Dein Plus-Abo läuft im ${StorePurchases.storeName} weiter; hol es danach mit „Käufe wiederherstellen“ zurück. ' : ''}'
             'Das lässt sich nicht rückgängig machen.',
         'Zurücksetzen');
     if (!ok) return;
