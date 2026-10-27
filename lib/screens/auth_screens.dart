@@ -6,6 +6,7 @@ import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/settings_service.dart';
+import '../utils/password.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import 'connections_screen.dart';
@@ -258,15 +259,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  // 0..3: length, mixed case, digit or symbol
-  int get _strength {
-    final p = _password.text;
-    if (p.length < 8) return p.isEmpty ? 0 : 1;
-    var s = 1;
-    if (RegExp(r'[a-z]').hasMatch(p) && RegExp(r'[A-Z]').hasMatch(p)) s++;
-    if (RegExp(r'[0-9\W_]').hasMatch(p)) s++;
-    return s;
-  }
 
   bool get _valid =>
       _email.text.contains('@') && _password.text.length >= 8 && _name.text.trim().isNotEmpty && _accepted;
@@ -302,9 +294,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final strength = _strength;
-    const labels = ['', 'Schwach', 'Gut', 'Stark'];
-    final colors = [AppColors.border, AppColors.error, AppColors.warning, AppColors.positive];
+    // the same scale as when changing the password later
+    final (strength, word) = passwordStrength(_password.text);
+    final colors = [AppColors.border, AppColors.error, AppColors.warning, AppColors.positive, AppColors.positive];
     return _AuthScaffold(
       title: 'Konto erstellen',
       subtitle: 'Damit sind deine Bankverbindungen nur für dich sichtbar.',
@@ -329,6 +321,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               onChanged: _refresh,
               onSubmitted: (_) => _valid && !_busy ? _submit() : null,
               suffix: IconButton(
+                tooltip: _hide ? 'Passwort zeigen' : 'Passwort verbergen',
                 icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: AppColors.textDim),
                 onPressed: () => setState(() => _hide = !_hide),
               ),
@@ -337,12 +330,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         const SizedBox(height: 10),
         Row(children: [
-          for (int i = 1; i <= 3; i++)
+          for (int i = 1; i <= 4; i++)
             Expanded(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 height: 4,
-                margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
+                margin: EdgeInsets.only(right: i < 4 ? 6 : 0),
                 decoration: BoxDecoration(
                   color: strength >= i ? colors[strength] : AppColors.border,
                   borderRadius: BorderRadius.circular(2),
@@ -352,7 +345,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SizedBox(width: 12),
           SizedBox(
             width: 96,
-            child: Text(_password.text.length < 8 ? 'Min. 8 Zeichen' : labels[strength],
+            child: Text(_password.text.length < 8 ? 'Min. 8 Zeichen' : word,
                 style: TextStyle(fontSize: 12, color: AppColors.textDim)),
           ),
         ]),
