@@ -11,6 +11,7 @@
 //                                    Without them the server runs a demo bank.
 //   EB_REDIRECT_URL                  whitelisted redirect (default <PUBLIC_URL>/bank/callback)
 //   ANTHROPIC_API_KEY                optional, enables the AI features (lib/ai.dart)
+//   GEMINI_API_KEY, GEMINI_MODEL     optional, the free alternative when no Anthropic key is set
 //   PARQET_CLIENT_ID                 Parqet Connect integration (depot sync, lib/depot.dart).
 //   PARQET_CLIENT_SECRET             only if the integration has one.
 //                                    Without the id the server runs a demo depot.
@@ -131,7 +132,7 @@ const _trialDays = 7;
 const _promoCodes = {'BUDDY30': 30, 'FREUND': 30, 'CREATOR60': 60, 'START14': 14};
 final _accounts = Accounts(File('$_dataDir/users.json'));
 final _splits = SharedSplits(File('$_dataDir/splits.json'));
-final _ai = Ai(_env('ANTHROPIC_API_KEY'));
+final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
 
 // AI calls cost money: at most this many per user and day
 const _aiDailyLimit = 150;
@@ -172,7 +173,7 @@ Future<void> main() async {
     unawaited(_serve(secure));
   }
   stdout.writeln('  Bank:   ${_bank.mode == 'live' ? 'Enable Banking (live)' : 'Demo-Bank (set EB_APP_ID + EB_PRIVATE_KEY_PATH for real banks)'}');
-  stdout.writeln('  KI:     ${_ai.enabled ? 'Claude (live)' : 'not configured (set ANTHROPIC_API_KEY)'}');
+  stdout.writeln('  KI:     ${_ai.enabled ? '${_ai.name} (live)' : 'not configured (set ANTHROPIC_API_KEY or GEMINI_API_KEY)'}');
   stdout.writeln('  Plus:   ${_billing.mode == 'live' ? 'Stripe (live)' : 'Demo-Checkout (set STRIPE_SECRET_KEY for real payments)'}');
   stdout.writeln('  Stores: ${_stores.mode.isEmpty ? 'not configured (App Store / Google Play purchases are refused)' : _stores.mode}');
   stdout.writeln('  Depot:  ${_depot.mode == 'live' ? 'Parqet Connect (live)' : 'Demo-Depot (set PARQET_CLIENT_ID for real depots)'}');
@@ -320,7 +321,7 @@ Future<void> _handle(HttpRequest req) async {
   final q = req.uri.queryParameters;
   switch (req.uri.path) {
     case '/health':
-      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
+      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'aiProvider': _ai.enabled ? _ai.provider : null, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
     case '/auth/register':
       final ip = _clientIp(req);
       if (_registerLimit.blocked(ip)) {

@@ -90,7 +90,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // the finance summary leaves the device only after the user agreed once;
   // a "no" is remembered too (and both can be changed in Profil)
   Future<bool> _consent() async {
-    final given = _settings.get('aiConsent');
+    // a yes to Anthropic is no yes to Google: each provider is asked once
+    final key = BuddyService.provider == 'google' ? 'aiConsentGoogle' : 'aiConsent';
+    final given = _settings.get(key);
     if (given == true) return true;
     if (given == false) return false;
     final ok = await showModalBottomSheet<bool>(
@@ -108,8 +110,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
             const SizedBox(height: 10),
             Text(
               'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
-              '(Summen je Monat und Kategorie, Budgets, Verträge, Händlernamen) an die KI von Anthropic. '
-              'Keine Kontonummern, keine Zugangsdaten. Anthropic nutzt die Daten nicht zum Training.',
+              '(Summen je Monat und Kategorie, Budgets, Verträge, Händlernamen) an die KI von '
+              '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
+              'Keine Kontonummern, keine Zugangsdaten. '
+              '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             Align(
@@ -139,7 +143,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ),
     );
     // closing the sheet without choosing asks again next time
-    if (ok != null) await _settings.put('aiConsent', ok);
+    if (ok != null) await _settings.put(key, ok);
     return ok == true;
   }
 

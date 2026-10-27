@@ -22,6 +22,8 @@ class ChatMessage {
 
 class BuddyService {
   static bool? _serverAi;
+  // who answers on the server: 'anthropic', or 'google' (Gemini, free tier)
+  static String provider = 'anthropic';
 
   // true when answers come from Claude, false for offline answers
   static Future<bool> live() async {
@@ -29,7 +31,9 @@ class BuddyService {
     if (_serverAi != null) return _serverAi!;
     try {
       final res = await http.get(Uri.parse('${BackendService.base}/health')).timeout(const Duration(seconds: 4));
-      _serverAi = res.statusCode == 200 && (jsonDecode(res.body) as Map)['ai'] == true;
+      final health = jsonDecode(res.body) as Map;
+      _serverAi = res.statusCode == 200 && health['ai'] == true;
+      provider = '${health['aiProvider'] ?? 'anthropic'}';
     } catch (_) {
       return false; // offline now; ask again next time
     }

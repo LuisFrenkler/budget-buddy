@@ -91,7 +91,10 @@ class LegalTexts {
                 'unserem Auftrag, um die Antwort zu erzeugen, und verwendet sie laut Vertrag nicht zum Training. '
                 'Die Übermittlung in die USA stützt sich auf das EU-US Data Privacy Framework bzw. '
                 'Standardvertragsklauseln (Art. 45, 46 DSGVO). Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. '
-                'Einfache Fragen beantwortet Buddy direkt auf deinem Gerät, ohne Übertragung.'),
+                'Einfache Fragen beantwortet Buddy direkt auf deinem Gerät, ohne Übertragung. '
+                'Ist statt Claude das KI-Modell Gemini von Google eingerichtet, gehen dieselben Daten an Google; '
+                'im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung seiner Dienste verwenden. Buddy '
+                'nennt vor deiner ersten Frage, welcher Anbieter antwortet.'),
         const LegalSection(
             '6. Kurse und Marktdaten',
             'Für aktuelle Kurse fragt die App öffentliche Marktdaten ab: Aktien und ETFs über unseren Server '
