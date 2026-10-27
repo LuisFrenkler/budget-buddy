@@ -321,7 +321,10 @@ Future<void> _handle(HttpRequest req) async {
       return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
     case '/auth/register':
       final ip = _clientIp(req);
-      if (_registerLimit.blocked(ip)) throw const AuthError(429, 'Zu viele neue Konten von hier. Bitte versuch es später.');
+      if (_registerLimit.blocked(ip)) {
+        final minutes = (_registerLimit.wait(ip).inSeconds / 60).ceil().clamp(1, 60);
+        throw AuthError(429, 'Zu viele neue Konten von hier. Bitte versuch es in $minutes ${minutes == 1 ? 'Minute' : 'Minuten'} noch einmal.');
+      }
       _registerLimit.hit(ip);
       final b = await _body(req);
       return _json(req, 200,
@@ -330,7 +333,7 @@ Future<void> _handle(HttpRequest req) async {
       // the per-email lockout stops guessing one password; this stops one
       // address from trying many accounts
       final ip = _clientIp(req);
-      if (_loginLimit.blocked(ip)) throw const AuthError(429, 'Zu viele Versuche. Bitte warte ein paar Minuten.');
+      if (_loginLimit.blocked(ip)) throw AuthError.wait(_loginLimit.wait(ip));
       final b = await _body(req);
       try {
         return _json(req, 200, await _accounts.login(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}'));
