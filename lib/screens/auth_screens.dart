@@ -654,7 +654,7 @@ class _ErrorText extends StatelessWidget {
               child: Row(children: [
                 const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text(error!, style: const TextStyle(color: AppColors.error, fontSize: 14))),
+                Expanded(child: Text(error!, style: TextStyle(color: AppColors.errorText, fontSize: 14))),
               ]),
             ),
     );

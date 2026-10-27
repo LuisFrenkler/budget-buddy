@@ -108,7 +108,7 @@ class ContractsScreen extends StatelessWidget {
                     sent != null
                         ? 'Gekündigt am ${Dates.dayMonth(sent)}'
                         : 'Monatlich · nächste am ${Dates.dayMonth(c.nextDate)}',
-                    style: TextStyle(fontSize: 12, color: sent != null ? AppColors.warning : AppColors.textDim),
+                    style: TextStyle(fontSize: 12, color: sent != null ? AppColors.warningText : AppColors.textDim),
                     overflow: TextOverflow.ellipsis);
               }),
             ]),
@@ -121,7 +121,7 @@ class ContractsScreen extends StatelessWidget {
             ),
             if (c.priceChange > 0)
               Text('+${Money.format(c.priceChange)}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.warning, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 12, color: AppColors.warningText, fontWeight: FontWeight.w600)),
           ]),
         ]),
       ),
@@ -182,7 +182,7 @@ class ContractsCard extends StatelessWidget {
                       hidden ? '••• / Monat' : '${Money.format(monthly)} / Monat',
                       if (raised > 0) '$raised teurer',
                     ].join(' · '),
-                    style: TextStyle(fontSize: 13, color: raised > 0 ? AppColors.warning : AppColors.textDim),
+                    style: TextStyle(fontSize: 13, color: raised > 0 ? AppColors.warningText : AppColors.textDim),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

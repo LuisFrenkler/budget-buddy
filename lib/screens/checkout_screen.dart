@@ -697,7 +697,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     '(SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.',
                     style: TextStyle(
                         fontSize: 12,
-                        color: _showErrors && !_mandate ? AppColors.error : AppColors.textDim),
+                        color: _showErrors && !_mandate ? AppColors.errorText : AppColors.textDim),
                   ),
                 ),
               ),

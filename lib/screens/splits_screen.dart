@@ -61,7 +61,7 @@ class SplitsScreen extends StatelessWidget {
                             fontSize: 38,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -1.2,
-                            color: total > 0 ? AppColors.positive : (total < 0 ? AppColors.error : AppColors.text))),
+                            color: total > 0 ? AppColors.positiveText : (total < 0 ? AppColors.errorText : AppColors.text))),
                     const SizedBox(height: 20),
                     for (final g in groups) _GroupTile(g),
                   ],
@@ -134,7 +134,7 @@ class _GroupTile extends StatelessWidget {
                 Text(mine == 0 ? 'quitt' : Money.format(mine.abs()),
                     style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: mine > 0 ? AppColors.positive : (mine < 0 ? AppColors.error : AppColors.textDim))),
+                        color: mine > 0 ? AppColors.positiveText : (mine < 0 ? AppColors.errorText : AppColors.textDim))),
                 if (mine != 0)
                   Text(mine > 0 ? 'bekommst du' : 'schuldest du',
                       style: TextStyle(color: AppColors.textDim, fontSize: 12)),
@@ -274,7 +274,7 @@ class _JoinSheetState extends State<_JoinSheet> {
               trailing: taken.contains(i) ? null : const Icon(Icons.chevron_right_rounded),
               onTap: () => _join(i),
             ),
-          if (_error != null) Text(_error!, style: const TextStyle(color: AppColors.error)),
+          if (_error != null) Text(_error!, style: TextStyle(color: AppColors.errorText)),
         ],
       ]),
     );
@@ -564,7 +564,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                         fontSize: 38,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -1.2,
-                        color: mine > 0 ? AppColors.positive : (mine < 0 ? AppColors.error : AppColors.text))),
+                        color: mine > 0 ? AppColors.positiveText : (mine < 0 ? AppColors.errorText : AppColors.text))),
                 if (transfers.isNotEmpty) ...[
                   const SizedBox(height: 22),
                   Text('So wird es ausgeglichen',

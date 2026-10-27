@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../utils/money.dart';
 import 'package:flutter/services.dart';
 import '../services/history.dart';
 import '../utils/dates.dart';
@@ -71,7 +72,19 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
     final up = pts.last.cents >= pts.first.cents;
     final color = up ? AppColors.positive : AppColors.error;
 
-    return LayoutBuilder(builder: (context, c) {
+    // what a screen reader says instead of the drawing: start, end, low and high
+    final low = pts.reduce((a, b) => b.cents < a.cents ? b : a);
+    final high = pts.reduce((a, b) => b.cents > a.cents ? b : a);
+    final summary = 'Verlauf vom ${Dates.dayMonth(pts.first.date)} bis ${Dates.dayMonth(pts.last.date)}: '
+        'von ${Money.format(pts.first.cents)} auf ${Money.format(pts.last.cents)}. '
+        'Tiefster Stand ${Money.format(low.cents)} am ${Dates.dayMonth(low.date)}, '
+        'höchster ${Money.format(high.cents)} am ${Dates.dayMonth(high.date)}.';
+
+    return Semantics(
+      label: summary,
+      image: true,
+      excludeSemantics: true,
+      child: LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
       // with a mouse (Mac, browser) hovering is enough to read a value
       return MouseRegion(
@@ -104,7 +117,8 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
           ),
         ),
       );
-    });
+    }),
+    );
   }
 }
 
@@ -214,19 +228,39 @@ class RangeSelector extends StatelessWidget {
 
   const RangeSelector({super.key, required this.labels, required this.selected, required this.onChanged});
 
+  // "1M" read aloud means nothing
+  static const _spoken = {
+    '1W': '7 Tage',
+    '1M': '30 Tage',
+    '3M': '3 Monate',
+    '6M': '6 Monate',
+    '1J': '12 Monate',
+    'Max': 'Gesamter Zeitraum',
+  };
+
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         for (final l in labels)
-          GestureDetector(
+          Semantics(
+            button: true,
+            selected: l == selected,
+            label: _spoken[l] ?? l,
+            excludeSemantics: true,
+            child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               if (l == selected) return;
               HapticFeedback.selectionClick();
               onChanged(l);
             },
-            child: AnimatedContainer(
+            // 44 pt tall, the comfortable tap target, the pill stays slim
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Center(
+                child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
@@ -239,6 +273,9 @@ class RangeSelector extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: l == selected ? AppColors.text : AppColors.textDim,
                   )),
+                ),
+              ),
+            ),
             ),
           ),
       ],

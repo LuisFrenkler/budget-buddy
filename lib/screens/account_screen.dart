@@ -313,7 +313,7 @@ class _AccountScreenState extends State<AccountScreen> {
           if (g.count > 1)
             Text(Money.signed(g.net),
               style: TextStyle(
-                  color: g.net > 0 ? AppColors.positive : AppColors.textDim,
+                  color: g.net > 0 ? AppColors.positiveText : AppColors.textDim,
                   fontSize: 13,
                   fontWeight: FontWeight.w600)),
         ],

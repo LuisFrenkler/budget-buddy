@@ -270,7 +270,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               last == null ? 'Noch nicht aktualisiert' : 'Aktualisiert ${_ago(last)}',
               if (until != null) 'Freigabe bis ${Dates.dayMonth(until)} ${until.year}',
             ].join(' · '),
-            style: TextStyle(color: expiresSoon ? AppColors.warning : AppColors.textDim, fontSize: 13),
+            style: TextStyle(color: expiresSoon ? AppColors.warningText : AppColors.textDim, fontSize: 13),
           ),
           const SizedBox(height: 18),
           Row(children: [

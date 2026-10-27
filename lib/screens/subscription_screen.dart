@@ -299,7 +299,7 @@ class _Details extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.error : AppColors.text)),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.errorText : AppColors.text)),
               if (subtitle != null)
                 Text(subtitle,
                     style: TextStyle(color: AppColors.textDim, fontSize: 12), overflow: TextOverflow.ellipsis),
@@ -309,7 +309,7 @@ class _Details extends StatelessWidget {
             Text(trailing,
                 style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: trailing == 'Sparen' ? AppColors.positive : AppColors.text)),
+                    color: trailing == 'Sparen' ? AppColors.positiveText : AppColors.text)),
           if (onTap != null && !danger) Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
         ]),
       ),

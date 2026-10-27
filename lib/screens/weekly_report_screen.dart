@@ -173,7 +173,7 @@ class _Report extends StatelessWidget {
                               ? '${Money.format(c.usualCents - c.cents)} unter Schnitt'
                               : 'wie immer',
                       style: TextStyle(
-                          color: c.cents > c.usualCents * 1.2 ? AppColors.error : AppColors.textDim, fontSize: 12.5))
+                          color: c.cents > c.usualCents * 1.2 ? AppColors.errorText : AppColors.textDim, fontSize: 12.5))
                   : Text('${c.count}× diese Woche', style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
               trailing: Text(Money.format(c.cents), style: const TextStyle(fontWeight: FontWeight.w700)),
             ),

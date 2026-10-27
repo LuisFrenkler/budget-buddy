@@ -54,7 +54,7 @@ class TxRow extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
-                color: tx.isIncome ? AppColors.positive : AppColors.text,
+                color: tx.isIncome ? AppColors.positiveText : AppColors.text,
               ),
             ),
           ],

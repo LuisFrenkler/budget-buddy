@@ -53,7 +53,7 @@ class ForecastCard extends StatelessWidget {
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.8,
-                      color: f.freeCents < 0 ? AppColors.error : AppColors.text)),
+                      color: f.freeCents < 0 ? AppColors.errorText : AppColors.text)),
               if (f.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
@@ -97,7 +97,7 @@ class ForecastCard extends StatelessWidget {
             Text('${minus ? '− ' : ''}${Money.format(cents)}',
                 style: TextStyle(
                     fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-                    color: bold && cents < 0 ? AppColors.error : null)),
+                    color: bold && cents < 0 ? AppColors.errorText : null)),
           ]),
         );
     showModalBottomSheet(

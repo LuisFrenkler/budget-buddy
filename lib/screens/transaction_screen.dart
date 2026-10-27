@@ -63,7 +63,7 @@ class TransactionScreen extends StatelessWidget {
                     fontSize: 38,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -1,
-                    color: tx.isIncome ? AppColors.positive : AppColors.text,
+                    color: tx.isIncome ? AppColors.positiveText : AppColors.text,
                   ),
                 ),
               ),

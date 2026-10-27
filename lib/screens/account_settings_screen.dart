@@ -197,7 +197,7 @@ class _Sheet extends StatelessWidget {
         ...fields,
         if (error != null) ...[
           const SizedBox(height: 10),
-          Text(error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+          Text(error!, style: TextStyle(color: AppColors.errorText, fontSize: 13)),
         ],
         const SizedBox(height: 18),
         FilledButton(
