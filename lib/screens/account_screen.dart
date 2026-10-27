@@ -243,7 +243,8 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(width: 8),
         ],
         // a real bank first, by hand second
-        chip('Konto', false, () => showAddAccountChoice(context, byHand: () async {
+        chip(MoneyAccounts.several ? 'Konto' : 'Konto oder Bank hinzufügen', false,
+            () => showAddAccountChoice(context, byHand: () async {
               final added = await showAccountSheet(context);
               if (added != null) AccountScreen.selected.value = added.id;
             }), icon: Icons.add_rounded),

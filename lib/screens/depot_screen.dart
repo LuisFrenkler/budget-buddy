@@ -91,16 +91,20 @@ class _DepotScreenState extends State<DepotScreen> {
               if (holdings.isNotEmpty)
                 Center(
                   child: SyncPill(
-                    label: Settings.depotBroker,
+                    // just the time: next to "+ Depot" a broker name would crowd the bar
+                    label: '',
                     last: _pricesAt(holdings),
                     onSync: _refreshPrices,
                   ),
                 ),
               // a real depot first, a position by hand second
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'Depot oder Position hinzufügen',
-                onPressed: () => showAddAccountChoice(context, depot: true, byHand: () => _add()),
+              Padding(
+                padding: const EdgeInsets.only(left: 6, right: 12),
+                child: TextButton.icon(
+                  onPressed: () => showAddAccountChoice(context, depot: true, byHand: () => _add()),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('Depot'),
+                ),
               ),
             ],
           ),
