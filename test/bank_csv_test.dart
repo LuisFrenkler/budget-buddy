@@ -62,4 +62,18 @@ void main() {
     expect(BankCsvImporter.looksLikeBank('Buchungstag;Empfänger;Betrag\n'), isTrue);
     expect(BankCsvImporter.looksLikeBank('Datum;Kategorie;Beschreibung;Betrag\n'), isFalse);
   });
+
+  test('equal bookings on one day are all kept, and only as many as exist are duplicates', () {
+    const csv = 'Buchung;Valuta;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung\n'
+        '20.10.2026;20.10.2026;Café;Lastschrift;Kaffee;1,00;EUR;-3,50;EUR\n'
+        '20.10.2026;20.10.2026;Café;Lastschrift;Kaffee;1,00;EUR;-3,50;EUR\n';
+    final first = BankCsvImporter.parse(csv);
+    expect(first.transactions.length, 2);
+    expect(first.transactions.map((t) => t.id).toSet().length, 2);
+
+    // one of the two is already in the app: the other one is new
+    final again = BankCsvImporter.parse(csv, existing: first.transactions.take(1).toList());
+    expect(again.transactions.length, 1);
+    expect(again.duplicates, 1);
+  });
 }

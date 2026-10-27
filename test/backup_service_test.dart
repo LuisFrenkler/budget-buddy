@@ -43,6 +43,9 @@ void main() {
       await Hive.openBox('badges');
       await Hive.openBox('holdings');
       await Hive.openBox('recurring');
+      await Hive.openBox('goals');
+      await Hive.openBox('splits');
+      await Hive.openBox('settings');
     });
 
     tearDownAll(() async {
@@ -77,6 +80,31 @@ void main() {
       expect(budget.limitCents, 25000);
       expect(budget.spentCents, 5000); // recomputed from the restored transaction
       expect(DB.getHoldings().single.valueCents, 120000); // 10 * 120€
+    });
+
+    test('a file that is no backup is refused before anything is deleted', () async {
+      await DB.addTx(Transaction(
+          id: 'keep', amountCents: 100, category: 'Lebensmittel', date: DateTime(2025, 4, 1), isIncome: false));
+      for (final bad in ['{}', '[]', '{"version": 1}', '{"version": 2, "transactions": []}']) {
+        await expectLater(BackupService.restoreFromJson(bad), throwsFormatException);
+      }
+      expect(DB.getTx().any((t) => t.id == 'keep'), isTrue);
+    });
+
+    test('goals, splits and the opening balance come back too', () async {
+      await Hive.box('goals').put('g1', {'id': 'g1', 'name': 'Urlaub'});
+      await Hive.box('splits').put('s1', {'id': 's1', 'name': 'WG'});
+      await Hive.box('settings').put('openingBalanceCents', 123456);
+      final json = BackupService.toBackupJson();
+
+      await Hive.box('goals').clear();
+      await Hive.box('splits').clear();
+      await Hive.box('settings').put('openingBalanceCents', 0);
+      await BackupService.restoreFromJson(json);
+
+      expect((Hive.box('goals').get('g1') as Map)['name'], 'Urlaub');
+      expect((Hive.box('splits').get('s1') as Map)['name'], 'WG');
+      expect(Hive.box('settings').get('openingBalanceCents'), 123456);
     });
   });
 }

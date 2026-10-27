@@ -243,13 +243,15 @@ class StripeBilling implements Billing {
   Future<Entitlement> withdraw(Entitlement e) async {
     final s = await _req('GET', '/subscriptions/${e.subscription}?expand[]=latest_invoice');
     final invoice = s['latest_invoice'] as Map?;
-    await _req('DELETE', '/subscriptions/${e.subscription}');
-    // refund what was paid (nothing during the free trial)
+    // refund first: if that fails, the subscription still exists and a retry works
+    // (nothing was paid during the free trial)
     final paid = (invoice?['amount_paid'] as num?) ?? 0;
-    final intent = invoice?['payment_intent'];
-    if (paid > 0 && intent != null) {
-      await _req('POST', '/refunds', {'payment_intent': '$intent'});
+    final intent = invoice?['payment_intent'] ?? invoice?['charge'];
+    if (paid > 0) {
+      if (intent == null) throw BillingError('Die Zahlung zur Erstattung wurde nicht gefunden.');
+      await _req('POST', '/refunds', {'${invoice?['payment_intent'] != null ? 'payment_intent' : 'charge'}': '$intent'});
     }
+    await _req('DELETE', '/subscriptions/${e.subscription}');
     return e.copyWith(status: 'canceled');
   }
 

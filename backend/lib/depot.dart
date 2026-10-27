@@ -121,9 +121,11 @@ class ParqetConnect implements DepotProvider {
       _token({'grant_type': 'authorization_code', 'code': code, 'code_verifier': verifier, 'redirect_uri': redirectUrl});
 
   @override
-  Future<DepotTokens> refresh(DepotTokens tokens) {
+  Future<DepotTokens> refresh(DepotTokens tokens) async {
     if (tokens.refresh == null) throw Exception('Parqet-Freigabe abgelaufen. Bitte neu verbinden.');
-    return _token({'grant_type': 'refresh_token', 'refresh_token': tokens.refresh!});
+    // OAuth may omit a new refresh token; the old one then stays valid
+    final fresh = await _token({'grant_type': 'refresh_token', 'refresh_token': tokens.refresh!});
+    return fresh.refresh != null ? fresh : DepotTokens(fresh.access, tokens.refresh, fresh.expires);
   }
 
   Future<Map<String, dynamic>> _call(String method, String path, DepotTokens t, [Object? body]) async {

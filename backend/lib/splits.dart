@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'accounts.dart';
+import 'json_store.dart';
 
 class SharedSplits {
   // no 0/O or 1/I/L: codes are read aloud and typed by hand
@@ -24,10 +25,7 @@ class SharedSplits {
     map.forEach((k, v) => _groups[k] = (v as Map).cast<String, dynamic>());
   }
 
-  Future<void> _save() async {
-    await _store.parent.create(recursive: true);
-    await _store.writeAsString(jsonEncode(_groups));
-  }
+  Future<void> _save() => writeJsonAtomic(_store, _groups);
 
   String _newCode() {
     final rnd = math.Random.secure();

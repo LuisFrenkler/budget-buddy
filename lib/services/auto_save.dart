@@ -39,8 +39,18 @@ class AutoSave {
         added += roundUpOf(t.amountCents);
         g.roundedIds.add(t.id);
       }
-      // keep the list short: old bookings are behind "since" anyway
-      if (g.roundedIds.length > 500) g.roundedIds.removeRange(0, g.roundedIds.length - 500);
+      // keep the list short: move "since" up to the 500th newest booking, so
+      // the ids dropped here lie before it and are never rounded up again
+      if (g.roundedIds.length > 500) {
+        final dates = {for (final t in tx) t.id: DateTime(t.date.year, t.date.month, t.date.day)};
+        final kept = g.roundedIds.where(dates.containsKey).toList()
+          ..sort((a, b) => dates[b]!.compareTo(dates[a]!));
+        if (kept.length > 500) {
+          final cut = dates[kept[499]]!;
+          g.roundUpSince = cut;
+          g.roundedIds = kept.where((id) => !dates[id]!.isBefore(cut)).toList();
+        }
+      }
     }
     // never past the target
     final room = g.targetCents - g.savedCents;

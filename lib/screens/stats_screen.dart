@@ -496,7 +496,7 @@ class _StatsViewState extends State<StatsView> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(sel == null ? 'Gesamt' : entries[sel].key,
-                          style: TextStyle(fontSize: 10, color: AppColors.textDim), overflow: TextOverflow.ellipsis),
+                          style: TextStyle(fontSize: 11, color: AppColors.textDim), overflow: TextOverflow.ellipsis),
                       Text(Money.format(sel == null ? total : entries[sel].value),
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                     ],

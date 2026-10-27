@@ -21,9 +21,9 @@ class RecurringService {
   static DateTime advance(DateTime d, String interval) {
     switch (interval) {
       case 'täglich':
-        return d.add(const Duration(days: 1));
+        return DateTime(d.year, d.month, d.day + 1); // not +24 h: wrong across a DST change
       case 'wöchentlich':
-        return d.add(const Duration(days: 7));
+        return DateTime(d.year, d.month, d.day + 7);
       case 'jährlich':
         return _clamp(d.year + 1, d.month, d.day);
       case 'monatlich':

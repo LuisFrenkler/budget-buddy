@@ -7,6 +7,13 @@ import 'package:budget_buddy/services/db.dart';
 
 void main() {
   group('RecurringService.advance', () {
+    test('daily and weekly keep the calendar day across the DST change', () {
+      // in Germany 25.10.2026 has 25 hours; +7×24 h would land on Sunday 23:00
+      expect(RecurringService.advance(DateTime(2026, 10, 19), 'wöchentlich'), DateTime(2026, 10, 26));
+      expect(RecurringService.advance(DateTime(2026, 10, 25), 'täglich'), DateTime(2026, 10, 26));
+      expect(RecurringService.advance(DateTime(2026, 3, 29), 'täglich'), DateTime(2026, 3, 30));
+    });
+
     test('monthly clamps to the last day of short months', () {
       // Jan 31 + 1 month -> Feb 28 (2025 is not a leap year)
       expect(RecurringService.advance(DateTime(2025, 1, 31), 'monatlich'),

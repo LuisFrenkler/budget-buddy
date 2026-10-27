@@ -251,7 +251,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // a tappable legal page inside the consent sentence
   TextSpan _link(String text, LegalDoc doc) => TextSpan(
         text: text,
-        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+        style: TextStyle(color: AppColors.primaryText, fontWeight: FontWeight.w600),
         recognizer: TapGestureRecognizer()
           ..onTap = () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: doc))),
       );
