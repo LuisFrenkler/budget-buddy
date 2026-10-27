@@ -1,5 +1,16 @@
 # UX-Check BudgetBuddy (26.10.2026)
 
+> **Stand 27.10.2026 morgens:** 55 der 57 Befunde behoben, in 25 Commits
+> (`bbf1a28` bis `93abbf8`). 213 App- und 15 Server-Tests grün, `flutter
+> analyze` ohne neue Hinweise, Web-Build kompiliert.
+>
+> **Offen, braucht dich:** „Passwort vergessen“ (#24, braucht einen
+> E-Mail-Versand für den Server) und die Platzhalter in Impressum/Support
+> (#27, deine Angaben in `lib/legal/legal_info.dart`).
+>
+> **Offen, nächster Schritt:** Erstattungen (z. B. Rücksendung an Zalando)
+> mit der Ausgabe verrechnen statt als Einnahme zählen (Rest von #39).
+
 Alle 29 Screens, geprüft im Code (4 parallele Durchgänge) und im Browser
 (Handy-Größe, Beispieldaten). Kriterien: stimmen die Zahlen, ist es klar,
 gibt es Leer-/Lade-/Fehlerzustände, Bedienung, Barrierefreiheit, Tempo,
@@ -63,7 +74,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 43 | Depot | „1.000“ bedeutet bei Anzahl 1, beim Preis 1.000 | ✅ |
 | 44 | Depot | Synchronisierte Positionen editierbar, nächster Sync macht es rückgängig | ✅ |
 | 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | ✅ |
-| 46 | Sparziele | Ziele nicht bearbeitbar, Einzahlung ohne Rückgängig; Plan ignoriert Automatik und überfällige Ziele; Aufrunden doppelt gezählt | ✅ (bearbeiten, entnehmen, Rückgängig; Plan vs. Automatik ⏳) |
+| 46 | Sparziele | Ziele nicht bearbeitbar, Einzahlung ohne Rückgängig; Plan ignoriert Automatik und überfällige Ziele; Aufrunden doppelt gezählt | ✅ |
 | 47 | Plus | Gratis-Test versprochen, auch wenn nicht (mehr) möglich; feste Preise neben Store-Preisen | ✅ (Google erkennt es; bei Apple entscheidet der Store-Dialog) |
 | 48 | Plus | Paywall ohne „verlängert sich automatisch“ und ohne AGB/Datenschutz-Links | ✅ |
 | 49 | Abo | „Nächste Zahlung“ falsch am 31.; Server-Datum ignoriert | ✅ |
