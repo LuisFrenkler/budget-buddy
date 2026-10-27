@@ -22,7 +22,9 @@ class TxRow extends StatelessWidget {
     final note = tx.note?.trim() ?? '';
     final title = note.isNotEmpty ? note : tx.category;
     final day = Dates.relativeDay(tx.date);
-    final subtitle = !showDay ? tx.category : note.isNotEmpty ? '${tx.category} · $day' : day;
+    // a refund says so, next to the category it lowers
+    final category = tx.isRefund ? '${tx.category} · Erstattung' : tx.category;
+    final subtitle = !showDay ? category : note.isNotEmpty ? '$category · $day' : day;
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),

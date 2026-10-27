@@ -63,6 +63,15 @@ class Categorizer {
         if (_startsWord(lower, k)) return entry.key;
       }
     }
+    // money coming back from a shop is a refund: it belongs to what was bought
+    // there (a Zalando return lowers Kleidung), not to income
+    if (isIncome) {
+      for (final entry in _expense.entries) {
+        for (final k in entry.value) {
+          if (_startsWord(lower, k)) return entry.key;
+        }
+      }
+    }
     return 'Sonstiges';
   }
 

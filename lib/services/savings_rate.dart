@@ -21,10 +21,10 @@ class SavingsRate {
     var income = 0, spent = 0;
     for (final t in tx) {
       if (t.date.year != m.year || t.date.month != m.month || !Categories.counts(t.category)) continue;
-      if (t.isIncome) {
+      if (t.isEarning) {
         income += t.amountCents;
       } else {
-        spent += t.amountCents;
+        spent += t.spendCents;
       }
     }
     return MonthRate(m, income, spent, running: running);

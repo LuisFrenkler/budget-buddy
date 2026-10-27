@@ -88,7 +88,7 @@ class ForecastService {
       if (!first.isBefore(end)) continue;
       months++;
       incomeSum += tx
-          .where((t) => t.isIncome && !t.date.isBefore(start) && t.date.isBefore(end))
+          .where((t) => t.isEarning && !t.date.isBefore(start) && t.date.isBefore(end))
           .fold<int>(0, (s, t) => s + t.amountCents);
     }
     if (months == 0 || incomeSum == 0) return null;
@@ -112,16 +112,16 @@ class ForecastService {
         .fold<int>(0, (s, v) => s + v);
 
     final spent = tx
-        .where((t) => !t.isIncome && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
-        .fold<int>(0, (s, t) => s + t.amountCents);
+        .where((t) => t.isSpending && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
+        .fold<int>(0, (s, t) => s + t.spendCents);
 
     // the usual daily variable spending over the last 60 days, or over the
     // shorter time the app has known the user (at least a week)
     final known = today.difference(_day(first)).inDays.clamp(7, 60);
     final since = today.subtract(Duration(days: known));
     final recent = tx
-        .where((t) => !t.isIncome && !fixedIds.contains(t.id) && !t.date.isBefore(since) && t.date.isBefore(today))
-        .fold<int>(0, (s, t) => s + t.amountCents);
+        .where((t) => t.isSpending && !fixedIds.contains(t.id) && !t.date.isBefore(since) && t.date.isBefore(today))
+        .fold<int>(0, (s, t) => s + t.spendCents);
     final pace = recent * daysLeft ~/ known;
 
     var free = income - fixed - goalsMonthly - spent;
