@@ -36,6 +36,8 @@ class BackupService {
   // app lock, bank link) stay on the device
   static const settingKeys = [
     'openingBalanceCents', 'balanceSet', 'categoryRules', 'budgetsStopped', 'cancellations', 'contractsHidden',
+    // the accounts besides the main one, and the main one's name
+    'moneyAccounts', 'mainAccount',
   ];
 
   // serializes every box into a single pretty-printed JSON document

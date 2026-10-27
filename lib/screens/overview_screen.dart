@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'account_screen.dart';
+import '../models/money_account.dart';
+import '../services/money_accounts.dart';
 import '../widgets/sync_pill.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
@@ -154,7 +157,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ]),
         builder: (context, _) {
           final tx = DB.getTx();
-          final cash = DB.balanceOf(tx) + Settings.openingBalanceCents;
+          // the money on every account together
+          final cash = DB.balanceOf(tx) + MoneyAccounts.openingTotal;
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
           // data changed: hints and reminders may have, too
@@ -481,7 +485,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
   List<Widget> _netWorth(List<Transaction> tx, int cash, int depotNow) {
     final now = DateTime.now();
     final cashPts = History.dailyBalance(tx,
-        from: DateTime(now.year, now.month, now.day - (_days - 1)), opening: Settings.openingBalanceCents);
+        from: DateTime(now.year, now.month, now.day - (_days - 1)), opening: MoneyAccounts.openingTotal);
     final depot = _depot;
     final points = [
       for (int i = 0; i < cashPts.length; i++)
@@ -535,17 +539,43 @@ class _OverviewScreenState extends State<OverviewScreen> {
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
       child: Column(
         children: [
-          _accountRow(
-            icon: Icons.account_balance_wallet_rounded,
-            color: AppColors.primary,
-            title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
-            // without the real balance the sum of bookings means nothing
-            value: known ? Money.format(cash) : 'Eintragen',
-            change: known ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}' : 'Kontostand fehlt noch',
-            up: !known || monthNet == 0 ? null : monthNet > 0,
-            onTap: () => widget.onOpen(1, segment: 0),
-          ),
-          Divider(height: 1, indent: 72, color: AppColors.border),
+          if (MoneyAccounts.several)
+            // every account on its own line; a tap opens it on Konto
+            for (final a in MoneyAccounts.all) ...[
+              _accountRow(
+                icon: a.kind == 'spar'
+                    ? Icons.savings_rounded
+                    : a.kind == 'bar'
+                        ? Icons.payments_rounded
+                        : Icons.account_balance_wallet_rounded,
+                color: a.kind == 'spar' ? AppColors.positive : AppColors.primary,
+                title: a.name,
+                value: Money.format(MoneyAccounts.balanceOf(a, tx)),
+                change: () {
+                  final net = DB.balanceOf(MoneyAccounts.bookingsOf(a.id, month));
+                  return net == 0 ? MoneyAccount.kinds[a.kind]! : '${Money.signed(net)} im ${Dates.month(DateTime.now())}';
+                }(),
+                up: null,
+                onTap: () {
+                  AccountScreen.selected.value = a.id;
+                  widget.onOpen(1, segment: 0);
+                },
+              ),
+              Divider(height: 1, indent: 72, color: AppColors.border),
+            ]
+          else ...[
+            _accountRow(
+              icon: Icons.account_balance_wallet_rounded,
+              color: AppColors.primary,
+              title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
+              // without the real balance the sum of bookings means nothing
+              value: known ? Money.format(cash) : 'Eintragen',
+              change: known ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}' : 'Kontostand fehlt noch',
+              up: !known || monthNet == 0 ? null : monthNet > 0,
+              onTap: () => widget.onOpen(1, segment: 0),
+            ),
+            Divider(height: 1, indent: 72, color: AppColors.border),
+          ],
           _accountRow(
             icon: Icons.trending_up_rounded,
             color: AppColors.accentBlue,

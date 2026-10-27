@@ -121,9 +121,25 @@ class Settings {
     }
   }
 
+  // banks linked after the first one: [{state, bank}]
+  static List<({String state, String bank})> get extraBanks => [
+        for (final m in (_box.get('bankLinks') as List?) ?? const [])
+          if (m is Map) (state: '${m['state']}', bank: '${m['bank'] ?? ''}'),
+      ];
+
+  static Future<void> addExtraBank(String state, String bank) => _box.put('bankLinks', [
+        for (final l in extraBanks) {'state': l.state, 'bank': l.bank},
+        {'state': state, 'bank': bank},
+      ]);
+
+  static Future<void> removeExtraBank(String state) => _box.put('bankLinks', [
+        for (final l in extraBanks)
+          if (l.state != state) {'state': l.state, 'bank': l.bank},
+      ]);
+
   // forgets the linked bank; the imported bookings stay
   static Future<void> clearBank() async {
-    for (final k in ['bankState', 'bankOwner', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync']) {
+    for (final k in ['bankState', 'bankOwner', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync', 'bankLinks']) {
       await _box.delete(k);
     }
   }

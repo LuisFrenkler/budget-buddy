@@ -17,6 +17,8 @@ class Holding {
   // the live price in euros with all its decimals: coins like HBAR cost
   // 0,054 €, which as whole cents (0,05 €) would be 8 % off for the value
   final double? unitEur;
+  // the depot it is in ("Trade Republic", "Scalable"); null = not named
+  final String? depot;
 
   Holding({
     required this.id,
@@ -28,6 +30,7 @@ class Holding {
     required this.currentPriceCents,
     this.priceAt,
     this.unitEur,
+    this.depot,
   });
 
   // the same position with a fresh live price; [unitEur] when the source
@@ -42,6 +45,7 @@ class Holding {
         currentPriceCents: cents,
         priceAt: at,
         unitEur: unitEur,
+        depot: depot,
       );
 
   // total amount originally invested, in cents
@@ -76,6 +80,7 @@ class Holding {
       'currentPriceCents': currentPriceCents,
       if (priceAt != null) 'priceAt': priceAt!.millisecondsSinceEpoch,
       if (unitEur != null) 'unitEur': unitEur,
+      if (depot != null) 'depot': depot,
     };
   }
 
@@ -90,6 +95,7 @@ class Holding {
       currentPriceCents: (map['currentPriceCents'] as num).toInt(),
       priceAt: map['priceAt'] == null ? null : DateTime.fromMillisecondsSinceEpoch((map['priceAt'] as num).toInt()),
       unitEur: (map['unitEur'] as num?)?.toDouble(),
+      depot: map['depot'] as String?,
     );
   }
 }

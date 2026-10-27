@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
+import '../screens/account_screen.dart';
+import '../services/money_accounts.dart';
 import '../screens/add_screen.dart';
 import '../screens/transaction_screen.dart';
 import '../utils/dates.dart';
@@ -23,7 +25,11 @@ class TxRow extends StatelessWidget {
     final title = note.isNotEmpty ? note : tx.category;
     final day = Dates.relativeDay(tx.date);
     // a refund says so, next to the category it lowers
-    final category = tx.isRefund ? '${tx.category} · Erstattung' : tx.category;
+    // with several accounts and all of them listed: which one it was booked on
+    final account = MoneyAccounts.several && AccountScreen.selected.value == null
+        ? ' · ${(MoneyAccounts.byId(tx.accountId) ?? MoneyAccounts.main).name}'
+        : '';
+    final category = (tx.isRefund ? '${tx.category} · Erstattung' : tx.category) + account;
     final subtitle = !showDay ? category : note.isNotEmpty ? '$category · $day' : day;
 
     return InkWell(

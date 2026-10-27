@@ -1,5 +1,7 @@
 // "Erste Schritte": the few things that make BudgetBuddy useful from day one.
 // Every step ticks itself off when it is done, wherever the user did it.
+import '../models/money_account.dart';
+import 'money_accounts.dart';
 import 'package:hive/hive.dart';
 import 'db.dart';
 import 'goals_service.dart';
@@ -39,12 +41,8 @@ class OnboardingService {
   static bool get complete => doneCount == OnboardingStep.values.length;
 
   // sets the starting balance so that the app shows [cents] as today's balance
-  static Future<void> setCurrentBalance(int cents) async {
-    var sum = 0;
-    for (final t in DB.getTx()) {
-      sum += t.isIncome ? t.amountCents : -t.amountCents;
-    }
-    await Settings.setOpeningBalanceCents(cents - sum);
+  static Future<void> setCurrentBalance(int cents, {MoneyAccount? account}) async {
+    await MoneyAccounts.setBalance(account ?? MoneyAccounts.main, cents, DB.getTx());
     await markBalanceSet();
   }
 }

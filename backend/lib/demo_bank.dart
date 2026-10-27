@@ -51,14 +51,18 @@ class DemoBank implements BankProvider {
   @override
   Future<BankSession> createSession(String code) async => BankSession(
         'demo-$code',
-        const [BankAccount('demo-giro', iban: 'DE89370400440532013000', name: 'Girokonto')],
+        const [
+          BankAccount('demo-giro', iban: 'DE89370400440532013000', name: 'Girokonto'),
+          // a second account, so every account showing on its own can be tried
+          BankAccount('demo-tagesgeld', iban: 'DE02120300000000202051', name: 'Tagesgeld'),
+        ],
         DateTime.now().add(const Duration(days: 180)),
       );
 
   @override
   Future<int> balance(String accountUid) async {
     final from = _today().subtract(const Duration(days: 90));
-    var sum = _startBalance;
+    var sum = accountUid == 'demo-tagesgeld' ? 520000 : _startBalance;
     for (final t in await transactions(accountUid, from)) {
       sum += t.amountCents;
     }
@@ -70,7 +74,7 @@ class DemoBank implements BankProvider {
     final today = _today();
     final out = <BankTx>[];
     for (var d = DateTime(from.year, from.month, from.day); !d.isAfter(today); d = DateTime(d.year, d.month, d.day + 1)) {
-      out.addAll(_day(d));
+      out.addAll(accountUid == 'demo-tagesgeld' ? _savingsDay(d) : _day(d));
     }
     return out;
   }
@@ -82,6 +86,12 @@ class DemoBank implements BankProvider {
     final n = DateTime.now();
     return DateTime(n.year, n.month, n.day);
   }
+
+  // the savings account: monthly interest and the standing order from the giro account
+  List<BankTx> _savingsDay(DateTime d) => [
+        if (d.day == 2) BankTx('demo-tg-${d.year}${d.month}-zins', d, 1250, 'Demo-Bank', 'Zinsgutschrift'),
+        if (d.day == 2) BankTx('demo-tg-${d.year}${d.month}-dauer', d, 20000, 'Max Mustermann', 'Dauerauftrag Sparen'),
+      ];
 
   // [counterparty, purpose, min euros, max euros]
   static const _everyday = [
@@ -105,6 +115,7 @@ class DemoBank implements BankProvider {
 
     // fixed monthly bookings
     if (d.day == 1) add(0, 312480, 'Musterfirma GmbH', 'Gehalt ${d.month}/${d.year}');
+    if (d.day == 2) add(7, -20000, 'Max Mustermann', 'Dauerauftrag Sparen');
     if (d.day == 3) add(1, -89000, 'Hausverwaltung Becker', 'Miete inkl. NK');
     if (d.day == 4) add(2, -5800, 'Deutsche Bahn', 'Deutschlandticket Abo');
     if (d.day == 12) add(3, -1399, 'Netflix International B.V.', 'Netflix Abo');

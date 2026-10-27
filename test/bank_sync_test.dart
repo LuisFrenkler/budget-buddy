@@ -94,4 +94,71 @@ void main() {
       expect(r.added.single.note, 'Kartenzahlung');
     });
   });
+
+  group('BankSync.merge with several accounts', () {
+    BankTransaction on(String acc, String id, int cents, String party, [int day = 1]) =>
+        BankTransaction(id, DateTime(2026, 10, day), cents, party, '', acc);
+    const giro = BankAccountInfo('g', 'Girokonto', 'DE1', 150000);
+    const tg = BankAccountInfo('t', 'Tagesgeld', 'DE2', 520000);
+
+    test('each bank account gets its own balance; a move between them is an Umbuchung', () {
+      final r = BankSync.merge(
+        existing: const [],
+        incoming: [
+          on('g', '1', -2350, 'REWE'),
+          on('g', '2', -20000, 'Max Mustermann', 2),
+          on('t', '3', 20000, 'Max Mustermann', 2),
+          on('t', '4', 1250, 'Demo-Bank', 2),
+        ],
+        bankBalanceCents: 670000,
+        accounts: const [giro, tg],
+        link: 'L1',
+        bankName: 'ING',
+      );
+      // the first account is the main one, the second its own account
+      expect(r.added.where((t) => t.accountId == null).length, 2);
+      expect(r.added.where((t) => t.accountId == 'bank_t').length, 2);
+      final saving = r.accounts.single;
+      expect(saving.name, 'Tagesgeld');
+      expect(saving.kind, 'spar');
+      expect(saving.link, 'L1');
+      // 5.200 € today = start + 200 € moved in + 12,50 € interest
+      expect(saving.openingCents, 520000 - 21250);
+      expect(r.openingBalanceCents, 150000 - (-2350 - 20000));
+      // the move is not spending
+      expect(r.added.where((t) => t.amountCents == 20000).every((t) => t.category == 'Umbuchung'), isTrue);
+      expect(r.added.firstWhere((t) => t.id == 'bank_1').category, isNot('Umbuchung'));
+    });
+
+    test('bookings synced before onto the main account move to their account, keeping the category', () {
+      final old = Transaction(
+          id: 'bank_3', amountCents: 20000, category: 'Sparen', date: DateTime(2026, 10, 2), isIncome: true);
+      final r = BankSync.merge(
+        existing: [old],
+        incoming: [on('t', '3', 20000, 'Max Mustermann', 2)],
+        bankBalanceCents: 670000,
+        accounts: const [giro, tg],
+        link: 'L1',
+      );
+      expect(r.added, isEmpty);
+      expect(r.moved.single.accountId, 'bank_t');
+      expect(r.moved.single.category, 'Sparen');
+    });
+
+    test('a second bank books on its own accounts and leaves the main one alone', () {
+      final r = BankSync.merge(
+        existing: const [],
+        incoming: [on('x', '9', -1500, 'Bäcker')],
+        bankBalanceCents: 30000,
+        accounts: const [BankAccountInfo('x', 'Girokonto', 'DE3', 30000)],
+        link: 'L2',
+        primary: false,
+        bankName: 'DKB',
+      );
+      expect(r.touchesMain, isFalse);
+      expect(r.added.single.accountId, 'bank_x');
+      expect(r.accounts.single.name, 'DKB Girokonto');
+      expect(r.accounts.single.openingCents, 30000 + 1500);
+    });
+  });
 }

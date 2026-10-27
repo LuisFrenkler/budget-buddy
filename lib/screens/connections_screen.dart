@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/money_accounts.dart';
 import '../services/account_service.dart';
 import 'auth_screens.dart';
 import '../services/backend_service.dart';
@@ -46,6 +47,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   String? _pendingBank;
   String? _pendingLink;
   Timer? _poll;
+  // the consent in the browser is for a further bank, not the first one
+  bool _addingBank = false;
 
   @override
   void initState() {
@@ -115,8 +118,91 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   // --- bank card ---
 
+  // the first bank, every further one, and a way to add another
   Widget _bankCard() {
-    if (Settings.bankState.isNotEmpty) return _linkedCard();
+    final extras = Settings.extraBanks;
+    if (Settings.bankState.isEmpty && extras.isEmpty) return _firstBankCard();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (Settings.bankState.isNotEmpty) _linkedCard() else _firstBankCard(),
+      for (final l in extras) ...[const SizedBox(height: 12), _extraBankCard(l.state, l.bank)],
+      const SizedBox(height: 12),
+      if (_pendingState != null && _addingBank)
+        _waitingCard()
+      else if (Settings.bankState.isNotEmpty)
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          onPressed: () => _connectBank(extra: true),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('Weitere Bank verbinden'),
+        ),
+    ]);
+  }
+
+  // a bank linked after the first: its accounts with their balances
+  Widget _extraBankCard(String state, String bank) {
+    final tx = DB.getTx();
+    final accounts = MoneyAccounts.others.where((a) => a.link == state).toList();
+    return _card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          InstrumentAvatar(bank, size: 44),
+          const SizedBox(width: 14),
+          Expanded(child: Text(bank, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700))),
+          if (_mode == 'demo') _chip('Demo', AppColors.warning) else _chip('Aktiv', AppColors.positive),
+        ]),
+        const SizedBox(height: 12),
+        if (accounts.isEmpty)
+          Text('Wird beim nächsten Aktualisieren geladen', style: TextStyle(color: AppColors.textDim, fontSize: 13))
+        else
+          for (final a in accounts)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(children: [
+                Expanded(child: Text(a.name)),
+                Text(Money.format(MoneyAccounts.balanceOf(a, tx)), style: const TextStyle(fontWeight: FontWeight.w700)),
+              ]),
+            ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => _disconnectExtra(state, bank),
+            style: TextButton.styleFrom(foregroundColor: AppColors.errorText),
+            child: const Text('Trennen'),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _disconnectExtra(String state, String bank) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$bank trennen?'),
+        content: const Text('Die Freigabe wird widerrufen. Die Konten und ihre Umsätze bleiben in der App.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Trennen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await BackendService.disconnect(state);
+    } catch (_) {
+      // forget it locally even when the server is offline
+    }
+    await Settings.removeExtraBank(state);
+    if (mounted) setState(() {});
+    _snack('$bank getrennt');
+  }
+
+  Widget _firstBankCard() {
     if (AccountService.current.value == null) return _needsAccountCard();
     if (_pendingState != null) return _waitingCard();
     return _card(
@@ -567,7 +653,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   // --- bank flow ---
 
-  Future<void> _connectBank() async {
+  Future<void> _connectBank({bool extra = false}) async {
+    _addingBank = extra;
     try {
       final banks = await BackendService.institutions();
       if (!mounted) return;
@@ -630,6 +717,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   Future<void> _linked(String state, BankLink link) async {
     HapticFeedback.mediumImpact();
+    if (_addingBank) {
+      // a further bank: its accounts come in next to the ones already there
+      await Settings.addExtraBank(state, link.bank ?? _pendingBank ?? 'Bank');
+      if (!mounted) return;
+      setState(() => _pendingState = null);
+      return _sync(first: true);
+    }
     await Settings.setBankState(state);
     await Settings.setBankOwner(AccountService.current.value?.id ?? '');
     await Settings.setBankInfo(name: link.bank ?? _pendingBank ?? 'Bank', iban: link.iban, validUntil: link.validUntil);
@@ -648,7 +742,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     try {
       final added = await BankSync.run();
       if (first) {
-        _snack('${Settings.bankName} verbunden · $added ${added == 1 ? 'Umsatz' : 'Umsätze'} übernommen');
+        _snack('${_addingBank ? (_pendingBank ?? 'Bank') : Settings.bankName} verbunden · '
+            '$added ${added == 1 ? 'Umsatz' : 'Umsätze'} übernommen');
       } else {
         _snack(added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}');
       }
@@ -682,7 +777,12 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     } catch (_) {
       // forget it locally even when the server is offline
     }
+    // further banks stay linked
+    final extras = Settings.extraBanks;
     await Settings.clearBank();
+    for (final l in extras) {
+      await Settings.addExtraBank(l.state, l.bank);
+    }
     if (mounted) setState(() {});
     _snack('$name getrennt');
   }

@@ -8,6 +8,8 @@ class Transaction {
   final DateTime date;
   final bool isIncome;    // true = income, false = expense
   final String? note;
+  // the account it was booked on; null = the main account
+  final String? accountId;
 
   // money back for a purchase (a return, a refund): it comes in, but under the
   // spending category it reverses, so it lowers that spending instead of
@@ -30,7 +32,16 @@ class Transaction {
     required this.date,
     required this.isIncome,
     this.note,
+    this.accountId,
   });
+
+  // the same booking on another account (or the main one for null)
+  Transaction onAccount(String? account) => Transaction(
+      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: account);
+
+  // the same booking under another category, on the same account
+  Transaction withCategory(String category) => Transaction(
+      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: accountId);
 
   // convert to map for saving to hive
   Map<String, dynamic> toMap() {
@@ -41,6 +52,7 @@ class Transaction {
       'date': date.millisecondsSinceEpoch,
       'isIncome': isIncome,
       'note': note,
+      if (accountId != null) 'accountId': accountId,
     };
   }
 
@@ -57,6 +69,7 @@ class Transaction {
       date: DateTime.fromMillisecondsSinceEpoch(map['date']),
       isIncome: map['isIncome'],
       note: map['note'],
+      accountId: map['accountId'] as String?,
     );
   }
 

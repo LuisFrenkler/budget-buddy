@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../widgets/big_number.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
+import '../models/money_account.dart';
 import '../models/transaction.dart';
+import '../services/money_accounts.dart';
+import 'account_screen.dart';
 import '../models/recurring.dart';
 import '../services/db.dart';
 import '../services/recurring_service.dart';
@@ -38,6 +41,8 @@ class _AddScreenState extends State<AddScreen> {
   DateTime _date = DateTime.now();
   String _repeat = 'Einmalig';  // 'Einmalig' or one of RecurringService.intervals
   bool _isSaving = false;
+  // the account it is booked on (null = main): the one open on Konto by default
+  String? _account = AccountScreen.selected.value;
 
   // helper to check if we're editing or adding
   bool get _isEdit => widget.tx != null;
@@ -56,6 +61,7 @@ class _AddScreenState extends State<AddScreen> {
       _refund = t.isRefund;
       _category = t.category;
       _date = t.date;
+      _account = t.accountId;
     }
     _noteFocus.addListener(() => setState(() {}));
   }
@@ -352,13 +358,25 @@ class _AddScreenState extends State<AddScreen> {
   Widget _optionChips() {
     final now = DateTime.now();
     final isToday = _date.year == now.year && _date.month == now.month && _date.day == now.day;
+    final accounts = MoneyAccounts.all;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: [
           _chip(Icons.calendar_today_rounded, isToday ? 'Heute' : Dates.relativeDay(_date), _openDatePicker),
+          if (accounts.length > 1)
+            PopupMenuButton<String>(
+              tooltip: 'Konto',
+              color: AppColors.surface,
+              initialValue: _account ?? MoneyAccount.main,
+              onSelected: (v) => setState(() => _account = v == MoneyAccount.main ? null : v),
+              itemBuilder: (_) => [for (final a in accounts) PopupMenuItem(value: a.id, child: Text(a.name))],
+              child: _chip(Icons.account_balance_wallet_rounded,
+                  (MoneyAccounts.byId(_account) ?? MoneyAccounts.main).name, null),
+            ),
           if (!_isEdit) ...[
-            const SizedBox(width: 8),
             PopupMenuButton<String>(
               tooltip: 'Wiederholen',
               color: AppColors.surface,
@@ -508,6 +526,7 @@ class _AddScreenState extends State<AddScreen> {
           date: date,
           isIncome: _isIncome,
           note: note,
+          accountId: _account == MoneyAccount.main ? null : _account,
         ));
         await DB.checkBadges();
       }

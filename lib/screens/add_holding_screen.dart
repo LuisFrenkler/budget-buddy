@@ -42,6 +42,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _symbolCtrl = TextEditingController();
+  final _depotCtrl = TextEditingController();
   final _sharesCtrl = TextEditingController();
   final _buyCtrl = TextEditingController();
   final _currentCtrl = TextEditingController();
@@ -59,6 +60,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       final h = widget.holding!;
       _nameCtrl.text = h.name;
       _symbolCtrl.text = h.symbol;
+      _depotCtrl.text = h.depot ?? '';
       _sharesCtrl.text = _trimNum(h.shares);
       _buyCtrl.text = (h.buyPriceCents / 100).toStringAsFixed(2).replaceAll('.', ',');
       _currentCtrl.text = (h.currentPriceCents / 100).toStringAsFixed(2).replaceAll('.', ',');
@@ -70,6 +72,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _symbolCtrl.dispose();
+    _depotCtrl.dispose();
     _sharesCtrl.dispose();
     _buyCtrl.dispose();
     _currentCtrl.dispose();
@@ -170,6 +173,24 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            // with several depots the positions are grouped by this name
+            TextField(
+              controller: _depotCtrl,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: 'Depot (optional)',
+                hintText: 'z. B. Trade Republic, Scalable',
+                suffixIcon: _depotNames.isEmpty
+                    ? null
+                    : PopupMenuButton<String>(
+                        tooltip: 'Depot wählen',
+                        icon: const Icon(Icons.arrow_drop_down_rounded),
+                        onSelected: (v) => setState(() => _depotCtrl.text = v),
+                        itemBuilder: (_) => [for (final d in _depotNames) PopupMenuItem(value: d, child: Text(d))],
+                      ),
+              ),
+            ),
             const SizedBox(height: 16),
             _preview(),
             const SizedBox(height: 24),
@@ -188,6 +209,10 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       ),
     );
   }
+
+  // the depots already named, to pick from
+  List<String> get _depotNames =>
+      {for (final h in DB.getHoldings()) if (h.depot != null && h.depot!.isNotEmpty) h.depot!}.toList()..sort();
 
   String? _priceValidator(String? v) {
     final cents = Money.parseToCents(v ?? '');
@@ -326,6 +351,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
         buyPriceCents: Money.parseToCents(_buyCtrl.text)!,
         currentPriceCents: Money.parseToCents(_currentCtrl.text)!,
         priceAt: _priceAt(Money.parseToCents(_currentCtrl.text)!),
+        depot: _depotCtrl.text.trim().isEmpty ? null : _depotCtrl.text.trim(),
       );
       await DB.addHolding(holding);
       if (mounted) Navigator.pop(context, true);

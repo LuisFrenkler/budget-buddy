@@ -1,6 +1,7 @@
 // Buddy, the AI finance coach. Uses Claude through the BudgetBuddy server
 // when the user is signed in and the server has AI configured; otherwise the
 // offline answers of LocalBuddy and the offline QuickParser.
+import 'money_accounts.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -12,7 +13,6 @@ import 'db.dart';
 import 'finance_snapshot.dart';
 import 'local_buddy.dart';
 import 'quick_parser.dart';
-import 'settings_service.dart';
 
 class ChatMessage {
   final bool fromUser;
@@ -38,7 +38,7 @@ class BuddyService {
 
   static FinanceSnapshot snapshot() => FinanceSnapshot.build(
         tx: DB.getTx(),
-        openingCents: Settings.openingBalanceCents,
+        openingCents: MoneyAccounts.openingTotal,
         budgets: DB.getBudgets(),
         holdings: DB.getHoldings(),
       );
