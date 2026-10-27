@@ -8,6 +8,7 @@ class MonthRecap {
   final DateTime month;
   final int income;
   final int expenses;
+  final int everydayExpenses; // without rent and subscriptions
   final int previousExpenses;
   final String? topCategory;
   final int topCategoryCents;
@@ -22,6 +23,7 @@ class MonthRecap {
     required this.month,
     required this.income,
     required this.expenses,
+    this.everydayExpenses = 0,
     required this.previousExpenses,
     required this.topCategory,
     required this.topCategoryCents,
@@ -39,7 +41,11 @@ class MonthRecap {
   // change of spending against the month before, in percent
   int? get expenseChange =>
       previousExpenses <= 0 ? null : (((expenses - previousExpenses) / previousExpenses) * 100).round();
-  int get topCategoryShare => expenses <= 0 ? 0 : ((topCategoryCents / expenses) * 100).round();
+  // the highlights leave rent and subscriptions out, so the share does too
+  int get topCategoryShare {
+    final base = everydayExpenses > 0 ? everydayExpenses : expenses;
+    return base <= 0 ? 0 : ((topCategoryCents / base) * 100).round();
+  }
 }
 
 class RecapService {
@@ -56,7 +62,7 @@ class RecapService {
     };
     final prev = DateTime(month.year, month.month - 1);
 
-    int income = 0, expenses = 0;
+    int income = 0, expenses = 0, everyday = 0;
     final byCategory = <String, int>{};
     final merchants = <String, ({String name, int visits, int cents})>{};
     final byDay = <DateTime, int>{};
@@ -68,6 +74,7 @@ class RecapService {
       expenses += t.amountCents;
       // rent and subscriptions are no surprise: the highlights are about the rest
       if (fixed.contains(t.id)) continue;
+      everyday += t.amountCents;
       byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amountCents;
       final day = DateTime(t.date.year, t.date.month, t.date.day);
       byDay[day] = (byDay[day] ?? 0) + t.amountCents;
@@ -101,6 +108,7 @@ class RecapService {
       month: month,
       income: income,
       expenses: expenses,
+      everydayExpenses: everyday,
       previousExpenses: previous,
       topCategory: top?.key,
       topCategoryCents: top?.value ?? 0,

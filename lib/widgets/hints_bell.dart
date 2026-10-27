@@ -17,7 +17,7 @@ class HintsBell extends StatelessWidget {
   Widget build(BuildContext context) {
     final urgent = hints.any((h) => h.urgent);
     return IconButton(
-      tooltip: hints.isEmpty ? 'Keine Hinweise' : '${hints.length} Hinweise',
+      tooltip: hints.isEmpty ? 'Keine Hinweise' : hints.length == 1 ? '1 Hinweis' : '${hints.length} Hinweise',
       onPressed: () => _show(context),
       icon: Stack(clipBehavior: Clip.none, children: [
         Icon(hints.isEmpty ? Icons.notifications_none_rounded : Icons.notifications_rounded,

@@ -27,14 +27,15 @@ class WeeklyReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final report = WeeklyReportService.build(DB.getTx());
-    if (report != null) markSeen(report);
+    // after the frame, never as a side effect of building
+    if (report != null) WidgetsBinding.instance.addPostFrameCallback((_) => markSeen(report));
     return Scaffold(
       appBar: AppBar(title: Text(report == null ? 'Wochenbericht' : 'KW ${report.week}')),
       body: report == null
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text('Für letzte Woche gibt es noch keine Ausgaben. Sobald welche da sind, wertet Buddy sie aus.',
+                child: Text('Für diese Woche gibt es noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.',
                     textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
               ),
             )
@@ -55,7 +56,11 @@ class _Report extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = report;
     final change = r.change;
+    // within ±3 % a week is simply normal: no colour, no sign
+    final pct = change == null ? 0 : (change * 100).round();
+    final usual = change != null && pct.abs() <= 3;
     final good = change == null || change <= 0;
+    final badge = usual ? AppColors.textDim : (good ? AppColors.positiveText : AppColors.errorText);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
       children: [
@@ -80,14 +85,11 @@ class _Report extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: (good ? AppColors.positive : AppColors.error).withValues(alpha: 0.15),
+                      color: badge.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: Text('${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: good ? AppColors.positive : AppColors.error)),
+                    child: Text(usual ? '≈ Schnitt' : '${pct > 0 ? '+' : '−'}${pct.abs()} % zum Schnitt',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: badge)),
                   ),
                 ),
             ]),
@@ -150,7 +152,7 @@ class _Report extends StatelessWidget {
       if (r.biggest != null) ...[
         const SizedBox(height: 10),
         _fact('💸', Money.format(r.biggest!.amountCents),
-            'größte Ausgabe: ${r.biggest!.note ?? r.biggest!.category}, ${Dates.weekdays[r.biggest!.date.weekday - 1]}'),
+            'größte Ausgabe: ${(r.biggest!.note?.trim().isNotEmpty ?? false) ? r.biggest!.note!.trim() : r.biggest!.category}, ${Dates.weekdays[r.biggest!.date.weekday - 1]}'),
       ],
       const SizedBox(height: 18),
       const Text('Wohin das Geld ging', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),

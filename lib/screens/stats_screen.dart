@@ -11,6 +11,10 @@ import '../widgets/big_number.dart';
 import '../services/insights_service.dart';
 import '../widgets/tx_row.dart';
 import '../widgets/segmented.dart';
+import '../services/recap_service.dart';
+import '../services/weekly_report.dart';
+import 'recap_screen.dart';
+import 'weekly_report_screen.dart';
 
 // Monthly analysis as a section of the account screen (not scrollable on its own).
 class StatsView extends StatefulWidget {
@@ -77,8 +81,8 @@ class _StatsViewState extends State<StatsView> {
         // get category breakdown
         final data = DB.categoriesOf(tx, isIncome: _tab == 1);
 
-        // color for charts (red for expenses, green for income)
-        final color = _tab == 0 ? AppColors.error : AppColors.positive;
+        // color for charts: ordinary spending is no alarm, so it is calm violet
+        final color = _tab == 0 ? AppColors.primary : AppColors.positive;
 
         // month-over-month expense insights
         final insights = InsightsService.forMonth(all, _month);
@@ -104,15 +108,19 @@ class _StatsViewState extends State<StatsView> {
             else ...[
               // overview card with balance
               _overviewCard(income, expenses, balance),
+              const SizedBox(height: 12),
+              _reports(all),
               const SizedBox(height: 24),
 
               // 6-month income vs expenses
               _trendCard(trend),
               const SizedBox(height: 24),
 
-              // contracts and subscriptions found in the bookings
-              const ContractsCard(),
-              const SizedBox(height: 24),
+              // contracts and subscriptions found in the bookings: they are today's
+              if (_isCurrentMonth) ...[
+                const ContractsCard(),
+                const SizedBox(height: 24),
+              ],
 
               // automatic insights vs the previous month
               if (insights.isNotEmpty) ...[
@@ -137,6 +145,43 @@ class _StatsViewState extends State<StatsView> {
         );
       },
     );
+  }
+
+  bool get _isCurrentMonth {
+    final now = DateTime.now();
+    return _month.year == now.year && _month.month == now.month;
+  }
+
+  // the monthly recap and the weekly report stay reachable here, not only
+  // through the one-time banner on Start
+  Widget _reports(List<Transaction> all) {
+    final recap = _isCurrentMonth ? null : RecapService.build(all, _month);
+    final weekly = WeeklyReportService.build(all);
+    if (recap == null && weekly == null) return const SizedBox.shrink();
+    Widget button(IconData icon, String label, VoidCallback onTap) => Expanded(
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(46),
+              foregroundColor: AppColors.text,
+              side: BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: onTap,
+            icon: Icon(icon, size: 18, color: AppColors.primary),
+            label: Text(label, overflow: TextOverflow.ellipsis),
+          ),
+        );
+    return Row(children: [
+      if (recap != null)
+        button(Icons.auto_awesome_rounded, 'Rückblick', () {
+          Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
+        }),
+      if (recap != null && weekly != null) const SizedBox(width: 10),
+      if (weekly != null)
+        button(Icons.insights_rounded, 'Wochenbericht', () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReportScreen()));
+        }),
+    ]);
   }
 
   // the newest month that has transactions, or the current month
@@ -165,6 +210,7 @@ class _StatsViewState extends State<StatsView> {
       children: [
         // go to previous month
         IconButton(
+          tooltip: 'Vorheriger Monat',
           onPressed: () => _selectMonth(DateTime(_month.year, _month.month - 1)),
           icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
         ),
@@ -174,6 +220,7 @@ class _StatsViewState extends State<StatsView> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         IconButton(
+          tooltip: 'Nächster Monat',
           onPressed: canGoForward ? () => _selectMonth(DateTime(_month.year, _month.month + 1)) : null,
           icon: Icon(Icons.chevron_right_rounded, color: canGoForward ? AppColors.primary : AppColors.border),
         ),
@@ -275,7 +322,7 @@ class _StatsViewState extends State<StatsView> {
           Row(children: const [
             Icon(Icons.lightbulb_outline, color: AppColors.warning, size: 20),
             SizedBox(width: 8),
-            Text('Insights', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Auffälligkeiten', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ]),
           const SizedBox(height: 12),
           for (final s in insights)
@@ -484,7 +531,8 @@ class _StatsViewState extends State<StatsView> {
                             child: Text(entries[i].key,
                                 style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
                           ),
-                          Text('${(entries[i].value / total * 100).toStringAsFixed(0)} %',
+                          // the same rounding as the list below, so 4,5 % never reads as 5 % up here
+                          Text(Money.percent(entries[i].value / total * 100, signed: false),
                               style: TextStyle(fontSize: 12, color: AppColors.textDim)),
                         ]),
                       ),

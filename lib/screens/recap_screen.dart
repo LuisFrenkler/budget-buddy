@@ -218,9 +218,9 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   Widget _category() => _card(
         top: Icon(Categories.icon(r.topCategory!), color: Colors.white, size: 56),
-        kicker: 'Am meisten ging an',
+        kicker: 'Neben Miete & Abos ging am meisten an',
         big: r.topCategory!,
-        small: '${Money.format(r.topCategoryCents)}, das sind ${r.topCategoryShare} % deiner Ausgaben.',
+        small: '${Money.format(r.topCategoryCents)}, das sind ${r.topCategoryShare} % deiner Alltagsausgaben.',
       );
 
   Widget _merchant() => _card(
@@ -248,7 +248,8 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
         top: const Text('🔥', style: TextStyle(fontSize: 56)),
         kicker: 'Dein teuerster Tag',
         big: Dates.long(r.priciestDay!).split(',').first,
-        small: 'Am ${Dates.dayMonth(r.priciestDay!)} gingen ${Money.format(r.priciestDayCents)} raus.',
+        small: 'Am ${Dates.dayMonth(r.priciestDay!)} gingen ${Money.format(r.priciestDayCents)} raus, '
+            'Miete und Abos nicht mitgezählt.',
       );
 
   Widget _outro() => _card(
