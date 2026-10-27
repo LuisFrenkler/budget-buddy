@@ -17,9 +17,9 @@
 import 'dart:convert';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:http/http.dart' as http;
 
 import 'billing.dart';
+import 'net.dart';
 
 // the two products, with the same ids in App Store Connect and the Play Console
 class PlusProducts {
@@ -153,7 +153,7 @@ class AppleStore {
 
   // null when the id is unknown in this environment
   Future<Map<String, dynamic>?> _get(String base, String path) async {
-    final res = await http.get(Uri.parse('$base$path'), headers: {'Authorization': 'Bearer ${_token()}'});
+    final res = await net.get(Uri.parse('$base$path'), headers: {'Authorization': 'Bearer ${_token()}'});
     if (res.statusCode == 404) return null;
     if (res.statusCode >= 300) throw BillingError('App Store gerade nicht erreichbar (${res.statusCode}).');
     return jsonDecode(res.body) as Map<String, dynamic>;
@@ -214,7 +214,7 @@ class GooglePlay {
       audience: Audience.one(tokenUri),
     ).sign(RSAPrivateKey('${serviceAccount['private_key']}'),
         algorithm: JWTAlgorithm.RS256, expiresIn: const Duration(hours: 1));
-    final res = await http.post(Uri.parse(tokenUri), body: {
+    final res = await net.post(Uri.parse(tokenUri), body: {
       'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       'assertion': assertion,
     });
@@ -229,7 +229,7 @@ class GooglePlay {
 
   // after a purchase or a restore: the purchase token from the device
   Future<Entitlement> verify(String token) async {
-    final res = await http.get(
+    final res = await net.get(
       Uri.parse('${_base()}/subscriptionsv2/tokens/${Uri.encodeComponent(token)}'),
       headers: {'Authorization': 'Bearer ${await _token()}'},
     );
@@ -243,7 +243,7 @@ class GooglePlay {
     // does it too, this is the safety net
     if (purchase['acknowledgementState'] == 'ACKNOWLEDGEMENT_STATE_PENDING' && e.active) {
       final product = (purchase['lineItems'] as List).cast<Map>().first['productId'];
-      await http.post(
+      await net.post(
         Uri.parse('${_base()}/subscriptions/${Uri.encodeComponent('$product')}'
             '/tokens/${Uri.encodeComponent(token)}:acknowledge'),
         headers: {'Authorization': 'Bearer ${await _token()}'},

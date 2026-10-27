@@ -3,12 +3,13 @@
 //
 // Every request is authorized with a short-lived JWT signed (RS256) by the
 // private key that belongs to the registered application.
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:http/http.dart' as http;
 
 import 'bank_provider.dart';
+import 'net.dart';
 
 class EnableBanking implements BankProvider {
   static const _base = 'https://api.enablebanking.com';
@@ -41,14 +42,14 @@ class EnableBanking implements BankProvider {
   Map<String, String> get _headers => {'Authorization': 'Bearer ${_token()}', 'Content-Type': 'application/json'};
 
   Future<Map<String, dynamic>> _get(String path) async {
-    final res = await http.get(Uri.parse('$_base$path'), headers: _headers);
-    if (res.statusCode != 200) throw 'Enable Banking ${res.statusCode}: ${res.body}';
+    final res = await net.get(Uri.parse('$_base$path'), headers: _headers);
+    if (res.statusCode != 200) _fail(res.statusCode, res.body);
     return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> _post(String path, Object body) async {
-    final res = await http.post(Uri.parse('$_base$path'), headers: _headers, body: jsonEncode(body));
-    if (res.statusCode >= 300) throw 'Enable Banking ${res.statusCode}: ${res.body}';
+    final res = await net.post(Uri.parse('$_base$path'), headers: _headers, body: jsonEncode(body));
+    if (res.statusCode >= 300) _fail(res.statusCode, res.body);
     return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
   }
 
@@ -94,6 +95,13 @@ class EnableBanking implements BankProvider {
     final until = DateTime.tryParse('${body['access']?['valid_until']}') ??
         DateTime.now().add(const Duration(days: 90));
     return BankSession('${body['session_id']}', accounts, until);
+  }
+
+  // the bank's answer goes to the log only: it can hold account details and
+  // would end up on the status page the user sees
+  static Never _fail(int status, String body) {
+    stderr.writeln('Enable Banking $status: $body');
+    throw 'Die Bank hat die Anfrage abgelehnt ($status).';
   }
 
   @override
@@ -184,6 +192,6 @@ class EnableBanking implements BankProvider {
 
   @override
   Future<void> endSession(String sessionId) async {
-    await http.delete(Uri.parse('$_base/sessions/$sessionId'), headers: _headers);
+    await net.delete(Uri.parse('$_base/sessions/$sessionId'), headers: _headers);
   }
 }

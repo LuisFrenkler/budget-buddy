@@ -42,7 +42,6 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
 
 // the app's legal texts, so app and web pages never drift apart
 import '../lib/legal/legal_texts.dart';
@@ -56,6 +55,7 @@ import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
 import 'lib/json_store.dart';
 import 'lib/splits.dart';
+import 'lib/net.dart';
 
 String _env(String k) => Platform.environment[k] ?? _dotEnv[k] ?? '';
 
@@ -180,6 +180,8 @@ Future<void> _handleSafe(HttpRequest req) async {
       await _json(req, 502, {'error': e.message});
     } on AiError catch (e) {
       await _json(req, 502, {'error': e.message});
+    } on TimeoutException {
+      await _json(req, 504, {'error': 'Der Dienst antwortet gerade nicht. Versuch es gleich noch einmal.'});
     } on FormatException {
       await _json(req, 400, {'error': 'Ungültige Anfrage.'});
     } on TypeError {
@@ -727,7 +729,7 @@ Future<void> _plusReturn(HttpRequest req) async {
 // the user a checkout belongs to: Stripe keeps it in the session, the demo in memory
 Future<String?> _ownerOf(String sessionId, Entitlement e) async {
   if (_billing is DemoBilling) return (_billing as DemoBilling).session(sessionId)?.user;
-  final s = await http.get(Uri.parse('https://api.stripe.com/v1/checkout/sessions/${Uri.encodeComponent(sessionId)}'),
+  final s = await net.get(Uri.parse('https://api.stripe.com/v1/checkout/sessions/${Uri.encodeComponent(sessionId)}'),
       headers: {'Authorization': 'Bearer ${_env('STRIPE_SECRET_KEY')}'});
   return (jsonDecode(s.body) as Map)['client_reference_id'] as String?;
 }
@@ -979,7 +981,7 @@ Future<void> _marketChart(HttpRequest req) async {
   if (hit != null && DateTime.now().difference(hit.$1) < const Duration(minutes: 5)) {
     return _raw(req, hit.$2);
   }
-  final res = await http.get(
+  final res = await net.get(
     Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/${Uri.encodeComponent(symbol)}'
         '?interval=1d&range=$range'),
     headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},

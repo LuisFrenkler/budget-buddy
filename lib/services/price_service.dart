@@ -246,6 +246,11 @@ class PriceService {
   // conversion rate from the given currency into EUR (cached per session)
   static Future<double?> _fxToEur(String currency) async {
     if (currency == 'EUR') return 1.0;
+    // London and Johannesburg quote in pence and cents: GBp = GBP / 100
+    if (currency == 'GBp' || currency == 'ZAc') {
+      final major = await _fxToEur(currency.toUpperCase());
+      return major == null ? null : major / 100;
+    }
     if (_fxCache.containsKey(currency)) return _fxCache[currency];
     final body = await _yahooRaw('${currency}EUR=X');
     final parsed = body == null ? null : parseYahooChart(body);
@@ -372,7 +377,9 @@ class PriceService {
       if (res.statusCode != 200) return [];
       final parsed = parseYahooPoints(res.body);
       if (parsed == null) return [];
-      final rate = await _fxToEur(parsed.currency) ?? 1.0;
+      // without the rate a dollar chart would pass for euros: better none
+      final rate = await _fxToEur(parsed.currency);
+      if (rate == null) return [];
       return [for (final p in parsed.points) (p.$1, p.$2 * rate)];
     } catch (_) {
       return [];

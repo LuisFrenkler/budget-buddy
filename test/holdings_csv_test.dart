@@ -48,4 +48,12 @@ void main() {
       expect(HoldingsCsvImporter.parse(csv).holdings.single.type, 'Aktie');
     });
   });
+
+  test('a share count with a thousands dot and decimals is read in full', () {
+    const csv = 'Name;Symbol;Typ;Anzahl;Kaufpreis;AktuellerKurs\n'
+        'Hedera;HBAR;Krypto;7.441,35;0,15;0,07\n'
+        'Bitcoin;BTC;Krypto;0.001;60.000,00;\n';
+    final r = HoldingsCsvImporter.parse(csv);
+    expect(r.holdings.map((h) => h.shares), [7441.35, 0.001]);
+  });
 }
