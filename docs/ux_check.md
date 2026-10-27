@@ -58,7 +58,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 38 | Budgets | Limit nicht änderbar; Fehlermeldung unter dem Sheet unsichtbar | ✅ |
 | 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ✅ (neue Kategorie „Umbuchung“; Erstattungen gegen Ausgaben ⏳) |
 | 40 | Verträge | Fehlalarme (Taschengeld) nicht ausblendbar; eine verpasste Abbuchung lässt Vertrag verschwinden | ✅ |
-| 41 | Depot | Verlauf rechnet heutige Stückzahlen rückwärts; Detail-Chart skaliert Historie auf gespeicherten Kurs | ⏳ |
+| 41 | Depot | Verlauf rechnet heutige Stückzahlen rückwärts; Detail-Chart skaliert Historie auf gespeicherten Kurs | ✅ (echte Kurse statt umgerechnet; Hinweis „mit heutigem Bestand“) |
 | 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ (Symbol-Feld für eigene Positionen ⏳) |
 | 43 | Depot | „1.000“ bedeutet bei Anzahl 1, beim Preis 1.000 | ✅ |
 | 44 | Depot | Synchronisierte Positionen editierbar, nächster Sync macht es rückgängig | ✅ |
