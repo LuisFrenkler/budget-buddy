@@ -141,8 +141,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ]),
         builder: (context, _) {
           final tx = DB.getTx();
-          final cash = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false)
-              + Settings.openingBalanceCents;
+          final cash = DB.balanceOf(tx) + Settings.openingBalanceCents;
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
           // data changed: hints and reminders may have, too

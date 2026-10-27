@@ -4,6 +4,7 @@
 // never as double. Floating point math is not exact (0.1 + 0.2 != 0.3), which
 // is unacceptable for a finance app. We only convert to a human readable
 // string at the very edge, using German (de_DE) currency formatting.
+import 'dart:math' as math;
 import 'package:intl/intl.dart';
 
 class Money {
@@ -82,8 +83,10 @@ class Money {
   // a price per unit: coins under a euro keep their decimals ("0,0543 €")
   static String unit(int cents, {double? euros}) {
     if (masked) return hidden;
-    if (euros != null && euros < 1) {
-      return '${NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: 4).format(euros)} €';
+    if (euros != null && euros > 0 && euros < 1) {
+      // three significant digits: 0,0543 € for HBAR, 0,00000384 € for PEPE
+      final digits = math.min(12, math.max(4, (-math.log(euros) / math.ln10).ceil() + 2));
+      return '${NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(euros)} €';
     }
     return raw(cents);
   }

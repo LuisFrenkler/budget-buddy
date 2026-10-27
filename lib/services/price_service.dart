@@ -8,6 +8,7 @@
 // Without a key the service runs in DEMO mode: it nudges each price slightly so
 // the feature is fully usable (button → prices move → gain/loss + donut update)
 // without any network call.
+import 'package:hive/hive.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -51,6 +52,59 @@ class PriceService {
     'FET': 'fetch-ai',
     'SAND': 'the-sandbox',
   };
+
+  // "BTC-EUR", "btc", "XF000BTC0017" (Trade Republic's crypto ISIN) -> "BTC"
+  static String coinSymbol(String raw) {
+    var s = raw.trim().toUpperCase();
+    final isin = RegExp(r'^XF000([A-Z0-9]{2,8}?)\d{4}$').firstMatch(s);
+    if (isin != null) return isin.group(1)!;
+    s = s.replaceFirst(RegExp(r'[-/]?(EUR|USD|USDT)$'), '');
+    return s.isEmpty ? raw.trim().toUpperCase() : s;
+  }
+
+  static final Map<String, String?> _foundIds = {};
+
+  // picks the coin with this exact symbol and the biggest market cap from a
+  // CoinGecko /search response (many tokens share a ticker)
+  static String? parseCoinSearch(String body, String symbol) {
+    final coins = ((jsonDecode(body) as Map)['coins'] as List?) ?? const [];
+    String? best;
+    num bestRank = double.infinity;
+    for (final c in coins.whereType<Map>()) {
+      if ('${c['symbol']}'.toUpperCase() != symbol) continue;
+      final rank = (c['market_cap_rank'] as num?) ?? 1e9;
+      if (best == null || rank < bestRank) {
+        best = '${c['id']}';
+        bestRank = rank;
+      }
+    }
+    return best;
+  }
+
+  // the CoinGecko id for any coin, not only the well-known ones: looked up
+  // once and remembered on the device
+  static Future<String?> coinId(String raw) async {
+    final symbol = coinSymbol(raw);
+    final known = _coinIds[symbol];
+    if (known != null) return known;
+    if (_foundIds.containsKey(symbol)) return _foundIds[symbol];
+    final settings = Hive.isBoxOpen('settings') ? Hive.box('settings') : null;
+    final saved = (settings?.get('coinIds') as Map?)?[symbol];
+    if (saved is String) return _foundIds[symbol] = saved;
+    try {
+      final res = await _cgThrottled(() =>
+          http.get(Uri.parse('https://api.coingecko.com/api/v3/search?query=${Uri.encodeQueryComponent(symbol)}')));
+      if (res.statusCode != 200) return null; // rate limit: try again next time
+      final id = parseCoinSearch(res.body, symbol);
+      _foundIds[symbol] = id;
+      if (id != null && settings != null) {
+        await settings.put('coinIds', {...(settings.get('coinIds') as Map? ?? const {}), symbol: id});
+      }
+      return id;
+    } catch (_) {
+      return null;
+    }
+  }
 
   // parses a Finnhub /quote response; field 'c' is the current price.
   // returns the price in cents, or null if unavailable.
@@ -111,7 +165,7 @@ class PriceService {
 
   // fetches a live crypto price in EUR cents (keyless), or null
   static Future<int?> fetchCryptoEur(String symbol) async {
-    final id = _coinIds[symbol.toUpperCase()];
+    final id = await coinId(symbol);
     if (id == null) return null;
     try {
       final url = Uri.parse(
@@ -133,7 +187,7 @@ class PriceService {
   static Future<Map<String, double>> fetchCryptoEuros(List<String> symbols) async {
     final symToId = <String, String>{};
     for (final s in symbols) {
-      final id = _coinIds[s.toUpperCase()];
+      final id = await coinId(s);
       if (id != null) symToId[s.toUpperCase()] = id;
     }
     if (symToId.isEmpty) return {};
@@ -299,7 +353,7 @@ class PriceService {
   }
 
   static Future<List<(DateTime, double)>> _coinGeckoPoints(String symbol, int days) async {
-    final id = _coinIds[symbol.toUpperCase()];
+    final id = await coinId(symbol);
     if (id == null) return [];
     try {
       final url = Uri.parse(
@@ -481,7 +535,8 @@ class PriceService {
       final newPrice = h.type == 'Krypto'
           ? (euros == null ? null : (euros * 100).round())
           : await livePrice(symbol: h.symbol, type: h.type);
-      if (newPrice == null || newPrice <= 0) {
+      // a coin under half a cent (PEPE, SHIB) is 0 in whole cents but still live
+      if (newPrice == null || (newPrice <= 0 && (euros ?? 0) <= 0)) {
         failed++;
         continue;
       }

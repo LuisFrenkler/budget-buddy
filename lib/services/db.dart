@@ -86,6 +86,17 @@ class DB {
     return sum;
   }
 
+  // what the bookings did to the account: every euro in and out, transfers
+  // to savings or the depot included (they are no spending, but the money
+  // has left the account), in cents
+  static int balanceOf(List<Transaction> list) {
+    int sum = 0;
+    for (final t in list) {
+      sum += t.isIncome ? t.amountCents : -t.amountCents;
+    }
+    return sum;
+  }
+
   // amounts per category for incomes or expenses, in cents
   static Map<String, int> categoriesOf(List<Transaction> list, {required bool isIncome}) {
     final result = <String, int>{};

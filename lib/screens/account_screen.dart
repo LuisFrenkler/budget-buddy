@@ -77,7 +77,7 @@ class _AccountScreenState extends State<AccountScreen> {
         valueListenable: widget.segment,
         builder: (context, segment, _) {
           final tx = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
-          final balance = DB.sumOf(tx, isIncome: true) - DB.sumOf(tx, isIncome: false) + Settings.openingBalanceCents;
+          final balance = DB.balanceOf(tx) + Settings.openingBalanceCents;
           final points = History.dailyBalance(tx, from: _rangeStart(tx), opening: Settings.openingBalanceCents);
 
           return SafeArea(
