@@ -3,13 +3,11 @@
 // The date math is kept as pure, testable functions; process() applies them
 // against the database. It is called on app start so any occurrences that came
 // due while the app was closed are backfilled.
-import 'package:uuid/uuid.dart';
 import '../models/recurring.dart';
 import '../models/transaction.dart';
 import 'db.dart';
 
 class RecurringService {
-  static const _uuid = Uuid();
 
   // the intervals offered in the UI
   static const intervals = ['täglich', 'wöchentlich', 'monatlich', 'jährlich'];
@@ -75,6 +73,11 @@ class RecurringService {
     if (missed.isNotEmpty) rule.lastRun = missed.last;
   }
 
+  // one id per rule and day: a run cut short and repeated overwrites instead
+  // of booking twice, and the bookings of a rule can be found again
+  static String idFor(RecurringRule rule, DateTime date) =>
+      'rec_${rule.id}_${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+
   // generates all due transactions for every rule, returning how many were made.
   // [today] defaults to now; tests and the demo data pass a fixed date.
   static Future<int> process({DateTime? today}) async {
@@ -87,7 +90,7 @@ class RecurringService {
 
       for (final date in due) {
         await DB.addTx(Transaction(
-          id: _uuid.v4(),
+          id: idFor(rule, date),
           amountCents: rule.amountCents,
           category: rule.category,
           date: date,

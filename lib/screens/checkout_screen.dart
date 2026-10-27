@@ -483,7 +483,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final selected = _plan == p;
       final yearly = p == PlusPlan.yearly;
       return Expanded(
-        child: GestureDetector(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          inMutuallyExclusiveGroup: true,
+          child: GestureDetector(
           onTap: () {
             HapticFeedback.selectionClick();
             setState(() => _plan = p);
@@ -515,7 +519,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   style: TextStyle(color: AppColors.textDim, fontSize: 12)),
             ]),
           ),
-        ),
+        )),
       );
     }
 

@@ -400,7 +400,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
               opacity: _input.text.trim().isEmpty || _thinking ? 0.4 : 1,
-              child: GestureDetector(
+              child: Semantics(
+                button: true,
+                label: 'Senden',
+                enabled: _input.text.trim().isNotEmpty && !_thinking,
+                child: GestureDetector(
                 onTap: () => _send(_input.text),
                 child: Container(
                   width: 46,
@@ -411,7 +415,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ),
                   child: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
                 ),
-              ),
+              )),
             ),
           ]),
           const SizedBox(height: 6),

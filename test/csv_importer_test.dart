@@ -46,4 +46,12 @@ void main() {
       expect(result.skipped, 0);
     });
   });
+
+  test('importing the same file twice adds nothing the second time', () {
+    const csv = 'Datum;Kategorie;Beschreibung;Betrag\n05.01.2025;Gehalt;Lohn;2850,00\n08.01.2025;Lebensmittel;REWE;-12,50\n';
+    final first = CsvImporter.parse(csv);
+    final again = CsvImporter.parse(csv, existing: first.transactions);
+    expect(again.transactions, isEmpty);
+    expect(again.duplicates, 2);
+  });
 }

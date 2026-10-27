@@ -27,8 +27,17 @@ class BankSync {
     required List<Transaction> existing,
     required List<BankTransaction> incoming,
     required int bankBalanceCents,
+    Set<String> dismissed = const {}, // bank bookings the user deleted
   }) {
-    final known = {for (final t in existing) t.id};
+    final known = {for (final t in existing) t.id, ...dismissed};
+    // bookings imported from a bank CSV before the bank was linked: the
+    // same booking arriving from the bank is not counted a second time
+    final imported = <String, int>{};
+    for (final t in existing) {
+      if (!t.id.startsWith('csv_')) continue;
+      final k = _dayKey(t.date, t.amountCents, t.isIncome);
+      imported[k] = (imported[k] ?? 0) + 1;
+    }
 
     // what the user calls things: the latest category per bank title
     final memory = <String, String>{};
@@ -43,6 +52,11 @@ class BankSync {
       if (known.contains(id)) continue;
       known.add(id);
       final isIncome = b.amountCents >= 0;
+      final day = _dayKey(b.date, b.amountCents.abs(), isIncome);
+      if ((imported[day] ?? 0) > 0) {
+        imported[day] = imported[day]! - 1;
+        continue;
+      }
       final title = _title(b);
       added.add(Transaction(
         id: id,
@@ -71,6 +85,8 @@ class BankSync {
     return purpose.isNotEmpty ? purpose : 'Bankbuchung';
   }
 
+  static String _dayKey(DateTime d, int cents, bool income) => '${d.year}-${d.month}-${d.day}|$cents|$income';
+
   static String _key(String title, bool income) => '${income ? '+' : '-'}${title.toLowerCase().trim()}';
 
   // fetches, merges and stores; returns how many bookings are new
@@ -78,7 +94,11 @@ class BankSync {
     final state = Settings.bankState;
     if (state.isEmpty) return 0;
     final data = await BackendService.sync(state);
-    final result = merge(existing: DB.getTx(), incoming: data.transactions, bankBalanceCents: data.balanceCents);
+    final result = merge(
+        existing: DB.getTx(),
+        incoming: data.transactions,
+        bankBalanceCents: data.balanceCents,
+        dismissed: DB.dismissedBankIds);
     for (final t in result.added) {
       await DB.addTx(t);
     }

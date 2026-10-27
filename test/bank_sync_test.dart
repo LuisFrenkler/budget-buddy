@@ -31,6 +31,18 @@ void main() {
   });
 
   group('BankSync.merge', () {
+    test('a deleted booking stays deleted, a CSV-imported one is not doubled', () {
+      final csv = Transaction(
+          id: 'csv_x', amountCents: 2350, category: 'Lebensmittel', date: DateTime(2026, 10, 1), isIncome: false);
+      final r = BankSync.merge(
+        existing: [csv],
+        incoming: [_b('gone', -999, 'Kiosk'), _b('dup', -2350, 'REWE'), _b('new', -100, 'Bäcker')],
+        bankBalanceCents: 0,
+        dismissed: {'bank_gone'},
+      );
+      expect(r.added.map((t) => t.id), ['bank_new']);
+    });
+
     test('adds new bookings with a stable id, sign and category', () {
       final r = BankSync.merge(
         existing: const [],

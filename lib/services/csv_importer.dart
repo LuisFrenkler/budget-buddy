@@ -14,17 +14,25 @@ import '../utils/theme.dart';
 class ImportResult {
   final List<Transaction> transactions;
   final int skipped;
-  const ImportResult(this.transactions, this.skipped);
+  final int duplicates; // already in the app, e.g. the same file imported twice
+  const ImportResult(this.transactions, this.skipped, [this.duplicates = 0]);
 }
 
 class CsvImporter {
   static const _uuid = Uuid();
 
   // parse the full file content into transactions, counting skipped lines
-  static ImportResult parse(String content) {
+  static ImportResult parse(String content, {List<Transaction> existing = const []}) {
     final lines = content.split('\n');
     final transactions = <Transaction>[];
-    int skipped = 0;
+    int skipped = 0, duplicates = 0;
+    // how often each booking is already there (two equal ones stay two)
+    String keyOf(Transaction t) =>
+        '${t.date.year}-${t.date.month}-${t.date.day}|${t.amountCents}|${t.isIncome}|${t.category}|${t.note ?? ''}';
+    final known = <String, int>{};
+    for (final t in existing) {
+      known[keyOf(t)] = (known[keyOf(t)] ?? 0) + 1;
+    }
 
     // skip the first line (header)
     for (int i = 1; i < lines.length; i++) {
@@ -32,14 +40,17 @@ class CsvImporter {
       if (line.isEmpty) continue; // blank lines don't count as errors
 
       final tx = parseLine(line);
-      if (tx != null) {
+      if (tx != null && (known[keyOf(tx)] ?? 0) > 0) {
+        known[keyOf(tx)] = known[keyOf(tx)]! - 1;
+        duplicates++;
+      } else if (tx != null) {
         transactions.add(tx);
       } else {
         skipped++;
       }
     }
 
-    return ImportResult(transactions, skipped);
+    return ImportResult(transactions, skipped, duplicates);
   }
 
   // parse a single line into a Transaction, or null if the line is invalid

@@ -314,7 +314,10 @@ class _AddScreenState extends State<AddScreen> {
           final c = _categories[i];
           final selected = c == _category;
           final tint = Categories.color(c);
-          return GestureDetector(
+          return Semantics(
+            button: true,
+            selected: selected,
+            child: GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _category = c);
@@ -339,7 +342,7 @@ class _AddScreenState extends State<AddScreen> {
                 ],
               ),
             ),
-          );
+          ));
         },
       ),
     );
@@ -387,7 +390,7 @@ class _AddScreenState extends State<AddScreen> {
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
       ]),
     );
-    return onTap == null ? content : GestureDetector(onTap: onTap, child: content);
+    return onTap == null ? content : Semantics(button: true, child: GestureDetector(onTap: onTap, child: content));
   }
 
   // 3x4 number pad; long-press on delete clears everything

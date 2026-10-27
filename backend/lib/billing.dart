@@ -249,7 +249,7 @@ class StripeBilling implements Billing {
     final intent = invoice?['payment_intent'] ?? invoice?['charge'];
     if (paid > 0) {
       if (intent == null) throw BillingError('Die Zahlung zur Erstattung wurde nicht gefunden.');
-      await _req('POST', '/refunds', {'${invoice?['payment_intent'] != null ? 'payment_intent' : 'charge'}': '$intent'});
+      await _req('POST', '/refunds', {(invoice?['payment_intent'] != null ? 'payment_intent' : 'charge'): '$intent'});
     }
     await _req('DELETE', '/subscriptions/${e.subscription}');
     return e.copyWith(status: 'canceled');

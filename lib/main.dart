@@ -44,9 +44,6 @@ void main() async {
   await RecurringService.process();
   // monthly budgets continue into the new month
   await DB.rollOverBudgets();
-  // goals on autopilot: the monthly amount and rounded-up expenses
-  await AutoSave.run();
-
   // fetch new bookings from a linked bank in the background
   BankSync.refreshIfStale();
 
@@ -55,6 +52,8 @@ void main() async {
   Settings.loadHideAmounts();
   Settings.loadGuest();
   PlusService.load();
+  // goals on autopilot (a Plus feature, so after Plus is known)
+  await AutoSave.run();
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();
   await AccountService.restore();
