@@ -1,5 +1,7 @@
 // AI features through the Claude API (raw HTTP; there is no official Dart
-// SDK). The key stays on this server: set ANTHROPIC_API_KEY.
+// SDK). The key stays on this server: set ANTHROPIC_API_KEY. Without it a
+// GEMINI_API_KEY (Google AI Studio, free tier with daily limits) runs the
+// same prompts on Gemini Flash.
 //
 // - chat:    "Buddy", a finance coach that answers from a summary of the
 //            user's finances, streamed word by word
@@ -23,11 +25,20 @@ class AiError implements Exception {
 class Ai {
   static const _url = 'https://api.anthropic.com/v1/messages';
   static const _model = 'claude-opus-5-5';
+  static const _gemini = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   final String apiKey;
-  Ai(this.apiKey);
+  final String geminiKey;
+  final String geminiModel;
+  Ai(this.apiKey, {this.geminiKey = '', String geminiModel = ''})
+      : geminiModel = geminiModel.isEmpty ? 'gemini-2.5-flash' : geminiModel;
 
-  bool get enabled => apiKey.isNotEmpty;
+  // Claude when its key is set, otherwise Gemini
+  bool get _claude => apiKey.isNotEmpty;
+  bool get enabled => _claude || geminiKey.isNotEmpty;
+  String get name => _claude ? 'Claude' : 'Gemini ($geminiModel)';
+  // who answers, so the app can say whom the data goes to
+  String get provider => _claude ? 'anthropic' : 'google';
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -75,6 +86,10 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       messages.add({'role': role, 'content': text});
     }
 
+    if (!_claude) {
+      yield* _geminiStream(messages);
+      return;
+    }
     final req = http.Request('POST', Uri.parse(_url))
       ..headers.addAll(_headers)
       ..body = jsonEncode({
@@ -131,8 +146,13 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
         },
       };
 
-  Future<Map<String, dynamic>> _booking(List<Map<String, dynamic>> content, List<String> categories) async {
+  Future<Map<String, dynamic>> _booking(List<Map<String, dynamic>> content, List<String> categories) =>
+      _structured(content, _bookingSchema(categories));
+
+  // one request whose answer is JSON in the given shape
+  Future<Map<String, dynamic>> _structured(List<Map<String, dynamic>> content, Map<String, dynamic> schema) async {
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
+    if (!_claude) return _geminiJson(content, schema);
     final res = await http
         .post(Uri.parse(_url),
             headers: _headers,
@@ -143,7 +163,7 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
               // a simple extraction: little thinking needed
               'output_config': {
                 'effort': 'low',
-                'format': {'type': 'json_schema', 'schema': _bookingSchema(categories)},
+                'format': {'type': 'json_schema', 'schema': schema},
               },
               'messages': [
                 {'role': 'user', 'content': content}
@@ -249,40 +269,110 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
         'der Gesamtbetrag. Erfinde nichts: Wenn nichts zu buchen ist, gib keine Einträge zurück und beantworte '
         'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast.\n\n'
         'Nachricht: ${text.isEmpty ? '(nur ein Foto)' : text}';
+    return _structured([
+      if (base64Image != null && base64Image.isNotEmpty)
+        {
+          'type': 'image',
+          'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Image},
+        },
+      {'type': 'text', 'text': prompt},
+    ], _entriesSchema());
+  }
+
+  // --- Gemini (Google AI Studio) ---
+
+  Map<String, String> get _geminiHeaders => {'Content-Type': 'application/json', 'x-goog-api-key': geminiKey};
+
+  // Claude's content blocks as Gemini parts
+  static List<Map<String, dynamic>> geminiParts(List<Map<String, dynamic>> content) => [
+        for (final b in content)
+          if (b['type'] == 'image')
+            {
+              'inline_data': {'mime_type': b['source']['media_type'], 'data': b['source']['data']}
+            }
+          else
+            {'text': '${b['text'] ?? ''}'},
+      ];
+
+  // a JSON schema as Gemini's response schema: upper-case types, "nullable"
+  // instead of a null type, no additionalProperties or formats
+  static Map<String, dynamic> geminiSchema(Map<String, dynamic> schema) {
+    final out = <String, dynamic>{};
+    final type = schema['type'];
+    if (type is List) {
+      out['type'] = '${type.firstWhere((t) => t != 'null')}'.toUpperCase();
+      if (type.contains('null')) out['nullable'] = true;
+    } else if (type != null) {
+      out['type'] = '$type'.toUpperCase();
+    }
+    if (schema['description'] != null) out['description'] = schema['description'];
+    if (schema['enum'] != null) out['enum'] = schema['enum'];
+    if (schema['required'] != null) out['required'] = schema['required'];
+    final props = schema['properties'] as Map?;
+    if (props != null) {
+      out['properties'] = {for (final e in props.entries) e.key: geminiSchema((e.value as Map).cast<String, dynamic>())};
+    }
+    if (schema['items'] != null) out['items'] = geminiSchema((schema['items'] as Map).cast<String, dynamic>());
+    return out;
+  }
+
+  // the text of a Gemini answer; a blocked answer says so
+  static String geminiText(Map<String, dynamic> body) {
+    final candidates = (body['candidates'] as List?) ?? const [];
+    if (candidates.isEmpty) throw const AiError('Dazu kann Buddy leider nichts sagen.');
+    final c = candidates.first as Map;
+    if (c['finishReason'] == 'SAFETY' || c['finishReason'] == 'PROHIBITED_CONTENT') {
+      throw const AiError('Dazu kann Buddy leider nichts sagen.');
+    }
+    return [for (final p in ((c['content'] as Map?)?['parts'] as List?) ?? const []) (p as Map)['text'] ?? ''].join();
+  }
+
+  Future<Map<String, dynamic>> _geminiJson(List<Map<String, dynamic>> content, Map<String, dynamic> schema) async {
     final res = await http
-        .post(Uri.parse(_url),
-            headers: _headers,
+        .post(Uri.parse('$_gemini/$geminiModel:generateContent'),
+            headers: _geminiHeaders,
             body: jsonEncode({
-              'model': _model,
-              'max_tokens': 4000,
-              'fallbacks': 'default',
-              'output_config': {
-                'effort': 'low',
-                'format': {'type': 'json_schema', 'schema': _entriesSchema()},
-              },
-              'messages': [
-                {
-                  'role': 'user',
-                  'content': [
-                    if (base64Image != null && base64Image.isNotEmpty)
-                      {
-                        'type': 'image',
-                        'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Image},
-                      },
-                    {'type': 'text', 'text': prompt},
-                  ],
-                }
+              'contents': [
+                {'role': 'user', 'parts': geminiParts(content)}
               ],
+              'generationConfig': {'responseMimeType': 'application/json', 'responseSchema': geminiSchema(schema)},
             }))
         .timeout(const Duration(seconds: 60));
     if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, res.body));
-    final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-    if (body['stop_reason'] == 'refusal') throw const AiError('Das konnte die KI nicht auslesen.');
-    final out = [
-      for (final b in (body['content'] as List))
-        if (b['type'] == 'text') b['text']
-    ].join();
-    return jsonDecode(out) as Map<String, dynamic>;
+    return jsonDecode(geminiText(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>)) as Map<String, dynamic>;
+  }
+
+  Stream<String> _geminiStream(List<Map<String, dynamic>> messages) async* {
+    final req = http.Request('POST', Uri.parse('$_gemini/$geminiModel:streamGenerateContent?alt=sse'))
+      ..headers.addAll(_geminiHeaders)
+      ..body = jsonEncode({
+        'systemInstruction': {
+          'parts': [
+            {'text': _chatSystem}
+          ]
+        },
+        'contents': [
+          for (final m in messages)
+            {
+              'role': m['role'] == 'assistant' ? 'model' : 'user',
+              'parts': [
+                {'text': m['content']}
+              ],
+            }
+        ],
+      });
+    final client = http.Client();
+    try {
+      final res = await client.send(req).timeout(const Duration(seconds: 60));
+      if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, await res.stream.bytesToString()));
+      await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (!line.startsWith('data: ')) continue;
+        final piece = geminiText(jsonDecode(line.substring(6)) as Map<String, dynamic>);
+        if (piece.isNotEmpty) yield piece;
+      }
+    } finally {
+      client.close();
+    }
   }
 
   static String _apiError(int status, String body) {
