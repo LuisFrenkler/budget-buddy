@@ -143,6 +143,19 @@ class SharedSplits {
         if (!expenses.any((y) => y['id'] == x['id'])) expenses.add(x);
       case 'removeExpense':
         expenses.removeWhere((y) => y['id'] == op['id']);
+      // someone joins the flat later; members keep their places, so old
+      // expenses still point at the right person
+      case 'addMember':
+        final name = '${op['name'] ?? ''}'.trim();
+        if (name.isEmpty || name.length > 40) throw const AuthError(400, 'Ungültiger Name.');
+        (g['members'] as List).add(name);
+      case 'renameMember':
+        final i = (op['index'] as num?)?.toInt() ?? -1;
+        final name = '${op['name'] ?? ''}'.trim();
+        if (i < 0 || i >= members || name.isEmpty || name.length > 40) {
+          throw const AuthError(400, 'Ungültiger Name.');
+        }
+        (g['members'] as List)[i] = name;
       case 'settle':
         final s = (op['settlement'] as Map).cast<String, dynamic>();
         final from = (s['from'] as num).toInt(), to = (s['to'] as num).toInt();

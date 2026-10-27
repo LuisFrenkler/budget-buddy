@@ -422,6 +422,75 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
 
   // runs a change and reports a failure instead of losing it silently
 
+  // a name typed into a small dialog; null when cancelled
+  Future<String?> _askName(BuildContext context, String title, {String initial = ''}) {
+    final ctrl = TextEditingController(text: initial);
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          maxLength: 40,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Name', counterText: ''),
+          onSubmitted: (v) => Navigator.pop(context, v.trim().isEmpty ? null : v.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, ctrl.text.trim().isEmpty ? null : ctrl.text.trim()),
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // someone new joins; expenses so far stay with the people who were there
+  Future<void> _addMember(BuildContext context, SplitGroup g) async {
+    final name = await _askName(context, 'Wer ist neu dabei?');
+    if (name == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(this.context);
+    try {
+      await SplitService.addMember(g, name);
+      HapticFeedback.selectionClick();
+      messenger.showSnackBar(SnackBar(
+          duration: const Duration(milliseconds: 2800), content: Text('$name ist jetzt dabei, ab der nächsten Ausgabe')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
+    }
+  }
+
+  // a typo or a nickname: the person stays the same, only the name changes
+  Future<void> _renameMember(BuildContext context, SplitGroup g, String Function(int) who) async {
+    final index = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (int i = 0; i < g.members.length; i++)
+            ListTile(
+              leading: const Icon(Icons.person_outline_rounded),
+              title: Text(i == g.me ? '${g.members[i]} (du)' : g.members[i]),
+              onTap: () => Navigator.pop(context, i),
+            ),
+        ]),
+      ),
+    );
+    if (index == null || !context.mounted) return;
+    final name = await _askName(context, 'Neuer Name', initial: g.members[index]);
+    if (name == null || name == g.members[index] || !mounted) return;
+    final messenger = ScaffoldMessenger.of(this.context);
+    try {
+      await SplitService.renameMember(g, index, name);
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
+    }
+  }
+
   // deleting a group, or leaving a shared one, loses every expense in it: asked first
   Future<void> _remove(BuildContext context, SplitGroup g, int mine) async {
     final creator = g.shared && g.me == 0;
@@ -515,8 +584,14 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
               PopupMenuButton<String>(
                 tooltip: 'Mehr',
                 color: AppColors.surfaceAlt,
-                onSelected: (_) => _remove(context, g, mine),
+                onSelected: (choice) => switch (choice) {
+                  'add' => _addMember(context, g),
+                  'rename' => _renameMember(context, g, who),
+                  _ => _remove(context, g, mine),
+                },
                 itemBuilder: (_) => [
+                  const PopupMenuItem(value: 'add', child: Text('Person hinzufügen')),
+                  const PopupMenuItem(value: 'rename', child: Text('Namen ändern')),
                   PopupMenuItem(value: 'delete', child: Text(g.shared ? 'Gruppe verlassen' : 'Gruppe löschen')),
                 ],
               ),

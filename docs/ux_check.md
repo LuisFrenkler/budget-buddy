@@ -62,7 +62,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ |
 | 43 | Depot | „1.000“ bedeutet bei Anzahl 1, beim Preis 1.000 | ✅ |
 | 44 | Depot | Synchronisierte Positionen editierbar, nächster Sync macht es rückgängig | ✅ |
-| 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | ✅ (Rückfrage, Verlauf, Rückgängig, Code); Mitglieder ändern ⏳ |
+| 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | ✅ |
 | 46 | Sparziele | Ziele nicht bearbeitbar, Einzahlung ohne Rückgängig; Plan ignoriert Automatik und überfällige Ziele; Aufrunden doppelt gezählt | ✅ (bearbeiten, entnehmen, Rückgängig; Plan vs. Automatik ⏳) |
 | 47 | Plus | Gratis-Test versprochen, auch wenn nicht (mehr) möglich; feste Preise neben Store-Preisen | ✅ (Google erkennt es; bei Apple entscheidet der Store-Dialog) |
 | 48 | Plus | Paywall ohne „verlängert sich automatisch“ und ohne AGB/Datenschutz-Links | ✅ |
