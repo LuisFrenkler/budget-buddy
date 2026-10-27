@@ -1,6 +1,6 @@
 import 'package:budget_buddy/models/goal.dart';
 import 'package:budget_buddy/models/transaction.dart';
-import 'package:budget_buddy/screens/account_settings_screen.dart';
+import 'package:budget_buddy/utils/password.dart';
 import 'package:budget_buddy/services/notification_service.dart';
 import 'package:budget_buddy/services/plus_service.dart';
 import 'package:budget_buddy/services/weekly_report.dart';

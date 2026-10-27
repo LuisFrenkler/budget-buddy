@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
+import '../services/store_purchases.dart';
+import '../utils/password.dart';
 import '../utils/theme.dart';
 import '../widgets/settings_list.dart';
 import 'auth_screens.dart';
@@ -152,15 +154,37 @@ class AccountSettingsScreen extends StatelessWidget {
 
   Future<void> _delete(BuildContext context) async {
     final plus = PlusService.subscription.value;
+    // what happens to Plus depends on where it was bought
+    final plusNote = plus == null || plus.cancelled
+        ? ''
+        : plus.fromStore
+            ? '\n\nDein Plus-Abo läuft über ${StorePurchases.storeName} und endet nicht von selbst. '
+                'Kündige es dort in den Abo-Einstellungen.'
+            : plus.managed
+                ? '\n\nDein Plus-Abo wird mit dem Konto gekündigt.'
+                : '';
     final text = 'Dein Konto und alle Bankverbindungen werden dauerhaft gelöscht. '
-        'Umsätze auf diesem Gerät bleiben, bis du sie unter Profil › „App zurücksetzen“ entfernst.'
-        '${plus != null && !plus.cancelled ? '\n\nDein Plus-Abo läuft separat weiter. Kündige es vorher unter Profil › Mein Abo.' : ''}';
+        'Umsätze auf diesem Gerät bleiben, bis du sie unter Profil › „App zurücksetzen“ entfernst.$plusNote';
     if (!await _confirm(context, 'Konto löschen?', text, 'Endgültig löschen')) return;
+    if (!context.mounted) return;
+    // deleting takes a moment on the server: show that something happens
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
     try {
       await AccountService.deleteAccount();
       if (context.mounted) Navigator.popUntil(context, (r) => r.isFirst);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$e')));
+      if (!context.mounted) return;
+      Navigator.pop(context); // the progress dialog
+      final text = '$e';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(milliseconds: 3500),
+          content: Text(RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
+              ? 'Löschen hat nicht geklappt: keine Verbindung zum Server. Bitte versuch es gleich noch einmal.'
+              : text)));
     }
   }
 }
@@ -421,17 +445,3 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
   }
 }
 
-// 0..4 and a word for it; length counts most, then variety
-(int, String) passwordStrength(String p) {
-  if (p.isEmpty) return (0, '');
-  var score = 0;
-  if (p.length >= 8) score++;
-  if (p.length >= 12) score++;
-  final kinds = [RegExp(r'[a-z]'), RegExp(r'[A-Z]'), RegExp(r'\d'), RegExp(r'[^A-Za-z0-9]')]
-      .where((r) => r.hasMatch(p))
-      .length;
-  if (kinds >= 3) score++;
-  if (p.length >= 16 || (p.length >= 12 && kinds == 4)) score++;
-  if (p.length < 8) score = 0;
-  return (score, const ['Zu kurz', 'Schwach', 'Okay', 'Gut', 'Stark'][score]);
-}

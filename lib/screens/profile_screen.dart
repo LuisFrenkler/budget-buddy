@@ -52,9 +52,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
-      valueListenable: Hive.box('transactions').listenable(),
-      builder: (context, box, child) {
+    // bookings, the account (name changes) and settings (bank, depot links)
+    // all show here, so a change on another page shows when coming back
+    return ListenableBuilder(
+      listenable: Listenable.merge(
+          [Hive.box('transactions').listenable(), Hive.box('settings').listenable(), AccountService.current]),
+      builder: (context, child) {
         final tx = DB.getTx();
         final rate = SavingsRate.headline(tx);
         // oldest transaction = the user's start with the app
