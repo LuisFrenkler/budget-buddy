@@ -81,15 +81,18 @@ Enable Banking application and put the same address into `.env` as
 export ANTHROPIC_API_KEY=...   # from console.anthropic.com
 ```
 
-With the key, Buddy answers through Claude Opus 5.5 (streamed), reads receipts
-and refines quick entries. Requests opt into server-side refusal fallbacks
-(`fallbacks: "default"`). Each user can make 150 AI calls per day. Without the key,
-the app falls back to offline answers and the offline parser.
+With the key, Buddy answers through Claude Haiku 5.5 (streamed, about 0.1 cent a
+question), reads receipts, refines quick entries and turns what the user tells it
+into entries. Each user can make 50 AI calls per day. Without an Anthropic key a
+`GEMINI_API_KEY` (free, 20 requests a day per model) runs the same features on
+Gemini Flash; without either, or when the quota is used up, the app falls back to
+offline answers and the offline parser.
 
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/ai/chat` | `{finances, history}` → server-sent events `{"t": "..."}`, then `{"done": true}` |
 | POST | `/ai/parse` | `{text, categories}` → `{booking}` |
+| POST | `/ai/entries` | `{text, image?, categories, accounts, depots}` → `{reply, entries}` |
 | POST | `/ai/receipt` | `{image (base64), mediaType, categories}` → `{booking}` |
 
 ## Depot: Trade Republic and other brokers (Parqet Connect)

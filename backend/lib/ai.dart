@@ -8,8 +8,9 @@
 // - parse:   one line of text ("Döner 8,50 gestern") -> a booking
 // - receipt: a photo of a receipt -> a booking
 //
-// Requests use Claude Opus 5.5 with server-side refusal fallbacks
-// (`fallbacks: "default"`), and check the stop reason before reading text.
+// Requests use Claude Haiku 5.5 (about 0.1 cent a question) and check the
+// stop reason before reading text; Haiku has no server-side refusal fallback.
+// Haiku thinks by default, so max_tokens leaves room for it.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -25,7 +26,7 @@ class AiError implements Exception {
 
 class Ai {
   static const _url = 'https://api.anthropic.com/v1/messages';
-  static const _model = 'claude-opus-5-5';
+  static const _model = 'claude-haiku-5-5';
   static const _gemini = 'https://generativelanguage.googleapis.com/v1beta/models';
 
   final String apiKey;
@@ -45,7 +46,6 @@ class Ai {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2026-10-21',
-        'anthropic-beta': 'server-side-fallback-2026-07-01',
       };
 
   // the stable part of every chat request, kept first so it can be cached
@@ -95,9 +95,8 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       ..headers.addAll(_headers)
       ..body = jsonEncode({
         'model': _model,
-        'max_tokens': 4000,
+        'max_tokens': 8000,
         'stream': true,
-        'fallbacks': 'default',
         // chat answers are short; moderate thinking keeps them quick but careful
         'output_config': {'effort': 'medium'},
         'system': [
@@ -159,8 +158,7 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
             headers: _headers,
             body: jsonEncode({
               'model': _model,
-              'max_tokens': 2000,
-              'fallbacks': 'default',
+              'max_tokens': 4000,
               // a simple extraction: little thinking needed
               'output_config': {
                 'effort': 'low',
