@@ -203,9 +203,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
         answer.entries = [offline!];
       }
     } catch (e) {
-      answer
-        ..text = '$e'
-        ..error = true;
+      // the AI is busy or out of quota: a simple booking is still read offline
+      final fallback = '$e'.contains('ausgelastet') ? BuddyEntries.offline(text) : null;
+      if (fallback != null) {
+        answer
+          ..text = 'Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:'
+          ..offline = true
+          ..entries = [fallback];
+      } else {
+        answer
+          ..text = '$e'
+          ..error = true;
+      }
     }
     if (mounted) setState(() => _thinking = false);
     _scrollDown();
@@ -257,9 +266,24 @@ class _BuddyScreenState extends State<BuddyScreen> {
         _scrollDown();
       },
       onError: (e) {
-        HapticFeedback.heavyImpact();
         final text = '$e';
         if (!mounted) return;
+        // the free AI's quota is used up for now: answer from the data on the device
+        if (live && text.contains('ausgelastet')) {
+          setState(() {
+            answer.text = '';
+            answer.offline = true;
+          });
+          _sub = BuddyService.ask(history, live: false).listen(
+            (piece) => setState(() => answer.text += piece),
+            onDone: () {
+              if (mounted) setState(() => _thinking = false);
+              _scrollDown();
+            },
+          );
+          return;
+        }
+        HapticFeedback.heavyImpact();
         setState(() {
           // the server's reasons are German; a dropped connection is not
           answer.text = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
@@ -467,7 +491,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             if (m.offline && m.text.isNotEmpty && !m.error)
               Padding(
                 padding: const EdgeInsets.only(top: 6, left: 4),
-                child: Text('Offline berechnet aus deinen Daten',
+                child: Text('Ohne KI berechnet aus deinen Daten',
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
             for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
@@ -618,7 +642,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
 class _Message {
   final bool fromUser;
   String text;
-  final bool offline;
+  bool offline;
   bool error = false;
   List<BuddyAction> actions = const []; // next steps under an answer
   List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user

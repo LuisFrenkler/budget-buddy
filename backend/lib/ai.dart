@@ -12,6 +12,7 @@
 // (`fallbacks: "default"`), and check the stop reason before reading text.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -288,11 +289,19 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
   // try again, then try the other current Flash model
   List<String> get _geminiModels => {geminiModel, 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash'}.toList();
 
+  // a model whose quota ran out rests until Google says it is back
+  static final _resting = <String, DateTime>{};
+
   Future<http.StreamedResponse> _geminiSend(String action, Map<String, dynamic> body, {required http.Client client}) async {
-    final tries = [for (final m in _geminiModels) ...[m, m]];
+    final now = DateTime.now();
+    final models = [for (final m in _geminiModels) if (!(_resting[m]?.isAfter(now) ?? false)) m];
+    // the free tier allows a few requests a day per model: when all rest, Buddy answers offline
+    if (models.isEmpty) throw const AiError(quotaMessage);
+    final tries = [for (final m in models) ...[m, m]];
     // the app waits about a minute; a slow model must not use it all up
-    final deadline = DateTime.now().add(const Duration(seconds: 55));
-    for (var i = 0;; i++) {
+    final deadline = now.add(const Duration(seconds: 55));
+    for (var i = 0; i < tries.length; i++) {
+      if (_resting[tries[i]]?.isAfter(DateTime.now()) ?? false) continue;
       final last = i == tries.length - 1 || DateTime.now().isAfter(deadline);
       final req = http.Request('POST', Uri.parse('$_gemini/${tries[i]}:$action'))
         ..headers.addAll(_geminiHeaders)
@@ -301,16 +310,28 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       try {
         res = await client.send(req).timeout(Duration(seconds: last ? 30 : 20));
       } on TimeoutException {
-        if (last) throw const AiError('Die KI ist gerade überlastet. Bitte gleich noch einmal.');
+        stderr.writeln('gemini ${tries[i]}: no answer in time');
+        if (last) throw const AiError('Die KI ist gerade ausgelastet. Bitte gleich noch einmal.');
         continue;
       }
-      final busy = res.statusCode == 503 || res.statusCode == 429;
-      // the last try's answer goes back unread, so its error can be shown
-      if (!busy || last) return res;
-      await res.stream.drain<void>();
+      if (res.statusCode == 200) return res;
+      final text = await res.stream.bytesToString();
+      stderr.writeln('gemini ${tries[i]}: HTTP ${res.statusCode}');
+      if (res.statusCode == 429) {
+        // a used-up quota names when it comes back ("retryDelay": "45214s")
+        final wait = int.tryParse(RegExp(r'"retryDelay":\s*"(\d+)s"').firstMatch(text)?.group(1) ?? '') ?? 60;
+        _resting[tries[i]] = DateTime.now().add(Duration(seconds: wait));
+      } else if (res.statusCode != 503) {
+        throw AiError(_apiError(res.statusCode, text));
+      }
+      if (last) break;
       await Future<void>.delayed(Duration(milliseconds: 800 * (i % 2 + 1)));
     }
+    throw const AiError(quotaMessage);
   }
+
+  // the app falls back to its offline answers on this message
+  static const quotaMessage = 'Die KI ist gerade ausgelastet. Bitte gleich noch einmal.';
 
   // Claude's content blocks as Gemini parts
   static List<Map<String, dynamic>> geminiParts(List<Map<String, dynamic>> content) => [
