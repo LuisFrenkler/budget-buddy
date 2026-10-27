@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
+import 'services/cloud_sync.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
 import 'services/auto_save.dart';
@@ -57,6 +59,8 @@ void main() async {
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();
   await AccountService.restore();
+  // the account's data from other devices, in the background
+  unawaited(CloudSync.start());
   PlusService.watchAccount();
   PlusService.syncWithServer();
   DepotSync.refreshIfStale();

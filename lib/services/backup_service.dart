@@ -34,7 +34,7 @@ class BackupService {
 
   // settings that change what the money adds up to; device things (theme,
   // app lock, bank link) stay on the device
-  static const _settingKeys = [
+  static const settingKeys = [
     'openingBalanceCents', 'balanceSet', 'categoryRules', 'budgetsStopped', 'cancellations', 'contractsHidden',
   ];
 
@@ -50,7 +50,7 @@ class BackupService {
       'recurring': _boxMaps('recurring'),
       'goals': _boxMaps('goals'),
       'splits': _boxMaps('splits'),
-      'settings': {for (final k in _settingKeys) if (settings.containsKey(k)) k: settings.get(k)},
+      'settings': {for (final k in settingKeys) if (settings.containsKey(k)) k: settings.get(k)},
     };
     return const JsonEncoder.withIndent('  ').convert(data);
   }
@@ -87,7 +87,7 @@ class BackupService {
     }
     final settings = data['settings'];
     if (settings is Map) {
-      for (final k in _settingKeys) {
+      for (final k in settingKeys) {
         if (settings.containsKey(k)) await Hive.box('settings').put(k, settings[k]);
       }
     }
