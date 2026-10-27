@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/db.dart';
-import '../services/csv_importer.dart';
-import '../services/bank_csv_importer.dart';
-import '../services/holdings_csv_importer.dart';
-import '../services/trade_republic_importer.dart';
+import '../widgets/import_flows.dart';
 import '../services/backup_service.dart';
 import '../services/settings_service.dart';
 import '../services/auth_service.dart';
@@ -283,9 +280,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             body: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
               _sectionLabel('Importieren'),
               _group([
-                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV-Export deiner Bank (Sparkasse, ING, DKB …)',
-                    _importCSV),
-                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export', _importDepotCsv),
+                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV deiner Bank, in ein Konto deiner Wahl',
+                    () => importBookings(context)),
+                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export, in ein Depot',
+                    () => importDepot(context)),
               ]),
               _sectionLabel('Sichern'),
               _group([
@@ -494,33 +492,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // imports portfolio positions from a CSV (broker export)
-  Future<void> _importDepotCsv() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom, allowedExtensions: ['csv'], withData: true);
-    if (result == null || result.files.isEmpty) return;
-    try {
-      final bytes = result.files.first.bytes;
-      if (bytes == null) {
-        _snack('Datei konnte nicht gelesen werden', error: true);
-        return;
-      }
-      final content = utf8.decode(bytes, allowMalformed: true);
-      // auto-detect a Trade Republic transaction export and reconstruct the
-      // depot from it; otherwise expect the simple positions format
-      final imported = TradeRepublicImporter.looksLikeTradeRepublic(content)
-          ? TradeRepublicImporter.parse(content)
-          : HoldingsCsvImporter.parse(content);
-      for (final h in imported.holdings) {
-        await DB.addHolding(h);
-      }
-      _snack(imported.skipped > 0
-          ? '${imported.holdings.length} Positionen importiert, ${imported.skipped} übersprungen'
-          : '${imported.holdings.length} Positionen importiert');
-    } catch (e) {
-      _snack('Fehler: $e', error: true);
-    }
-  }
-
   // opens the recurring rules management screen
   void _openRecurring() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const RecurringScreen()));
@@ -610,72 +581,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // opens file picker, reads csv file and imports each line as transaction
-  void _importCSV() async {
-    // let user pick a csv file from their device
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-      withData: true,
-    );
-
-    // user cancelled or didnt pick a file
-    if (result == null || result.files.isEmpty) return;
-
-    try {
-      // read the picked file's bytes (works on web and mobile)
-      final bytes = result.files.first.bytes;
-      if (bytes == null) {
-        _snack('Datei konnte nicht gelesen werden', error: true);
-        return;
-      }
-      // banks export in Latin-1 as often as in UTF-8
-      var content = utf8.decode(bytes, allowMalformed: true);
-      if (content.contains('\uFFFD')) content = latin1.decode(bytes);
-
-      // a bank's own export, or BudgetBuddy's simple format
-      final List<Transaction> txs;
-      String msg;
-      if (BankCsvImporter.looksLikeBank(content)) {
-        final r = BankCsvImporter.parse(content, existing: DB.getTx());
-        txs = r.transactions;
-        msg = [
-          '${txs.length} ${txs.length == 1 ? 'Umsatz' : 'Umsätze'}${r.bank != null ? ' von ${r.bank}' : ''} importiert',
-          if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
-          if (r.skipped > 0) '${r.skipped} nicht lesbar',
-        ].join(' · ');
-      } else {
-        final r = CsvImporter.parse(content, existing: DB.getTx());
-        txs = r.transactions;
-        msg = [
-          '${txs.length} importiert',
-          if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
-          if (r.skipped > 0) '${r.skipped} übersprungen',
-        ].join(' · ');
-      }
-      if (txs.isEmpty && msg.startsWith('0')) {
-        msg = 'In dieser Datei wurden keine Umsätze gefunden. Exportiere sie im Online-Banking als CSV.';
-      }
-
-      for (final tx in txs) {
-        await DB.addTx(tx);
-      }
-      await DB.checkBadges();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg)),
-        );
-      }
-    } catch (e) {
-      // something went wrong, show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e'), backgroundColor: AppColors.error),
-        );
-      }
-    }
-  }
-
   Future<void> _leaveGuest() async {
     await Settings.setGuest(false);
     if (mounted) Navigator.popUntil(context, (r) => r.isFirst);

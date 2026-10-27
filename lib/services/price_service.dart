@@ -106,6 +106,9 @@ class PriceService {
     }
   }
 
+  // a coin the app knows by its ticker, e.g. for a position Buddy adds
+  static bool isKnownCoin(String symbol) => _coinIds.containsKey(coinSymbol(symbol));
+
   // parses a Finnhub /quote response; field 'c' is the current price.
   // returns the price in cents, or null if unavailable.
   static int? parseFinnhubQuote(String body) {

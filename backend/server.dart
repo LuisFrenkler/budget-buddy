@@ -276,7 +276,7 @@ Future<void> _html(HttpRequest req, String body) async {
 
 // receipts arrive as photos; everything else is small
 Future<Map<String, dynamic>> _body(HttpRequest req) async {
-  final limit = req.uri.path == '/ai/receipt' || req.uri.path == '/vault' ? 16 << 20 : 256 << 10;
+  final limit = {'/ai/receipt', '/ai/entries', '/vault'}.contains(req.uri.path) ? 16 << 20 : 256 << 10;
   final bytes = BytesBuilder(copy: false);
   await for (final chunk in req) {
     bytes.add(chunk);
@@ -384,6 +384,22 @@ Future<void> _handle(HttpRequest req) async {
       final b = await _body(req);
       _countAi(user);
       return _json(req, 200, {'booking': await _ai.parse('${b['text'] ?? ''}', _categories(b))});
+    // POST {text, image?, mediaType?, categories, accounts: [{id, name, kind}], depots} -> {reply, entries}
+    case '/ai/entries':
+      final user = _aiUser(req);
+      final b = await _body(req);
+      _countAi(user);
+      return _json(
+          req,
+          200,
+          await _ai.entries(
+            text: '${b['text'] ?? ''}'.trim(),
+            base64Image: b['image'] as String?,
+            mediaType: '${b['mediaType'] ?? 'image/jpeg'}',
+            categories: _categories(b),
+            accounts: [for (final a in (b['accounts'] as List? ?? const [])) if (a is Map) a.cast<String, dynamic>()],
+            depots: [for (final d in (b['depots'] as List? ?? const [])) '$d'],
+          ));
     case '/ai/receipt':
       final user = _aiUser(req);
       final b = await _body(req);

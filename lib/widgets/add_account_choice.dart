@@ -6,8 +6,9 @@ import '../screens/connections_screen.dart';
 import '../services/settings_service.dart';
 import '../utils/theme.dart';
 import 'account_sheet.dart';
+import 'import_flows.dart';
 
-enum _Choice { bank, depot, hand }
+enum _Choice { bank, depot, hand, file }
 
 // [depot]: offered from the Depot tab, where "by hand" means a position
 Future<void> showAddAccountChoice(BuildContext context, {bool depot = false, VoidCallback? byHand}) async {
@@ -41,6 +42,8 @@ Future<void> showAddAccountChoice(BuildContext context, {bool depot = false, Voi
           option(_Choice.hand, depot ? Icons.edit_note_rounded : Icons.edit_rounded, AppColors.textDim,
               depot ? 'Position von Hand' : 'Konto von Hand',
               depot ? 'Aktie, ETF oder Krypto selbst eintragen' : 'Bargeld oder ein Konto ohne Verbindung'),
+          option(_Choice.file, Icons.upload_file_rounded, AppColors.textDim, 'Aus Datei importieren',
+              depot ? 'CSV aus Excel oder Trade-Republic-Export' : 'CSV-Export deiner Bank oder aus Excel'),
           const SizedBox(height: 8),
         ]),
       );
@@ -53,6 +56,8 @@ Future<void> showAddAccountChoice(BuildContext context, {bool depot = false, Voi
     case _Choice.bank || _Choice.depot:
       await Navigator.push(context,
           MaterialPageRoute(builder: (_) => ConnectionsScreen(start: choice == _Choice.bank ? 'bank' : 'depot')));
+    case _Choice.file:
+      depot ? await importDepot(context) : await importBookings(context);
     case _Choice.hand:
       if (byHand != null) {
         byHand();

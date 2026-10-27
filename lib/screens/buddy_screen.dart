@@ -1,3 +1,5 @@
+import '../services/buddy_entries.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +52,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _thinking = false;
   bool? _live;
   StreamSubscription<String>? _sub;
+  // a photo picked for the next message (receipt, bank or broker screenshot)
+  ({Uint8List bytes, String type})? _photo;
 
   static Box get _settings => Hive.box('settings');
 
@@ -139,9 +143,84 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return ok == true;
   }
 
+  Future<void> _pickPhoto() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final file = result?.files.firstOrNull;
+    if (file?.bytes == null) return;
+    final ext = (file!.extension ?? 'jpg').toLowerCase();
+    setState(() => _photo = (bytes: file.bytes!, type: ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg'));
+  }
+
+  // something that happened ("200 € aufs Tagesgeld", a receipt photo):
+  // Buddy proposes the entries, the user confirms each. Returns false when
+  // there is nothing to book, so the message goes on as a question.
+  Future<bool> _entries(String text, bool live) async {
+    final photo = _photo;
+    if (photo == null && !BuddyEntries.looksLikeEvent(text)) return false;
+    if (!live && photo != null) {
+      setState(() {
+        _photo = null;
+        _messages.add(_Message(true, text, image: photo.bytes));
+        _messages.add(_Message(false, AccountService.current.value == null
+            ? 'Fotos lesen kann ich mit einem kostenlosen Konto.'
+            : 'Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.')..error = true);
+      });
+      return true;
+    }
+    final offline = live ? null : BuddyEntries.offline(text);
+    if (!live && offline == null) return false;
+    _input.clear();
+    final answer = _Message(false, '', offline: !live);
+    setState(() {
+      _photo = null;
+      _messages.add(_Message(true, text, image: photo?.bytes));
+      _messages.add(answer);
+      _thinking = true;
+    });
+    _scrollDown();
+    try {
+      if (live) {
+        final r = await BuddyEntries.read(text, image: photo?.bytes, mediaType: photo?.type ?? 'image/jpeg');
+        if (r.entries.isEmpty && photo == null) {
+          // nothing to book after all: answer it as a question
+          setState(() {
+            _messages.removeRange(_messages.length - 2, _messages.length);
+            _thinking = false;
+          });
+          return false;
+        }
+        PlusService.count(PlusFeature.aiQuestion);
+        answer.text = r.reply.isNotEmpty
+            ? r.reply
+            : (r.entries.isEmpty ? 'Auf dem Bild habe ich nichts zum Buchen gefunden.' : 'Das habe ich erkannt:');
+        answer.entries = r.entries;
+      } else {
+        answer.text = 'So würde ich das buchen:';
+        answer.entries = [offline!];
+      }
+    } catch (e) {
+      answer
+        ..text = '$e'
+        ..error = true;
+    }
+    if (mounted) setState(() => _thinking = false);
+    _scrollDown();
+    return true;
+  }
+
+  Future<void> _apply(_Message m, int i) async {
+    HapticFeedback.mediumImpact();
+    try {
+      final done = await BuddyEntries.apply(m.entries[i]);
+      if (mounted) setState(() => m.applied[i] = done);
+    } catch (e) {
+      if (mounted) setState(() => m.applied[i] = 'Ging nicht: $e');
+    }
+  }
+
   Future<void> _send(String text) async {
     final question = text.trim();
-    if (question.isEmpty || _thinking) return;
+    if ((question.isEmpty && _photo == null) || _thinking) return;
     HapticFeedback.selectionClick();
     var live = _live ?? false;
     if (live && !await _consent()) live = false;
@@ -152,6 +231,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (!PlusService.active.value) return;
     }
     if (!mounted) return;
+    if (await _entries(question, live)) return;
+    if (!mounted || question.isEmpty) return;
 
     _input.clear();
     setState(() {
@@ -258,6 +339,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
         const SizedBox(height: 8),
         Text('Ich kenne deine Zahlen. Frag mich, was du über dein Geld wissen willst.',
             style: TextStyle(fontSize: 17, color: AppColors.textDim, height: 1.4)),
+        const SizedBox(height: 8),
+        Text('Oder erzähl mir, was passiert ist („200 € aufs Tagesgeld“, „10 Apple zu 180 € gekauft“), '
+            'oder schick ein Foto vom Beleg. Ich trage es ein, sobald du es bestätigst.',
+            style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 24),
         for (final s in BuddyScreen.suggestions)
           Padding(
@@ -321,14 +406,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
       itemCount: _messages.length,
       itemBuilder: (_, i) {
         final m = _messages[i];
-        if (m.fromUser) return _userBubble(m.text);
+        if (m.fromUser) return _userBubble(m.text, m.image);
         final waiting = m.text.isEmpty && _thinking && i == _messages.length - 1;
         return _buddyBubble(m, waiting);
       },
     );
   }
 
-  Widget _userBubble(String text) => Align(
+  Widget _userBubble(String text, [Uint8List? image]) => Align(
         alignment: Alignment.centerRight,
         child: Container(
           margin: const EdgeInsets.only(left: 48, bottom: 12),
@@ -342,7 +427,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
               bottomRight: Radius.circular(6),
             ),
           ),
-          child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
+            if (image != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(image, height: 140, fit: BoxFit.cover),
+              ),
+            if (image != null && text.isNotEmpty) const SizedBox(height: 8),
+            if (text.isNotEmpty) Text(text, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4)),
+          ]),
         ),
       );
 
@@ -373,6 +466,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Text('Offline berechnet aus deinen Daten',
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
+            for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
             if (m.actions.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
@@ -396,13 +490,74 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
+  // one proposed entry; nothing is stored until "Übernehmen"
+  Widget _entryCard(_Message m, int i) {
+    final e = m.entries[i];
+    final done = m.applied[i];
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: done == null ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border),
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(e.title, style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(e.summary, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.3)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        done == null
+            ? FilledButton(
+                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                onPressed: () => _apply(m, i),
+                child: const Text('Übernehmen'),
+              )
+            : Text('✓ $done', style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w600)),
+      ]),
+    );
+  }
+
   Widget _inputBar() {
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (_photo != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Stack(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(_photo!.bytes, height: 72, width: 72, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: IconButton(
+                      tooltip: 'Foto entfernen',
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                      onPressed: () => setState(() => _photo = null),
+                      icon: const Icon(Icons.close_rounded, size: 16, color: Colors.white),
+                    ),
+                  ),
+                ]),
+              ),
+            ),
           Row(children: [
+            IconButton(
+              tooltip: 'Foto senden',
+              onPressed: _thinking ? null : _pickPhoto,
+              icon: Icon(Icons.add_photo_alternate_rounded, color: AppColors.primaryText),
+            ),
             Expanded(
               child: TextField(
                 controller: _input,
@@ -412,7 +567,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 onSubmitted: _send,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Frag Buddy …',
+                  hintText: 'Frag Buddy oder erzähl, was passiert ist …',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
@@ -425,11 +580,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
             const SizedBox(width: 8),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 150),
-              opacity: _input.text.trim().isEmpty || _thinking ? 0.4 : 1,
+              opacity: (_input.text.trim().isEmpty && _photo == null) || _thinking ? 0.4 : 1,
               child: Semantics(
                 button: true,
                 label: 'Senden',
-                enabled: _input.text.trim().isNotEmpty && !_thinking,
+                enabled: (_input.text.trim().isNotEmpty || _photo != null) && !_thinking,
                 child: GestureDetector(
                 onTap: () => _send(_input.text),
                 child: Container(
@@ -462,7 +617,10 @@ class _Message {
   final bool offline;
   bool error = false;
   List<BuddyAction> actions = const []; // next steps under an answer
-  _Message(this.fromUser, this.text, {this.offline = false});
+  List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user
+  final Map<int, String> applied = {}; // entry index -> what was done
+  Uint8List? image; // a photo the user sent
+  _Message(this.fromUser, this.text, {this.offline = false, this.image});
 }
 
 class _TypingDots extends StatefulWidget {

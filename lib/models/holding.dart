@@ -48,6 +48,20 @@ class Holding {
         depot: depot,
       );
 
+  // the same position in another depot (null = none named)
+  Holding inDepot(String? name) => Holding(
+        id: id,
+        name: this.name,
+        symbol: symbol,
+        type: type,
+        shares: shares,
+        buyPriceCents: buyPriceCents,
+        currentPriceCents: currentPriceCents,
+        priceAt: priceAt,
+        unitEur: unitEur,
+        depot: name,
+      );
+
   // total amount originally invested, in cents
   int get investedCents => (shares * buyPriceCents).round();
 
