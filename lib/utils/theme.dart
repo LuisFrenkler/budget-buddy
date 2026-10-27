@@ -194,6 +194,7 @@ class Categories {
     {'name': 'Bildung', 'emoji': '📚'},
     {'name': 'Essen & Trinken', 'emoji': '🍽️'},
     {'name': 'Sonstiges', 'emoji': '📦'},
+    {'name': transfer, 'emoji': '🔁'},
   ];
   
   // income categories
@@ -203,7 +204,14 @@ class Categories {
     {'name': 'Investition', 'emoji': '📈'},
     {'name': 'Geschenk', 'emoji': '🎁'},
     {'name': 'Sonstiges', 'emoji': '💰'},
+    {'name': transfer, 'emoji': '🔁'},
   ];
+
+  // money moved between the user's own accounts (savings, depot): it leaves
+  // the Kontostand but is neither spending nor income
+  static const transfer = 'Umbuchung';
+
+  static bool counts(String category) => category != transfer;
   
   // maps a category name to a representative icon
   static IconData icon(String c) {
@@ -220,6 +228,7 @@ class Categories {
       case 'Nebenjob': return Icons.handyman_rounded;
       case 'Investition': return Icons.trending_up_rounded;
       case 'Geschenk': return Icons.card_giftcard_rounded;
+      case transfer: return Icons.swap_horiz_rounded;
       default: return Icons.category_rounded;
     }
   }

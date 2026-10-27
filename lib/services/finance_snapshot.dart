@@ -1,6 +1,7 @@
 // A compact summary of the user's finances for Buddy: totals per month and
 // category, budgets, contracts, top merchants and the depot. No account
 // numbers and no single bookings beyond merchant totals leave the device.
+import '../utils/theme.dart';
 import '../models/budget.dart';
 import '../models/holding.dart';
 import '../models/transaction.dart';
@@ -66,6 +67,7 @@ class FinanceSnapshot {
       final byCategory = <String, int>{};
       int income = 0, expenses = 0;
       for (final t in inMonth) {
+        if (!Categories.counts(t.category)) continue;
         if (t.isIncome) {
           income += t.amountCents;
         } else {
@@ -79,7 +81,7 @@ class FinanceSnapshot {
     final merchants = <String, ({String name, int cents, int count})>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
-      if (t.isIncome || name.isEmpty || t.date.year != today.year || t.date.month != today.month) continue;
+      if (t.isIncome || name.isEmpty || !Categories.counts(t.category) || t.date.year != today.year || t.date.month != today.month) continue;
       final key = name.toLowerCase();
       final m = merchants[key];
       merchants[key] = (name: name, cents: (m?.cents ?? 0) + t.amountCents, count: (m?.count ?? 0) + 1);

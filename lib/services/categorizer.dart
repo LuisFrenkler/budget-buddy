@@ -46,8 +46,17 @@ class Categorizer {
     'Geschenk': ['geschenk', 'geburtstag'],
   };
 
+  // money between the user's own accounts: savings, a depot, a broker
+  static const _transfer = [
+    'umbuchung', 'übertrag', 'sparkonto', 'tagesgeld', 'festgeld', 'sparplan', 'trade republic',
+    'scalable capital', 'traderepublic', 'eigenes konto',
+  ];
+
   static String guess(String text, {required bool isIncome}) {
     final lower = text.toLowerCase();
+    for (final k in _transfer) {
+      if (_startsWord(lower, k)) return 'Umbuchung';
+    }
     final rules = isIncome ? _income : _expense;
     for (final entry in rules.entries) {
       for (final k in entry.value) {

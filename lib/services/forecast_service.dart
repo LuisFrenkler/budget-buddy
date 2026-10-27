@@ -11,6 +11,7 @@
 //
 // It never promises more than the account holds: with the balance known,
 // "free" is at most the balance minus what is still due this month.
+import '../utils/theme.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
@@ -70,6 +71,8 @@ class ForecastService {
     final monthStart = DateTime(today.year, today.month);
     final monthEnd = DateTime(today.year, today.month + 1, 0);
     final daysLeft = monthEnd.difference(today).inDays + 1;
+    // moving money to savings or the depot is neither income nor spending
+    tx = [for (final t in tx) if (Categories.counts(t.category)) t];
     if (tx.isEmpty) return null;
     final first = tx.map((t) => t.date).reduce((a, b) => a.isBefore(b) ? a : b);
 
