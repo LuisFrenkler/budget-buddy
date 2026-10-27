@@ -71,8 +71,56 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     // a fresh install chooses how to start; returning users go straight in
     if (DB.getTx().isEmpty && DB.getHoldings().isEmpty) {
       _open(const StartChoiceScreen(guest: true));
+    } else if (Settings.signedOutEmail.isNotEmpty) {
+      // someone signed out: their data is not for whoever picks up the phone
+      await _askToSignIn();
     } else {
       await Settings.setGuest(true);
+    }
+  }
+
+  Future<void> _askToSignIn() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Daten gehören zu einem Konto'),
+        content: Text('Auf diesem Gerät liegen die Daten von ${Settings.signedOutEmail}. '
+            'Melde dich an, um sie zu öffnen, oder lösch sie und starte neu ohne Konto.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'wipe'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Löschen & neu starten'),
+          ),
+          TextButton(onPressed: () => Navigator.pop(context, 'signin'), child: const Text('Anmelden')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (choice == 'signin') {
+      _open(const SignInScreen());
+    } else if (choice == 'wipe') {
+      final sure = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Wirklich alles löschen?'),
+          content: const Text('Alle Umsätze, Budgets, Ziele und Depot-Positionen auf diesem Gerät sind dann weg. '
+              'Das Konto selbst bleibt bestehen.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: const Text('Löschen'),
+            ),
+          ],
+        ),
+      );
+      if (sure != true || !mounted) return;
+      await DB.clearAll();
+      await Settings.resetApp();
+      await Settings.setOnboardingDone(true);
+      if (mounted) _open(const StartChoiceScreen(guest: true));
     }
   }
 
@@ -235,7 +283,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
       TextInput.finishAutofillContext();
       if (!mounted) return;
       HapticFeedback.mediumImpact();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
+      if (DB.getTx().isNotEmpty || DB.getHoldings().isNotEmpty) {
+        // a guest with data signed up from inside the app: back to where they
+        // were (Profil, Verbindungen, Buddy), no sample data on top of theirs
+        final messenger = ScaffoldMessenger.of(context);
+        Navigator.pop(context, true);
+        messenger.showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 2800), content: Text('Konto erstellt. Deine Daten sind dabei.')));
+      } else {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
+      }
     } catch (e) {
       setState(() => _error = '$e');
     } finally {
@@ -464,10 +521,13 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
   @override
   Widget build(BuildContext context) {
     final name = AccountService.current.value?.firstName;
+    // a guest can still change their mind and go back to the welcome screen
+    final canGoBack = widget.guest && Navigator.canPop(context);
     return Scaffold(
+      appBar: canGoBack ? AppBar(backgroundColor: Colors.transparent, elevation: 0) : null,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          padding: EdgeInsets.fromLTRB(24, canGoBack ? 4 : 32, 24, 24),
           children: [
             Text(name != null ? 'Hallo $name 👋' : 'Los geht\'s 👋',
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),

@@ -51,6 +51,13 @@ class Settings {
     return _box.put('guest', value);
   }
 
+  // after signing out the data stays on the device, but belongs to that
+  // account: guests are asked to sign in instead of seeing it
+  static String get signedOutEmail => _box.get('signedOutEmail', defaultValue: '') as String;
+
+  static Future<void> setSignedOutEmail(String value) =>
+      value.isEmpty ? _box.delete('signedOutEmail') : _box.put('signedOutEmail', value);
+
   // id of the account that linked the bank on this device
   static String get bankOwner => _box.get('bankOwner', defaultValue: '') as String;
 
