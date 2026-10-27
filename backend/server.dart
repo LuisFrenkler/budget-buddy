@@ -210,6 +210,7 @@ Future<void> _handleSafe(HttpRequest req) async {
     } on BillingError catch (e) {
       await _json(req, 502, {'error': e.message});
     } on AiError catch (e) {
+      stderr.writeln('${req.uri.path}: ${e.message}');
       await _json(req, 502, {'error': e.message});
     } on TimeoutException {
       await _json(req, 504, {'error': 'Der Dienst antwortet gerade nicht. Versuch es gleich noch einmal.'});
@@ -710,7 +711,8 @@ Future<void> _aiChat(HttpRequest req) async {
     }
     send({'done': true});
   } catch (e) {
-    send({'error': '$e'});
+    stderr.writeln('/ai/chat: $e');
+    send({'error': e is AiError ? e.message : 'Buddy ist gerade nicht erreichbar. Bitte gleich noch einmal.'});
   }
   await res.close();
 }
