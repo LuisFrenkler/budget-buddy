@@ -34,6 +34,22 @@ void main() {
       final p = GoalsService.plan(goal(60000), avgSurplusCents: 40000, now: now);
       expect(p.text, contains('3 Monaten'));
     });
+
+    test('on autopilot the plan is the amount the user set up', () {
+      final g = goal(60000)..monthlyCents = 15000;
+      expect(GoalsService.plan(g, avgSurplusCents: 40000, now: now).text, contains('in 4 Monaten'));
+      // not enough for the date: said plainly
+      final tight = goal(120000, by: DateTime(2027, 4, 1))..monthlyCents = 10000;
+      final p = GoalsService.plan(tight, avgSurplusCents: 90000, now: now);
+      expect(p.onTrack, isFalse);
+      expect(p.text, contains('knapp'));
+    });
+
+    test('a date in the past is named, not treated as one month left', () {
+      final p = GoalsService.plan(goal(120000, saved: 30000, by: DateTime(2026, 8, 1)), avgSurplusCents: 90000, now: now);
+      expect(p.onTrack, isFalse);
+      expect(p.text, contains('vorbei'));
+    });
   });
 
   group('Recap', () {

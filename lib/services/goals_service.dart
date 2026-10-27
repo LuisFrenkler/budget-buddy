@@ -2,6 +2,7 @@
 // much per month it takes, and whether the usual monthly surplus covers it.
 import 'package:hive/hive.dart';
 import '../models/goal.dart';
+import '../utils/dates.dart';
 import '../utils/money.dart';
 
 class GoalPlan {
@@ -35,6 +36,28 @@ class GoalsService {
   static GoalPlan plan(Goal g, {required int avgSurplusCents, DateTime? now}) {
     final today = now ?? DateTime.now();
     if (g.reached) return const GoalPlan('Geschafft! Zeit für das nächste Ziel.', true);
+    final deadline = g.deadline;
+    // the date has passed: say so instead of pretending a month is left
+    if (deadline != null && deadline.isBefore(DateTime(today.year, today.month, today.day))) {
+      return GoalPlan(
+          'Der ${Dates.full(deadline)} ist vorbei, ${Money.format(g.remainingCents)} fehlen noch. '
+          'Gib dem Ziel ein neues Datum.',
+          false);
+    }
+    // on autopilot: the plan is what the user set up, measured against the date
+    if (g.monthlyCents > 0) {
+      final months = (g.remainingCents / g.monthlyCents).ceil();
+      final need = g.monthlyNeeded(today);
+      if (need != null && g.monthlyCents < need) {
+        return GoalPlan(
+            'Mit ${Money.format(g.monthlyCents)} im Monat wird es knapp: bis zum Datum bräuchtest du '
+            '${Money.format(need)}. Erhöh den Betrag oder verschieb das Datum.',
+            false);
+      }
+      return GoalPlan(
+          'Mit ${Money.format(g.monthlyCents)} im Monat hast du es in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
+          true);
+    }
     final need = g.monthlyNeeded(today);
     if (need == null) {
       if (avgSurplusCents <= 0) {
