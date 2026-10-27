@@ -23,7 +23,8 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
   List<ChartPoint> _points = []; // price per share in cents, oldest first
   bool _loading = true;
   String _range = '1M';
-  ChartPoint? _scrub;
+  // the point under the finger while scrubbing; only the chart header listens
+  final _scrub = ValueNotifier<ChartPoint?>(null);
 
   static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
   static const _periods = {
@@ -95,7 +96,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 cents: h.currentPriceCents,
                 startCents: _points.length >= 2 ? _points.first.cents : h.buyPriceCents,
                 period: _points.length >= 2 ? _periods[_range]! : 'seit Kauf',
-                scrub: _scrub,
+                scrubbing: _scrub,
                 startDate: _points.isEmpty ? null : _points.first.date,
               ),
               const SizedBox(height: 16),
@@ -112,7 +113,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                   ),
                 )
               else
-                InteractiveChart(points: _points, onScrub: (p) => setState(() => _scrub = p)),
+                InteractiveChart(points: _points, onScrub: (p) => _scrub.value = p),
               const SizedBox(height: 12),
               RangeSelector(
                 labels: _ranges.keys.toList(),

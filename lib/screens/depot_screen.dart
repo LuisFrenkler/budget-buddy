@@ -27,7 +27,8 @@ class _DepotScreenState extends State<DepotScreen> {
   bool _historyLoading = false;
   String _range = '1M';
   List<int> _history = []; // portfolio value per day in cents, oldest first
-  ChartPoint? _scrub;
+  // the point under the finger while scrubbing; only the chart header listens
+  final _scrub = ValueNotifier<ChartPoint?>(null);
   int? _slice; // highlighted allocation slice
 
   static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
@@ -179,7 +180,7 @@ class _DepotScreenState extends State<DepotScreen> {
         // change over the range, or overall when no history is available
         startCents: hasHistory ? points.first.cents : invested,
         period: hasHistory ? _periods[_range]! : 'gesamt',
-        scrub: _scrub,
+        scrubbing: _scrub,
         startDate: hasHistory ? points.first.date : null,
       ),
       const SizedBox(height: 6),
@@ -188,7 +189,7 @@ class _DepotScreenState extends State<DepotScreen> {
       if (_historyLoading && !hasHistory)
         const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
       else
-        InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
+        InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),
       RangeSelector(
         labels: _ranges.keys.toList(),

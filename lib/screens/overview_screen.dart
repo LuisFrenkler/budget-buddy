@@ -62,7 +62,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     '1J': 'in 12 Monaten',
   };
   String _range = '1M';
-  ChartPoint? _scrub;
+  // the point under the finger while scrubbing; only the chart header listens
+  final _scrub = ValueNotifier<ChartPoint?>(null);
 
   // depot value per day for the current range (loaded asynchronously)
   List<int>? _depot;
@@ -464,11 +465,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
         cents: cash + depotNow,
         startCents: points.isEmpty ? cash + depotNow : points.first.cents,
         period: _periods[_range]!,
-        scrub: _scrub,
+        scrubbing: _scrub,
         startDate: points.isEmpty ? null : points.first.date,
       ),
       const SizedBox(height: 16),
-      InteractiveChart(points: points, onScrub: (p) => setState(() => _scrub = p)),
+      InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),
       RangeSelector(
         labels: _ranges.keys.toList(),
