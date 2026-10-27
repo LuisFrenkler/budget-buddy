@@ -113,18 +113,36 @@ class GoalCard extends StatelessWidget {
             ]),
           ),
           PopupMenuButton<String>(
+            tooltip: 'Mehr',
             icon: Icon(Icons.more_horiz_rounded, color: AppColors.textDim),
             color: AppColors.surfaceAlt,
-            onSelected: (_) async {
-              await GoalsService.delete(goal.id);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-                  content: Text('${goal.name} gelöscht'),
-                  action: SnackBarAction(label: 'Rückgängig', onPressed: () => GoalsService.save(goal)),
-                ));
+            onSelected: (choice) async {
+              switch (choice) {
+                case 'edit':
+                  await showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: AppColors.surface,
+                    showDragHandle: true,
+                    builder: (_) => _NewGoal(editing: goal),
+                  );
+                case 'take':
+                  await _deposit(context, goal, take: true);
+                case 'delete':
+                  await GoalsService.delete(goal.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5),
+                      content: Text('${goal.name} gelöscht'),
+                      action: SnackBarAction(label: 'Rückgängig', onPressed: () => GoalsService.save(goal)),
+                    ));
+                  }
               }
             },
-            itemBuilder: (_) => const [PopupMenuItem(value: 'delete', child: Text('Ziel löschen'))],
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 'edit', child: Text('Ziel bearbeiten')),
+              if (goal.savedCents > 0) const PopupMenuItem(value: 'take', child: Text('Geld entnehmen')),
+              const PopupMenuItem(value: 'delete', child: Text('Ziel löschen')),
+            ],
           ),
         ]),
         const SizedBox(height: 14),
@@ -219,21 +237,25 @@ class GoalCard extends StatelessWidget {
     );
   }
 
-  static Future<void> _deposit(BuildContext context, Goal goal) async {
+  // puts money aside, or with [take] takes some out again (plans change);
+  // either way with an undo
+  static Future<void> _deposit(BuildContext context, Goal goal, {bool take = false}) async {
     final controller = TextEditingController();
     // one tap for the usual amounts: the plan's monthly rate, round sums, the rest
     final rate = goal.monthlyCents > 0 ? goal.monthlyCents : goal.monthlyNeeded(DateTime.now());
-    final quick = <(String, int)>[
-      if (rate != null && rate > 0 && rate < goal.remainingCents) ('Monatsrate ${Money.format(rate)}', rate),
-      for (final c in [5000, 10000])
-        if (c < goal.remainingCents) (Money.format(c), c),
-      ('Rest ${Money.format(goal.remainingCents)}', goal.remainingCents),
-    ];
+    final quick = take
+        ? <(String, int)>[('Alles ${Money.format(goal.savedCents)}', goal.savedCents)]
+        : <(String, int)>[
+            if (rate != null && rate > 0 && rate < goal.remainingCents) ('Monatsrate ${Money.format(rate)}', rate),
+            for (final c in [5000, 10000])
+              if (c < goal.remainingCents) (Money.format(c), c),
+            ('Rest ${Money.format(goal.remainingCents)}', goal.remainingCents),
+          ];
     final cents = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('Für ${goal.name} zurücklegen'),
+        title: Text(take ? 'Aus ${goal.name} entnehmen' : 'Für ${goal.name} zurücklegen'),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           TextField(
             controller: controller,
@@ -256,16 +278,28 @@ class GoalCard extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
           TextButton(
               onPressed: () => Navigator.pop(context, Money.parseToCents(controller.text)),
-              child: const Text('Zurücklegen')),
+              child: Text(take ? 'Entnehmen' : 'Zurücklegen')),
         ],
       ),
     );
     if (cents == null || cents <= 0) return;
+    final before = goal.savedCents;
     final wasReached = goal.reached;
-    goal.savedCents += cents;
+    goal.savedCents = take ? (before - cents).clamp(0, before) : before + cents;
     await GoalsService.save(goal);
     HapticFeedback.mediumImpact();
-    if (!wasReached && goal.reached && context.mounted) celebrateGoal(context, goal);
+    if (!context.mounted) return;
+    final moved = (goal.savedCents - before).abs();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: Text(take ? '${Money.raw(moved)} aus ${goal.name} entnommen' : '${Money.raw(moved)} für ${goal.name} zurückgelegt'),
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
+        goal.savedCents = before;
+        GoalsService.save(goal);
+      }),
+    ));
+    if (!take && !wasReached && goal.reached) celebrateGoal(context, goal);
   }
 
 }
@@ -354,20 +388,31 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(covariant _RingPainter old) => old.p != p || old.color != color;
 }
 
+// A new goal, or an existing one to change (name, target, date); what is
+// saved already and the autopilot stay as they are.
 class _NewGoal extends StatefulWidget {
   final String? name;
   final int? cents;
-  const _NewGoal({this.name, this.cents});
+  final Goal? editing;
+  const _NewGoal({this.name, this.cents, this.editing});
 
   @override
   State<_NewGoal> createState() => _NewGoalState();
 }
 
 class _NewGoalState extends State<_NewGoal> {
-  late final _name = TextEditingController(text: widget.name ?? '');
-  late final _amount = TextEditingController(text: widget.cents == null ? '' : '${widget.cents! ~/ 100}');
-  String _emoji = '🏖️';
-  DateTime? _deadline;
+  late final _name = TextEditingController(text: widget.editing?.name ?? widget.name ?? '');
+  late final _amount = TextEditingController(
+      text: widget.editing != null
+          ? _euros(widget.editing!.targetCents)
+          : widget.cents == null
+              ? ''
+              : '${widget.cents! ~/ 100}');
+  late String _emoji = widget.editing?.emoji ?? '🏖️';
+  late DateTime? _deadline = widget.editing?.deadline;
+
+  static String _euros(int cents) =>
+      (cents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), '');
 
   static const _ideas = [
     ('🏖️', 'Urlaub', '1200'),
@@ -390,15 +435,22 @@ class _NewGoalState extends State<_NewGoal> {
   Future<void> _save() async {
     final cents = _cents;
     if (cents == null || cents <= 0 || _name.text.trim().isEmpty) return;
+    final old = widget.editing;
     await GoalsService.save(Goal(
-      id: const Uuid().v4(),
+      id: old?.id ?? const Uuid().v4(),
       name: _name.text.trim(),
       emoji: _emoji,
       targetCents: cents,
+      savedCents: old?.savedCents ?? 0,
       deadline: _deadline,
-      createdAt: DateTime.now(),
+      createdAt: old?.createdAt ?? DateTime.now(),
+      monthlyCents: old?.monthlyCents ?? 0,
+      lastMonthly: old?.lastMonthly,
+      roundUp: old?.roundUp ?? false,
+      roundUpSince: old?.roundUpSince,
+      roundedIds: old?.roundedIds,
     ));
-    await PlusService.count(PlusFeature.goal);
+    if (old == null) await PlusService.count(PlusFeature.goal);
     HapticFeedback.mediumImpact();
     if (mounted) Navigator.pop(context);
   }
@@ -414,8 +466,10 @@ class _NewGoalState extends State<_NewGoal> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Neues Sparziel', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(widget.editing == null ? 'Neues Sparziel' : 'Ziel bearbeiten',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
+        if (widget.editing == null)
         Wrap(spacing: 8, runSpacing: 8, children: [
           for (final i in _ideas)
             ChoiceChip(
@@ -456,8 +510,10 @@ class _NewGoalState extends State<_NewGoal> {
             final now = DateTime.now();
             final d = await showDatePicker(
               context: context,
-              initialDate: _deadline ?? DateTime(now.year, now.month + 6, now.day),
-              firstDate: DateTime(now.year, now.month + 1, now.day),
+              initialDate: _deadline != null && _deadline!.isAfter(now)
+                  ? _deadline!
+                  : DateTime(now.year, now.month + 6, now.day),
+              firstDate: DateTime(now.year, now.month, now.day + 1),
               lastDate: DateTime(now.year + 10),
             );
             if (d != null) setState(() => _deadline = d);
@@ -465,6 +521,11 @@ class _NewGoalState extends State<_NewGoal> {
           icon: const Icon(Icons.event_rounded, size: 18),
           label: Text(_deadline == null ? 'Bis wann? (optional)' : 'bis ${Dates.full(_deadline!)}'),
         ),
+        if (_deadline != null)
+          TextButton(
+            onPressed: () => setState(() => _deadline = null),
+            child: Text('Ohne Datum', style: TextStyle(color: AppColors.textDim)),
+          ),
         if (preview != null) ...[
           const SizedBox(height: 12),
           Container(
@@ -485,7 +546,8 @@ class _NewGoalState extends State<_NewGoal> {
             disabledForegroundColor: AppColors.textDim,
           ),
           onPressed: (cents ?? 0) > 0 && _name.text.trim().isNotEmpty ? _save : null,
-          child: const Text('Ziel anlegen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          child: Text(widget.editing == null ? 'Ziel anlegen' : 'Speichern',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );

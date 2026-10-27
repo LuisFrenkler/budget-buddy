@@ -421,16 +421,22 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
         ),
         const SizedBox(width: 4),
-        Material(
-          color: AppColors.surfaceAlt,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Center(child: _initial()),
+        Semantics(
+          button: true,
+          label: 'Profil',
+          excludeSemantics: true,
+          child: Material(
+            color: AppColors.surfaceAlt,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+              // 44 pt: a comfortable tap target
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: Center(child: _initial()),
+              ),
             ),
           ),
         ),

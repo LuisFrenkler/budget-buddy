@@ -92,7 +92,13 @@ class _HomeScreenState extends State<HomeScreen> {
     // re-reads the current colors instead of keeping stale ones
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
-      builder: (context, _, __) => Scaffold(
+      // Android's back button leads from Konto or Depot to Start before it leaves the app
+      builder: (context, _, __) => PopScope(
+        canPop: _tab == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _open(0);
+        },
+        child: Scaffold(
         // the tabs stay alive (scroll position, loaded charts) and cross-fade
         // with a slight rise when switching
         body: Stack(children: [
@@ -113,12 +119,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
-                  child: TickerMode(enabled: i == _tab, child: tab),
+                  // a screen reader only reads the tab that is shown
+                  child: ExcludeSemantics(
+                    excluding: i != _tab,
+                    child: TickerMode(enabled: i == _tab, child: tab),
+                  ),
                 ),
               ),
             ),
         ]),
         bottomNavigationBar: _navigation(),
+        ),
       ),
     );
   }
@@ -149,17 +160,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Material(
-              color: AppColors.primary,
-              shape: const CircleBorder(),
-              elevation: 0,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: _showAddMenu,
-                child: const SizedBox(
-                  width: 62,
-                  height: 62,
-                  child: Icon(Icons.add_rounded, color: Colors.white, size: 30),
+            Semantics(
+              button: true,
+              label: 'Hinzufügen',
+              child: Material(
+                color: AppColors.primary,
+                shape: const CircleBorder(),
+                elevation: 0,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _showAddMenu,
+                  child: const SizedBox(
+                    width: 62,
+                    height: 62,
+                    child: Icon(Icons.add_rounded, color: Colors.white, size: 30),
+                  ),
                 ),
               ),
             ),
@@ -173,7 +188,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final active = _tab == i;
     final color = active ? AppColors.primary : AppColors.textDim;
     return Expanded(
-      child: GestureDetector(
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: label,
+        excludeSemantics: true,
+        child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => _open(i),
         child: Column(
@@ -189,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                     fontSize: 11, color: color, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
           ],
+        ),
         ),
       ),
     );
