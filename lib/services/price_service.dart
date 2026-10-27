@@ -388,8 +388,8 @@ class PriceService {
       final keys = byDay.keys.toList()..sort();
       final fallback = h.currentPriceCents / 100;
       // the series ends at the holding's current value, so chart and headline
-      // agree; the history only contributes the shape of the movement
-      final scale = keys.isEmpty || fallback <= 0 || byDay[keys.last]! <= 0 ? 1.0 : fallback / byDay[keys.last]!;
+      // agree, as long as the two are close (timing, rounding)
+      final scale = keys.isEmpty ? 1.0 : alignScale(fallback, byDay[keys.last]!);
 
       for (int i = 0; i < days; i++) {
         double price;
@@ -445,6 +445,15 @@ class PriceService {
     if (yahoo != null) return yahoo;
     if (hasApiKey && symbol.isNotEmpty) return fetchQuote(symbol);
     return null;
+  }
+
+  // How much a quote history is stretched so it ends at the stored price.
+  // Only small gaps are closed (a few minutes of trading, rounding): a price
+  // that was typed in or is weeks old must not bend the real history.
+  static double alignScale(double stored, double lastQuote) {
+    if (stored <= 0 || lastQuote <= 0) return 1;
+    final ratio = stored / lastQuote;
+    return ratio >= 0.95 && ratio <= 1.05 ? ratio : 1;
   }
 
   // refreshes every holding with a real live price. holdings whose price can't

@@ -94,4 +94,11 @@ void main() {
     });
   });
 
+
+  test('the quote history is stretched to the stored price only across small gaps', () {
+    expect(PriceService.alignScale(101, 100), closeTo(1.01, 1e-9));
+    // a typed-in price far from the market leaves the real quotes alone
+    expect(PriceService.alignScale(150, 100), 1);
+    expect(PriceService.alignScale(0, 100), 1);
+  });
 }

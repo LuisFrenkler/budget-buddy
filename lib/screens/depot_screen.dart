@@ -163,7 +163,9 @@ class _DepotScreenState extends State<DepotScreen> {
       final typed = holdings.length - live.length;
       text = 'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
     }
-    return Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12.5));
+    // the curve shows today's positions through time, not past purchases and sales
+    return Text('$text\nVerlauf mit deinem heutigen Bestand gerechnet',
+        style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
   }
 
   List<Widget> _header(int value, int invested, int gain) {
