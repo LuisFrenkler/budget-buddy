@@ -9,6 +9,7 @@ import '../services/split_service.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
 import '../widgets/transfer_sheet.dart';
+import '../widgets/add_account_choice.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
 import 'account_screen.dart';
@@ -257,10 +258,14 @@ class _HomeScreenState extends State<HomeScreen> {
               if (MoneyAccounts.several)
                 _addOption(sheet, Icons.swap_horiz_rounded, AppColors.accentBlue, 'Geld verschieben',
                     'Zwischen deinen Konten, z. B. aufs Sparkonto', () => showTransferSheet(context)),
-              _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Position hinzufügen',
-                  'Aktie, ETF oder Krypto', () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
-              }),
+              // real banks and depots first, by hand second (see showAddAccountChoice)
+              _addOption(sheet, Icons.account_balance_rounded, AppColors.primary, 'Konto hinzufügen',
+                  'Bank verbinden oder Bargeld, Sparkonto von Hand', () => showAddAccountChoice(context)),
+              _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Depot hinzufügen',
+                  'Trade Republic & Co. verbinden oder Position von Hand',
+                  () => showAddAccountChoice(context, depot: true, byHand: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
+                      })),
               _addOption(sheet, Icons.savings_rounded, AppColors.warning, 'Budget anlegen',
                   'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
               _addOption(sheet, Icons.call_split_rounded, const Color(0xFF14B8A6), 'Ausgabe teilen',
