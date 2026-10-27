@@ -17,6 +17,12 @@ class AuthError implements Exception {
   final int status;
   final String message;
   const AuthError(this.status, this.message);
+
+  // too many attempts: says to the minute when the next try works
+  factory AuthError.wait(Duration left) {
+    final minutes = (left.inSeconds / 60).ceil().clamp(1, 1 << 20);
+    return AuthError(429, 'Zu viele Versuche. Bitte warte $minutes ${minutes == 1 ? 'Minute' : 'Minuten'}.');
+  }
   @override
   String toString() => message;
 }
@@ -99,7 +105,7 @@ class Accounts {
     final mail = email.trim().toLowerCase();
     final fail = _failures[mail];
     if (fail != null && fail.count >= _maxFailures && DateTime.now().isBefore(fail.until)) {
-      throw const AuthError(429, 'Zu viele Versuche. Bitte warte ein paar Minuten.');
+      throw AuthError.wait(fail.until.difference(DateTime.now()));
     }
     final user = _byEmail(mail);
     // same message for unknown email and wrong password, so emails can't be probed
@@ -131,7 +137,7 @@ class Accounts {
     final mail = user['email'] as String;
     final fail = _failures[mail];
     if (fail != null && fail.count >= _maxFailures && DateTime.now().isBefore(fail.until)) {
-      throw const AuthError(429, 'Zu viele Versuche. Bitte warte ein paar Minuten.');
+      throw AuthError.wait(fail.until.difference(DateTime.now()));
     }
     if (!BCrypt.checkpw(password, user['hash'] as String)) {
       final count = (fail != null && DateTime.now().isBefore(fail.until) ? fail.count : 0) + 1;

@@ -9,6 +9,13 @@ class RateLimit {
   // the key has used up its attempts for now
   bool blocked(String key, {DateTime? now}) => _recent(key, now ?? DateTime.now()).length >= max;
 
+  // how long until the oldest attempt in the window runs out
+  Duration wait(String key, {DateTime? now}) {
+    final t = now ?? DateTime.now();
+    final recent = _recent(key, t);
+    return recent.isEmpty ? Duration.zero : window - t.difference(recent.first);
+  }
+
   void hit(String key, {DateTime? now}) {
     final t = now ?? DateTime.now();
     _recent(key, t).add(t);
