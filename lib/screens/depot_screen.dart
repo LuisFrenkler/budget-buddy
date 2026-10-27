@@ -4,8 +4,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
 import '../models/holding.dart';
 import '../services/db.dart';
+import '../services/depot_sync.dart';
 import '../services/price_service.dart';
 import '../utils/theme.dart';
+import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/instrument_avatar.dart';
@@ -147,6 +149,22 @@ class _DepotScreenState extends State<DepotScreen> {
   }
 
   // value with an interactive chart; scrubbing shows the value of each day
+  // how fresh the prices behind the value are: the oldest live one counts
+  Widget _priceStand() {
+    final holdings = DB.getHoldings();
+    if (holdings.isEmpty) return const SizedBox.shrink();
+    final live = holdings.where((h) => h.priceAt != null).toList();
+    final String text;
+    if (live.isEmpty) {
+      text = 'Kurse eingegeben, nicht live · ↻ zum Aktualisieren';
+    } else {
+      final oldest = live.map((h) => h.priceAt!).reduce((a, b) => a.isBefore(b) ? a : b);
+      final typed = holdings.length - live.length;
+      text = 'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
+    }
+    return Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12.5));
+  }
+
   List<Widget> _header(int value, int invested, int gain) {
     final today = DateTime.now();
     final points = [
@@ -164,7 +182,9 @@ class _DepotScreenState extends State<DepotScreen> {
         scrub: _scrub,
         startDate: hasHistory ? points.first.date : null,
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 6),
+      _priceStand(),
+      const SizedBox(height: 12),
       if (_historyLoading && !hasHistory)
         const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
       else
@@ -313,7 +333,8 @@ class _DepotScreenState extends State<DepotScreen> {
 
     return Dismissible(
       key: Key(h.id),
-      direction: DismissDirection.endToStart,
+      // synced positions come back with the next sync: managed by the depot link
+      direction: h.id.startsWith(DepotSync.prefix) ? DismissDirection.none : DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
@@ -375,17 +396,15 @@ class _DepotScreenState extends State<DepotScreen> {
       if (mounted) {
         String msg;
         Color bg;
+        // plain words: what is fresh, and that the rest keeps its last price
+        bg = AppColors.surfaceAlt;
         if (result.failed == 0) {
-          // every holding has a live source
-          msg = result.updated > 0 ? '${result.updated} Kurse aktualisiert' : 'Kurse sind aktuell';
-          bg = AppColors.surfaceAlt;
+          msg = 'Alle Kurse aktuell';
         } else if (result.live > 0) {
-          // crypto refreshed; stocks/ETFs can't live-update in the browser
-          msg = 'Krypto aktualisiert · Aktien nur am iPhone/mit Key live';
-          bg = AppColors.surfaceAlt;
+          msg = '${result.live} ${result.live == 1 ? 'Kurs' : 'Kurse'} aktualisiert · '
+              'für ${result.failed} gerade kein Live-Kurs, dort gilt der letzte Stand';
         } else {
-          // nothing could be fetched live (only stocks, in the browser)
-          msg = 'Aktien-Kurse brauchen einen Finnhub-Key oder das iPhone';
+          msg = 'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.';
           bg = AppColors.warning;
         }
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg), backgroundColor: bg));
@@ -393,7 +412,10 @@ class _DepotScreenState extends State<DepotScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Fehler: $e'), backgroundColor: AppColors.error),
+          const SnackBar(
+              duration: Duration(milliseconds: 2800),
+              content: Text('Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.'),
+              backgroundColor: AppColors.error),
         );
       }
     } finally {
