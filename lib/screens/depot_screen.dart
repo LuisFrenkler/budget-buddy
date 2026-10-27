@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
+import '../widgets/sync_pill.dart';
 import '../models/holding.dart';
 import '../services/db.dart';
 import '../services/depot_sync.dart';
+import '../services/settings_service.dart';
 import '../services/price_service.dart';
 import '../utils/theme.dart';
 import '../utils/dates.dart';
@@ -23,7 +25,6 @@ class DepotScreen extends StatefulWidget {
 }
 
 class _DepotScreenState extends State<DepotScreen> {
-  bool _refreshing = false;
   bool _historyLoading = false;
   String _range = '1M';
   List<int> _history = []; // portfolio value per day in cents, oldest first
@@ -84,19 +85,14 @@ class _DepotScreenState extends State<DepotScreen> {
             // lines up with "Konto" on the account tab (20 px page margin)
             titleSpacing: 20,
             actions: [
-              // refresh live prices
-              if (_refreshing)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: SizedBox(
-                      width: 18, height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
-                )
-              else if (holdings.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  tooltip: 'Kurse aktualisieren',
-                  onPressed: _refreshPrices,
+              // like the bank on Konto: how fresh the prices are, a tap fetches them
+              if (holdings.isNotEmpty)
+                Center(
+                  child: SyncPill(
+                    label: Settings.depotBroker,
+                    last: _pricesAt(holdings),
+                    onSync: _refreshPrices,
+                  ),
                 ),
               IconButton(icon: const Icon(Icons.add), onPressed: () => _add()),
             ],
@@ -392,9 +388,16 @@ class _DepotScreenState extends State<DepotScreen> {
   }
 
   // fetches the latest live prices for all holdings
+  // the oldest live price: the value is only as fresh as that
+  static DateTime? _pricesAt(List<Holding> holdings) {
+    final live = [for (final h in holdings) if (h.priceAt != null) h.priceAt!];
+    return live.isEmpty ? null : live.reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
   Future<void> _refreshPrices() async {
-    setState(() => _refreshing = true);
     try {
+      // a linked depot first brings its positions, then every price is fetched live
+      if (Settings.depotState.isNotEmpty) await DepotSync.run();
       final result = await PriceService.refreshAll();
       _loadHistory(); // refresh the depot trend too
       if (mounted) {
@@ -422,8 +425,6 @@ class _DepotScreenState extends State<DepotScreen> {
               backgroundColor: AppColors.error),
         );
       }
-    } finally {
-      if (mounted) setState(() => _refreshing = false);
     }
   }
 

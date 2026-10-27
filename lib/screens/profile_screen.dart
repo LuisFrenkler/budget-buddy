@@ -181,7 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _group([
                 _row(Icons.info_outline_rounded, 'Über BudgetBuddy', 'Hilfe, Impressum, Datenschutz, AGB', _openAbout),
                 if (account == null)
-                  _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest),
+                  _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest)
+                else
+                  _row(Icons.logout_rounded, 'Abmelden', account.email, () => AccountSettingsScreen.logout(context)),
                 _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten auf diesem Gerät löschen',
                     _resetApp, danger: true),
               ]),

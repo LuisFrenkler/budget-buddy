@@ -25,4 +25,9 @@ void main() {
     ]);
     expect(r.shares, 0);
   });
+
+  test('broker ids read like names', () {
+    expect(ParqetConnect.brokerName('trade_republic'), 'Trade Republic');
+    expect(ParqetConnect.brokerName('scalable_capital'), 'Scalable Capital');
+  });
 }

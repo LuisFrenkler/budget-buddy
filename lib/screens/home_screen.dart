@@ -12,11 +12,12 @@ import '../widgets/tx_row.dart';
 import 'account_screen.dart';
 import 'add_holding_screen.dart';
 import 'budget_screen.dart';
+import 'buddy_screen.dart';
 import 'depot_screen.dart';
 import 'overview_screen.dart';
 
-// App shell: three areas (Start, Konto, Depot) in a floating navigation bar
-// with a separate add button next to it.
+// App shell: four areas (Start, Konto, Depot, Buddy) in a floating navigation
+// bar with a separate add button next to it.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,7 +26,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // current tab index (0 = Start, 1 = Konto, 2 = Depot)
+  // current tab index (0 = Start, 1 = Konto, 2 = Depot, 3 = Buddy)
   int _tab = 0;
 
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AutoSave.reached.addListener(_goalReached);
     // an invite link opened the app: straight to joining, also right after signing in
     AccountService.current.addListener(_pendingJoin);
+    BuddyScreen.ask.addListener(_toBuddy);
     WidgetsBinding.instance.addPostFrameCallback((_) => _pendingJoin());
   }
 
@@ -71,8 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
     celebrateGoal(context, g);
   }
 
+  void _toBuddy() {
+    if (BuddyScreen.ask.value != null && mounted) _open(3);
+  }
+
   @override
   void dispose() {
+    BuddyScreen.ask.removeListener(_toBuddy);
     AutoSave.reached.removeListener(_goalReached);
     AccountService.current.removeListener(_pendingJoin);
     _segment.dispose();
@@ -106,6 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
             OverviewScreen(onOpen: _open),
             AccountScreen(segment: _segment),
             const DepotScreen(),
+            const BuddyScreen(tab: true),
           ].indexed)
             IgnorePointer(
               ignoring: i != _tab,
@@ -136,6 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // floating pill with the three areas and the round add button beside it
   Widget _navigation() {
+    // while typing (a question to Buddy) the keyboard takes that room
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
     return SafeArea(
       top: false,
       child: Padding(
@@ -155,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _navItem(Icons.home_rounded, 'Start', 0),
                     _navItem(Icons.account_balance_wallet_rounded, 'Konto', 1),
                     _navItem(Icons.show_chart_rounded, 'Depot', 2),
+                    _navItem(Icons.auto_awesome_rounded, 'Buddy', 3),
                   ],
                 ),
               ),

@@ -132,11 +132,7 @@ class _Report extends StatelessWidget {
           Text(r.tip, style: TextStyle(fontSize: 14.5, height: 1.45, color: AppColors.text.withValues(alpha: 0.85))),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                        const BuddyScreen(question: 'Wie kann ich nächste Woche weniger ausgeben als diese?'))),
+            onPressed: () => BuddyScreen.open(context, 'Wie kann ich nächste Woche weniger ausgeben als diese?'),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
             label: const Text('Mit Buddy weiterreden'),
           ),
