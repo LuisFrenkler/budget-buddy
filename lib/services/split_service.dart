@@ -82,6 +82,13 @@ class SplitService {
   static Future<SplitGroup> removeExpense(SplitGroup g, String id) =>
       _change(g, {'type': 'removeExpense', 'id': id}, () => g.expenses.removeWhere((x) => x.id == id));
 
+  // a new person in the group; everyone keeps their place in the list
+  static Future<SplitGroup> addMember(SplitGroup g, String name) =>
+      _change(g, {'type': 'addMember', 'name': name.trim()}, () => g.members.add(name.trim()));
+
+  static Future<SplitGroup> renameMember(SplitGroup g, int index, String name) =>
+      _change(g, {'type': 'renameMember', 'index': index, 'name': name.trim()}, () => g.members[index] = name.trim());
+
   static Future<SplitGroup> settle(SplitGroup g, Settlement s) =>
       _change(g, {'type': 'settle', 'settlement': s.toMap()}, () => g.settlements.add(s));
 
