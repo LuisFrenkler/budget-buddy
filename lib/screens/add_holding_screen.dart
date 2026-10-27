@@ -273,9 +273,22 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     // upgrade to a live price where available (crypto always, stocks with key)
     final live = await PriceService.livePrice(symbol: picked.symbol, type: picked.type);
     if (live != null && live > 0 && mounted) {
-      setState(() => _currentCtrl.text =
-          (live / 100).toStringAsFixed(2).replaceAll('.', ','));
+      setState(() {
+        _currentCtrl.text = (live / 100).toStringAsFixed(2).replaceAll('.', ',');
+        _livePrice = (cents: live, at: DateTime.now());
+      });
     }
+  }
+
+  // the live price fetched for the picked instrument, to keep its "Stand"
+  ({int cents, DateTime at})? _livePrice;
+
+  // when the price shown is a live one: just fetched, or unchanged since the last refresh
+  DateTime? _priceAt(int cents) {
+    if (_livePrice?.cents == cents) return _livePrice!.at;
+    final old = widget.holding;
+    if (old != null && old.currentPriceCents == cents) return old.priceAt;
+    return null;
   }
 
   void _save() async {
@@ -296,6 +309,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
         shares: _parseShares(_sharesCtrl.text)!,
         buyPriceCents: Money.parseToCents(_buyCtrl.text)!,
         currentPriceCents: Money.parseToCents(_currentCtrl.text)!,
+        priceAt: _priceAt(Money.parseToCents(_currentCtrl.text)!),
       );
       await DB.addHolding(holding);
       if (mounted) Navigator.pop(context, true);

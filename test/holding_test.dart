@@ -38,5 +38,19 @@ void main() {
       expect(back.name, 'Apple');
       expect(back.valueCents, 120000);
     });
+
+    test('a live price keeps when it was fetched; older data has none', () {
+      final at = DateTime(2026, 10, 27, 9, 30);
+      final h = Holding(
+              id: 'b', name: 'Bitcoin', symbol: 'BTC', type: 'Krypto', shares: 0.05,
+              buyPriceCents: 4000000, currentPriceCents: 5800000)
+          .withLivePrice(6000000, at);
+      final back = Holding.fromMap(h.toMap());
+      expect(back.currentPriceCents, 6000000);
+      expect(back.priceAt, at);
+      expect(back.shares, 0.05);
+      final legacy = Map<String, dynamic>.from(h.toMap())..remove('priceAt');
+      expect(Holding.fromMap(legacy).priceAt, isNull);
+    });
   });
 }

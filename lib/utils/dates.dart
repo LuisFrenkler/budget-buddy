@@ -20,6 +20,13 @@ class Dates {
   static String month(DateTime d) =>
       d.year == DateTime.now().year ? months[d.month - 1] : '${months[d.month - 1]} ${d.year}';
 
+  // when a price or sync was fresh: "heute, 14:32", "gestern, 09:05" or "5. Jan."
+  static String stand(DateTime d) {
+    final day = relativeDay(d);
+    final time = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return day == 'Heute' || day == 'Gestern' ? '${day.toLowerCase()}, $time' : day;
+  }
+
   // "Heute", "Gestern" or e.g. "5. Jan."
   static String relativeDay(DateTime d) {
     final now = DateTime.now();

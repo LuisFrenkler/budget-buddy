@@ -11,6 +11,9 @@ class Holding {
   final double shares;          // quantity held (supports fractional shares)
   final int buyPriceCents;      // average buy price per share, in cents
   final int currentPriceCents;  // latest known price per share, in cents
+  // when that price came live from a market source; null for a price that was
+  // typed in, imported or taken from the built-in reference list
+  final DateTime? priceAt;
 
   Holding({
     required this.id,
@@ -20,7 +23,20 @@ class Holding {
     required this.shares,
     required this.buyPriceCents,
     required this.currentPriceCents,
+    this.priceAt,
   });
+
+  // the same position with a fresh live price
+  Holding withLivePrice(int cents, DateTime at) => Holding(
+        id: id,
+        name: name,
+        symbol: symbol,
+        type: type,
+        shares: shares,
+        buyPriceCents: buyPriceCents,
+        currentPriceCents: cents,
+        priceAt: at,
+      );
 
   // total amount originally invested, in cents
   int get investedCents => (shares * buyPriceCents).round();
@@ -47,6 +63,7 @@ class Holding {
       'shares': shares,
       'buyPriceCents': buyPriceCents,
       'currentPriceCents': currentPriceCents,
+      if (priceAt != null) 'priceAt': priceAt!.millisecondsSinceEpoch,
     };
   }
 
@@ -59,6 +76,7 @@ class Holding {
       shares: (map['shares'] as num).toDouble(),
       buyPriceCents: (map['buyPriceCents'] as num).toInt(),
       currentPriceCents: (map['currentPriceCents'] as num).toInt(),
+      priceAt: map['priceAt'] == null ? null : DateTime.fromMillisecondsSinceEpoch((map['priceAt'] as num).toInt()),
     );
   }
 }

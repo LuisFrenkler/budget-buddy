@@ -12,7 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../models/holding.dart';
 import 'backend_service.dart';
 import 'db.dart';
 import 'depot_sync.dart';
@@ -463,6 +462,7 @@ class PriceService {
     final cryptoPrices =
         cryptoSymbols.isEmpty ? <String, int>{} : await fetchCryptoPricesEur(cryptoSymbols);
 
+    final now = DateTime.now();
     for (final h in holdings) {
       final newPrice = h.type == 'Krypto'
           ? cryptoPrices[h.symbol.toUpperCase()]
@@ -472,18 +472,9 @@ class PriceService {
         continue;
       }
       live++;
-      if (newPrice != h.currentPriceCents) {
-        await DB.addHolding(Holding(
-          id: h.id,
-          name: h.name,
-          symbol: h.symbol,
-          type: h.type,
-          shares: h.shares,
-          buyPriceCents: h.buyPriceCents,
-          currentPriceCents: newPrice,
-        ));
-        updated++;
-      }
+      if (newPrice != h.currentPriceCents) updated++;
+      // also an unchanged price is fresh now: the "Stand" moves on
+      await DB.addHolding(h.withLivePrice(newPrice, now));
     }
     return (updated: updated, live: live, failed: failed);
   }

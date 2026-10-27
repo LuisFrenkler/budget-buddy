@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/holding.dart';
 import '../services/db.dart';
+import '../services/depot_sync.dart';
 import '../services/price_service.dart';
 import '../utils/theme.dart';
+import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../services/history.dart';
 import '../widgets/interactive_chart.dart';
@@ -76,10 +78,13 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(h.name),
-            actions: [
-              IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(h)),
-              IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _delete(h)),
-            ],
+            // a synced position is managed by the depot link: the next sync would undo edits
+            actions: h.id.startsWith(DepotSync.prefix)
+                ? null
+                : [
+                    IconButton(tooltip: 'Bearbeiten', icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(h)),
+                    IconButton(tooltip: 'Löschen', icon: const Icon(Icons.delete_outline), onPressed: () => _delete(h)),
+                  ],
           ),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -144,6 +149,8 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
               _detailRow('Typ', h.type),
               _detailRow('Kaufpreis', Money.format(h.buyPriceCents)),
               _detailRow('Aktueller Kurs', Money.format(h.currentPriceCents)),
+              // where the price comes from, so an old one never passes for today's
+              _detailRow('Kurs-Stand', h.priceAt == null ? 'eingegeben, nicht live' : 'live, ${Dates.stand(h.priceAt!)}'),
               _detailRow('Investiert', Money.format(h.investedCents)),
               _detailRow('Gewinn/Verlust', Money.signed(h.gainCents), color: color),
             ],
@@ -185,9 +192,9 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         title: const Text('Position löschen?'),
         content: Text(h.name),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Nein')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
           TextButton(onPressed: () => Navigator.pop(context, true),
-              child: const Text('Ja', style: TextStyle(color: AppColors.error))),
+              child: const Text('Löschen', style: TextStyle(color: AppColors.error))),
         ],
       ),
     );
