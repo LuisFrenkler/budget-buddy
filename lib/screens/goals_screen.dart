@@ -154,7 +154,7 @@ class GoalCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(plan.text,
-                  style: TextStyle(fontSize: 13.5, height: 1.4, color: plan.onTrack ? AppColors.text : AppColors.warning)),
+                  style: TextStyle(fontSize: 13.5, height: 1.4, color: plan.onTrack ? AppColors.text : AppColors.warningText)),
             ),
           ]),
         ),

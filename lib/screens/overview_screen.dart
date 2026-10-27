@@ -291,7 +291,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         : total > 0
                             ? 'Du bekommst ${Money.format(total)}'
                             : 'Du schuldest ${Money.format(-total)}',
-                    style: TextStyle(fontSize: 13, color: total > 0 ? AppColors.positive : AppColors.textDim),
+                    style: TextStyle(fontSize: 13, color: total > 0 ? AppColors.positiveText : AppColors.textDim),
                   ),
                 ]),
               ),
@@ -725,7 +725,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     overflow: TextOverflow.ellipsis),
                 Text(
                   b.isOver ? '${Money.format(b.spentCents - b.limitCents)} drüber' : '${Money.format(b.remainingCents)} übrig',
-                  style: TextStyle(fontSize: 11, color: b.isOver ? AppColors.error : AppColors.textDim),
+                  style: TextStyle(fontSize: 11, color: b.isOver ? AppColors.errorText : AppColors.textDim),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],

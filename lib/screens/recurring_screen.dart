@@ -155,7 +155,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
                 ),
               ),
               Text(Money.withSign(r.amountCents, r.isIncome),
-                  style: TextStyle(fontWeight: FontWeight.w600, color: r.isIncome ? AppColors.positive : AppColors.text)),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: r.isIncome ? AppColors.positiveText : AppColors.text)),
               Switch(value: r.active, onChanged: (v) => _toggle(r, v)),
             ],
           ),

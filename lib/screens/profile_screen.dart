@@ -370,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.error : AppColors.text)),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.errorText : AppColors.text)),
                   if (subtitle != null)
                     Text(subtitle,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12), overflow: TextOverflow.ellipsis),
@@ -447,7 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         textAlign: TextAlign.right,
                         style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            color: (m.rate ?? 0) < 0 ? AppColors.error : AppColors.text)),
+                            color: (m.rate ?? 0) < 0 ? AppColors.errorText : AppColors.text)),
                   ),
                 ]),
               ),

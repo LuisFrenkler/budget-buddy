@@ -193,7 +193,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         ),
         if (_error != null) ...[
           const SizedBox(height: 10),
-          Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
+          Text(_error!, style: TextStyle(color: AppColors.errorText, fontSize: 13)),
         ],
         const SizedBox(height: 18),
         FilledButton(
@@ -248,7 +248,7 @@ class _SmartEntryState extends State<_SmartEntry> {
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: b.isIncome ? AppColors.positive : AppColors.text)),
+                color: b.isIncome ? AppColors.positiveText : AppColors.text)),
       ]),
     );
   }

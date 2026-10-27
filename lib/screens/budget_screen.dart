@@ -145,7 +145,7 @@ class _BudgetCardState extends State<_BudgetCard> {
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
-                              color: budget.isOver ? AppColors.error : AppColors.text),
+                              color: budget.isOver ? AppColors.errorText : AppColors.text),
                         ),
                         // the limit itself is where it changes
                         Semantics(

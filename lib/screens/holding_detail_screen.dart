@@ -195,7 +195,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
           TextButton(onPressed: () => Navigator.pop(context, true),
-              child: const Text('Löschen', style: TextStyle(color: AppColors.error))),
+              child: Text('Löschen', style: TextStyle(color: AppColors.errorText))),
         ],
       ),
     );

@@ -376,7 +376,7 @@ class _StatsViewState extends State<StatsView> {
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.8,
-                  color: balance >= 0 ? AppColors.text : AppColors.error)),
+                  color: balance >= 0 ? AppColors.text : AppColors.errorText)),
           const SizedBox(height: 10),
           Wrap(spacing: 20, runSpacing: 6, children: [
             _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.positive),
