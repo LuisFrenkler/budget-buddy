@@ -240,6 +240,7 @@ class _DepotScreenState extends State<DepotScreen> {
     ];
     if (entries.isEmpty || totalValue == 0) return const SizedBox.shrink();
     final sel = _slice != null && _slice! < entries.length ? _slice : null;
+    final pct = wholePercents([for (final e in entries) e.value]);
 
     void select(int? i) {
       HapticFeedback.selectionClick();
@@ -283,7 +284,7 @@ class _DepotScreenState extends State<DepotScreen> {
                     ),
                   ),
                   Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(sel == null ? 'Gesamt' : '${(entries[sel].value / totalValue * 100).toStringAsFixed(0)} %',
+                    Text(sel == null ? 'Gesamt' : '${pct[sel]} %',
                         style: TextStyle(fontSize: 10, color: AppColors.textDim)),
                     Text(Money.format(sel == null ? totalValue : entries[sel].value),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
@@ -316,7 +317,7 @@ class _DepotScreenState extends State<DepotScreen> {
                           const SizedBox(width: 8),
                           Expanded(child: Text(entries[i].key,
                               style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
-                          Text('${(entries[i].value / totalValue * 100).toStringAsFixed(0)} %',
+                          Text('${pct[i]} %',
                               style: TextStyle(fontSize: 12, color: AppColors.textDim)),
                         ]),
                       ),
@@ -494,4 +495,22 @@ class _DonutPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
       old.selected != selected || old.t != t || old.entries != entries || old.hole != hole;
+}
+
+// whole percentages that add up to exactly 100 (largest remainder), so the
+// allocation never reads 99 % or 101 %
+List<int> wholePercents(List<int> values) {
+  final total = values.fold<int>(0, (a, b) => a + b);
+  if (total <= 0) return [for (final _ in values) 0];
+  final exact = [for (final v in values) v * 100 / total];
+  final out = [for (final e in exact) e.floor()];
+  final order = List.generate(values.length, (i) => i)
+    ..sort((a, b) => (exact[b] - out[b]).compareTo(exact[a] - out[a]));
+  var missing = 100 - out.fold<int>(0, (a, b) => a + b);
+  for (final i in order) {
+    if (missing <= 0) break;
+    out[i]++;
+    missing--;
+  }
+  return out;
 }

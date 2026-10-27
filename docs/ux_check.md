@@ -59,7 +59,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ✅ (neue Kategorie „Umbuchung“; Erstattungen gegen Ausgaben ⏳) |
 | 40 | Verträge | Fehlalarme (Taschengeld) nicht ausblendbar; eine verpasste Abbuchung lässt Vertrag verschwinden | ✅ |
 | 41 | Depot | Verlauf rechnet heutige Stückzahlen rückwärts; Detail-Chart skaliert Historie auf gespeicherten Kurs | ✅ (echte Kurse statt umgerechnet; Hinweis „mit heutigem Bestand“) |
-| 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ (Symbol-Feld für eigene Positionen ⏳) |
+| 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ |
 | 43 | Depot | „1.000“ bedeutet bei Anzahl 1, beim Preis 1.000 | ✅ |
 | 44 | Depot | Synchronisierte Positionen editierbar, nächster Sync macht es rückgängig | ✅ |
 | 45 | Geteilt | Begleichen ohne Rückfrage/Verlauf; Mitglieder nicht änderbar; Einladungscode nicht normalisiert | ✅ (Rückfrage, Verlauf, Rückgängig, Code); Mitglieder ändern ⏳ |
@@ -79,8 +79,8 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 ## P2 (Auswahl)
 
 Wochenbericht „−0 %“ und rotes „+1 %“ bei „ganz normaler Woche“ · „1 Hinweise“ ·
-Hinweis wegwischen ohne Rückgängig · Depot-Avatare gleich („I“) · Prozente
-ergeben 99/101 % · Budget-Zeitraum „1.10 - 31.10.2026“ · „Nein/Ja“ statt
+Hinweis wegwischen ohne Rückgängig · ~~Depot-Avatare gleich~~ ✅ · ~~Prozente
+ergeben 99/101 %~~ ✅ · Budget-Zeitraum „1.10 - 31.10.2026“ · „Nein/Ja“ statt
 „Abbrechen/Löschen“ · Passwort-Stärke zwei Maßstäbe · Face-ID-Gerät zeigt
 Fingerabdruck · Tab erneut tippen scrollt nicht nach oben · Android-Zurück
 beendet die App aus Konto/Depot.
