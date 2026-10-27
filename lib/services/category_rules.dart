@@ -43,14 +43,7 @@ class CategoryRules {
   static Future<int> applyToAll(Transaction tx, String category) async {
     final list = others(tx, category);
     for (final t in list) {
-      await DB.addTx(Transaction(
-        id: t.id,
-        amountCents: t.amountCents,
-        category: category,
-        date: t.date,
-        isIncome: t.isIncome,
-        note: t.note,
-      ));
+      await DB.addTx(t.withCategory(category));
     }
     await remember(tx.note!, category, isIncome: tx.isIncome);
     return list.length;

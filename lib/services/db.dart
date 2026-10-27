@@ -371,6 +371,8 @@ class DB {
     if (Hive.isBoxOpen('settings')) {
       await Settings.setOpeningBalanceCents(0);
       await Settings.clearBank();
+      // the further accounts go with their bookings
+      await Hive.box('settings').deleteAll(['moneyAccounts', 'mainAccount']);
     }
     await initBadges();
   }

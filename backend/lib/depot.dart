@@ -23,11 +23,12 @@ class DepotPosition {
   final int buyPriceCents; // per share
   final int priceCents; // per share
   final String broker;
+  final String depot; // the portfolio it is in, e.g. "Trade Republic"
   const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
-      this.broker);
+      this.broker, [this.depot = '']);
 
   DepotPosition withSymbol(String symbol) =>
-      DepotPosition(id, name, symbol, type, shares, buyPriceCents, priceCents, broker);
+      DepotPosition(id, name, symbol, type, shares, buyPriceCents, priceCents, broker, depot);
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -38,6 +39,7 @@ class DepotPosition {
         'buyPriceCents': buyPriceCents,
         'priceCents': priceCents,
         'broker': broker,
+        'depot': depot,
       };
 }
 
@@ -143,51 +145,60 @@ class ParqetConnect implements DepotProvider {
   Future<DepotSnapshot> snapshot(DepotTokens tokens) async {
     final portfolios = ((await _call('GET', '/portfolios', tokens))['items'] as List? ?? []).cast<Map>();
     if (portfolios.isEmpty) return const DepotSnapshot([], []);
-    final perf = await _call('POST', '/performance', tokens, {
-      'portfolioIds': [for (final p in portfolios) p['id']],
-      'interval': {'type': 'relative', 'value': 'max'},
-      'currency': 'EUR',
-    });
     // the brokers behind the portfolios for display, e.g. "Trade Republic"
-    // (performance holdings do not say which portfolio they belong to)
     final broker = {for (final p in portfolios) ...((p['distinctBrokers'] as List?) ?? const []).map((b) => brokerName('$b'))}
         .join(', ');
     final out = <DepotPosition>[];
-    for (final h in (perf['holdings'] as List? ?? []).cast<Map>()) {
-      final pos = (h['position'] as Map?) ?? const {};
-      var shares = (pos['shares'] as num?)?.toDouble() ?? 0;
-      var buy = ((pos['purchasePrice'] as num?) ?? 0).toDouble();
-      var price = ((pos['currentPrice'] as num?) ?? 0).toDouble();
-      // Parqet sends some positions with placeholders only (1 share, worth
-      // 1 €, bought at 1 €); their bookings are complete, so count those
-      if (shares == 1 && buy == 1 && price == 1) {
-        final acts = await _activities(portfolios, '${h['id']}', tokens);
-        final real = fromActivities(acts);
-        if (real.shares > 0) {
-          shares = real.shares;
-          buy = real.buyPrice;
-          price = ((h['quote'] as Map?)?['price'] as num?)?.toDouble() ?? 0;
+    final charts = <List>[];
+    // one portfolio at a time: performance holdings do not say which
+    // portfolio they belong to, and each depot is shown on its own
+    for (final portfolio in portfolios) {
+      final perf = await _call('POST', '/performance', tokens, {
+        'portfolioIds': [portfolio['id']],
+        'interval': {'type': 'relative', 'value': 'max'},
+        'currency': 'EUR',
+      });
+      charts.add(perf['charts'] as List? ?? const []);
+      final depot = '${portfolio['name'] ?? broker}';
+      for (final h in (perf['holdings'] as List? ?? []).cast<Map>()) {
+        final pos = (h['position'] as Map?) ?? const {};
+        var shares = (pos['shares'] as num?)?.toDouble() ?? 0;
+        var buy = ((pos['purchasePrice'] as num?) ?? 0).toDouble();
+        var price = ((pos['currentPrice'] as num?) ?? 0).toDouble();
+        // Parqet sends some positions with placeholders only (1 share, worth
+        // 1 €, bought at 1 €); their bookings are complete, so count those
+        if (shares == 1 && buy == 1 && price == 1) {
+          final acts = await _activities([portfolio], '${h['id']}', tokens);
+          final real = fromActivities(acts);
+          if (real.shares > 0) {
+            shares = real.shares;
+            buy = real.buyPrice;
+            price = ((h['quote'] as Map?)?['price'] as num?)?.toDouble() ?? 0;
+          }
         }
+        if (pos['isSold'] == true || shares <= 0) continue;
+        final asset = (h['asset'] as Map?) ?? const {};
+        final kind = '${asset['type']}';
+        if (kind == 'cash') continue;
+        final name = '${h['nickname'] ?? asset['name'] ?? 'Position'}';
+        final isin = '${asset['isin'] ?? ''}';
+        final symbol = kind == 'crypto' ? '${asset['symbol'] ?? ''}' : '';
+        final key = isin.isNotEmpty ? isin : (symbol.isNotEmpty ? symbol : '${h['id']}');
+        out.add(DepotPosition(
+          // the same ETF in two depots stays two positions
+          portfolios.length > 1 ? '${portfolio['id']}:$key' : key,
+          name,
+          symbol,
+          _type(kind, name),
+          shares,
+          (buy * 100).round(),
+          (price * 100).round(),
+          broker,
+          depot,
+        ));
       }
-      if (pos['isSold'] == true || shares <= 0) continue;
-      final asset = (h['asset'] as Map?) ?? const {};
-      final kind = '${asset['type']}';
-      if (kind == 'cash') continue;
-      final name = '${h['nickname'] ?? asset['name'] ?? 'Position'}';
-      final isin = '${asset['isin'] ?? ''}';
-      final symbol = kind == 'crypto' ? '${asset['symbol'] ?? ''}' : '';
-      out.add(DepotPosition(
-        isin.isNotEmpty ? isin : (symbol.isNotEmpty ? symbol : '${h['id']}'),
-        name,
-        symbol,
-        _type(kind, name),
-        shares,
-        (buy * 100).round(),
-        (price * 100).round(),
-        broker,
-      ));
     }
-    return DepotSnapshot(out, _history(perf['charts'] as List? ?? const []));
+    return DepotSnapshot(out, _history(charts));
   }
 
   // every booking of one holding, across all portfolios and pages
@@ -239,17 +250,21 @@ class ParqetConnect implements DepotProvider {
       .map((w) => w[0].toUpperCase() + w.substring(1))
       .join(' ');
 
-  // the chart's "history" is the depot value at the end of each day
-  static List<(DateTime, int)> _history(List charts) {
+  // the chart's "history" is the depot value at the end of each day; with
+  // several portfolios their values add up per day
+  static List<(DateTime, int)> _history(List<List> charts) {
     final from = DateTime.now().subtract(const Duration(days: 366));
-    final out = <(DateTime, int)>[];
-    for (final c in charts.cast<Map>()) {
-      final date = DateTime.tryParse('${c['date']}');
-      final value = ((c['values'] as Map?)?['history'] as num?);
-      if (date == null || value == null || date.isBefore(from)) continue;
-      out.add((DateTime(date.year, date.month, date.day), (value * 100).round()));
+    final byDay = <DateTime, int>{};
+    for (final list in charts) {
+      for (final c in list.cast<Map>()) {
+        final date = DateTime.tryParse('${c['date']}');
+        final value = ((c['values'] as Map?)?['history'] as num?);
+        if (date == null || value == null || date.isBefore(from)) continue;
+        final day = DateTime(date.year, date.month, date.day);
+        byDay[day] = (byDay[day] ?? 0) + (value * 100).round();
+      }
     }
-    return out;
+    return (byDay.entries.toList()..sort((a, b) => a.key.compareTo(b.key))).map((e) => (e.key, e.value)).toList();
   }
 
   static String _type(String kind, String name) {

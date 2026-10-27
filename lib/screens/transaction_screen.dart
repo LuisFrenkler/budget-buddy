@@ -246,14 +246,7 @@ class TransactionScreen extends StatelessWidget {
     );
     if (picked == null || picked == tx.category) return;
     HapticFeedback.selectionClick();
-    await DB.addTx(Transaction(
-      id: tx.id,
-      amountCents: tx.amountCents,
-      category: picked,
-      date: tx.date,
-      isIncome: tx.isIncome,
-      note: tx.note,
-    ));
+    await DB.addTx(tx.withCategory(picked));
     final name = tx.note?.trim() ?? '';
     if (name.isEmpty) return;
     final others = CategoryRules.others(tx, picked);

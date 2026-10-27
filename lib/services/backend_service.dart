@@ -20,7 +20,17 @@ class BankTransaction {
   final int amountCents; // signed: positive = income, negative = expense
   final String counterparty;
   final String purpose;
-  const BankTransaction(this.id, this.date, this.amountCents, this.counterparty, this.purpose);
+  final String account; // the bank account's uid, '' from an older server
+  const BankTransaction(this.id, this.date, this.amountCents, this.counterparty, this.purpose, [this.account = '']);
+}
+
+// one account at the bank with its balance
+class BankAccountInfo {
+  final String uid;
+  final String? name;
+  final String? iban;
+  final int balanceCents;
+  const BankAccountInfo(this.uid, this.name, this.iban, this.balanceCents);
 }
 
 class BankLink {
@@ -41,8 +51,9 @@ class DepotPosition {
   final int buyPriceCents;
   final int priceCents;
   final String broker;
+  final String depot; // the portfolio it is in
   const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
-      this.broker);
+      this.broker, [this.depot = '']);
 
   static DepotPosition fromJson(Map m) => DepotPosition(
         '${m['id']}',
@@ -53,6 +64,7 @@ class DepotPosition {
         (m['buyPriceCents'] as num).toInt(),
         (m['priceCents'] as num).toInt(),
         '${m['broker'] ?? ''}',
+        '${m['depot'] ?? ''}',
       );
 }
 
@@ -121,7 +133,9 @@ class BackendService {
     );
   }
 
-  static Future<({int balanceCents, List<BankTransaction> transactions})> sync(String state, {int days = 90}) async {
+  static Future<({int balanceCents, List<BankAccountInfo> accounts, List<BankTransaction> transactions})> sync(
+      String state,
+      {int days = 90}) async {
     final body = await _get('/bank/sync?state=$state&days=$days');
     final out = <BankTransaction>[];
     for (final t in (body['transactions'] as List)) {
@@ -133,9 +147,17 @@ class BackendService {
         (t['amountCents'] as num).toInt(),
         '${t['counterparty'] ?? ''}',
         '${t['purpose'] ?? ''}',
+        '${t['account'] ?? ''}',
       ));
     }
-    return (balanceCents: (body['balanceCents'] as num).toInt(), transactions: out);
+    return (
+      balanceCents: (body['balanceCents'] as num).toInt(),
+      accounts: [
+        for (final a in (body['accounts'] as List?) ?? const [])
+          BankAccountInfo('${a['uid']}', a['name'] as String?, a['iban'] as String?, (a['balanceCents'] as num).toInt()),
+      ],
+      transactions: out,
+    );
   }
 
   static Future<void> disconnect(String state) => _post('/bank/disconnect', {'state': state});

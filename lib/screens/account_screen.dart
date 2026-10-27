@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/sync_pill.dart';
+import '../models/money_account.dart';
 import '../models/transaction.dart';
+import '../services/money_accounts.dart';
+import '../widgets/account_sheet.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/history.dart';
@@ -25,6 +28,9 @@ class AccountScreen extends StatefulWidget {
   final ValueNotifier<int> segment;
 
   const AccountScreen({super.key, required this.segment});
+
+  // the account shown, null = all together; new bookings go to it
+  static final selected = ValueNotifier<String?>(null);
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -73,13 +79,22 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     // settings carry the linked bank, its last sync and the opening balance
     return ListenableBuilder(
-      listenable: Listenable.merge([Hive.box('transactions').listenable(), Hive.box('settings').listenable()]),
+      listenable: Listenable.merge(
+          [Hive.box('transactions').listenable(), Hive.box('settings').listenable(), AccountScreen.selected]),
       builder: (context, _) => ValueListenableBuilder<int>(
         valueListenable: widget.segment,
         builder: (context, segment, _) {
-          final tx = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
-          final balance = DB.balanceOf(tx) + Settings.openingBalanceCents;
-          final points = History.dailyBalance(tx, from: _rangeStart(tx), opening: Settings.openingBalanceCents);
+          final all = DB.getTx().where((t) => !_hidden.contains(t.id)).toList();
+          // one account, or all of them together
+          // an account removed meanwhile falls back to all accounts
+          final chosen = MoneyAccounts.byId(AccountScreen.selected.value);
+          final account = MoneyAccounts.several ? (chosen ?? MoneyAccounts.main) : MoneyAccounts.main;
+          final one = (AccountScreen.selected.value != null && chosen != null) || !MoneyAccounts.several;
+          final tx = one ? MoneyAccounts.bookingsOf(account.id, all) : all;
+          final opening = one ? MoneyAccounts.openingOf(account) : MoneyAccounts.openingTotal;
+          final balance = DB.balanceOf(tx) + opening;
+          final points = History.dailyBalance(tx, from: _rangeStart(tx), opening: opening);
+          final synced = one ? account.link != null : Settings.bankState.isNotEmpty;
 
           return SafeArea(
             bottom: false,
@@ -98,24 +113,36 @@ class _AccountScreenState extends State<AccountScreen> {
                         children: [
                           Row(children: [
                             const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                            const Spacer(),
-                            if (Settings.bankState.isNotEmpty)
-                              SyncPill(
-                                  label: Settings.bankName,
-                                  last: Settings.lastSync,
-                                  onSync: () => _syncBank(context))
-                            else
-                              // kept by hand: the real balance can be set any time
-                              TextButton.icon(
-                                onPressed: () => showBalanceSheet(context),
-                                icon: const Icon(Icons.edit_rounded, size: 16),
-                                label: const Text('Kontostand anpassen'),
-                                style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                            const SizedBox(width: 12),
+                            // shrinks rather than overflows with large text or a long bank name
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: synced
+                                      ? SyncPill(
+                                          label: one ? (account.bank ?? Settings.bankName) : Settings.bankName,
+                                          last: Settings.lastSync,
+                                          onSync: () => _syncBank(context))
+                                      : one
+                                          // kept by hand: the real balance can be set any time
+                                          ? TextButton.icon(
+                                              onPressed: () => showBalanceSheet(context, account: account),
+                                              icon: const Icon(Icons.edit_rounded, size: 16),
+                                              label: const Text('Kontostand anpassen'),
+                                              style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                                            )
+                                          : const SizedBox.shrink(),
+                                ),
                               ),
+                            ),
                           ]),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 12),
+                          _accountChips(all),
+                          const SizedBox(height: 16),
                           ChartHeader(
-                            label: 'Kontostand',
+                            label: one && MoneyAccounts.several ? account.name : 'Kontostand',
                             cents: balance,
                             startCents: points.isEmpty ? balance : points.first.cents,
                             period: _periods[_range]!,
@@ -164,6 +191,61 @@ class _AccountScreenState extends State<AccountScreen> {
           );
         },
       ),
+    );
+  }
+
+  // Alle · each account with its balance · + Konto; tapping the chosen one
+  // again opens its settings
+  Widget _accountChips(List<Transaction> all) {
+    final accounts = MoneyAccounts.all;
+    final selected = MoneyAccounts.several ? AccountScreen.selected.value : MoneyAccount.main;
+    Widget chip(String label, bool active, VoidCallback onTap, {IconData? icon}) => Semantics(
+          button: true,
+          selected: active,
+          child: Material(
+            color: active ? AppColors.primary.withValues(alpha: 0.18) : AppColors.surface,
+            borderRadius: BorderRadius.circular(999),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(999),
+              onTap: onTap,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 36),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: active ? AppColors.primary : AppColors.border),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  if (icon != null) ...[Icon(icon, size: 16, color: AppColors.primaryText), const SizedBox(width: 4)],
+                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                ]),
+              ),
+            ),
+          ),
+        );
+    return SizedBox(
+      height: 38,
+      child: ListView(scrollDirection: Axis.horizontal, children: [
+        if (accounts.length > 1) ...[
+          chip('Alle', selected == null, () => AccountScreen.selected.value = null),
+          const SizedBox(width: 8),
+        ],
+        for (final a in accounts) ...[
+          chip('${a.name} · ${Money.format(MoneyAccounts.balanceOf(a, all))}', selected == a.id, () {
+            HapticFeedback.selectionClick();
+            if (selected == a.id) {
+              showAccountSheet(context, account: a);
+            } else {
+              AccountScreen.selected.value = a.id;
+            }
+          }),
+          const SizedBox(width: 8),
+        ],
+        chip('Konto', false, () async {
+          final added = await showAccountSheet(context);
+          if (added != null) AccountScreen.selected.value = added.id;
+        }, icon: Icons.add_rounded),
+      ]),
     );
   }
 

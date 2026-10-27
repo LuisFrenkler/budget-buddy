@@ -6,20 +6,22 @@ import '../screens/connections_screen.dart';
 import '../screens/goals_screen.dart';
 import '../screens/smart_entry_sheet.dart';
 import '../services/notification_service.dart';
+import '../models/money_account.dart';
 import '../services/db.dart';
+import '../services/money_accounts.dart';
 import '../services/onboarding_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 
 // Asks for today's real account balance, so a hand-kept account shows the
 // same number as the bank. Not offered while a bank is linked.
-Future<void> showBalanceSheet(BuildContext context) async {
+Future<void> showBalanceSheet(BuildContext context, {MoneyAccount? account}) async {
   final ok = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
-    builder: (_) => const _BalanceSheet(),
+    builder: (_) => _BalanceSheet(account),
   );
   if (ok == true && context.mounted) {
     HapticFeedback.mediumImpact();
@@ -28,7 +30,8 @@ Future<void> showBalanceSheet(BuildContext context) async {
 }
 
 class _BalanceSheet extends StatefulWidget {
-  const _BalanceSheet();
+  final MoneyAccount? account; // null = the main account
+  const _BalanceSheet(this.account);
 
   @override
   State<_BalanceSheet> createState() => _BalanceSheetState();
@@ -50,7 +53,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
       setState(() => _error = 'Bitte einen Betrag eingeben, z. B. 1.250,40');
       return;
     }
-    await OnboardingService.setCurrentBalance(cents);
+    await OnboardingService.setCurrentBalance(cents, account: widget.account);
     if (mounted) Navigator.pop(context, true);
   }
 
@@ -59,7 +62,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Wie viel ist gerade auf deinem Konto?',
+        Text(MoneyAccounts.several ? 'Wie viel ist gerade auf ${(widget.account ?? MoneyAccounts.main).name}?' : 'Wie viel ist gerade auf deinem Konto?',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
         const SizedBox(height: 6),
         Text('Schau kurz in deine Banking-App. Ab dann rechnet BudgetBuddy mit jeder Buchung weiter.',

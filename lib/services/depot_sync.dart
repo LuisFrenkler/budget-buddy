@@ -34,6 +34,7 @@ class DepotSync {
             shares: p.shares,
             buyPriceCents: p.buyPriceCents,
             currentPriceCents: p.priceCents,
+            depot: p.depot.isNotEmpty ? p.depot : (p.broker.isNotEmpty ? p.broker : null),
           ),
     ];
     final ids = {for (final h in keep) h.id};

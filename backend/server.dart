@@ -577,24 +577,29 @@ Future<void> _status(HttpRequest req) {
   return _json(req, 200, {'status': 'unknown'});
 }
 
-// GET ?state=&days=90 -> {balanceCents, transactions} over all accounts
+// GET ?state=&days=90 -> {balanceCents, accounts: [{uid, name, iban, balanceCents}], transactions}
+// with each transaction's account uid, so every account can stand on its own
 Future<void> _sync(HttpRequest req) async {
   final q = req.uri.queryParameters;
   final s = _ownSession(req, q['state'] ?? '');
   final days = (int.tryParse(q['days'] ?? '') ?? 90).clamp(1, 730);
   final from = DateTime.now().subtract(Duration(days: days));
-
   int balance = 0;
+  final accounts = <Map<String, dynamic>>[];
   final txs = <Map<String, dynamic>>[];
   for (final a in (s['accounts'] as List)) {
     final uid = (a as Map)['uid'] as String;
-    balance += await _bank.balance(uid);
+    final cents = await _bank.balance(uid);
+    balance += cents;
+    accounts.add({'uid': uid, 'name': a['name'], 'iban': a['iban'], 'balanceCents': cents});
     for (final t in await _bank.transactions(uid, from)) {
       // prefix the account so ids stay unique across accounts
-      txs.add(t.toJson()..['id'] = '$uid:${t.id}');
+      txs.add(t.toJson()
+        ..['id'] = '$uid:${t.id}'
+        ..['account'] = uid);
     }
   }
-  return _json(req, 200, {'bank': s['bank'], 'balanceCents': balance, 'transactions': txs});
+  return _json(req, 200, {'bank': s['bank'], 'balanceCents': balance, 'accounts': accounts, 'transactions': txs});
 }
 
 // POST {state}

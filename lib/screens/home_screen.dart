@@ -7,6 +7,8 @@ import '../services/auto_save.dart';
 import '../services/account_service.dart';
 import '../services/split_service.dart';
 import '../services/db.dart';
+import '../services/money_accounts.dart';
+import '../widgets/transfer_sheet.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
 import 'account_screen.dart';
@@ -252,6 +254,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
                 }
               }),
+              if (MoneyAccounts.several)
+                _addOption(sheet, Icons.swap_horiz_rounded, AppColors.accentBlue, 'Geld verschieben',
+                    'Zwischen deinen Konten, z. B. aufs Sparkonto', () => showTransferSheet(context)),
               _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Position hinzufügen',
                   'Aktie, ETF oder Krypto', () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));

@@ -45,6 +45,7 @@ void main() {
   testWidgets('Buddy is a tab, and asking from elsewhere lands in it', (tester) async {
     await pumpShell(tester);
     expect(find.text('Buddy'), findsWidgets); // the tab label
+    expect(find.bySemanticsLabel('Hinzufügen'), findsOneWidget); // the add button, until a keyboard opens
     BuddyScreen.ask.value = '';
     await tester.pump(const Duration(milliseconds: 400));
     expect(BuddyScreen.ask.value, isNull); // the tab took it
@@ -64,7 +65,7 @@ void main() {
     final bottom = tester.getBottomLeft(field).dy;
     expect(bottom, lessThanOrEqualTo(844 - 300));
     expect(bottom, greaterThan(844 - 300 - 90)); // no gap of a hidden tab bar
-    expect(find.byIcon(Icons.add_rounded), findsNothing); // the tab bar steps aside
+    expect(find.bySemanticsLabel('Hinzufügen'), findsNothing); // the tab bar steps aside
     await settle(tester);
   });
 }

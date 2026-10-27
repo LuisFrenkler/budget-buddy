@@ -8,6 +8,8 @@ import '../services/buddy_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
 import '../services/db.dart';
+import '../services/money_accounts.dart';
+import 'account_screen.dart';
 import '../services/quick_parser.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -134,6 +136,8 @@ class _SmartEntryState extends State<_SmartEntry> {
       date: booking.date,
       isIncome: booking.isIncome,
       note: booking.note.isEmpty ? null : booking.note,
+      // on the account open on Konto, like the form
+      accountId: MoneyAccounts.byId(AccountScreen.selected.value)?.isMain == false ? AccountScreen.selected.value : null,
     );
     await DB.addTx(tx);
     await DB.checkBadges();

@@ -114,9 +114,7 @@ class _DepotScreenState extends State<DepotScreen> {
                       ],
                       const Text('Positionen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
-                      // same colour per position as in the allocation chart above
-                      for (var i = 0, slot = 0; i < holdings.length; i++)
-                        _holdingCard(holdings[i], holdings.length > 1 && holdings[i].valueCents > 0 ? slot++ : null),
+                      ..._positions(holdings),
                       // room for the floating navigation bar
                       const SizedBox(height: 110),
                     ],
@@ -125,6 +123,36 @@ class _DepotScreenState extends State<DepotScreen> {
         );
       },
     );
+  }
+
+  // the positions, grouped by depot with its value when there are several;
+  // each keeps the colour it has in the allocation chart above
+  List<Widget> _positions(List<Holding> holdings) {
+    final slots = <String, int>{};
+    var slot = 0;
+    for (final h in holdings) {
+      if (holdings.length > 1 && h.valueCents > 0) slots[h.id] = slot++;
+    }
+    final groups = <String, List<Holding>>{};
+    for (final h in holdings) {
+      groups.putIfAbsent(h.depot?.trim().isNotEmpty == true ? h.depot!.trim() : 'Weitere Positionen', () => []).add(h);
+    }
+    if (groups.length < 2) return [for (final h in holdings) _holdingCard(h, slots[h.id])];
+    final ordered = groups.entries.toList()
+      ..sort((a, b) => b.value.fold<int>(0, (s, h) => s + h.valueCents).compareTo(a.value.fold<int>(0, (s, h) => s + h.valueCents)));
+    return [
+      for (final g in ordered) ...[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
+          child: Row(children: [
+            Expanded(child: Text(g.key, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))),
+            Text(Money.format(g.value.fold<int>(0, (s, h) => s + h.valueCents)),
+                style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
+          ]),
+        ),
+        for (final h in g.value) _holdingCard(h, slots[h.id]),
+      ],
+    ];
   }
 
   Widget _emptyState() {
