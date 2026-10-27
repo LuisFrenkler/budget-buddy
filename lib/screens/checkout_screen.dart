@@ -552,7 +552,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-      child: Column(children: [
+      // the store said the free week was used already: paid from today
+      child: _inStore && StorePurchases.trial[_plan] == false
+          ? Column(children: [
+              Row(children: [
+                const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Text(PlusService.price(_plan!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              ]),
+              Divider(height: 24, color: AppColors.border),
+              step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
+                  'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.'),
+              step(Icons.autorenew_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
+            ])
+          : Column(children: [
         Row(children: [
           const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),

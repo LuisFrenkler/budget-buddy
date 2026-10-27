@@ -44,6 +44,11 @@ class StorePurchases {
   // the store's own, localized price per plan, once loaded
   static final prices = ValueNotifier<Map<PlusPlan, String>>({});
 
+  // whether the store still offers this account the free week: Google says
+  // so through its offers (false = had it already); Apple decides in its own
+  // sheet, so there it stays unknown (null)
+  static final trial = <PlusPlan, bool?>{};
+
   static InAppPurchase get _iap => InAppPurchase.instance;
   static StreamSubscription<List<PurchaseDetails>>? _sub;
   static final _products = <PlusPlan, ProductDetails>{};
@@ -66,6 +71,10 @@ class StorePurchases {
     for (final plan in PlusPlan.values) {
       final offers = res.productDetails.where((p) => p.id == ids[plan]).toList();
       if (offers.isNotEmpty) _products[plan] = pickOffer(offers);
+    }
+    for (final e in _products.entries) {
+      final p = e.value;
+      trial[e.key] = p is GooglePlayProductDetails ? _phases(p).any((ph) => ph.priceAmountMicros == 0) : null;
     }
     prices.value = {for (final e in _products.entries) e.key: regularPrice(e.value)};
     return _products.length == PlusPlan.values.length;

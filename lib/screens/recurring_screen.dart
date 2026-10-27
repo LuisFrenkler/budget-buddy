@@ -108,7 +108,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
           children: [
             Icon(Icons.repeat_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Keine Daueraufträge', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Noch nichts Wiederkehrendes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text('Wähle beim Erfassen eines Umsatzes eine Wiederholung, z. B. „monatlich“.',
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
@@ -137,7 +137,10 @@ class _RecurringScreenState extends State<RecurringScreen> {
       confirmDismiss: (_) => _delete(r),
       child: Opacity(
         opacity: r.active ? 1 : 0.5,
-        child: Padding(
+        // tap to change amount, name or rhythm
+        child: InkWell(
+          onTap: () => _edit(r),
+          child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
           child: Row(
             children: [
@@ -160,8 +163,83 @@ class _RecurringScreenState extends State<RecurringScreen> {
             ],
           ),
         ),
+        ),
       ),
     );
+  }
+
+  // a new amount (rent goes up), name or rhythm; bookings made so far stay as they were
+  Future<void> _edit(RecurringRule r) async {
+    final amount = TextEditingController(
+        text: (r.amountCents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), ''));
+    final note = TextEditingController(text: r.note ?? '');
+    var interval = RecurringService.intervals.contains(r.interval) ? r.interval : 'monatlich';
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final cents = Money.parseToCents(amount.text) ?? 0;
+          return Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const Text('Dauerauftrag ändern', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              Text('Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.',
+                  style: TextStyle(color: AppColors.textDim)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: note,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(labelText: 'Bezeichnung'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: amount,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                onChanged: (_) => setSheet(() {}),
+                decoration: const InputDecoration(labelText: 'Betrag', suffixText: '€'),
+              ),
+              const SizedBox(height: 12),
+              Wrap(spacing: 8, children: [
+                for (final i in RecurringService.intervals)
+                  ChoiceChip(
+                    label: Text(i),
+                    selected: interval == i,
+                    showCheckmark: false,
+                    onSelected: (_) => setSheet(() => interval = i),
+                  ),
+              ]),
+              const SizedBox(height: 18),
+              FilledButton(
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                onPressed: cents > 0 ? () => Navigator.pop(context, true) : null,
+                child: const Text('Speichern'),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+    if (saved == true) {
+      await DB.updateRule(RecurringRule(
+        id: r.id,
+        amountCents: Money.parseToCents(amount.text)!,
+        category: r.category,
+        isIncome: r.isIncome,
+        note: note.text.trim().isEmpty ? null : note.text.trim(),
+        interval: interval,
+        startDate: r.startDate,
+        lastRun: r.lastRun,
+        active: r.active,
+      ));
+      HapticFeedback.mediumImpact();
+      if (mounted) setState(() {});
+    }
+    amount.dispose();
+    note.dispose();
   }
 
   void _toggle(RecurringRule r, bool active) async {
