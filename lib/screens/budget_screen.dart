@@ -147,8 +147,24 @@ class _BudgetCardState extends State<_BudgetCard> {
                               fontSize: 16,
                               color: budget.isOver ? AppColors.error : AppColors.text),
                         ),
-                        Text('von ${Money.format(budget.limitCents)}',
-                            style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                        // the limit itself is where it changes
+                        Semantics(
+                          button: true,
+                          label: 'Limit ändern',
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => showAddBudgetDialog(context, editing: budget),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text('von ${Money.format(budget.limitCents)}',
+                                    style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                                const SizedBox(width: 4),
+                                Icon(Icons.edit_rounded, size: 13, color: AppColors.textDim),
+                              ]),
+                            ),
+                          ),
+                        ),
                       ]),
                     ],
                   ),
@@ -252,19 +268,20 @@ class _BudgetCardState extends State<_BudgetCard> {
 // shows dialog to create a new budget (default: the current month)
 // New monthly budget as a sheet. Buddy preselects the category with the
 // highest spending that has no budget yet and suggests its usual amount.
-void showAddBudgetDialog(BuildContext context, {String? category}) {
+void showAddBudgetDialog(BuildContext context, {String? category, Budget? editing}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
-    builder: (_) => _BudgetSheet(category: category),
+    builder: (_) => _BudgetSheet(category: category, editing: editing),
   );
 }
 
 class _BudgetSheet extends StatefulWidget {
   final String? category; // preselected, e.g. from a Buddy answer
-  const _BudgetSheet({this.category});
+  final Budget? editing; // a running budget whose limit changes
+  const _BudgetSheet({this.category, this.editing});
 
   @override
   State<_BudgetSheet> createState() => _BudgetSheetState();
@@ -280,9 +297,20 @@ class _BudgetSheetState extends State<_BudgetSheet> {
   };
   String? _category;
 
+  bool get _editing => widget.editing != null;
+
+  // the button only works with a limit, instead of a message hidden under the sheet
+  bool get _valid => _category != null && (Money.parseToCents(_limit.text) ?? 0) > 0;
+
   @override
   void initState() {
     super.initState();
+    final b = widget.editing;
+    if (b != null) {
+      _category = b.category;
+      _limit.text = (b.limitCents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), '');
+      return;
+    }
     // the asked-for category, else the biggest one without a budget yet
     final open = _usual.entries.where((e) => !_taken.contains(e.key)).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -324,11 +352,20 @@ class _BudgetSheetState extends State<_BudgetSheet> {
   }
 
   Future<void> _save() async {
-    if (await _saveBudget(context, _category, _limit.text, DateTime.now(), DateTime.now(), monthly: true) &&
-        mounted) {
+    if (!_valid) return;
+    final b = widget.editing;
+    // a new limit applies to the running month and is carried into the next ones
+    final saving = b != null
+        ? _saveBudget(context, b.category, _limit.text, b.startDate, b.endDate)
+        : _saveBudget(context, _category, _limit.text, DateTime.now(), DateTime.now(), monthly: true);
+    final saved = await saving;
+    if (saved && mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(milliseconds: 2800),
+          content: Text(_editing
+              ? 'Neues Limit für $_category: ${Money.raw(Money.parseToCents(_limit.text)!)} im Monat'
+              : 'Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
     }
   }
 
@@ -338,11 +375,16 @@ class _BudgetSheetState extends State<_BudgetSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Monatsbudget', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(_editing ? 'Limit für $_category' : 'Monatsbudget',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        Text('Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.',
+        Text(
+            _editing
+                ? 'Gilt ab sofort und in den nächsten Monaten.'
+                : 'Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.',
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 16),
+        if (!_editing)
         Wrap(spacing: 8, runSpacing: 8, children: [
           for (final c in Categories.expense)
             ChoiceChip(
@@ -360,6 +402,8 @@ class _BudgetSheetState extends State<_BudgetSheet> {
           controller: _limit,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+          autofocus: _editing,
+          onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _save(),
           decoration: InputDecoration(
             hintText: 'z. B. 300',
@@ -381,8 +425,9 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         const SizedBox(height: 18),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          onPressed: _category == null ? null : _save,
-          child: const Text('Budget anlegen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          onPressed: _valid ? _save : null,
+          child: Text(_editing ? 'Speichern' : 'Budget anlegen',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );
