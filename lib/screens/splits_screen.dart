@@ -421,14 +421,6 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
   }
 
   // runs a change and reports a failure instead of losing it silently
-  Future<void> _run(Future<void> Function() change) async {
-    try {
-      await change();
-      HapticFeedback.mediumImpact();
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
-    }
-  }
 
   // deleting a group, or leaving a shared one, loses every expense in it: asked first
   Future<void> _remove(BuildContext context, SplitGroup g, int mine) async {
@@ -589,8 +581,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                         // only the people involved confirm a payment
                         if (t.from == g.me || t.to == g.me)
                           TextButton(
-                            onPressed: () =>
-                                _run(() => SplitService.settle(g, Settlement(t.from, t.to, t.cents, DateTime.now()))),
+                            onPressed: () => _settle(context, g, t, who),
                             child: Text(t.from == g.me ? 'Bezahlt' : 'Erhalten'),
                           ),
                       ]),
@@ -625,12 +616,65 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                       trailing: Text(Money.format(e.cents), style: const TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
+                // money that changed hands, newest first, so a settled debt stays traceable
+                if (g.settlements.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  Text('Ausgeglichen',
+                      style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  for (final st in g.settlements.reversed)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.swap_horiz_rounded, color: AppColors.textDim),
+                      title: Text('${who(st.from)} → ${who(st.to)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(Dates.dayMonth(st.date), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                      trailing: Text(Money.format(st.cents), style: TextStyle(color: AppColors.textDim)),
+                    ),
+                ],
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  // money changing hands is confirmed with the amount, and can be taken back
+  Future<void> _settle(BuildContext context, SplitGroup g, Transfer t,
+      String Function(int) who) async {
+    final paid = t.from == g.me;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(paid ? 'Bezahlt?' : 'Erhalten?'),
+        content: Text(paid
+            ? 'Du hast ${who(t.to)} ${Money.raw(t.cents)} gegeben?'
+            : '${who(t.from)} hat dir ${Money.raw(t.cents)} gegeben?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ja, ausgleichen')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(this.context);
+    try {
+      await SplitService.settle(g, Settlement(t.from, t.to, t.cents, DateTime.now()));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: Text('${Money.raw(t.cents)} ausgeglichen'),
+      // taken back by the same amount the other way, so every device agrees
+      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
+        final now = SplitService.byId(g.id);
+        if (now != null) SplitService.settle(now, Settlement(t.to, t.from, t.cents, DateTime.now()));
+      }),
+    ));
   }
 
   // shares the group through the server and hands out the code
