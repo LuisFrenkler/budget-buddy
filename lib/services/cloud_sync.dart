@@ -29,7 +29,7 @@ class CloudSync {
   // keep working on the next device, and which records are sample data
   static const _linkKeys = [
     'bankState', 'bankOwner', 'bankName', 'bankIban', 'bankValidUntil', 'bankBalanceCents', 'lastSync',
-    'depotState', 'depotBroker', 'depotSync', 'depotHistory', 'bankLinks',
+    'depotState', 'depotBroker', 'depotSync', 'depotHistory', 'bankLinks', 'depotLinks',
     // sample data stays removable on every device
     'demoKeys', 'demoOpeningBefore',
   ];

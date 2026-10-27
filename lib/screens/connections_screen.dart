@@ -41,6 +41,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   String? _depotMode;
   bool _depotBusy = false;
   String? _depotPending;
+  // the Parqet login in the browser is for a further depot
+  bool _addingDepot = false;
   String? _depotLink;
   Timer? _depotPoll;
 
@@ -78,8 +80,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       final signedIn = AccountService.current.value != null;
       if (signedIn && health != null && widget.start == 'bank' && _pendingState == null) {
         _connectBank(extra: Settings.bankState.isNotEmpty);
-      } else if (signedIn && health != null && widget.start == 'depot' && Settings.depotState.isEmpty) {
-        _connectDepot();
+      } else if (signedIn && health != null && widget.start == 'depot') {
+        _connectDepot(extra: Settings.depotState.isNotEmpty);
       }
     }
   }
@@ -398,7 +400,87 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   // --- depot card ---
 
+  // the first depot, every further one, and a way to add another
   Widget _depotCard() {
+    final extras = Settings.extraDepots;
+    if (Settings.depotState.isEmpty && extras.isEmpty) return _firstDepotCard();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (Settings.depotState.isNotEmpty) _depotLinkedCard() else _firstDepotCard(),
+      for (final l in extras) ...[const SizedBox(height: 12), _extraDepotCard(l.state, l.broker)],
+      const SizedBox(height: 12),
+      if (_depotPending != null && _addingDepot)
+        _depotWaitingCard()
+      else if (Settings.depotState.isNotEmpty)
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          onPressed: () => _connectDepot(extra: true),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('Weiteres Depot verbinden'),
+        ),
+    ]);
+  }
+
+  // a depot linked through a further Parqet login
+  Widget _extraDepotCard(String state, String broker) {
+    final prefix = DepotSync.linkPrefix(state);
+    final positions = DB.getHoldings().where((h) => h.id.startsWith(prefix)).toList();
+    final value = positions.fold<int>(0, (s, h) => s + h.valueCents);
+    return _card(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          InstrumentAvatar(broker.isEmpty ? 'Parqet' : broker, size: 44),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(broker.isEmpty ? 'Depot' : broker, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 2),
+              Text('über Parqet · ${positions.length} ${positions.length == 1 ? 'Position' : 'Positionen'}',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            ]),
+          ),
+          Text(Money.format(value), style: const TextStyle(fontWeight: FontWeight.w700)),
+        ]),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: () => _disconnectExtraDepot(state, broker.isEmpty ? 'Depot' : broker),
+            style: TextButton.styleFrom(foregroundColor: AppColors.errorText),
+            child: const Text('Trennen'),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _disconnectExtraDepot(String state, String name) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$name trennen?'),
+        content: const Text('BudgetBuddy liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, '
+            'bis du sie löschst.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Trennen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await BackendService.depotDisconnect(state);
+    } catch (_) {
+      // forget it locally even when the server is offline
+    }
+    await Settings.setExtraDepots([for (final l in Settings.extraDepots) if (l.state != state) l]);
+    if (mounted) setState(() {});
+    _snack('$name getrennt');
+  }
+
+  Widget _firstDepotCard() {
     if (Settings.depotState.isNotEmpty) return _depotLinkedCard();
     if (AccountService.current.value == null) return _needsAccountCard(depot: true);
     if (_depotPending != null) return _depotWaitingCard();
@@ -803,7 +885,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   // --- depot flow ---
 
-  Future<void> _connectDepot() async {
+  Future<void> _connectDepot({bool extra = false}) async {
+    _addingDepot = extra;
     try {
       final link = await BackendService.depotConnect();
       setState(() {
@@ -832,7 +915,11 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           if (s.status == 'linked') {
             timer.cancel();
             HapticFeedback.mediumImpact();
-            await Settings.setDepot(state);
+            if (_addingDepot) {
+              await Settings.setExtraDepots([...Settings.extraDepots, (state: state, broker: '')]);
+            } else {
+              await Settings.setDepot(state);
+            }
             if (mounted) setState(() => _depotPending = null);
             await _syncDepot(first: true);
           } else if (s.status == 'failed' || s.status == 'unknown') {

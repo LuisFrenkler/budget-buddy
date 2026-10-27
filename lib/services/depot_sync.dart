@@ -5,6 +5,8 @@
 //   again updates shares and prices instead of adding a copy.
 // - A position that is gone from the depot (sold) is removed. Positions the
 //   user added by hand or imported are never touched.
+// - A further depot link (another Parqet login) keeps its positions apart
+//   under "depot_x<link>_", so each link only ever removes its own.
 import '../models/holding.dart';
 import 'backend_service.dart';
 import 'db.dart';
@@ -21,13 +23,17 @@ class DepotSync {
   static const prefix = 'depot_';
 
   // pure merge step, separate from storage so it can be tested
-  static DepotSyncResult merge({required List<Holding> existing, required List<DepotPosition> incoming}) {
-    final before = {for (final h in existing.where((h) => h.id.startsWith(prefix))) h.id};
+  static DepotSyncResult merge(
+      {required List<Holding> existing, required List<DepotPosition> incoming, String link = ''}) {
+    final own = linkPrefix(link);
+    // the first link owns every "depot_" position except those of further links
+    bool mine(String id) => link.isEmpty ? id.startsWith(prefix) && !id.startsWith('${prefix}x') : id.startsWith(own);
+    final before = {for (final h in existing.where((h) => mine(h.id))) h.id};
     final keep = [
       for (final p in incoming)
         if (p.shares > 0)
           Holding(
-            id: '$prefix${p.id}',
+            id: '$own${p.id}',
             name: p.name,
             symbol: p.symbol,
             type: p.type,
@@ -45,28 +51,52 @@ class DepotSync {
     );
   }
 
-  // syncs the linked depot now; returns the number of positions
+  // ids of a further link start with this; '' = the first link
+  static String linkPrefix(String link) => link.isEmpty ? prefix : '${prefix}x${link.substring(0, link.length.clamp(0, 8))}_';
+
+  // syncs every linked depot now; returns the number of positions
   static Future<int> run() async {
-    final data = await BackendService.depotSync(Settings.depotState);
-    final positions = data.positions;
-    await Settings.setDepotHistory(data.history);
-    final result = merge(existing: DB.getHoldings(), incoming: positions);
-    for (final h in result.keep) {
-      await DB.addHolding(h);
+    var count = 0;
+    final history = <DateTime, int>{};
+    final links = [
+      if (Settings.depotState.isNotEmpty) (state: Settings.depotState, key: ''),
+      for (final l in Settings.extraDepots) (state: l.state, key: l.state),
+    ];
+    final extras = Settings.extraDepots;
+    for (final l in links) {
+      final data = await BackendService.depotSync(l.state);
+      final positions = data.positions;
+      // the value of all depots per day
+      for (final (d, c) in data.history) {
+        history[d] = (history[d] ?? 0) + c;
+      }
+      final result = merge(existing: DB.getHoldings(), incoming: positions, link: l.key);
+      for (final h in result.keep) {
+        await DB.addHolding(h);
+      }
+      for (final id in result.remove) {
+        await DB.deleteHolding(id);
+      }
+      final brokers = {for (final p in positions) if (p.broker.isNotEmpty) p.broker}.join(', ');
+      if (l.key.isEmpty) {
+        await Settings.setDepot(Settings.depotState, broker: brokers);
+      } else {
+        await Settings.setExtraDepots(
+            [for (final e in extras) e.state == l.state ? (state: e.state, broker: brokers) : e]);
+      }
+      count += result.keep.length;
     }
-    for (final id in result.remove) {
-      await DB.deleteHolding(id);
-    }
-    final brokers = {for (final p in positions) if (p.broker.isNotEmpty) p.broker};
-    await Settings.setDepot(Settings.depotState, broker: brokers.join(', '));
+    await Settings.setDepotHistory((history.entries.toList()..sort((a, b) => a.key.compareTo(b.key)))
+        .map((e) => (e.key, e.value))
+        .toList());
     await Settings.setDepotSync(DateTime.now());
-    return result.keep.length;
+    return count;
   }
 
   // syncs quietly when linked and the last sync is older than [maxAge], or
   // when the depot's value history is still missing (no chart without it)
   static Future<void> refreshIfStale({Duration maxAge = const Duration(hours: 4)}) async {
-    if (Settings.depotState.isEmpty) return;
+    if (Settings.depotState.isEmpty && Settings.extraDepots.isEmpty) return;
     final last = Settings.depotSync;
     final complete = Settings.depotHistory.isNotEmpty;
     if (complete && last != null && DateTime.now().difference(last) < maxAge) return;

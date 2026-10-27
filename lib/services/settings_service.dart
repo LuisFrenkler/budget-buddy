@@ -115,6 +115,15 @@ class Settings {
   static Future<void> setDepotHistory(List<(DateTime, int)> points) =>
       _box.put('depotHistory', [for (final (d, c) in points) [d.millisecondsSinceEpoch, c]]);
 
+  // depots linked after the first one (another Parqet login): [{state, broker}]
+  static List<({String state, String broker})> get extraDepots => [
+        for (final m in (_box.get('depotLinks') as List?) ?? const [])
+          if (m is Map) (state: '${m['state']}', broker: '${m['broker'] ?? ''}'),
+      ];
+
+  static Future<void> setExtraDepots(List<({String state, String broker})> links) =>
+      _box.put('depotLinks', [for (final l in links) {'state': l.state, 'broker': l.broker}]);
+
   static Future<void> clearDepot() async {
     for (final k in ['depotState', 'depotBroker', 'depotSync', 'depotHistory']) {
       await _box.delete(k);
