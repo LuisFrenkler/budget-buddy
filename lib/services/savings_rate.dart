@@ -3,6 +3,7 @@
 // The headline uses the last three complete months. A running month is
 // misleading on its own (the salary arrives at the start, spending spreads
 // over the month), so it is shown separately as "bisher".
+import '../utils/theme.dart';
 import '../models/transaction.dart';
 
 class MonthRate {
@@ -19,7 +20,7 @@ class SavingsRate {
   static MonthRate _month(List<Transaction> tx, DateTime m, {bool running = false}) {
     var income = 0, spent = 0;
     for (final t in tx) {
-      if (t.date.year != m.year || t.date.month != m.month) continue;
+      if (t.date.year != m.year || t.date.month != m.month || !Categories.counts(t.category)) continue;
       if (t.isIncome) {
         income += t.amountCents;
       } else {

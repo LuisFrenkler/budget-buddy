@@ -67,7 +67,8 @@ class DB {
   static int sumOf(List<Transaction> list, {required bool isIncome}) {
     int sum = 0;
     for (var t in list) {
-      if (t.isIncome == isIncome) {
+      // transfers between own accounts are neither income nor spending
+      if (t.isIncome == isIncome && Categories.counts(t.category)) {
         sum += t.amountCents;
       }
     }
@@ -78,7 +79,7 @@ class DB {
   static Map<String, int> categoriesOf(List<Transaction> list, {required bool isIncome}) {
     final result = <String, int>{};
     for (var t in list) {
-      if (t.isIncome == isIncome) {
+      if (t.isIncome == isIncome && Categories.counts(t.category)) {
         // if category exists, add to it. otherwise start at 0
         result[t.category] = (result[t.category] ?? 0) + t.amountCents;
       }

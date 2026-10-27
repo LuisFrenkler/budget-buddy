@@ -6,6 +6,7 @@
 //
 // A week runs Monday to Sunday. The report for a week is ready on Sunday
 // at 18:00; before that the previous week is shown.
+import '../utils/theme.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import 'contracts.dart';
@@ -100,6 +101,8 @@ class WeeklyReportService {
 
   static WeeklyReport? build(List<Transaction> tx, {DateTime? now, DateTime? week}) {
     final monday = week ?? reportWeek(now ?? DateTime.now());
+    // moving money to savings or the depot is no everyday spending
+    tx = [for (final t in tx) if (Categories.counts(t.category)) t];
     final fixed = {
       for (final c in Contracts.detect(tx, now: now))
         for (final p in c.payments) p.id

@@ -1,6 +1,7 @@
 // Generates short, human-readable German insights by comparing the current
 // month's spending to the previous month. Pure and testable: it works on
 // already-aggregated category maps and totals (all in cents).
+import '../utils/theme.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import 'contracts.dart';
@@ -18,7 +19,7 @@ class InsightsService {
     Map<String, int> byCat(DateTime m) {
       final out = <String, int>{};
       for (final t in all) {
-        if (t.isIncome || fixed.contains(t.id)) continue;
+        if (t.isIncome || fixed.contains(t.id) || !Categories.counts(t.category)) continue;
         if (t.date.year != m.year || t.date.month != m.month || t.date.day > cutDay) continue;
         out[t.category] = (out[t.category] ?? 0) + t.amountCents;
       }

@@ -5,6 +5,7 @@
 //   (once per month, missed months are not added up, so nobody is surprised)
 // - round-up: each expense since switching it on is rounded up to the full
 //   euro, the difference goes to the goal (3,20 € -> 0,80 €)
+import '../utils/theme.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/goal.dart';
@@ -34,7 +35,7 @@ class AutoSave {
       final since = DateTime(g.roundUpSince!.year, g.roundUpSince!.month, g.roundUpSince!.day);
       final done = g.roundedIds.toSet();
       for (final t in tx) {
-        if (t.isIncome || t.date.isBefore(since) || done.contains(t.id)) continue;
+        if (t.isIncome || !Categories.counts(t.category) || t.date.isBefore(since) || done.contains(t.id)) continue;
         added += roundUpOf(t.amountCents);
         g.roundedIds.add(t.id);
       }
@@ -52,7 +53,7 @@ class AutoSave {
   static int roundUpEstimate(List<Transaction> tx, DateTime now) {
     final from = now.subtract(const Duration(days: 30));
     return tx
-        .where((t) => !t.isIncome && !t.date.isBefore(from))
+        .where((t) => !t.isIncome && Categories.counts(t.category) && !t.date.isBefore(from))
         .fold<int>(0, (s, t) => s + roundUpOf(t.amountCents));
   }
 

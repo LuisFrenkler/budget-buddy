@@ -1,6 +1,7 @@
 // The numbers behind the monthly recap story: what went out, where most of
 // it went, the favourite merchant, the savings rate and the change against
 // the month before.
+import '../utils/theme.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
 
@@ -54,6 +55,8 @@ class RecapService {
 
   static MonthRecap? build(List<Transaction> tx, DateTime month) {
     bool inMonth(Transaction t, DateTime m) => t.date.year == m.year && t.date.month == m.month;
+    // moving money to savings or the depot is neither income nor spending
+    tx = [for (final t in tx) if (Categories.counts(t.category)) t];
     final these = tx.where((t) => inMonth(t, month)).toList();
     if (these.isEmpty) return null;
     final fixed = {

@@ -56,7 +56,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 36 | Daueraufträge | Startdatum in der Vergangenheit trägt still hunderte Umsätze nach | ✅ (Rückfrage) |
 | 37 | Daueraufträge | Nicht bearbeitbar; doppelt mit verbundener Bank | ✅ |
 | 38 | Budgets | Limit nicht änderbar; Fehlermeldung unter dem Sheet unsichtbar | ✅ |
-| 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ⏳ |
+| 39 | Kategorien | Keine Umbuchung/Erstattung: Sparüberweisungen = Ausgabe, Erstattungen = Einnahme | ✅ (neue Kategorie „Umbuchung“; Erstattungen gegen Ausgaben ⏳) |
 | 40 | Verträge | Fehlalarme (Taschengeld) nicht ausblendbar; eine verpasste Abbuchung lässt Vertrag verschwinden | ✅ |
 | 41 | Depot | Verlauf rechnet heutige Stückzahlen rückwärts; Detail-Chart skaliert Historie auf gespeicherten Kurs | ⏳ |
 | 42 | Depot | Technische Meldungen („Finnhub-Key“); eigene Positionen ohne Symbol nie live | ✅ (Symbol-Feld für eigene Positionen ⏳) |

@@ -386,7 +386,8 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         const SizedBox(height: 16),
         if (!_editing)
         Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final c in Categories.expense)
+          // a transfer to savings is no spending to limit
+          for (final c in Categories.expense.where((c) => Categories.counts(c['name']!)))
             ChoiceChip(
               selected: _category == c['name'],
               showCheckmark: false,

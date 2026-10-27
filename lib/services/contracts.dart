@@ -6,6 +6,7 @@
 // lately: the latest amount may jump (that is the price rise worth reporting),
 // one skipped debit doesn't end a contract, and the user can say "kein
 // Vertrag" for a regular payment that isn't one (pocket money, a rent share).
+import '../utils/theme.dart';
 import 'package:hive/hive.dart';
 import '../models/transaction.dart';
 
@@ -56,7 +57,8 @@ class Contracts {
     final groups = <String, List<Transaction>>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
-      if (t.isIncome || name.isEmpty || skip.contains(name.toLowerCase())) continue;
+      // a monthly savings transfer is no contract to cancel
+      if (t.isIncome || name.isEmpty || skip.contains(name.toLowerCase()) || !Categories.counts(t.category)) continue;
       groups.putIfAbsent(name.toLowerCase(), () => []).add(t);
     }
 
