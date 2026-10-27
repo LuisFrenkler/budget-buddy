@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -229,7 +230,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   Widget _linkedCard() {
     final name = Settings.bankName;
     final until = Settings.bankValidUntil;
-    final expiresSoon = until != null && until.difference(DateTime.now()).inDays < 14;
+    final expired = until != null && until.isBefore(DateTime.now());
+    final expiresSoon = !expired && until != null && until.difference(DateTime.now()).inDays < 14;
     final last = Settings.lastSync;
     return _card(
       child: Column(
@@ -249,7 +251,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                 ],
               ),
             ),
-            _chip(expiresSoon ? 'Läuft ab' : 'Aktiv', expiresSoon ? AppColors.warning : AppColors.positive),
+            // a demo bank never passes for a real one, not even once linked
+            if (_mode == 'demo')
+              _chip('Demo', AppColors.warning)
+            else if (expired)
+              _chip('Abgelaufen', AppColors.error)
+            else
+              _chip(expiresSoon ? 'Läuft ab' : 'Aktiv', expiresSoon ? AppColors.warning : AppColors.positive),
           ]),
           const SizedBox(height: 20),
           Text('Kontostand', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
@@ -422,7 +430,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
-          _chip('Aktiv', AppColors.positive),
+          _depotMode == 'demo' ? _chip('Demo', AppColors.warning) : _chip('Aktiv', AppColors.positive),
         ]),
         const SizedBox(height: 20),
         Text('Depotwert', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
@@ -458,26 +466,39 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   Widget _serverStatus() {
     final ok = _mode != null;
     final color = _checking ? AppColors.textDim : (ok ? AppColors.positive : AppColors.warning);
+    // plain words for users; which parts run as a demo matters only for testing
     final text = _checking
-        ? 'Suche Server …'
+        ? 'Verbindung wird geprüft …'
         : !ok
-            ? 'Server nicht erreichbar'
+            ? 'Gerade nicht erreichbar · Tippen zum erneut Versuchen'
             : _mode == 'demo' && _depotMode == 'demo'
-                ? 'Server verbunden · Demo-Bank und Demo-Depot, keine echten Daten'
-                : 'Server verbunden · Bank ${_mode == 'live' ? 'live' : 'Demo'} · Depot ${_depotMode == 'live' ? 'live' : 'Demo'}';
+                ? 'Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten'
+                : _mode == 'demo' || _depotMode == 'demo'
+                    ? 'Verbunden · ${_mode == 'demo' ? 'Bank' : 'Depot'} im Demo-Modus'
+                    : 'Sicher verbunden';
     return Column(
       children: [
-        GestureDetector(
-          onTap: _check,
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 8),
-            Flexible(child: Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12))),
-            const SizedBox(width: 6),
-            Icon(Icons.refresh_rounded, size: 14, color: AppColors.textDim),
-          ]),
+        Semantics(
+          button: true,
+          label: 'Verbindung erneut prüfen',
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _check,
+            child: ConstrainedBox(
+              // a full-size tap target, not just the tiny icon
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                const SizedBox(width: 8),
+                Flexible(child: Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12))),
+                const SizedBox(width: 6),
+                Icon(Icons.refresh_rounded, size: 14, color: AppColors.textDim),
+              ]),
+            ),
+          ),
         ),
-        if (!_checking && !ok) ...[
+        // a developer running the server locally; users never see this
+        if (kDebugMode && !_checking && !ok) ...[
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(14),
@@ -496,6 +517,14 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   }
 
   // --- small pieces ---
+
+  // the server's reasons are German already; anything technical is a connection problem
+  static String _friendly(Object e) {
+    final text = '$e';
+    return RegExp(r'Exception|Error|Failed|Socket|Timeout|XMLHttpRequest').hasMatch(text)
+        ? 'Gerade keine Verbindung. Bitte versuch es gleich noch einmal.'
+        : text;
+  }
 
   ButtonStyle get _secondary =>
       FilledButton.styleFrom(backgroundColor: AppColors.surfaceAlt, foregroundColor: AppColors.text);
@@ -561,7 +590,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       await launchUrl(Uri.parse(link.link), mode: LaunchMode.externalApplication);
       _startPolling();
     } catch (e) {
-      _snack('Fehler: $e', error: true);
+      _snack(_friendly(e), error: true);
     }
   }
 
@@ -570,8 +599,17 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     final started = DateTime.now();
     _poll = Timer.periodic(const Duration(seconds: 2), (timer) async {
       final state = _pendingState;
-      if (state == null || DateTime.now().difference(started).inMinutes >= 10) {
+      if (state == null) {
         timer.cancel();
+        return;
+      }
+      // no approval after ten minutes: stop waiting instead of spinning forever
+      if (DateTime.now().difference(started).inMinutes >= 10) {
+        timer.cancel();
+        if (mounted) {
+          _cancelPending();
+          _snack('Keine Freigabe von der Bank erhalten. Du kannst es jederzeit noch einmal versuchen.');
+        }
         return;
       }
       try {
@@ -615,7 +653,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         _snack(added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}');
       }
     } catch (e) {
-      _snack('Aktualisieren fehlgeschlagen: $e', error: true);
+      _snack('Aktualisieren hat nicht geklappt. ${_friendly(e)}', error: true);
     } finally {
       if (mounted) setState(() => _syncing = false);
     }
@@ -663,8 +701,16 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       final started = DateTime.now();
       _depotPoll = Timer.periodic(const Duration(seconds: 2), (timer) async {
         final state = _depotPending;
-        if (state == null || DateTime.now().difference(started).inMinutes >= 10) {
+        if (state == null) {
           timer.cancel();
+          return;
+        }
+        if (DateTime.now().difference(started).inMinutes >= 10) {
+          timer.cancel();
+          if (mounted) {
+            _cancelDepot();
+            _snack('Keine Freigabe vom Depot erhalten. Du kannst es jederzeit noch einmal versuchen.');
+          }
           return;
         }
         try {
@@ -685,7 +731,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         }
       });
     } catch (e) {
-      _snack('Fehler: $e', error: true);
+      _snack(_friendly(e), error: true);
     }
   }
 
@@ -702,7 +748,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ? 'Depot verbunden · $count ${count == 1 ? 'Position' : 'Positionen'} übernommen'
           : 'Depot aktualisiert');
     } catch (e) {
-      _snack('Aktualisieren fehlgeschlagen: $e', error: true);
+      _snack('Aktualisieren hat nicht geklappt. ${_friendly(e)}', error: true);
     } finally {
       if (mounted) setState(() => _depotBusy = false);
     }

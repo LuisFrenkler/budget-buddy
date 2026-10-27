@@ -5,6 +5,8 @@ import '../services/plus_service.dart';
 import '../services/store_purchases.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import '../legal/legal_texts.dart';
+import 'about_screen.dart';
 
 // Opens the Plus page; [reason] says what the user just tried to do, so the
 // page starts with that instead of a generic pitch.
@@ -26,6 +28,24 @@ class PlusScreen extends StatefulWidget {
 
 class _PlusScreenState extends State<PlusScreen> {
   bool _yearly = true;
+  bool _restoring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // the store's own prices arrive a moment later
+    StorePurchases.prices.addListener(_pricesArrived);
+  }
+
+  @override
+  void dispose() {
+    StorePurchases.prices.removeListener(_pricesArrived);
+    super.dispose();
+  }
+
+  void _pricesArrived() {
+    if (mounted) setState(() {});
+  }
 
   static const _features = [
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
@@ -41,8 +61,10 @@ class _PlusScreenState extends State<PlusScreen> {
   }
 
   Future<void> _restore() async {
+    setState(() => _restoring = true);
     final found = await PlusService.restore();
     if (!mounted) return;
+    setState(() => _restoring = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(found ? 'Dein Plus-Abo ist wieder aktiv' : 'Kein Abo gefunden, das wiederhergestellt werden kann')));
     if (found) Navigator.pop(context);
@@ -72,7 +94,8 @@ class _PlusScreenState extends State<PlusScreen> {
           child: Column(children: [
             Align(
               alignment: Alignment.centerRight,
-              child: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+              child: IconButton(
+                  tooltip: 'Schließen', icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
             ),
             Expanded(
               child: ListView(
@@ -144,18 +167,35 @@ class _PlusScreenState extends State<PlusScreen> {
                   child: const Text('7 Tage gratis testen', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(height: 8),
+                // what the stores require next to the button: price, period,
+                // automatic renewal, where to cancel, and the legal texts
                 Text(
                   'Danach ${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
-                  '${_yearly ? 'im Jahr' : 'im Monat'}. Heute 0 €, jederzeit kündbar '
+                  '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar '
                   '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
                 ),
-                TextButton(
-                  onPressed: _restore,
-                  style: TextButton.styleFrom(foregroundColor: AppColors.textDim, visualDensity: VisualDensity.compact),
-                  child: const Text('Käufe wiederherstellen', style: TextStyle(fontSize: 12.5)),
-                ),
+                Wrap(alignment: WrapAlignment.center, children: [
+                  for (final doc in [LegalTexts.terms, LegalTexts.privacy])
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: AppColors.textDim,
+                          visualDensity: VisualDensity.compact,
+                          textStyle: const TextStyle(fontSize: 12)),
+                      onPressed: () =>
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: doc))),
+                      child: Text(doc.title == 'Nutzungsbedingungen' ? 'AGB' : 'Datenschutz'),
+                    ),
+                  TextButton(
+                    onPressed: _restoring ? null : _restore,
+                    style: TextButton.styleFrom(
+                        foregroundColor: AppColors.textDim,
+                        visualDensity: VisualDensity.compact,
+                        textStyle: const TextStyle(fontSize: 12)),
+                    child: Text(_restoring ? 'Wird gesucht …' : 'Käufe wiederherstellen'),
+                  ),
+                ]),
               ]),
             ),
           ]),
