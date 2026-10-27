@@ -31,7 +31,7 @@ class Ai {
   final String geminiKey;
   final String geminiModel;
   Ai(this.apiKey, {this.geminiKey = '', String geminiModel = ''})
-      : geminiModel = geminiModel.isEmpty ? 'gemini-2.5-flash' : geminiModel;
+      : geminiModel = geminiModel.isEmpty ? 'gemini-3.5-flash' : geminiModel;
 
   // Claude when its key is set, otherwise Gemini
   bool get _claude => apiKey.isNotEmpty;
@@ -267,7 +267,8 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
         'das Geld kommt vom genannten Konto, sonst account null. Ohne genanntes Konto: account null. '
         'Relative Angaben wie "gestern" beziehen sich auf heute, ohne Datum heute. Auf einem Kassenbon zählt '
         'der Gesamtbetrag. Erfinde nichts: Wenn nichts zu buchen ist, gib keine Einträge zurück und beantworte '
-        'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast.\n\n'
+        'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast. Schreib nicht, dass du '
+        'etwas eingetragen oder erfasst hast: Der Nutzer sieht die Einträge und bestätigt jeden selbst.\n\n'
         'Nachricht: ${text.isEmpty ? '(nur ein Foto)' : text}';
     return _structured([
       if (base64Image != null && base64Image.isNotEmpty)
@@ -282,6 +283,34 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
   // --- Gemini (Google AI Studio) ---
 
   Map<String, String> get _geminiHeaders => {'Content-Type': 'application/json', 'x-goog-api-key': geminiKey};
+
+  // Gemini's free models are often busy for a moment (503, 429): wait,
+  // try again, then try the other current Flash model
+  List<String> get _geminiModels => {geminiModel, 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.7-flash'}.toList();
+
+  Future<http.StreamedResponse> _geminiSend(String action, Map<String, dynamic> body, {required http.Client client}) async {
+    final tries = [for (final m in _geminiModels) ...[m, m]];
+    // the app waits about a minute; a slow model must not use it all up
+    final deadline = DateTime.now().add(const Duration(seconds: 55));
+    for (var i = 0;; i++) {
+      final last = i == tries.length - 1 || DateTime.now().isAfter(deadline);
+      final req = http.Request('POST', Uri.parse('$_gemini/${tries[i]}:$action'))
+        ..headers.addAll(_geminiHeaders)
+        ..body = jsonEncode(body);
+      final http.StreamedResponse res;
+      try {
+        res = await client.send(req).timeout(Duration(seconds: last ? 30 : 20));
+      } on TimeoutException {
+        if (last) throw const AiError('Die KI ist gerade überlastet. Bitte gleich noch einmal.');
+        continue;
+      }
+      final busy = res.statusCode == 503 || res.statusCode == 429;
+      // the last try's answer goes back unread, so its error can be shown
+      if (!busy || last) return res;
+      await res.stream.drain<void>();
+      await Future<void>.delayed(Duration(milliseconds: 800 * (i % 2 + 1)));
+    }
+  }
 
   // Claude's content blocks as Gemini parts
   static List<Map<String, dynamic>> geminiParts(List<Map<String, dynamic>> content) => [
@@ -328,24 +357,23 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
   }
 
   Future<Map<String, dynamic>> _geminiJson(List<Map<String, dynamic>> content, Map<String, dynamic> schema) async {
-    final res = await http
-        .post(Uri.parse('$_gemini/$geminiModel:generateContent'),
-            headers: _geminiHeaders,
-            body: jsonEncode({
-              'contents': [
-                {'role': 'user', 'parts': geminiParts(content)}
-              ],
-              'generationConfig': {'responseMimeType': 'application/json', 'responseSchema': geminiSchema(schema)},
-            }))
-        .timeout(const Duration(seconds: 60));
-    if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, res.body));
-    return jsonDecode(geminiText(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>)) as Map<String, dynamic>;
+    final client = http.Client();
+    try {
+      final res = await http.Response.fromStream(await _geminiSend('generateContent', {
+        'contents': [
+          {'role': 'user', 'parts': geminiParts(content)}
+        ],
+        'generationConfig': {'responseMimeType': 'application/json', 'responseSchema': geminiSchema(schema)},
+      }, client: client));
+      if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, res.body));
+      return jsonDecode(geminiText(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>)) as Map<String, dynamic>;
+    } finally {
+      client.close();
+    }
   }
 
   Stream<String> _geminiStream(List<Map<String, dynamic>> messages) async* {
-    final req = http.Request('POST', Uri.parse('$_gemini/$geminiModel:streamGenerateContent?alt=sse'))
-      ..headers.addAll(_geminiHeaders)
-      ..body = jsonEncode({
+    final body = {
         'systemInstruction': {
           'parts': [
             {'text': _chatSystem}
@@ -360,10 +388,10 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
               ],
             }
         ],
-      });
+      };
     final client = http.Client();
     try {
-      final res = await client.send(req).timeout(const Duration(seconds: 60));
+      final res = await _geminiSend('streamGenerateContent?alt=sse', body, client: client);
       if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, await res.stream.bytesToString()));
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
         if (!line.startsWith('data: ')) continue;
@@ -377,7 +405,7 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
 
   static String _apiError(int status, String body) {
     if (status == 401) return 'Der KI-Schlüssel des Servers ist ungültig.';
-    if (status == 429) return 'Die KI ist gerade ausgelastet. Bitte gleich noch einmal.';
+    if (status == 429 || status == 503) return 'Die KI ist gerade ausgelastet. Bitte gleich noch einmal.';
     if (status >= 500) return 'Die KI ist kurz nicht erreichbar.';
     try {
       return 'KI-Fehler: ${(jsonDecode(body) as Map)['error']?['message']}';
