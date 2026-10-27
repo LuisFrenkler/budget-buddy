@@ -6,6 +6,7 @@ import '../screens/connections_screen.dart';
 import '../screens/goals_screen.dart';
 import '../screens/smart_entry_sheet.dart';
 import '../services/notification_service.dart';
+import '../services/db.dart';
 import '../services/onboarding_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -176,11 +177,13 @@ class GettingStartedCard extends StatelessWidget {
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
-          TextButton(
-            onPressed: OnboardingService.hide,
-            style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
-            child: Text(complete ? 'Fertig' : 'Ausblenden'),
-          ),
+          // before the first booking the steps are the whole Start screen: nothing to hide yet
+          if (complete || DB.getTx().isNotEmpty)
+            TextButton(
+              onPressed: OnboardingService.hide,
+              style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+              child: Text(complete ? 'Fertig' : 'Ausblenden'),
+            ),
         ]),
         if (!complete) ...[
           const SizedBox(height: 8),

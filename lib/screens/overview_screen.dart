@@ -84,26 +84,40 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   // pull to refresh: new bank bookings and current prices in one go
+  // always ends with one sentence on what happened, so pulling never feels ignored
   Future<void> _refresh() async {
     HapticFeedback.selectionClick();
-    String? problem;
-    try {
-      final added = await BankSync.run();
-      if (added > 0 && mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}')));
+    final parts = <String>[];
+    var trouble = false;
+    if (Settings.bankState.isNotEmpty) {
+      try {
+        final added = await BankSync.run();
+        parts.add(added > 0 ? '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}' : 'Keine neuen Buchungen');
+      } catch (_) {
+        parts.add('Bank gerade nicht erreichbar');
+        trouble = true;
       }
-    } catch (_) {
-      problem = 'Bank gerade nicht erreichbar';
     }
-    try {
-      await PriceService.refreshAll();
-    } catch (_) {}
+    if (DB.getHoldings().isNotEmpty) {
+      try {
+        final r = await PriceService.refreshAll();
+        if (r.live > 0) parts.add('Kurse aktualisiert');
+      } catch (_) {
+        parts.add('Kurse gerade nicht erreichbar');
+        trouble = true;
+      }
+    }
     await SplitService.refreshAll();
     await _loadDepot();
-    if (problem != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(problem)));
-    }
+    if (!mounted) return;
+    final now = DateTime.now();
+    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(milliseconds: 2400),
+      content: Text(parts.isEmpty ? 'Alles aktuell · Stand $time' : '${parts.join(' · ')} · Stand $time'),
+      backgroundColor: trouble ? AppColors.warning : null,
+    ));
   }
 
   Future<void> _loadDepot() async {
@@ -210,6 +224,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ),
       ),
     );
+  }
+
+  // the room two lines of text need beyond their normal size at the user's text scale
+  static double _extraTextHeight(BuildContext context) {
+    final scaled = MediaQuery.textScalerOf(context).scale(13) - 13;
+    return scaled <= 0 ? 0 : scaled * 2.4;
   }
 
   // sample data never passes for the user's own money
@@ -600,7 +620,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       ]),
       const SizedBox(height: 8),
       SizedBox(
-        height: 132,
+        // grows with the system text size, so rings and names never clip
+        height: 132 + _extraTextHeight(context),
         child: ListView(
           scrollDirection: Axis.horizontal,
           children: [
@@ -669,7 +690,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       SectionTitle('Budgets', action: 'Alle', onAction: () => widget.onOpen(1, segment: 1)),
       const SizedBox(height: 8),
       SizedBox(
-        height: 150,
+        height: 150 + _extraTextHeight(context),
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           itemCount: budgets.length,
