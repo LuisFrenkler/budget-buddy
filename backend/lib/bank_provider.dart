@@ -8,8 +8,6 @@ class BankAccount {
   const BankAccount(this.uid, {this.iban, this.name});
 
   Map<String, dynamic> toJson() => {'uid': uid, 'iban': iban, 'name': name};
-  factory BankAccount.fromJson(Map<String, dynamic> j) =>
-      BankAccount(j['uid'] as String, iban: j['iban'] as String?, name: j['name'] as String?);
 }
 
 class BankSession {

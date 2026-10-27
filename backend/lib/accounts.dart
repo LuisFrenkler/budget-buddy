@@ -40,7 +40,12 @@ class Accounts {
     (map['tokens'] as Map? ?? {}).forEach((k, v) => _tokens[k as String] = (v as Map).cast<String, dynamic>());
   }
 
-  Future<void> _save() => writeJsonAtomic(_store, {'users': _users, 'tokens': _tokens});
+  Future<void> _save() {
+    // expired sign-ins would otherwise pile up and be rewritten on every login
+    final now = DateTime.now();
+    _tokens.removeWhere((_, t) => now.isAfter(DateTime.tryParse('${t['expires']}') ?? now));
+    return writeJsonAtomic(_store, {'users': _users, 'tokens': _tokens});
+  }
 
   static String _random(int bytes) {
     final rnd = math.Random.secure();

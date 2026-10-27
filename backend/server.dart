@@ -90,6 +90,20 @@ final _store = File('$_dataDir/sessions.json');
 final _depots = <String, Map<String, dynamic>>{};
 final _depotPending = <String, ({String owner, String verifier})>{};
 final _depotFailed = <String, String>{};
+// when each consent above began: abandoned ones are dropped after an hour
+final _started = <String, DateTime>{};
+
+void _dropAbandoned() {
+  final cutoff = DateTime.now().subtract(const Duration(hours: 1));
+  final old = [for (final e in _started.entries) if (e.value.isBefore(cutoff)) e.key];
+  for (final state in old) {
+    _started.remove(state);
+    _pending.remove(state);
+    _failed.remove(state);
+    _depotPending.remove(state);
+    _depotFailed.remove(state);
+  }
+}
 final _depotStore = File('$_dataDir/depots.json');
 final _symbols = SymbolLookup();
 // who has Plus: user id -> entitlement
@@ -445,6 +459,8 @@ Future<void> _connect(HttpRequest req) async {
     state: state,
     redirectUrl: _redirectUrl,
   );
+  _dropAbandoned();
+  _started[state] = DateTime.now();
   _pending[state] = (bank: institution, owner: user['id'] as String);
   return _json(req, 200, {'state': state, 'link': link});
 }
@@ -683,6 +699,8 @@ Future<void> _plusCheckout(HttpRequest req) async {
 }
 
 Future<void> _plusDemoCheckout(HttpRequest req) {
+  // the test checkout exists only while no real payments are set up
+  if (_billing is! DemoBilling) throw const AuthError(404, 'Nicht gefunden.');
   final id = req.uri.queryParameters['session'] ?? '';
   final s = (_billing as DemoBilling).session(id);
   if (s == null) return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte den Kauf in BudgetBuddy erneut.</p>');
@@ -698,6 +716,8 @@ Future<void> _plusDemoCheckout(HttpRequest req) {
 }
 
 Future<void> _plusDemoPay(HttpRequest req) async {
+  // the test checkout exists only while no real payments are set up
+  if (_billing is! DemoBilling) throw const AuthError(404, 'Nicht gefunden.');
   final id = req.uri.queryParameters['session'] ?? '';
   (_billing as DemoBilling).markPaid(id);
   req.response
@@ -869,6 +889,8 @@ Future<void> _depotConnect(HttpRequest req) async {
   final user = _user(req);
   final state = _newState();
   final p = pkce();
+  _dropAbandoned();
+  _started[state] = DateTime.now();
   _depotPending[state] = (owner: user['id'] as String, verifier: p.verifier);
   return _json(req, 200, {
     'state': state,
