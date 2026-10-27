@@ -48,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (Settings.bankName.isNotEmpty) Settings.bankName,
       for (final l in Settings.extraBanks) l.bank,
       if (Settings.depotState.isNotEmpty) Settings.depotBroker.isNotEmpty ? Settings.depotBroker : 'Depot',
+      for (final l in Settings.extraDepots) l.broker.isNotEmpty ? l.broker : 'Depot',
     ];
     return linked.isEmpty ? 'ING, Sparkasse, Trade Republic & Co. verbinden' : '${linked.join(', ')} verbunden';
   }

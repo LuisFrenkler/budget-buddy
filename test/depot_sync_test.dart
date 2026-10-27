@@ -107,4 +107,16 @@ void main() {
       expect(h.last, 1234);
     });
   });
+
+  test('two depot links keep their positions apart and only remove their own', () {
+    final extraId = '${DepotSync.linkPrefix('state1234567')}A';
+    final existing = [_h('depot_A'), _h(extraId)];
+    // the first link no longer holds A: only its own A goes
+    final first = DepotSync.merge(existing: existing, incoming: const []);
+    expect(first.remove, ['depot_A']);
+    // the further link brings A again: same ISIN, its own position
+    final second = DepotSync.merge(existing: existing, incoming: [_p('A')], link: 'state1234567');
+    expect(second.keep.single.id, extraId);
+    expect(second.remove, isEmpty);
+  });
 }
