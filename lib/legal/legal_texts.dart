@@ -43,9 +43,11 @@ class LegalTexts {
   static LegalDoc get privacy => LegalDoc('Datenschutzerklärung', [
         LegalSection(
             'Auf einen Blick',
-            'BudgetBuddy ist so gebaut, dass deine Finanzdaten auf deinem Gerät bleiben. Umsätze, Budgets, '
-                'Depot und Sparziele werden lokal gespeichert. Daten verlassen dein Gerät nur, wenn du eine '
-                'Funktion nutzt, die das braucht, etwa das Nutzerkonto, die Bankverbindung oder Buddy. '
+            'BudgetBuddy ist so gebaut, dass nur du deine Finanzdaten lesen kannst. Umsätze, Budgets, '
+                'Depot und Sparziele werden auf deinem Gerät gespeichert. Mit einem Nutzerkonto liegt zusätzlich '
+                'eine Kopie bei uns, die schon auf deinem Gerät mit deinem Passwort verschlüsselt wird: Wir können '
+                'sie nicht lesen. Andere Daten verlassen dein Gerät nur, wenn du eine Funktion nutzt, die das '
+                'braucht, etwa die Bankverbindung oder Buddy. '
                 'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.\n\n'
                 'Stand: ${LegalInfo.updated}'),
         LegalSection('1. Verantwortlicher', _contact),
@@ -60,7 +62,13 @@ class LegalTexts {
             'Für ein Konto verarbeiten wir deinen Namen, deine E-Mail-Adresse und dein Passwort. Das Passwort '
                 'speichern wir nur als sicheren Hash (bcrypt), Anmelde-Sitzungen nur als Prüfsumme. '
                 'Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertrag). Die Daten werden gelöscht, sobald '
-                'du dein Konto löschst. Gast-Nutzung ist ohne Konto möglich.'),
+                'du dein Konto löschst. Gast-Nutzung ist ohne Konto möglich.\n\n'
+                'Damit deine Daten nach der Anmeldung auf jedem Gerät da sind, speichern wir eine Kopie deiner '
+                'Umsätze, Budgets, Ziele, geteilten Ausgaben, Depot-Positionen und der Bank- und Depotverbindung. '
+                'Die App verschlüsselt sie vor dem Hochladen (AES-256) mit einem Schlüssel, der aus deinem Passwort '
+                'entsteht und dein Gerät nie verlässt. Wir speichern nur den verschlüsselten Text und können ihn '
+                'nicht öffnen. Deshalb kann auch niemand die Kopie wiederherstellen, wenn du dein Passwort vergisst. '
+                'Mit dem Konto wird auch die Kopie gelöscht.'),
         const LegalSection(
             '4. Bank- und Depotverbindung',
             'Wenn du dein Girokonto verbindest, läuft der Zugriff über Enable Banking Oy (Otaniemi, Finnland), '

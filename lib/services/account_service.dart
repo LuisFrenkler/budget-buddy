@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'backend_service.dart';
+import 'cloud_sync.dart';
 import 'settings_service.dart';
 
 class Account {
@@ -160,8 +161,14 @@ class AccountService {
       _update(await _authedPost('/auth/email', {'email': email, 'password': password}));
 
   // other devices are signed out by the server, this one stays signed in
-  static Future<void> changePassword(String current, String next) =>
-      _authedPost('/auth/password', {'current': current, 'next': next});
+  // the account's data is sealed with the new password from now on
+  static Future<void> changePassword(String current, String next) async {
+    await _authedPost('/auth/password', {'current': current, 'next': next});
+    final id = AccountService.current.value?.id;
+    if (id == null) return;
+    await CloudSync.unlock(id, next);
+    await CloudSync.push();
+  }
 
   // deletes the account on the server (with all bank links), then locally
   static Future<void> deleteAccount() async {
@@ -173,6 +180,7 @@ class AccountService {
   }
 
   static Future<void> _forget() async {
+    await CloudSync.forget();
     _token = null;
     try {
       await _storage.delete(key: _tokenKey);

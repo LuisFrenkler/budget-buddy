@@ -45,6 +45,7 @@ dependencies:
   web: ^1.1.1
   in_app_purchase: ^3.3.1
   in_app_purchase_android: ^0.5.0
+  cryptography: ^2.7.0
 
 dev_dependencies:
   flutter_test:

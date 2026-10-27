@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/cloud_sync.dart';
 import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
@@ -283,7 +284,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _error = null;
     });
     try {
-      await AccountService.register(name: _name.text, email: _email.text, password: _password.text);
+      final account = await AccountService.register(name: _name.text, email: _email.text, password: _password.text);
+      // a new account starts its copy with what is on this device
+      await CloudSync.unlock(account.id, _password.text);
+      CloudSync.push().catchError((_) {});
       await Settings.setOnboardingDone(true);
       TextInput.finishAutofillContext();
       if (!mounted) return;
@@ -439,9 +443,11 @@ class _SignInScreenState extends State<SignInScreen> {
       _error = null;
     });
     try {
-      await AccountService.login(email: _email.text, password: _password.text);
+      final account = await AccountService.login(email: _email.text, password: _password.text);
       await Settings.setOnboardingDone(true);
       TextInput.finishAutofillContext();
+      if (!mounted) return;
+      await _bringAccountData(account, _password.text);
       if (!mounted) return;
       HapticFeedback.mediumImpact();
       Navigator.popUntil(context, (r) => r.isFirst);
@@ -450,6 +456,42 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() => _error = '$e');
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  // the account's data from its other devices; asks before it replaces
+  // data of someone else (or a guest) on this device
+  Future<void> _bringAccountData(Account account, String password) async {
+    try {
+      await CloudSync.unlock(account.id, password);
+      final remote = await CloudSync.fetch();
+      if (remote == null) return await CloudSync.push();
+      final ownHere = (DB.getTx().isNotEmpty || DB.getHoldings().isNotEmpty) && !DemoData.active;
+      if (ownHere && !CloudSync.ownsLocalData(account.id) && mounted) {
+        final load = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Dein Konto hat schon Daten'),
+            content: const Text('Auf diesem Gerät liegen andere Daten als in deinem Konto. '
+                'Lädst du die Kontodaten, ersetzen sie die auf diesem Gerät. '
+                'Behältst du die Gerätedaten, ersetzen sie die in deinem Konto.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Gerätedaten behalten')),
+              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Kontodaten laden')),
+            ],
+          ),
+        );
+        if (load != true) return await CloudSync.push();
+      }
+      await CloudSync.apply(remote);
+    } catch (_) {
+      // signed in anyway; the data here stays and nothing is overwritten
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 3200),
+            content: Text('Deine gesicherten Daten konnten gerade nicht geladen werden. Beim nächsten Start versuche ich es wieder.')));
+      }
     }
   }
 

@@ -55,6 +55,7 @@ import 'lib/depot.dart';
 import 'lib/enable_banking.dart';
 import 'lib/json_store.dart';
 import 'lib/rate_limit.dart';
+import 'lib/vault.dart';
 import 'lib/splits.dart';
 import 'lib/net.dart';
 
@@ -119,6 +120,7 @@ void _dropAbandoned() {
   }
 }
 final _depotStore = File('$_dataDir/depots.json');
+final _vault = Vault('$_dataDir/vault');
 final _symbols = SymbolLookup();
 // who has Plus: user id -> entitlement
 final _plus = <String, Entitlement>{};
@@ -274,7 +276,7 @@ Future<void> _html(HttpRequest req, String body) async {
 
 // receipts arrive as photos; everything else is small
 Future<Map<String, dynamic>> _body(HttpRequest req) async {
-  final limit = req.uri.path == '/ai/receipt' ? 8 << 20 : 256 << 10;
+  final limit = req.uri.path == '/ai/receipt' || req.uri.path == '/vault' ? 16 << 20 : 256 << 10;
   final bytes = BytesBuilder(copy: false);
   await for (final chunk in req) {
     bytes.add(chunk);
@@ -366,6 +368,15 @@ Future<void> _handle(HttpRequest req) async {
     case '/auth/account':
       if (req.method != 'DELETE') return _json(req, 405, {'error': 'DELETE only'});
       return _deleteAccount(req);
+    // GET -> {version, updatedAt, data} or 404; POST {data} -> {version}
+    case '/vault':
+      final id = _user(req)['id'] as String;
+      if (req.method == 'POST') {
+        final b = await _body(req);
+        return _json(req, 200, {'version': await _vault.put(id, b['data'])});
+      }
+      final v = await _vault.get(id);
+      return v == null ? _json(req, 404, {'error': 'Noch keine Sicherung.'}) : _json(req, 200, v);
     case '/ai/chat':
       return _aiChat(req);
     case '/ai/parse':
@@ -616,6 +627,7 @@ Future<void> _deleteAccount(HttpRequest req) async {
   }
   await _save();
   _depots.removeWhere((_, d) => d['owner'] == user['id']);
+  await _vault.delete(user['id'] as String);
   // a deleted account must not keep paying
   final plus = _plus.remove(user['id']);
   if (plus != null && plus.active && !StoreBilling.owns(plus)) {
