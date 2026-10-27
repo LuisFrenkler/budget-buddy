@@ -122,6 +122,29 @@ void main() {
       expect(PlusService.active.value, isFalse);
     });
 
+    test('a period ending on the 31st stays on the month\'s end, no drift to the 3rd', () {
+      final sub = Subscription(
+          plan: PlusPlan.monthly, method: PayMethod.card, methodDetail: '',
+          started: DateTime(2026, 1, 24), trialEnds: DateTime(2026, 1, 31));
+      expect(sub.periodEnd(DateTime(2026, 2, 1)), DateTime(2026, 2, 28));
+      expect(sub.periodEnd(DateTime(2026, 3, 1)), DateTime(2026, 3, 31));
+      expect(sub.invoices(DateTime(2026, 4, 1)).map((i) => i.date),
+          [DateTime(2026, 3, 31), DateTime(2026, 2, 28), DateTime(2026, 1, 31)]);
+    });
+
+    test('the server\'s period end wins over the calculation', () {
+      final sub = Subscription.fromServer({
+        'plan': 'monthly',
+        'method': 'card',
+        'started': '2026-01-10T00:00:00.000',
+        'trialEnds': '2026-01-17T00:00:00.000',
+        'periodEnd': '2026-03-20T00:00:00.000',
+        'cancelAtPeriodEnd': false,
+      });
+      expect(sub.periodEnd(DateTime(2026, 3, 1)), DateTime(2026, 3, 20));
+      expect(Subscription.fromMap(sub.toMap()).serverPeriodEnd, DateTime(2026, 3, 20));
+    });
+
     test('promo codes add free days', () async {
       expect(PlusService.promoDays('freund'), 30);
       expect(PlusService.promoDays('NOPE'), isNull);

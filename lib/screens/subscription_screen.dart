@@ -105,8 +105,8 @@ class _Details extends StatelessWidget {
               sub.cancelled
                   ? 'Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.'
                   : trial
-                      ? 'Erste Zahlung am ${Dates.full(sub.trialEnds)}: ${Money.raw(sub.priceCents)}. Vorher kündigen kostet nichts.'
-                      : 'Nächste Zahlung am ${Dates.full(next)}: ${Money.raw(sub.priceCents)}.',
+                      ? 'Erste Zahlung am ${Dates.full(sub.trialEnds)}: ${PlusService.price(sub.plan)}. Vorher kündigen kostet nichts.'
+                      : 'Nächste Zahlung am ${Dates.full(next)}: ${PlusService.price(sub.plan)}.',
               style: TextStyle(color: sub.cancelled ? AppColors.textDim : Colors.white70, fontSize: 13.5, height: 1.35),
             ),
           ]),
@@ -117,7 +117,7 @@ class _Details extends StatelessWidget {
           _row(
             icon: Icons.workspace_premium_rounded,
             title: yearly ? 'Jährlich' : 'Monatlich',
-            subtitle: yearly ? '${PlusService.yearlyPrice} im Jahr' : '${PlusService.monthlyPrice} im Monat',
+            subtitle: '${PlusService.price(sub.plan)} ${yearly ? 'im Jahr' : 'im Monat'}',
             trailing: yearly ? null : 'Sparen',
             onTap: sub.cancelled ? null : () => sub.managed ? _portal(context) : _choosePlan(context),
           ),
@@ -126,7 +126,7 @@ class _Details extends StatelessWidget {
             title: sub.cancelled ? 'Endet am' : 'Nächste Zahlung',
             subtitle: sub.cancelled
                 ? Dates.full(sub.endsAt!)
-                : '${Dates.full(next)} · ${Money.raw(sub.priceCents)}',
+                : '${Dates.full(next)} · ${PlusService.price(sub.plan)}',
           ),
           _row(
             leading: MethodLogo(sub.method),
@@ -364,7 +364,7 @@ class _Details extends StatelessWidget {
                   side: BorderSide(
                       color: p == sub.plan ? AppColors.primary : AppColors.border, width: p == sub.plan ? 2 : 1),
                 ),
-                title: Text(p == PlusPlan.yearly ? 'Jährlich · ${PlusService.yearlyPrice}' : 'Monatlich · ${PlusService.monthlyPrice}',
+                title: Text('${p == PlusPlan.yearly ? 'Jährlich' : 'Monatlich'} · ${PlusService.price(p)}',
                     style: const TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text(p == PlusPlan.yearly
                     ? 'Nur ${PlusService.yearlyPerMonth} im Monat, du sparst 33 %'

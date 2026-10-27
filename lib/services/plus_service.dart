@@ -55,6 +55,9 @@ class Subscription {
   final DateTime trialEnds;
   final DateTime? endsAt; // set when cancelled: access runs until then
   final bool managed; // bought through the server; changes go through it
+  // the end of the running period as Stripe or the store reports it; wins
+  // over the local calculation, which can't know about plan changes or retries
+  final DateTime? serverPeriodEnd;
 
   const Subscription({
     required this.plan,
@@ -64,6 +67,7 @@ class Subscription {
     required this.trialEnds,
     this.endsAt,
     this.managed = false,
+    this.serverPeriodEnd,
   });
 
   bool get cancelled => endsAt != null;
@@ -75,26 +79,33 @@ class Subscription {
 
   int get priceCents => plan == PlusPlan.yearly ? PlusService.yearlyCents : PlusService.monthlyCents;
 
-  DateTime _step(DateTime d) =>
-      plan == PlusPlan.yearly ? DateTime(d.year + 1, d.month, d.day) : DateTime(d.year, d.month + 1, d.day);
+  // the n-th payment date after the trial, counted from the trial's day, so
+  // a start on the 31st pays on the 30th or 28th in short months and on the
+  // 31st again after (adding one month at a time would drift to the 3rd)
+  DateTime _payment(int n) {
+    final months = plan == PlusPlan.yearly ? 12 * n : n;
+    final t = trialEnds;
+    final last = DateTime(t.year, t.month + months + 1, 0).day;
+    return DateTime(t.year, t.month + months, t.day > last ? last : t.day, t.hour, t.minute);
+  }
 
   // the next payment date (the end of the current period)
   DateTime periodEnd(DateTime now) {
-    var d = trialEnds;
-    while (!d.isAfter(now)) {
-      d = _step(d);
+    final server = serverPeriodEnd;
+    if (server != null && server.isAfter(now)) return server;
+    var n = 0;
+    while (!_payment(n).isAfter(now)) {
+      n++;
     }
-    return d;
+    return _payment(n);
   }
 
   // every payment since the trial ended, newest first
   List<Invoice> invoices(DateTime now) {
     final list = <Invoice>[];
-    var d = trialEnds;
     // after a cancellation the date at [endsAt] is not charged any more
-    while (!d.isAfter(now) && (endsAt == null || d.isBefore(endsAt!))) {
-      list.add(Invoice(d, priceCents, plan));
-      d = _step(d);
+    for (var n = 0; !_payment(n).isAfter(now) && (endsAt == null || _payment(n).isBefore(endsAt!)); n++) {
+      list.add(Invoice(_payment(n), priceCents, plan));
     }
     return list.reversed.toList();
   }
@@ -119,6 +130,7 @@ class Subscription {
         trialEnds: trialEnds ?? this.trialEnds,
         endsAt: resume ? null : endsAt ?? this.endsAt,
         managed: managed,
+        serverPeriodEnd: serverPeriodEnd,
       );
 
   Map<String, dynamic> toMap() => {
@@ -129,6 +141,7 @@ class Subscription {
         'trialEnds': trialEnds.toIso8601String(),
         if (endsAt != null) 'endsAt': endsAt!.toIso8601String(),
         if (managed) 'managed': true,
+        if (serverPeriodEnd != null) 'periodEnd': serverPeriodEnd!.toIso8601String(),
       };
 
   static Subscription fromMap(Map m) => Subscription(
@@ -139,6 +152,7 @@ class Subscription {
         trialEnds: DateTime.parse(m['trialEnds'] as String),
         endsAt: m['endsAt'] == null ? null : DateTime.parse(m['endsAt'] as String),
         managed: m['managed'] == true,
+        serverPeriodEnd: m['periodEnd'] == null ? null : DateTime.tryParse('${m['periodEnd']}'),
       );
 
   // the server's entitlement (backend/lib/billing.dart) as a subscription
@@ -150,6 +164,7 @@ class Subscription {
         trialEnds: DateTime.parse('${e['trialEnds']}'),
         endsAt: e['cancelAtPeriodEnd'] == true ? DateTime.parse('${e['periodEnd']}') : null,
         managed: true,
+        serverPeriodEnd: DateTime.tryParse('${e['periodEnd']}'),
       );
 }
 
