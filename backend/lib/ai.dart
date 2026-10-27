@@ -184,6 +184,107 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
         },
       ], categories);
 
+  // What happened, in the user's words or on a photo (receipt, bank
+  // screenshot, broker confirmation) -> the entries it means for their
+  // accounts and depots, plus one sentence back. Nothing is stored here: the
+  // app shows each entry and the user confirms it.
+  static Map<String, dynamic> _entriesSchema() {
+    Map<String, dynamic> maybe(String type, [String? description]) =>
+        {'type': [type, 'null'], if (description != null) 'description': description};
+    return {
+      'type': 'object',
+      'additionalProperties': false,
+      'required': ['reply', 'entries'],
+      'properties': {
+        'reply': {'type': 'string', 'description': 'ein, zwei Sätze an den Nutzer, was du erkannt hast'},
+        'entries': {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'additionalProperties': false,
+            'required': [
+              'type', 'amount', 'isIncome', 'category', 'note', 'date', 'account', 'toAccount',
+              'name', 'symbol', 'shares', 'price', 'depot',
+            ],
+            'properties': {
+              'type': {'type': 'string', 'enum': ['booking', 'transfer', 'buy', 'sell']},
+              'amount': maybe('number', 'Euro, positiv; bei booking und transfer'),
+              'isIncome': maybe('boolean', 'nur bei booking'),
+              'category': maybe('string', 'nur bei booking, eine der Kategorien'),
+              'note': maybe('string', 'kurzer Titel, z. B. Händler'),
+              'date': maybe('string', 'YYYY-MM-DD'),
+              'account': maybe('string', 'id des Kontos, von dem das Geld kommt bzw. auf dem gebucht wird'),
+              'toAccount': maybe('string', 'nur bei transfer: id des Zielkontos'),
+              'name': maybe('string', 'nur bei buy/sell: Name des Wertpapiers oder Coins'),
+              'symbol': maybe('string', 'nur bei buy/sell: Ticker, z. B. AAPL, SAP.DE, BTC'),
+              'shares': maybe('number', 'nur bei buy/sell: Stückzahl'),
+              'price': maybe('number', 'nur bei buy/sell: Kurs je Stück in Euro'),
+              'depot': maybe('string', 'nur bei buy/sell: Name des Depots'),
+            },
+          },
+        },
+      },
+    };
+  }
+
+  Future<Map<String, dynamic>> entries({
+    required String text,
+    String? base64Image,
+    String mediaType = 'image/jpeg',
+    required List<String> categories,
+    required List<Map<String, dynamic>> accounts,
+    required List<String> depots,
+  }) async {
+    if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
+    final accountList = [for (final a in accounts) '- ${a['id']}: ${a['name']} (${a['kind']})'].join('\n');
+    final prompt = 'Heute ist ${_today()}. Du bist Buddy in einer deutschen Finanz-App. Der Nutzer erzählt, '
+        'was passiert ist, oder schickt ein Foto. Mach daraus Einträge für seine Konten und Depots.\n\n'
+        'Seine Konten:\n$accountList\n'
+        'Seine Depots: ${depots.isEmpty ? 'noch keins' : depots.join(', ')}\n'
+        'Kategorien: ${categories.join(', ')}\n\n'
+        'Regeln: Ein Einkauf, eine Rechnung oder ein Gehalt ist ein booking. Geld zwischen zwei seiner Konten '
+        'ist ein transfer. Ein Wertpapier- oder Krypto-Kauf ist buy, ein Verkauf sell, mit Stückzahl und Kurs; '
+        'das Geld kommt vom genannten Konto, sonst account null. Ohne genanntes Konto: account null. '
+        'Relative Angaben wie "gestern" beziehen sich auf heute, ohne Datum heute. Auf einem Kassenbon zählt '
+        'der Gesamtbetrag. Erfinde nichts: Wenn nichts zu buchen ist, gib keine Einträge zurück und beantworte '
+        'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast.\n\n'
+        'Nachricht: ${text.isEmpty ? '(nur ein Foto)' : text}';
+    final res = await http
+        .post(Uri.parse(_url),
+            headers: _headers,
+            body: jsonEncode({
+              'model': _model,
+              'max_tokens': 4000,
+              'fallbacks': 'default',
+              'output_config': {
+                'effort': 'low',
+                'format': {'type': 'json_schema', 'schema': _entriesSchema()},
+              },
+              'messages': [
+                {
+                  'role': 'user',
+                  'content': [
+                    if (base64Image != null && base64Image.isNotEmpty)
+                      {
+                        'type': 'image',
+                        'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Image},
+                      },
+                    {'type': 'text', 'text': prompt},
+                  ],
+                }
+              ],
+            }))
+        .timeout(const Duration(seconds: 60));
+    if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, res.body));
+    final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    if (body['stop_reason'] == 'refusal') throw const AiError('Das konnte die KI nicht auslesen.');
+    final out = [
+      for (final b in (body['content'] as List))
+        if (b['type'] == 'text') b['text']
+    ].join();
+    return jsonDecode(out) as Map<String, dynamic>;
+  }
+
   static String _apiError(int status, String body) {
     if (status == 401) return 'Der KI-Schlüssel des Servers ist ungültig.';
     if (status == 429) return 'Die KI ist gerade ausgelastet. Bitte gleich noch einmal.';
