@@ -13,6 +13,7 @@ import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import '../legal/legal_texts.dart';
 import 'about_screen.dart';
+import 'auth_screens.dart';
 
 // Checkout for Plus: what it costs and when, the payment method, a promo
 // code, then a welcome page. Returns true when Plus was started.
@@ -92,6 +93,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // in the iPhone and Android app Plus is bought through the store
   bool get _inStore => _checkout && StorePurchases.supported;
   bool get _server => _checkout && !_inStore && _billing != null;
+  // the server is being asked whether it takes payments
+  bool _asking = false;
+  // the local test form exists for development only: a release never unlocks
+  // Plus for free or asks for card details it can't use
+  bool get _blocked => _checkout && !_inStore && !_server && kReleaseMode;
 
   @override
   void initState() {
@@ -104,13 +110,51 @@ class _PaymentScreenState extends State<PaymentScreen> {
         if (mounted) setState(() {});
       });
     } else if (_checkout && AccountService.token != null) {
+      _asking = true;
       _askServer();
     }
   }
 
   Future<void> _askServer() async {
     final health = await BackendService.health();
-    if (mounted && health?['billing'] != null) setState(() => _billing = '${health!['billing']}');
+    if (!mounted) return;
+    setState(() {
+      _asking = false;
+      if (health?['billing'] != null) _billing = '${health!['billing']}';
+    });
+  }
+
+  // a release on the web without a reachable server: say what is missing
+  Widget _unavailable() {
+    final signedIn = AccountService.token != null;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(signedIn ? Icons.cloud_off_rounded : Icons.person_outline_rounded, size: 48, color: AppColors.textDim),
+          const SizedBox(height: 16),
+          Text(signedIn ? 'Gerade nicht erreichbar' : 'Erst ein Konto',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(
+              signedIn
+                  ? 'Die Zahlung läuft über unseren Server, der gerade nicht antwortet. Versuch es gleich noch einmal.'
+                  : 'Plus gehört zu deinem Konto, damit du es auf jedem Gerät behältst und jederzeit kündigen kannst.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textDim, height: 1.4)),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: signedIn
+                ? () {
+                    setState(() => _asking = true);
+                    _askServer();
+                  }
+                : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+            child: Text(signedIn ? 'Erneut versuchen' : 'Konto erstellen'),
+          ),
+        ]),
+      ),
+    );
   }
 
   @override
@@ -271,8 +315,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = Text(_checkout ? 'Plus starten' : 'Zahlungsmethode');
+    // no test form flashing up while the server is asked
+    if (_asking) {
+      return Scaffold(appBar: AppBar(title: title), body: const Center(child: CircularProgressIndicator()));
+    }
+    if (_blocked) return Scaffold(appBar: AppBar(title: title), body: _unavailable());
     return Scaffold(
-      appBar: AppBar(title: Text(_checkout ? 'Plus starten' : 'Zahlungsmethode')),
+      appBar: AppBar(title: title),
       body: Stack(children: [
         Column(children: [
           Expanded(
