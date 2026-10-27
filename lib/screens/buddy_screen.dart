@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../services/buddy_tips.dart';
 import '../services/account_service.dart';
 import '../services/buddy_service.dart';
 import '../services/plus_service.dart';
@@ -547,10 +548,12 @@ class RichMarkdown extends StatelessWidget {
   }
 }
 
-// Entry on the home screen: Buddy's orb, a question that changes every few
-// seconds, and two one-tap questions.
+// Entry on the home screen: Buddy's orb with a short tip from the user's own
+// numbers (or, when nothing stands out, a question that changes every few
+// seconds) and one-tap questions.
 class BuddyCard extends StatefulWidget {
-  const BuddyCard({super.key});
+  final BuddyTip? tip;
+  const BuddyCard({super.key, this.tip});
 
   @override
   State<BuddyCard> createState() => _BuddyCardState();
@@ -564,7 +567,8 @@ class _BuddyCardState extends State<BuddyCard> {
   void initState() {
     super.initState();
     _t = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (mounted) setState(() => _i = (_i + 1) % BuddyScreen.suggestions.length);
+      // a tip stays put; only the general questions take turns
+      if (mounted && widget.tip == null) setState(() => _i = (_i + 1) % BuddyScreen.suggestions.length);
     });
   }
 
@@ -578,7 +582,11 @@ class _BuddyCardState extends State<BuddyCard> {
 
   @override
   Widget build(BuildContext context) {
-    final s = BuddyScreen.suggestions;
+    final tip = widget.tip;
+    final s = [
+      if (tip != null) (icon: Icons.lightbulb_rounded, text: tip.question),
+      ...BuddyScreen.suggestions,
+    ];
     // a 1.5 px gradient border around the card
     return Container(
       padding: const EdgeInsets.all(1.5),
@@ -591,7 +599,7 @@ class _BuddyCardState extends State<BuddyCard> {
         borderRadius: BorderRadius.circular(20.5),
         child: InkWell(
           borderRadius: BorderRadius.circular(20.5),
-          onTap: _open,
+          onTap: () => _open(tip?.question),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -600,14 +608,18 @@ class _BuddyCardState extends State<BuddyCard> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Frag Buddy', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                    Text(tip != null ? 'Buddy hat einen Tipp' : 'Frag Buddy',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
+                    if (tip != null)
+                      Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35))
+                    else
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
                       // old and new question cross-fade in the same place
                       layoutBuilder: (current, previous) =>
                           Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
-                      child: Text('„${s[_i].text}“',
+                      child: Text('„${s[_i % s.length].text}“',
                           key: ValueKey(_i),
                           style: TextStyle(color: AppColors.textDim, fontSize: 13),
                           overflow: TextOverflow.ellipsis),

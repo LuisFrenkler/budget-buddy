@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/sync_pill.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
+import '../services/buddy_tips.dart';
 import '../services/account_service.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
@@ -191,7 +192,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   _accountsCard(tx, cash, depotNow),
                   ..._forecast(tx, cash),
                   const SizedBox(height: 16),
-                  const BuddyCard(),
+                  BuddyCard(tip: BuddyTips.pick(tx: tx, budgets: DB.getBudgets())),
                   ..._weekly(tx),
                   const SizedBox(height: 16),
                   const ContractsCard(),
