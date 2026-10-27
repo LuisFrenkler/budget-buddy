@@ -14,6 +14,9 @@ class Holding {
   // when that price came live from a market source; null for a price that was
   // typed in, imported or taken from the built-in reference list
   final DateTime? priceAt;
+  // the live price in euros with all its decimals: coins like HBAR cost
+  // 0,054 €, which as whole cents (0,05 €) would be 8 % off for the value
+  final double? unitEur;
 
   Holding({
     required this.id,
@@ -24,10 +27,12 @@ class Holding {
     required this.buyPriceCents,
     required this.currentPriceCents,
     this.priceAt,
+    this.unitEur,
   });
 
-  // the same position with a fresh live price
-  Holding withLivePrice(int cents, DateTime at) => Holding(
+  // the same position with a fresh live price; [unitEur] when the source
+  // gives more precision than whole cents
+  Holding withLivePrice(int cents, DateTime at, {double? unitEur}) => Holding(
         id: id,
         name: name,
         symbol: symbol,
@@ -36,13 +41,19 @@ class Holding {
         buyPriceCents: buyPriceCents,
         currentPriceCents: cents,
         priceAt: at,
+        unitEur: unitEur,
       );
 
   // total amount originally invested, in cents
   int get investedCents => (shares * buyPriceCents).round();
 
-  // current market value, in cents
-  int get valueCents => (shares * currentPriceCents).round();
+  // current market value, in cents (from the precise price when there is one,
+  // as long as it still belongs to the stored price)
+  int get valueCents {
+    final precise = unitEur;
+    if (precise != null && (precise * 100).round() == currentPriceCents) return (shares * precise * 100).round();
+    return (shares * currentPriceCents).round();
+  }
 
   // absolute gain or loss, in cents (negative = loss)
   int get gainCents => valueCents - investedCents;
@@ -64,6 +75,7 @@ class Holding {
       'buyPriceCents': buyPriceCents,
       'currentPriceCents': currentPriceCents,
       if (priceAt != null) 'priceAt': priceAt!.millisecondsSinceEpoch,
+      if (unitEur != null) 'unitEur': unitEur,
     };
   }
 
@@ -77,6 +89,7 @@ class Holding {
       buyPriceCents: (map['buyPriceCents'] as num).toInt(),
       currentPriceCents: (map['currentPriceCents'] as num).toInt(),
       priceAt: map['priceAt'] == null ? null : DateTime.fromMillisecondsSinceEpoch((map['priceAt'] as num).toInt()),
+      unitEur: (map['unitEur'] as num?)?.toDouble(),
     );
   }
 }

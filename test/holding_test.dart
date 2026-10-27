@@ -52,5 +52,17 @@ void main() {
       final legacy = Map<String, dynamic>.from(h.toMap())..remove('priceAt');
       expect(Holding.fromMap(legacy).priceAt, isNull);
     });
+
+    test('coins under a cent keep their value: 10.000 HBAR at 0,0543 €', () {
+      final h = Holding(
+              id: 'h', name: 'Hedera', symbol: 'HBAR', type: 'Krypto', shares: 10000,
+              buyPriceCents: 4, currentPriceCents: 4)
+          .withLivePrice(5, DateTime(2026, 10, 27), unitEur: 0.0543);
+      expect(h.valueCents, 54300); // not 50000 from 0,05 €
+      expect(Holding.fromMap(h.toMap()).valueCents, 54300);
+      // a price typed in later wins over the old precise one
+      final typed = Holding.fromMap({...h.toMap(), 'currentPriceCents': 7});
+      expect(typed.valueCents, 70000);
+    });
   });
 }
