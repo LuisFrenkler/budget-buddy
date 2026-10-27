@@ -155,7 +155,9 @@ class _StatsViewState extends State<StatsView> {
   // the monthly recap and the weekly report stay reachable here, not only
   // through the one-time banner on Start
   Widget _reports(List<Transaction> all) {
-    final recap = _isCurrentMonth ? null : RecapService.build(all, _month);
+    // a running month has no recap yet: then the one of the month before
+    final recapMonth = _isCurrentMonth ? DateTime(_month.year, _month.month - 1) : _month;
+    final recap = RecapService.build(all, recapMonth);
     final weekly = WeeklyReportService.build(all);
     if (recap == null && weekly == null) return const SizedBox.shrink();
     Widget button(IconData icon, String label, VoidCallback onTap) => Expanded(
@@ -173,7 +175,7 @@ class _StatsViewState extends State<StatsView> {
         );
     return Row(children: [
       if (recap != null)
-        button(Icons.auto_awesome_rounded, 'Rückblick', () {
+        button(Icons.auto_awesome_rounded, '${_monthNames[recapMonth.month - 1]}-Rückblick', () {
           Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
         }),
       if (recap != null && weekly != null) const SizedBox(width: 10),
