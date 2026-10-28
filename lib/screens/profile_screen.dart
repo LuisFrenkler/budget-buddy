@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/db.dart';
 import '../widgets/import_flows.dart';
 import '../services/backup_service.dart';
@@ -271,6 +272,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SectionLabel('BudgetBuddy'),
               SettingsGroup([
+                SettingsRow(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: 'Feedback zur Testversion',
+                  subtitle: 'Was hakt, was fehlt, was gefällt',
+                  onTap: _sendFeedback,
+                ),
+                SettingsRow(
+                  icon: Icons.checklist_rounded,
+                  title: 'Soft-Launch Tipps',
+                  subtitle: 'Was du als Tester ausprobieren kannst',
+                  onTap: _softLaunchTips,
+                ),
                 SettingsRow(
                   icon: Icons.apartment_rounded,
                   title: 'Unternehmen & Vertrauen',
@@ -561,6 +574,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _snack(signedIn
         ? 'Bank, Depot und Kontokopie wurden angestoßen.'
         : 'Bank und Depot wurden angestoßen. Die Kontokopie braucht ein Konto.');
+  }
+
+  Future<void> _sendFeedback() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: LegalInfo.email,
+      query: 'subject=${Uri.encodeComponent('BudgetBuddy Feedback (Test)')}'
+          '&body=${Uri.encodeComponent('Gerät / OS:\nWas ich getestet habe:\nWas gut lief:\nWas hakt:\n')}',
+    );
+    if (!await launchUrl(uri) && mounted) {
+      _snack('Schreib an ${LegalInfo.email}');
+    }
+  }
+
+  void _softLaunchTips() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Soft-Launch Tipps', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 10),
+            Text(
+              'Kurz durchklicken und Feedback schicken, wenn etwas hakt:\n\n'
+              '1. Konto anlegen und erneut anmelden\n'
+              '2. Bank verbinden (oder Demo) und Sync ziehen\n'
+              '3. Buddy eine echte Frage stellen\n'
+              '4. Sparziel anlegen und Fortschritt prüfen\n'
+              '5. Geteilte Ausgabe mit Code testen\n\n'
+              'Bank kann noch Demo sein — echte Freigaben kommen mit der öffentlichen Version.',
+              style: TextStyle(color: AppColors.textDim, height: 1.45),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _sendFeedback();
+              },
+              child: const Text('Feedback senden'),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 
   void _whatLeaves() {
