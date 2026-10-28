@@ -40,8 +40,7 @@ class GoalsService {
     // the date has passed: say so instead of pretending a month is left
     if (deadline != null && deadline.isBefore(DateTime(today.year, today.month, today.day))) {
       return GoalPlan(
-          'Der ${Dates.full(deadline)} ist vorbei, ${Money.format(g.remainingCents)} fehlen noch. '
-          'Gib dem Ziel ein neues Datum.',
+          'Datum vorbei — noch ${Money.format(g.remainingCents)}. Neues Datum setzen.',
           false);
     }
     // on autopilot: the plan is what the user set up, measured against the date
@@ -50,42 +49,38 @@ class GoalsService {
       final need = g.monthlyNeeded(today);
       if (need != null && g.monthlyCents < need) {
         return GoalPlan(
-            'Mit ${Money.format(g.monthlyCents)} im Monat wird es knapp: bis zum Datum bräuchtest du '
-            '${Money.format(need)}. Erhöh den Betrag oder verschieb das Datum.',
+            '${Money.format(g.monthlyCents)}/Monat ist knapp — bis zum Datum bräuchtest du ${Money.format(need)}.',
             false);
       }
       return GoalPlan(
-          'Mit ${Money.format(g.monthlyCents)} im Monat hast du es in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
+          '${Money.format(g.monthlyCents)}/Monat → fertig in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
           true);
     }
     final need = g.monthlyNeeded(today);
     if (need == null) {
       if (avgSurplusCents <= 0) {
-        return const GoalPlan('Gib dem Ziel ein Datum, dann rechne ich dir einen Plan aus.', false);
+        return const GoalPlan('Mit Datum rechne ich dir einen Monatsplan aus.', false);
       }
       // without a date: how long at half of the usual surplus
       // rounded down to full 10 €, a number people actually set up
       final perMonth = (avgSurplusCents ~/ 2 ~/ 1000) * 1000;
       if (perMonth <= 0) {
-        return const GoalPlan('Gib dem Ziel ein Datum, dann rechne ich dir einen Plan aus.', false);
+        return const GoalPlan('Mit Datum rechne ich dir einen Monatsplan aus.', false);
       }
       final months = (g.remainingCents / perMonth).ceil();
       return GoalPlan(
-          'Mit ${Money.format(perMonth)} im Monat, der Hälfte deines üblichen Überschusses, '
-          'hast du es in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
+          'Ca. ${Money.format(perMonth)}/Monat → $months ${months == 1 ? 'Monat' : 'Monate'}.',
           true);
     }
     final share = avgSurplusCents <= 0 ? 999.0 : need / avgSurplusCents;
     if (share <= 0.6) {
-      return GoalPlan('Leg ${Money.format(need)} im Monat zurück. Das passt locker in deinen Überschuss.', true);
+      return GoalPlan('${Money.format(need)}/Monat — passt in deinen Überschuss.', true);
     }
     if (share <= 1) {
-      return GoalPlan(
-          'Leg ${Money.format(need)} im Monat zurück. Das ist knapp: fast dein ganzer Überschuss.', true);
+      return GoalPlan('${Money.format(need)}/Monat — knapp, fast dein ganzer Überschuss.', true);
     }
     return GoalPlan(
-        'Dafür bräuchtest du ${Money.format(need)} im Monat, mehr als du im Schnitt übrig hast. '
-        'Verschieb das Datum oder senk den Betrag.',
+        '${Money.format(need)}/Monat wären nötig — Datum verschieben oder Ziel senken.',
         false);
   }
 }

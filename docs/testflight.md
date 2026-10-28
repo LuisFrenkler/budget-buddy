@@ -23,11 +23,11 @@ Team zu einem aktiven Developer-Abo gehört, bist du für Builds startklar.
 
 | Muss | Status |
 |------|--------|
-| Apple Developer Program aktiv | du (99 €/Jahr) |
+| Apple Developer Program aktiv | du (99 €/Jahr) — **nächster Blocker** |
 | App in App Store Connect angelegt | du |
-| Straße, PLZ/Ort, Datenschutzbehörde in `lib/legal/legal_info.dart` | du |
-| Datenschutz + Impressum als öffentliche HTTPS-URL | erledigt (öffentliches Repo `budget-buddy-legal`) |
-| Production-Backend `https://…` (siehe `docs/launch.md`) | du |
+| Straße, PLZ/Ort, Datenschutzbehörde in `lib/legal/legal_info.dart` | erledigt (Hamburg) |
+| Datenschutz + Impressum als öffentliche HTTPS-URL | erledigt (`budget-buddy-legal`) |
+| Production-Backend `https://…` | du — Anleitung: [backend_host.md](backend_host.md) |
 | Build mit `BACKEND_URL` auf dieses Backend | Build-Befehl unten |
 
 Für Soft Launch: **Bank nur Demo oder Waitlist**, Plus über Store-Sandbox oder
@@ -76,10 +76,10 @@ Nach dem Upload:
 
 ## Checkliste erster Freundes-Build
 
-1. [ ] Developer-Abo aktiv  
-2. [ ] `legal_info.dart` ohne `[…]`-Platzhalter  
-3. [ ] Privacy-URL erreichbar und in App Store Connect eingetragen  
-4. [ ] Backend HTTPS live, `/health` ok, CORS auf die App eingeschränkt  
+1. [ ] Developer-Abo aktiv (**jetzt**)  
+2. [x] `legal_info.dart` ohne `[…]`-Platzhalter  
+3. [x] Privacy-URL live — in App Store Connect noch eintragen  
+4. [ ] Backend HTTPS live ([backend_host.md](backend_host.md)), `/health` ok  
 5. [ ] `flutter build ipa` mit `BACKEND_URL`  
 6. [ ] Upload → TestFlight → dich selbst als Tester  
 7. [ ] 5–20 Freunde einladen  

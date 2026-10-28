@@ -303,8 +303,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 2),
-                    Text(
-                        'Einmal eintragen — dann stimmen Vermögen, Prognose und „Was ist frei?“.',
+                    Text('Einmal eintragen — dann stimmt der Überblick.',
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 13,
@@ -425,7 +424,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
       balanceCents: cash,
     );
     final emergency = Wealth.emergency(tx);
-    final rate = Wealth.savingsRatePercent(tx);
     final out = <Widget>[const SizedBox(height: 16)];
     out.add(BuddyCard(
       tip: tip,
@@ -443,7 +441,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
               : 'Noch ${Money.format(emergency.missingCents)} bis zum Polster',
       () => Navigator.push(
           context, MaterialPageRoute(builder: (_) => const WealthScreen())),
-      footnote: rate == null ? null : 'Sparquote $rate % · 3 Mon.',
     ));
     return out;
   }
@@ -543,21 +540,21 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ]),
                   const SizedBox(height: 4),
                   Text(report.headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: AppColors.textDim,
                           fontSize: 14,
                           height: 1.35)),
-                  const SizedBox(height: 14),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48)),
+                  const SizedBox(height: 12),
+                  TextButton.icon(
                     onPressed: () async {
                       await presentWeeklyStory(context, report);
                       if (mounted) setState(() {});
                     },
-                    icon: const Icon(Icons.auto_stories_rounded),
-                    label: const Text('Wochen-Story ansehen',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
+                    icon: const Icon(Icons.auto_stories_rounded, size: 18),
+                    label: const Text('Ansehen',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ]),
           ),
@@ -628,6 +625,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     }
 
     if (tiles.isEmpty) return const [];
+    final shown = tiles.take(3).toList();
     return [
       const SizedBox(height: 28),
       const Text('Für dich',
@@ -639,9 +637,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            for (var i = 0; i < tiles.length; i++) ...[
+            for (var i = 0; i < shown.length; i++) ...[
               if (i > 0) Divider(height: 1, color: AppColors.border),
-              tiles[i],
+              shown[i],
             ],
           ],
         ),
@@ -1069,7 +1067,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
       const SizedBox(height: 8),
       Text(
-        'Verbinde deine Bank für automatische Umsätze — oder erfasse die erste Ausgabe von Hand.',
+        'Bank verbinden oder erste Ausgabe erfassen.',
         style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
       ),
       const SizedBox(height: 20),
@@ -1101,7 +1099,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     const Text('Bank verbinden',
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
-                    Text('Sicher über Open Banking · du behältst die Kontrolle',
+                    Text('Login nur bei deiner Bank',
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 12.5,

@@ -29,7 +29,7 @@ int _surplus() {
 // Starts a new goal, or opens the Plus page when the free goal is used.
 Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
-    return showPlus(context, reason: 'Mehr Sparziele — und Autopilot für Aufrunden & Monatsziel (ohne Überweisung)');
+    return showPlus(context, reason: 'Mehr Sparziele und Autopilot (Aufrunden & Monatsbetrag)');
   }
   await showModalBottomSheet(
     context: context,
@@ -84,7 +84,8 @@ class GoalsScreen extends StatelessWidget {
           const Text('Worauf sparst du?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
-            'Urlaub, Notgroschen, neues Handy: Leg ein Ziel an. Zurücklegen bucht aufs Sparkonto — du siehst es bei den Konten.',
+            'Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto — nach Sync zählt es hier. '
+            'Ohne Sparkonto trägst du den Stand manuell ein.',
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
           ),
           const SizedBox(height: 24),
@@ -175,14 +176,12 @@ class GoalCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(plan.text,
-                  style: TextStyle(fontSize: 13.5, height: 1.4, color: plan.onTrack ? AppColors.text : AppColors.warningText)),
+                  style: TextStyle(fontSize: 13.5, height: 1.35, color: plan.onTrack ? AppColors.text : AppColors.warningText)),
             ),
           ]),
         ),
         if (!goal.reached) ...[
-          const SizedBox(height: 10),
-          _autoRow(context),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
@@ -190,71 +189,79 @@ class GoalCard extends StatelessWidget {
                   backgroundColor: AppColors.primary.withValues(alpha: 0.16), foregroundColor: AppColors.primary),
               onPressed: () => _deposit(context, goal),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(MoneyAccounts.several ? 'Zurücklegen' : 'Fortschritt eintragen'),
+              label: const Text('Geld zurücklegen'),
             ),
           ),
-          const SizedBox(height: 6),
-          Text('Zählt nur in der App — überweist kein Geld.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+          const SizedBox(height: 8),
+          Text(
+            MoneyAccounts.several
+                ? 'Überweise bei der Bank aufs Sparkonto — nach Sync zählt es hier. Manuell geht auch.'
+                : 'Stand hier eintragen. Mit einem Sparkonto zählt der Bank-Transfer nach Sync automatisch.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35),
+          ),
+          if (goal.automated) ...[
+            const SizedBox(height: 8),
+            _autoRow(context),
+          ] else ...[
+            const SizedBox(height: 4),
+            Center(
+              child: TextButton(
+                onPressed: () => _openAutopilot(context),
+                child: Text('Automatisch sparen (Plus)',
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+              ),
+            ),
+          ],
         ],
       ]),
     );
   }
 
-  // "Automatisch sparen": what is switched on, tap to change
+  Future<void> _openAutopilot(BuildContext context) async {
+    if (!PlusService.active.value) {
+      await showPlus(context, reason: 'Autopilot: Aufrunden & Monatsbeträge — zählt in der App mit');
+      if (!PlusService.active.value || !context.mounted) return;
+    }
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (_) => _AutoSaveSheet(goal),
+    );
+  }
+
+  // "Automatisch sparen": only when already on — tap to change
   Widget _autoRow(BuildContext context) {
     final parts = [
       if (goal.monthlyCents > 0) '${Money.format(goal.monthlyCents)} im Monat',
       if (goal.roundUp) 'Aufrunden',
     ];
     final plus = PlusService.active.value;
-    // set up earlier, Plus ended since: shown as paused, nothing is lost
-    final paused = goal.automated && !plus;
+    final paused = !plus;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          if (!plus) {
-            await showPlus(context, reason: 'Autopilot: Aufrunden & Monatsbeträge — App zählt mit, bewegt kein Geld');
-            if (!PlusService.active.value || !context.mounted) return;
-          }
-          await showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: AppColors.surface,
-            showDragHandle: true,
-            builder: (_) => _AutoSaveSheet(goal),
-          );
-        },
+        onTap: () => _openAutopilot(context),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
           child: Row(children: [
-            Icon(goal.automated && !paused ? Icons.bolt_rounded : Icons.bolt_outlined,
-                size: 20, color: goal.automated && !paused ? AppColors.positive : AppColors.textDim),
+            Icon(paused ? Icons.bolt_outlined : Icons.bolt_rounded,
+                size: 20, color: paused ? AppColors.textDim : AppColors.positive),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 paused
-                    ? 'Autopilot pausiert · mit Plus zählt die App wieder mit'
-                    : goal.automated
-                        ? 'Automatisch: ${parts.join(' · ')}'
-                        : 'Automatisch sparen einrichten',
+                    ? 'Autopilot pausiert (Plus)'
+                    : 'Automatisch: ${parts.join(' · ')}',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13.5,
-                    color: goal.automated && !paused ? AppColors.text : AppColors.primary),
+                    color: paused ? AppColors.textDim : AppColors.text),
               ),
             ),
-            if (!plus && !paused)
-              Container(
-                margin: const EdgeInsets.only(right: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: AppColors.heroBrand), borderRadius: BorderRadius.circular(999)),
-                child: const Text('PLUS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-              ),
             Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textDim),
           ]),
         ),
@@ -326,7 +333,7 @@ class GoalCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 10),
                 child: Text(
-                  'Nur Zähler — mit einem zweiten Konto (z. B. Tagesgeld) buchen wir die Umbuchung mit.',
+                  'Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.',
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                 ),
               ),
@@ -344,7 +351,7 @@ class GoalCard extends StatelessWidget {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
             TextButton(
                 onPressed: () => Navigator.pop(context, Money.parseToCents(controller.text)),
-                child: Text(take ? 'Entnehmen' : 'Zurücklegen')),
+                child: Text(take ? 'Entnehmen' : 'Geld zurücklegen')),
           ],
         ),
       ),

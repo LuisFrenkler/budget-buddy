@@ -4,12 +4,18 @@
 	<dict>
 		<key>NSFaceIDUsageDescription</key>
 		<string>BudgetBuddy nutzt Face ID, um deine Finanzdaten zu schützen.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>BudgetBuddy greift auf Fotos zu, damit du Belege scannen und ein Profilbild setzen kannst.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>BudgetBuddy speichert exportierte Sicherungen nur, wenn du das ausdrücklich wählst.</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Budget Buddy</string>
+		<string>BudgetBuddy</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -17,7 +23,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>budget_buddy</string>
+		<string>BudgetBuddy</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>

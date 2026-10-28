@@ -6,8 +6,8 @@ class LegalInfo {
   static const appVersion = '1.0.0';
 
   static const provider = 'Luis Frenkler';
-  static const street = '[Straße und Hausnummer]';
-  static const city = '[PLZ und Ort]';
+  static const street = 'Delle 1';
+  static const city = '22395 Hamburg';
   static const country = 'Deutschland';
   static const email = 'luis.frenkler@t-online.de';
   static const phone = ''; // optional
@@ -18,8 +18,9 @@ class LegalInfo {
   // person responsible for content under § 18 Abs. 2 MStV
   static const responsible = 'Luis Frenkler';
 
-  // supervisory authority for data protection complaints (the one of the provider's state)
-  static const authority = '[Datenschutz-Aufsichtsbehörde des Bundeslandes]';
+  // Hamburg: Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit
+  static const authority =
+      'Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg';
 
   static const updated = 'Oktober 2026';
 
