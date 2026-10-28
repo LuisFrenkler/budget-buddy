@@ -46,8 +46,8 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 
 ## Soft Launch Pfad (2 Wochen)
 
-1. Gemini + kleiner EU-VPS
-2. TestFlight / Play Internal (Freunde) — **Schritt für Schritt 2:** [docs/testflight.md](testflight.md)
+1. Gemini + kleiner EU-VPS — **Anleitung:** [backend_host.md](backend_host.md)
+2. TestFlight / Play Internal (Freunde) — **Schritt für Schritt:** [testflight.md](testflight.md)
    (Apple Developer Program ~99 €/Jahr ist Pflicht für TestFlight)
 3. Bank nur Demo oder Waitlist
 4. Plus mit Store-Sandbox

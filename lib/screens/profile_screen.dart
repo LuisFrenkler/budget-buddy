@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SettingsRow(
                     icon: Icons.person_add_alt_1_rounded,
                     title: 'Konto erstellen',
-                    subtitle: 'Für die Bankverbindung und neue Geräte',
+                    subtitle: 'Für Bank und neue Geräte',
                     onTap: _signUp,
                   ),
                 ValueListenableBuilder<bool>(
@@ -185,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   builder: (context, on, _) => SettingsRow(
                     icon: Icons.notifications_rounded,
                     title: 'Mitteilungen',
-                    subtitle: on ? 'An · nur wenn es zählt, keine Werbung' : 'Aus',
+                    subtitle: on ? 'An' : 'Aus',
                     onTap: _openNotifications,
                   ),
                 ),
@@ -209,22 +209,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.savings_rounded,
                   title: 'Budgets',
-                  subtitle: 'Limits pro Kategorie, im Konto',
+                  subtitle: 'Limits im Konto',
                   onTap: () => _toAccount(1),
                 ),
                 SettingsRow(
                   icon: Icons.pie_chart_outline_rounded,
                   title: 'Kategorien',
-                  subtitle: 'Ausgaben nach Kategorie. Umsortieren einer Buchung merkt sich den Händler.',
+                  subtitle: 'Ausgaben sortieren',
                   onTap: () => _toAccount(2),
                 ),
               ]),
 
               const SectionLabel('Erscheinungsbild'),
               SettingsGroup([
-                _switch(Icons.dark_mode_rounded, 'Dunkler Modus', 'Gilt für die ganze App',
+                _switch(Icons.dark_mode_rounded, 'Dunkler Modus', 'Ganze App',
                     ThemeController.isDark.value, _toggleDarkMode),
-                _switch(Icons.visibility_off_rounded, 'Beträge verbergen', 'Auch über das Auge auf dem Start',
+                _switch(Icons.visibility_off_rounded, 'Beträge verbergen', 'Auch auf dem Start',
                     Settings.hideAmounts.value, (v) async {
                   await Settings.setHideAmounts(v);
                   if (mounted) setState(() {});
@@ -236,31 +236,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.flag_rounded,
                   title: 'Sparziele',
-                  subtitle: 'Urlaub, Notgroschen, große Anschaffungen',
+                  subtitle: 'Urlaub, Notgroschen, …',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
-                ),
-                SettingsRow(
-                  icon: Icons.account_balance_wallet_rounded,
-                  title: 'Vermögen & Absicherung',
-                  subtitle: 'Notgroschen, Sparquote, Schulden, Versicherungen — keine Vermittlung',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen())),
-                ),
-                SettingsRow(
-                  icon: Icons.timelapse_rounded,
-                  title: 'Vorsorge',
-                  subtitle: 'Rentenlücke grob schätzen — Orientierung, keine Beratung',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.receipt_long_rounded,
                   title: 'Verträge & Abos',
-                  subtitle: 'Aus Buchungen erkannt — Miete, Streaming, Abos',
+                  subtitle: 'Aus Buchungen erkannt',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.call_split_rounded,
                   title: 'Geteilte Ausgaben',
-                  subtitle: 'Mit Code live teilen — oder nur auf dem Gerät',
+                  subtitle: 'Mit Freunden teilen',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
                 ),
               ]),
@@ -268,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SectionLabel('Privatsphäre & KI'),
               SettingsGroup([
                 _switch(Icons.auto_awesome_rounded, 'Buddy mit KI',
-                    'Nur mit Zustimmung. Zusammenfassung ohne Kontonummern.', BuddyService.hasConsent, (v) async {
+                    'Nur mit deiner Zustimmung', BuddyService.hasConsent, (v) async {
                   await BuddyService.live();
                   await BuddyService.setConsent(v);
                   if (mounted) setState(() {});
@@ -276,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Was das Gerät verlässt',
-                  subtitle: 'Bank, Kontokopie, KI, Kurse',
+                  subtitle: 'Bank, Kopie, KI, Kurse',
                   onTap: _whatLeaves,
                 ),
               ]),
@@ -286,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.apartment_rounded,
                   title: 'Unternehmen & Vertrauen',
-                  subtitle: 'Wofür wir stehen, Karriere, Rechtliches',
+                  subtitle: 'Rechtliches & Kontakt',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanyScreen())),
                 ),
               ]),
@@ -295,9 +283,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (_advanced)
                 SettingsGroup([
                   SettingsRow(
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: 'Vermögen & Absicherung',
+                    subtitle: 'Notgroschen, Schulden',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen())),
+                  ),
+                  SettingsRow(
+                    icon: Icons.timelapse_rounded,
+                    title: 'Vorsorge',
+                    subtitle: 'Rentenlücke grob schätzen',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
+                  ),
+                  SettingsRow(
                     icon: Icons.swap_vert_rounded,
                     title: 'Import, Export & Backup',
-                    subtitle: 'Bank-CSV, Depot, Sicherung auf diesem Gerät',
+                    subtitle: 'CSV und Sicherung',
                     onTap: _openDataTools,
                   ),
                   if (account != null)
@@ -310,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SettingsRow(
                     icon: Icons.restart_alt_rounded,
                     title: 'App zurücksetzen',
-                    subtitle: 'Alle Daten auf diesem Gerät löschen',
+                    subtitle: 'Alle Daten auf diesem Gerät',
                     onTap: _resetApp,
                     danger: true,
                   ),
@@ -318,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SettingsRow(
                       icon: Icons.person_remove_rounded,
                       title: 'Konto löschen',
-                      subtitle: 'Konto, Bankverbindungen und Cloud-Kopie, endgültig',
+                      subtitle: 'Endgültig',
                       onTap: () => AccountSettingsScreen.deleteAccount(context),
                       danger: true,
                     ),
