@@ -451,8 +451,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
             answer.offline = true;
             answer.degraded = true;
           });
+          _sub?.cancel();
           _sub = BuddyService.ask(history, live: false).listen(
             (piece) => setState(() => answer.text += piece),
+            onError: (e) {
+              if (!mounted) return;
+              setState(() {
+                answer.text = friendlyError(e,
+                    fallback: 'Offline-Antwort fehlgeschlagen. Versuch es gleich noch einmal.');
+                answer.error = true;
+                _thinking = false;
+              });
+            },
             onDone: () {
               if (mounted) {
                 setState(() {

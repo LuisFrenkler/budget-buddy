@@ -16,8 +16,33 @@ import '../legal/legal_texts.dart';
 
 // "Mein Abo": status, plan, payment method, invoices, codes and cancelling,
 // all in one place so nobody has to search for how to quit.
-class SubscriptionScreen extends StatelessWidget {
+class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
+
+  @override
+  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
+}
+
+class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    PlusService.syncWithServer(fresh: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      PlusService.syncWithServer(fresh: true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

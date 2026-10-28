@@ -12,6 +12,7 @@ import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/weekly_story.dart';
 import 'buddy_screen.dart';
+import 'smart_entry_sheet.dart';
 
 // Buddy's weekly report. Tip + categories free; Buddy-Chat mit Gratis-Kontingent.
 class WeeklyReportScreen extends StatelessWidget {
@@ -52,8 +53,24 @@ class WeeklyReportScreen extends StatelessWidget {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
-                child: Text('Für diese Woche gibt es noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.',
-                    textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.auto_awesome_rounded, size: 48, color: AppColors.primaryText),
+                  const SizedBox(height: 16),
+                  Text(
+                      'Für diese Woche gibt es noch keine Alltagsausgaben. '
+                      'Sobald welche da sind, wertet Buddy sie aus.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textDim, height: 1.4)),
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      showSmartEntry(context);
+                    },
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Ausgabe erfassen'),
+                  ),
+                ]),
               ),
             )
           : ValueListenableBuilder<bool>(

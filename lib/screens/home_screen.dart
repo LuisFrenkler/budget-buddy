@@ -132,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final t = HomeScreen.goTab.value;
     if (t == null || !mounted) return;
     HomeScreen.goTab.value = null;
+    if (t != 3) BuddyScreen.ask.value = null;
     _open(t);
   }
 

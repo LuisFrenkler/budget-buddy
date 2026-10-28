@@ -97,8 +97,12 @@ class ForecastService {
     late final int income;
     if (months == 0 || incomeSum == 0) {
       // week 1: only Gehalt this month — still show „noch frei“, labelled preliminary
+      final monthLast = _day(monthEnd);
       final thisMonth = tx
-          .where((t) => t.isEarning && !t.date.isBefore(monthStart) && !t.date.isAfter(monthEnd))
+          .where((t) =>
+              t.isEarning &&
+              !_day(t.date).isBefore(_day(monthStart)) &&
+              !_day(t.date).isAfter(monthLast))
           .fold<int>(0, (s, t) => s + t.amountCents);
       if (thisMonth <= 0) return null;
       income = thisMonth;

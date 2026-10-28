@@ -45,7 +45,7 @@ class ContractsScreen extends StatelessWidget {
                     ),
                     if (raised.isNotEmpty) ...[
                       const SizedBox(height: 20),
-                      _raisedBanner(raised),
+                      _raisedBanner(context, raised),
                     ],
                     const SizedBox(height: 24),
                     Container(
@@ -71,22 +71,30 @@ class ContractsScreen extends StatelessWidget {
     );
   }
 
-  Widget _raisedBanner(List<Contract> raised) {
+  Widget _raisedBanner(BuildContext context, List<Contract> raised) {
     final c = raised.first;
     final text = raised.length == 1
         ? '${c.name} kostet seit der letzten Zahlung ${Money.format(c.priceChange)} mehr.'
         : '${raised.length} Verträge sind teurer geworden, z. B. ${c.name} (+${Money.format(c.priceChange)}).';
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.12),
+    return Material(
+      color: AppColors.warning.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          _ContractSheet.show(context, c);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(children: [
+            const Icon(Icons.trending_up_rounded, color: AppColors.warning),
+            const SizedBox(width: 12),
+            Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+            Icon(Icons.chevron_right_rounded, color: AppColors.warningText, size: 20),
+          ]),
+        ),
       ),
-      child: Row(children: [
-        const Icon(Icons.trending_up_rounded, color: AppColors.warning),
-        const SizedBox(width: 12),
-        Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
-      ]),
     );
   }
 

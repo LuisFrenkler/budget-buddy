@@ -590,13 +590,18 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
     setState(() => _busy = true);
     if (demo) await DemoData.load();
     if (!mounted) return;
-    Navigator.popUntil(context, (r) => r.isFirst);
-    if (bank) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
-    } else if (buddy) {
-      // demo numbers + the one question that sells the coach
-      BuddyScreen.open(context, 'Kann ich mir 800 € Urlaub leisten?');
-    }
+    final nav = Navigator.of(context, rootNavigator: true);
+    nav.popUntil((r) => r.isFirst);
+    final shell = nav.context;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!shell.mounted) return;
+      if (bank) {
+        Navigator.push(shell, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
+      } else if (buddy) {
+        // demo numbers + the one question that sells the coach
+        BuddyScreen.ask.value = 'Kann ich mir 800 € Urlaub leisten?';
+      }
+    });
   }
 
   @override

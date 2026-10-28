@@ -1114,17 +1114,23 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                   onPressed: () {
                     final r = widget.reason!.toLowerCase();
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    if (r.contains('beleg') || r.contains('scan')) {
-                      showSmartEntry(context, scan: true);
-                    } else if (r.contains('sparziel') ||
-                        r.contains('autopilot') ||
-                        r.contains('ziel')) {
-                      Navigator.push(
-                          context, MaterialPageRoute(builder: (_) => const GoalsScreen()));
-                    } else {
-                      BuddyScreen.open(context);
-                    }
+                    // shell navigator stays valid after this widget is disposed
+                    final nav = Navigator.of(context, rootNavigator: true);
+                    nav.popUntil((route) => route.isFirst);
+                    final shell = nav.context;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!shell.mounted) return;
+                      if (r.contains('beleg') || r.contains('scan')) {
+                        showSmartEntry(shell, scan: true);
+                      } else if (r.contains('sparziel') ||
+                          r.contains('autopilot') ||
+                          r.contains('ziel')) {
+                        Navigator.push(
+                            shell, MaterialPageRoute(builder: (_) => const GoalsScreen()));
+                      } else {
+                        BuddyScreen.open(shell);
+                      }
+                    });
                   },
                   child: Text(_welcomeCta(widget.reason!),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
