@@ -85,11 +85,11 @@ Nach dem Upload:
 7. [ ] 5–20 Freunde einladen  
 8. [ ] Feedback sammeln (Crash, Login, Buddy, Bank-Demo)
 
-## Was Cursor / dieses Repo nicht für dich kann
+## Was du selbst bei Apple / Hosting erledigen musst
 
-- Die 99 € bezahlen oder dein Apple-Konto anlegen  
-- Die IPA ohne deine Apple-ID hochladen  
-- Deinen VPS buchen  
+- Die 99 € und das Apple-Entwicklerkonto  
+- IPA-Upload mit deiner Apple-ID  
+- VPS / HTTPS fürs Backend  
 
-Code, Checkliste und Build-Befehl sind hier vorbereitet; der Rest ist einmalig
+Code, Checkliste und Build-Befehl sind im Repo; der Rest ist einmalig
 bei Apple und Hosting.
