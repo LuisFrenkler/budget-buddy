@@ -16,4 +16,31 @@ void main() {
     final other = await CloudSync.deriveKey('u2', 'Sicher-2026!', iterations: 1000);
     await expectLater(CloudSync.open(other, sealed), throwsA(anything));
   });
+
+  test('dirty local edits do not silently overwrite a newer cloud copy', () {
+    expect(
+      CloudSync.decide(dirty: true, localVersion: 2, remoteVersion: 5),
+      VaultAction.conflict,
+    );
+    expect(
+      CloudSync.decide(dirty: true, localVersion: 5, remoteVersion: 5),
+      VaultAction.push,
+    );
+    expect(
+      CloudSync.decide(dirty: true, localVersion: 5, remoteVersion: 4),
+      VaultAction.push,
+    );
+    expect(
+      CloudSync.decide(dirty: false, localVersion: 2, remoteVersion: 5),
+      VaultAction.apply,
+    );
+    expect(
+      CloudSync.decide(dirty: false, localVersion: 5, remoteVersion: null),
+      VaultAction.push,
+    );
+    expect(
+      CloudSync.decide(dirty: false, localVersion: 5, remoteVersion: 5),
+      VaultAction.noop,
+    );
+  });
 }

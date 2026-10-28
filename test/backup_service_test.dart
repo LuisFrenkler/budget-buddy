@@ -106,5 +106,18 @@ void main() {
       expect((Hive.box('splits').get('s1') as Map)['name'], 'WG');
       expect(Hive.box('settings').get('openingBalanceCents'), 123456);
     });
+
+    test('a backup without opening balance clears a leftover local one', () async {
+      await Hive.box('settings').put('openingBalanceCents', 99900);
+      await Hive.box('settings').put('moneyAccounts', [
+        {'id': 'extra', 'name': 'Sparkonto'},
+      ]);
+      // backup with no money settings at all
+      const json = '{"version":1,"transactions":[],"budgets":[],"badges":[],'
+          '"holdings":[],"recurring":[],"goals":[],"splits":[],"settings":{}}';
+      await BackupService.restoreFromJson(json);
+      expect(Hive.box('settings').containsKey('openingBalanceCents'), isFalse);
+      expect(Hive.box('settings').containsKey('moneyAccounts'), isFalse);
+    });
   });
 }

@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -19,6 +20,9 @@ import 'backend_service.dart';
 import 'backup_service.dart';
 import 'bank_sync.dart';
 import 'depot_sync.dart';
+
+/// What [CloudSync.start] / a guarded push should do next.
+enum VaultAction { push, apply, conflict, noop }
 
 class CloudSync {
   static const _storage = FlutterSecureStorage();
@@ -39,6 +43,9 @@ class CloudSync {
   static bool _applying = false;
   static Timer? _debounce;
   static final _subs = <StreamSubscription>[];
+
+  // remote vault waiting for the user to pick device vs cloud (dirty + newer)
+  static final conflict = ValueNotifier<Map<String, dynamic>?>(null);
 
   static Box get _settings => Hive.box('settings');
 
@@ -69,6 +76,21 @@ class CloudSync {
     _watch();
   }
 
+  // pure: dirty local edits must not silently overwrite a newer cloud copy
+  @visibleForTesting
+  static VaultAction decide({
+    required bool dirty,
+    required int localVersion,
+    required int? remoteVersion,
+  }) {
+    if (remoteVersion == null) return VaultAction.push;
+    final newer = remoteVersion > localVersion;
+    if (dirty && newer) return VaultAction.conflict;
+    if (dirty) return VaultAction.push;
+    if (newer) return VaultAction.apply;
+    return VaultAction.noop;
+  }
+
   // on app start with a saved session
   static Future<void> start() async {
     if (AccountService.token == null) return;
@@ -80,18 +102,40 @@ class CloudSync {
     _watch();
     try {
       final remote = await fetch();
-      if (remote == null) return push();
-      final newer = (remote['version'] as int? ?? 0) > (_settings.get('vaultVersion') as int? ?? 0);
-      // changes made here while offline are newer than what the server has
-      if (_settings.get('vaultDirty') == true) return push();
-      if (newer) await apply(remote);
+      final local = _settings.get('vaultVersion') as int? ?? 0;
+      final remoteVersion = remote == null ? null : (remote['version'] as int? ?? 0);
+      final dirty = _settings.get('vaultDirty') == true;
+      switch (decide(dirty: dirty, localVersion: local, remoteVersion: remoteVersion)) {
+        case VaultAction.push:
+          await push();
+        case VaultAction.apply:
+          await apply(remote!);
+        case VaultAction.conflict:
+          conflict.value = remote;
+        case VaultAction.noop:
+          break;
+      }
     } catch (_) {
       // offline: the next change or start tries again
     }
   }
 
+  // user chose to keep local edits over the newer cloud copy
+  static Future<void> keepDevice() async {
+    conflict.value = null;
+    await push(force: true);
+  }
+
+  // user chose the cloud copy; local dirty edits are discarded
+  static Future<void> keepCloud() async {
+    final remote = conflict.value;
+    conflict.value = null;
+    if (remote != null) await apply(remote);
+  }
+
   static Future<void> forget() async {
     _key = null;
+    conflict.value = null;
     _debounce?.cancel();
     for (final s in _subs) {
       await s.cancel();
@@ -138,10 +182,34 @@ class CloudSync {
   }
 
   // uploads the data here as the account's copy
-  static Future<void> push() async {
+  // [required]: throw when the server refuses (password change, sign-up)
+  // [force]: upload even if the cloud copy is newer (user chose "Gerät behalten")
+  static Future<void> push({bool required = false, bool force = false}) async {
     final key = _key;
-    if (key == null || AccountService.token == null) return;
+    if (key == null || AccountService.token == null) {
+      if (required) throw 'Sicherung konnte nicht hochgeladen werden.';
+      return;
+    }
     await _settings.put('vaultDirty', true);
+    if (!force) {
+      try {
+        final remote = await fetch();
+        if (remote != null) {
+          final remoteVersion = remote['version'] as int? ?? 0;
+          final local = _settings.get('vaultVersion') as int? ?? 0;
+          if (remoteVersion > local) {
+            conflict.value = remote;
+            if (required) {
+              throw 'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.';
+            }
+            return;
+          }
+        }
+      } catch (e) {
+        if (required && e is String) rethrow;
+        // offline: still try the upload below
+      }
+    }
     final payload = jsonEncode({
       'backup': BackupService.toBackupJson(),
       'links': {for (final k in _linkKeys) if (_settings.containsKey(k)) k: _settings.get(k)},
@@ -151,7 +219,10 @@ class CloudSync {
             headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${AccountService.token}'},
             body: jsonEncode({'data': await seal(key, payload)}))
         .timeout(const Duration(seconds: 30));
-    if (res.statusCode != 200) return; // stays dirty: the next change or start tries again
+    if (res.statusCode != 200) {
+      if (required) throw 'Sicherung konnte nicht hochgeladen werden (${res.statusCode}). Bitte bleib online und versuch es noch einmal.';
+      return; // stays dirty: the next change or start tries again
+    }
     await _settings.put('vaultVersion', (jsonDecode(res.body) as Map)['version']);
     await _settings.put('vaultOwner', AccountService.current.value?.id);
     await _settings.delete('vaultDirty');

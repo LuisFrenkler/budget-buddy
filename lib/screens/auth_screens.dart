@@ -287,7 +287,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final account = await AccountService.register(name: _name.text, email: _email.text, password: _password.text);
       // a new account starts its copy with what is on this device
       await CloudSync.unlock(account.id, _password.text);
-      CloudSync.push().catchError((_) {});
+      var backedUp = false;
+      try {
+        await CloudSync.push(required: true, force: true);
+        backedUp = true;
+      } catch (_) {
+        // account exists; vault stays dirty and retries on the next change/start
+      }
       await Settings.setOnboardingDone(true);
       TextInput.finishAutofillContext();
       if (!mounted) return;
@@ -297,9 +303,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // were (Profil, Verbindungen, Buddy), no sample data on top of theirs
         final messenger = ScaffoldMessenger.of(context);
         Navigator.pop(context, true);
-        messenger.showSnackBar(const SnackBar(
-            duration: Duration(milliseconds: 2800), content: Text('Konto erstellt. Deine Daten sind dabei.')));
+        messenger.showSnackBar(SnackBar(
+            duration: const Duration(milliseconds: 3200),
+            content: Text(backedUp
+                ? 'Konto erstellt. Deine Daten sind dabei.'
+                : 'Konto erstellt, aber die Sicherung ist noch nicht hochgeladen. Bleib online — ich versuche es gleich noch einmal.')));
       } else {
+        if (!backedUp) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              duration: Duration(milliseconds: 3200),
+              content: Text('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.')));
+        }
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
       }
     } catch (e) {
