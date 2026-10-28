@@ -24,7 +24,9 @@ class BankTx {
   final int amountCents; // positive = money in, negative = money out
   final String counterparty;
   final String purpose;
-  const BankTx(this.id, this.date, this.amountCents, this.counterparty, this.purpose);
+  final String mcc; // ISO 18245, '' when the bank sends none
+  final String hint; // booking-code text, not part of the displayed title
+  const BankTx(this.id, this.date, this.amountCents, this.counterparty, this.purpose, {this.mcc = '', this.hint = ''});
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -32,6 +34,8 @@ class BankTx {
         'amountCents': amountCents,
         'counterparty': counterparty,
         'purpose': purpose,
+        'mcc': mcc,
+        'hint': hint,
       };
 
   static String _two(int n) => n.toString().padLeft(2, '0');

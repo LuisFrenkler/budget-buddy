@@ -3,6 +3,7 @@
 // with a short invite code. Changes arrive as single operations (add an
 // expense, remove one, record a payment) and are applied here in order, so
 // two people adding at the same time never overwrite each other.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -16,8 +17,23 @@ class SharedSplits {
 
   final File _store;
   final _groups = <String, Map<String, dynamic>>{}; // id -> {group, code, participants, version}
+  // one mutation at a time per group (and for the whole store on share/create)
+  final _locks = <String, Future<void>>{};
 
   SharedSplits(this._store);
+
+  Future<T> _withLock<T>(String key, Future<T> Function() fn) async {
+    final previous = _locks[key] ?? Future<void>.value();
+    final gate = Completer<void>();
+    _locks[key] = gate.future;
+    await previous.catchError((_) {});
+    try {
+      return await fn();
+    } finally {
+      gate.complete();
+      if (identical(_locks[key], gate.future)) _locks.remove(key);
+    }
+  }
 
   Future<void> load() async {
     if (!await _store.exists()) return;
@@ -67,25 +83,29 @@ class SharedSplits {
   }
 
   // uploads a group; the creator is the member at [me]
-  Future<Map<String, dynamic>> share(String userId, Map<String, dynamic> group, int me) async {
+  Future<Map<String, dynamic>> share(String userId, Map<String, dynamic> group, int me) {
     _check(group);
     if (me < 0 || me >= (group['members'] as List).length) throw const AuthError(400, 'Unbekannte Person.');
     final id = '${group['id'] ?? ''}';
     if (id.isEmpty) throw const AuthError(400, 'Gruppe ohne ID.');
-    final existing = _groups[id];
-    if (existing != null) {
-      if (!_participants(existing).containsKey(userId)) throw const AuthError(409, 'Diese Gruppe gehört jemand anderem.');
-      return _view(existing, userId);
-    }
-    _groups[id] = {
-      'group': group,
-      'code': _newCode(),
-      'participants': {userId: me},
-      'owner': userId,
-      'version': 1,
-    };
-    await _save();
-    return _view(_groups[id]!, userId);
+    return _withLock(id, () async {
+      final existing = _groups[id];
+      if (existing != null) {
+        if (!_participants(existing).containsKey(userId)) {
+          throw const AuthError(409, 'Diese Gruppe gehört jemand anderem.');
+        }
+        return _view(existing, userId);
+      }
+      _groups[id] = {
+        'group': group,
+        'code': _newCode(),
+        'participants': {userId: me},
+        'owner': userId,
+        'version': 1,
+      };
+      await _save();
+      return _view(_groups[id]!, userId);
+    });
   }
 
   // what someone with the code sees before choosing who they are
@@ -108,20 +128,23 @@ class SharedSplits {
 
   Future<Map<String, dynamic>> join(String userId, String code, int member) async {
     final p = preview(code);
-    final e = _entry('${p['id']}');
-    final parts = _participants(e);
-    if (parts.containsKey(userId)) return _view(e, userId);
-    if (member < 0 || member >= (p['members'] as List).length) throw const AuthError(400, 'Unbekannte Person.');
-    if (parts.values.contains(member)) throw const AuthError(409, 'Diese Person ist schon vergeben.');
-    (e['participants'] as Map)[userId] = member;
-    await _save();
-    return _view(e, userId);
+    final id = '${p['id']}';
+    return _withLock(id, () async {
+      final e = _entry(id);
+      final parts = _participants(e);
+      if (parts.containsKey(userId)) return _view(e, userId);
+      if (member < 0 || member >= (p['members'] as List).length) throw const AuthError(400, 'Unbekannte Person.');
+      if (parts.values.contains(member)) throw const AuthError(409, 'Diese Person ist schon vergeben.');
+      (e['participants'] as Map)[userId] = member;
+      await _save();
+      return _view(e, userId);
+    });
   }
 
   Map<String, dynamic> get(String userId, String id) => _view(_member(userId, id), userId);
 
   // applies one change and returns the new state
-  Future<Map<String, dynamic>> apply(String userId, String id, Map<String, dynamic> op) async {
+  Future<Map<String, dynamic>> apply(String userId, String id, Map<String, dynamic> op) => _withLock(id, () async {
     final e = _member(userId, id);
     final g = e['group'] as Map;
     final members = (g['members'] as List).length;
@@ -129,6 +152,7 @@ class SharedSplits {
     final settlements = (g['settlements'] as List?) ?? [];
     switch (op['type']) {
       case 'addExpense':
+      case 'updateExpense':
         final x = (op['expense'] as Map).cast<String, dynamic>();
         final paidBy = (x['paidBy'] as num).toInt();
         final shares = (x['shares'] as Map).map((k, v) => MapEntry(int.parse('$k'), (v as num).toInt()));
@@ -139,7 +163,14 @@ class SharedSplits {
         if (cents <= 0 || shares.values.any((v) => v < 0) || shares.values.fold<int>(0, (s, v) => s + v) != cents) {
           throw const AuthError(400, 'Die Anteile ergeben nicht den Betrag.');
         }
-        if (!expenses.any((y) => y['id'] == x['id'])) expenses.add(x);
+        final xid = '${x['id']}';
+        final existing = expenses.indexWhere((y) => y['id'] == xid);
+        if (op['type'] == 'updateExpense') {
+          if (existing < 0) throw const AuthError(404, 'Diese Ausgabe gibt es nicht mehr.');
+          expenses[existing] = x;
+        } else if (existing < 0) {
+          expenses.add(x);
+        }
       case 'removeExpense':
         expenses.removeWhere((y) => y['id'] == op['id']);
       // someone joins the flat later; members keep their places, so old
@@ -159,10 +190,26 @@ class SharedSplits {
       case 'settle':
         final s = (op['settlement'] as Map).cast<String, dynamic>();
         final from = (s['from'] as num).toInt(), to = (s['to'] as num).toInt();
-        if (from < 0 || from >= members || to < 0 || to >= members || (s['cents'] as num) <= 0) {
+        final cents = (s['cents'] as num).toInt();
+        if (from < 0 || from >= members || to < 0 || to >= members || cents <= 0) {
           throw const AuthError(400, 'Ungültiger Ausgleich.');
         }
-        settlements.add(s);
+        // idempotent: same id, or same from/to/cents within ~2 minutes = already booked
+        DateTime? parseDate(Object? raw) {
+          if (raw is num) return DateTime.fromMillisecondsSinceEpoch(raw.toInt());
+          return DateTime.tryParse('$raw');
+        }
+        final sid = '${s['id'] ?? ''}';
+        final when = parseDate(s['date']);
+        final dup = settlements.any((x) {
+          if (sid.isNotEmpty && '${x['id'] ?? ''}' == sid) return true;
+          if ((x['from'] as num?)?.toInt() != from || (x['to'] as num?)?.toInt() != to) return false;
+          if ((x['cents'] as num?)?.toInt() != cents) return false;
+          final xd = parseDate(x['date']);
+          if (when == null || xd == null) return false;
+          return when.difference(xd).abs() < const Duration(minutes: 2);
+        });
+        if (!dup) settlements.add(s);
       default:
         throw const AuthError(400, 'Unbekannte Änderung.');
     }
@@ -171,10 +218,10 @@ class SharedSplits {
     e['version'] = ((e['version'] as num?) ?? 0).toInt() + 1;
     await _save();
     return _view(e, userId);
-  }
+  });
 
   // the owner deletes the group for everyone; others just leave
-  Future<void> leave(String userId, String id) async {
+  Future<void> leave(String userId, String id) => _withLock(id, () async {
     final e = _member(userId, id);
     if (e['owner'] == userId) {
       _groups.remove(id);
@@ -182,14 +229,14 @@ class SharedSplits {
       (e['participants'] as Map).remove(userId);
     }
     await _save();
-  }
+  });
 
   // when an account is deleted
-  Future<void> forget(String userId) async {
+  Future<void> forget(String userId) => _withLock('_all', () async {
     _groups.removeWhere((_, e) => e['owner'] == userId);
     for (final e in _groups.values) {
       (e['participants'] as Map).remove(userId);
     }
     await _save();
-  }
+  });
 }

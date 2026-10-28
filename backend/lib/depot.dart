@@ -24,11 +24,12 @@ class DepotPosition {
   final int priceCents; // per share
   final String broker;
   final String depot; // the portfolio it is in, e.g. "Trade Republic"
+  final double? priceEur; // full precision for coins under €1
   const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
-      this.broker, [this.depot = '']);
+      this.broker, [this.depot = '', this.priceEur]);
 
   DepotPosition withSymbol(String symbol) =>
-      DepotPosition(id, name, symbol, type, shares, buyPriceCents, priceCents, broker, depot);
+      DepotPosition(id, name, symbol, type, shares, buyPriceCents, priceCents, broker, depot, priceEur);
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -40,6 +41,7 @@ class DepotPosition {
         'priceCents': priceCents,
         'broker': broker,
         'depot': depot,
+        if (priceEur != null) 'priceEur': priceEur,
       };
 }
 
@@ -74,6 +76,8 @@ abstract class DepotProvider {
   Future<DepotTokens> exchange({required String code, required String verifier, required String redirectUrl});
   Future<DepotTokens> refresh(DepotTokens tokens);
   Future<DepotSnapshot> snapshot(DepotTokens tokens);
+  // best-effort OAuth revoke; demo is a no-op
+  Future<void> revoke(DepotTokens tokens) async {}
 }
 
 // PKCE: a random verifier and its SHA-256 challenge, both base64url
@@ -128,6 +132,18 @@ class ParqetConnect implements DepotProvider {
     // OAuth may omit a new refresh token; the old one then stays valid
     final fresh = await _token({'grant_type': 'refresh_token', 'refresh_token': tokens.refresh!});
     return fresh.refresh != null ? fresh : DepotTokens(fresh.access, tokens.refresh, fresh.expires);
+  }
+
+  @override
+  Future<void> revoke(DepotTokens tokens) async {
+    // RFC 7009-style revoke; Parqet may ignore — best effort so disconnect is not a no-op at the provider
+    try {
+      await net.post(Uri.parse('$_base/oauth2/revoke'), body: {
+        'token': tokens.refresh ?? tokens.access,
+        'client_id': clientId,
+        if (clientSecret.isNotEmpty) 'client_secret': clientSecret,
+      });
+    } catch (_) {}
   }
 
   Future<Map<String, dynamic>> _call(String method, String path, DepotTokens t, [Object? body]) async {
@@ -195,6 +211,7 @@ class ParqetConnect implements DepotProvider {
           (price * 100).round(),
           broker,
           depot,
+          price,
         ));
       }
     }
@@ -315,7 +332,11 @@ class SymbolLookup {
   Future<DepotSnapshot> complete(DepotSnapshot s) async => DepotSnapshot(
         await Future.wait([
           for (final p in s.positions)
-            p.symbol.isNotEmpty ? Future.value(p) : forIsin(p.id).then((sym) => sym.isEmpty ? p : p.withSymbol(sym)),
+            p.symbol.isNotEmpty
+                ? Future.value(p)
+                // multi-portfolio ids are "portfolioId:ISIN"
+                : forIsin(p.id.contains(':') ? p.id.split(':').last : p.id)
+                    .then((sym) => sym.isEmpty ? p : p.withSymbol(sym)),
         ]),
         s.history,
       );
@@ -344,6 +365,9 @@ class DemoDepot implements DepotProvider {
 
   @override
   Future<DepotTokens> refresh(DepotTokens tokens) async => tokens;
+
+  @override
+  Future<void> revoke(DepotTokens tokens) async {}
 
   static const _demo = [
     // id, name, symbol, type, shares, buy, price (cents)

@@ -54,12 +54,24 @@ class Settlement {
   final int to;
   final int cents;
   final DateTime date;
-  const Settlement(this.from, this.to, this.cents, this.date);
+  final String id; // stable id so shared "Bezahlt" can't be booked twice
+  const Settlement(this.from, this.to, this.cents, this.date, {this.id = ''});
 
-  Map<String, dynamic> toMap() => {'from': from, 'to': to, 'cents': cents, 'date': date.millisecondsSinceEpoch};
+  Map<String, dynamic> toMap() => {
+        'from': from,
+        'to': to,
+        'cents': cents,
+        'date': date.millisecondsSinceEpoch,
+        if (id.isNotEmpty) 'id': id,
+      };
 
-  factory Settlement.fromMap(Map m) => Settlement((m['from'] as num).toInt(), (m['to'] as num).toInt(),
-      (m['cents'] as num).toInt(), DateTime.fromMillisecondsSinceEpoch((m['date'] as num).toInt()));
+  factory Settlement.fromMap(Map m) => Settlement(
+        (m['from'] as num).toInt(),
+        (m['to'] as num).toInt(),
+        (m['cents'] as num).toInt(),
+        DateTime.fromMillisecondsSinceEpoch((m['date'] as num).toInt()),
+        id: '${m['id'] ?? ''}',
+      );
 }
 
 class SplitGroup {

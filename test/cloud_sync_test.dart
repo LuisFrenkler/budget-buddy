@@ -43,4 +43,12 @@ void main() {
       VaultAction.noop,
     );
   });
+
+  test('conflict means the UI must choose — never silent apply on start', () {
+    // documents the contract: start() sets conflict.value; keepDevice/keepCloud resolve it
+    expect(
+      CloudSync.decide(dirty: true, localVersion: 1, remoteVersion: 9),
+      VaultAction.conflict,
+    );
+  });
 }

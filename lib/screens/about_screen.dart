@@ -50,14 +50,14 @@ class AboutScreen extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
-              child: const Row(children: [
-                Icon(Icons.edit_note_rounded, color: AppColors.warning),
-                SizedBox(width: 10),
+              child: Row(children: [
+                const Icon(Icons.edit_note_rounded, color: AppColors.warning),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Vor der Veröffentlichung: Anbieter-Angaben in lib/legal/legal_info.dart ausfüllen. '
-                    'Dieser Hinweis erscheint nur in Test-Versionen.',
-                    style: TextStyle(fontSize: 12.5),
+                    'Vor der Veröffentlichung noch: ${LegalInfo.missing.isEmpty ? 'Anbieter-Angaben' : LegalInfo.missing.join(', ')}. '
+                    'Nur in Test-Versionen sichtbar.',
+                    style: const TextStyle(fontSize: 12.5),
                   ),
                 ),
               ]),

@@ -1,5 +1,6 @@
-// Saving on autopilot for goals. BudgetBuddy does not move money; the goal
-// counts what the user sets aside, and the app says so wherever it is set up.
+// Saving on autopilot for goals. Manual "Zurücklegen" books a real Umbuchung
+// (see GoalMove). Autopilot only bumps the counter — bank sync would otherwise
+// double-count a transfer the user already made.
 //
 // - monthly: on the first app start of a month the fixed amount is added
 //   (once per month, missed months are not added up, so nobody is surprised)
@@ -11,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'db.dart';
+import 'goal_credit.dart';
 import 'goals_service.dart';
 import 'plus_service.dart';
 
@@ -80,12 +82,12 @@ class AutoSave {
 
   // runs over all goals and saves the changed ones; returns the total added
   static Future<int> run({DateTime? now}) async {
-    // the autopilot is part of Plus: without it, goals keep what they have
-    // and the automation waits until Plus is back
-    if (!PlusService.active.value) return 0;
     final today = now ?? DateTime.now();
     final tx = DB.getTx();
-    var total = 0;
+    // bank/Umbuchung onto a pot counts even without Plus — it already happened
+    var total = await GoalCredit.run(tx: tx);
+    // monthly + round-up autopilot is Plus-only
+    if (!PlusService.active.value) return total;
     for (final g in GoalsService.all()) {
       if (!g.automated) continue;
       final before = g.toMap().toString();

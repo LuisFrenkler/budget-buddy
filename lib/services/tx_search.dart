@@ -11,8 +11,9 @@ class TxSearch {
   static List<Transaction> filter(List<Transaction> tx, String query, {TxKind kind = TxKind.all, String? category}) {
     var list = tx.where((t) => switch (kind) {
           TxKind.all => true,
-          TxKind.expenses => !t.isIncome,
-          TxKind.income => t.isIncome,
+          // refunds count as spending (same as DB.sumOf / Forecast)
+          TxKind.expenses => t.isSpending,
+          TxKind.income => t.isEarning,
         });
     if (category != null) list = list.where((t) => t.category == category);
 
@@ -21,10 +22,10 @@ class TxSearch {
 
     // words that filter the type
     if (RegExp(r'\beinnahme').hasMatch(q)) {
-      list = list.where((t) => t.isIncome);
+      list = list.where((t) => t.isEarning);
       q = q.replaceAll(RegExp(r'\beinnahmen?\b'), '').trim();
     } else if (RegExp(r'\bausgabe').hasMatch(q)) {
-      list = list.where((t) => !t.isIncome);
+      list = list.where((t) => t.isSpending);
       q = q.replaceAll(RegExp(r'\bausgaben?\b'), '').trim();
     }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/account_service.dart';
+import '../services/backend_service.dart';
 import '../services/notification_service.dart';
 import '../utils/theme.dart';
 import '../widgets/settings_list.dart';
@@ -13,6 +15,79 @@ class NotificationSettingsScreen extends StatefulWidget {
 }
 
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+  bool _waReady = false;
+  bool _waOn = false;
+  bool _waBusy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWhatsApp();
+  }
+
+  Future<void> _loadWhatsApp() async {
+    if (AccountService.current.value == null) return;
+    try {
+      final status = await BackendService.whatsAppStatus();
+      if (!mounted) return;
+      setState(() {
+        _waReady = status['configured'] == true;
+        _waOn = status['optedIn'] == true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _waReady = false);
+    }
+  }
+
+  Future<void> _toggleWhatsApp(bool on) async {
+    if (!on) {
+      setState(() => _waBusy = true);
+      try {
+        await BackendService.whatsAppUnlink();
+        if (!mounted) return;
+        setState(() {
+          _waOn = false;
+          _waBusy = false;
+        });
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _waBusy = false);
+        _waError(e);
+      }
+      return;
+    }
+    final phone = await showDialog<String>(context: context, builder: (_) => const _WaPhoneDialog());
+    if (phone == null || phone.trim().isEmpty || !mounted) return;
+    setState(() => _waBusy = true);
+    try {
+      final res = await BackendService.whatsAppLink(phone.trim());
+      if (!mounted) return;
+      setState(() {
+        _waOn = true;
+        _waBusy = false;
+      });
+      final text = '${res['instructions'] ?? 'Freigabe gespeichert.'}';
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('WhatsApp'),
+          content: Text(text),
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Verstanden'))],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _waBusy = false);
+      _waError(e);
+    }
+  }
+
+  void _waError(Object e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e is String ? e : 'Gerade nicht erreichbar.')),
+    );
+  }
+
   static IconData _icon(NotifyTopic t) => switch (t) {
         NotifyTopic.spending => Icons.speed_rounded,
         NotifyTopic.contracts => Icons.receipt_long_rounded,
@@ -95,14 +170,68 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             const SizedBox(height: 16),
             Text(
               kIsWeb
-                  ? 'Im Browser kommen Hinweise, sobald BudgetBuddy sie bemerkt. Erinnerungen im Voraus, '
-                      'etwa am Tag vor einer Abbuchung, gibt es in der App für iPhone und Android.'
+                  ? 'Im Browser: Hinweise nur, während BudgetBuddy offen ist. Geplante Erinnerungen '
+                      '(z. B. Sonntag Wochenbericht, ablaufende Bank-Freigabe) gibt es in der iPhone- und Android-App.'
                   : 'Erinnerungen werden auf deinem Gerät geplant. Deine Daten gehen dafür an keinen Server.',
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
+            const SectionLabel('WhatsApp'),
+            Text(
+              'Aus, bis du zustimmst. Versand über die WhatsApp Cloud API von Meta. Nur drei Arten, kein Spam '
+              'und keine Werbung: Wochenbericht, Budget-Warnung, Split-Erinnerung. Deine Nummer speichern wir '
+              'nicht im Klartext, nur einen Hash. Abmelden geht mit dem Schalter oder mit „Stop“ in WhatsApp.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            SettingsGroup([
+              SettingsRow(
+                icon: Icons.chat_rounded,
+                title: 'Mitteilungen per WhatsApp',
+                subtitle: _waReady ? (_waOn ? 'An — jederzeit abmeldbar' : 'Aus') : 'Bald / Server einrichten',
+                trailing: Switch(
+                  value: _waReady && _waOn,
+                  onChanged: _waReady && !_waBusy ? _toggleWhatsApp : null,
+                ),
+              ),
+            ]),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _WaPhoneDialog extends StatefulWidget {
+  const _WaPhoneDialog();
+
+  @override
+  State<_WaPhoneDialog> createState() => _WaPhoneDialogState();
+}
+
+class _WaPhoneDialogState extends State<_WaPhoneDialog> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('WhatsApp-Nummer'),
+      content: TextField(
+        controller: _ctrl,
+        autofocus: true,
+        keyboardType: TextInputType.phone,
+        decoration: const InputDecoration(labelText: 'Nummer', hintText: '+491701234567'),
+        onSubmitted: (_) => Navigator.pop(context, _ctrl.text.trim()),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+        TextButton(onPressed: () => Navigator.pop(context, _ctrl.text.trim()), child: const Text('Freigeben')),
+      ],
     );
   }
 }

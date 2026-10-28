@@ -8,6 +8,8 @@
 // - A further depot link (another Parqet login) keeps its positions apart
 //   under "depot_x<link>_", so each link only ever removes its own.
 import '../models/holding.dart';
+import 'account_isolation.dart';
+import 'account_service.dart';
 import 'backend_service.dart';
 import 'db.dart';
 import 'settings_service.dart';
@@ -21,6 +23,7 @@ class DepotSyncResult {
 
 class DepotSync {
   static const prefix = 'depot_';
+  static Future<int>? _inflight;
 
   // pure merge step, separate from storage so it can be tested
   static DepotSyncResult merge(
@@ -40,6 +43,7 @@ class DepotSync {
             shares: p.shares,
             buyPriceCents: p.buyPriceCents,
             currentPriceCents: p.priceCents,
+            unitEur: p.priceEur,
             depot: p.depot.isNotEmpty ? p.depot : (p.broker.isNotEmpty ? p.broker : null),
           ),
     ];
@@ -56,15 +60,24 @@ class DepotSync {
 
   // syncs every linked depot now; returns the number of positions
   static Future<int> run() async {
+    if (_inflight != null) return _inflight!;
+    return _inflight = () async {
+    final epoch = AccountIsolation.epoch;
+    final accountId = AccountService.current.value?.id;
     var count = 0;
     final history = <DateTime, int>{};
     final links = [
       if (Settings.depotState.isNotEmpty) (state: Settings.depotState, key: ''),
       for (final l in Settings.extraDepots) (state: l.state, key: l.state),
     ];
-    final extras = Settings.extraDepots;
+    try {
     for (final l in links) {
       final data = await BackendService.depotSync(l.state);
+      // account switch / logout while the request was in flight — do not write
+      if (!AccountIsolation.sameEpoch(epoch)) return 0;
+      if (AccountService.current.value?.id != accountId) return 0;
+      if (l.key.isEmpty && Settings.depotState != l.state) return 0;
+      if (l.key.isNotEmpty && !Settings.extraDepots.any((e) => e.state == l.state)) return 0;
       final positions = data.positions;
       // the value of all depots per day
       for (final (d, c) in data.history) {
@@ -81,16 +94,24 @@ class DepotSync {
       if (l.key.isEmpty) {
         await Settings.setDepot(Settings.depotState, broker: brokers);
       } else {
-        await Settings.setExtraDepots(
-            [for (final e in extras) e.state == l.state ? (state: e.state, broker: brokers) : e]);
+        // re-read extras so an earlier link's broker name is not overwritten
+        await Settings.setExtraDepots([
+          for (final e in Settings.extraDepots) e.state == l.state ? (state: e.state, broker: brokers) : e,
+        ]);
       }
       count += result.keep.length;
     }
+    if (!AccountIsolation.sameEpoch(epoch)) return 0;
+    if (AccountService.current.value?.id != accountId) return 0;
     await Settings.setDepotHistory((history.entries.toList()..sort((a, b) => a.key.compareTo(b.key)))
         .map((e) => (e.key, e.value))
         .toList());
     await Settings.setDepotSync(DateTime.now());
     return count;
+    } finally {
+      _inflight = null;
+    }
+    }();
   }
 
   // syncs quietly when linked and the last sync is older than [maxAge], or

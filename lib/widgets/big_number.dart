@@ -4,9 +4,9 @@ import '../services/settings_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 
-// A money amount that counts up on first show and glides to new values.
+// A money amount that glides from the previous value (not always from €0).
 // With animate = false it follows changes instantly (e.g. while scrubbing).
-class AnimatedMoney extends StatelessWidget {
+class AnimatedMoney extends StatefulWidget {
   final int cents;
   final TextStyle style;
   final bool signed;
@@ -15,24 +15,41 @@ class AnimatedMoney extends StatelessWidget {
   const AnimatedMoney(this.cents, {super.key, required this.style, this.signed = false, this.animate = true});
 
   @override
+  State<AnimatedMoney> createState() => _AnimatedMoneyState();
+}
+
+class _AnimatedMoneyState extends State<AnimatedMoney> {
+  late int _from;
+
+  @override
+  void initState() {
+    super.initState();
+    _from = widget.cents; // first paint: no fake count-up from zero
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedMoney old) {
+    super.didUpdateWidget(old);
+    if (old.cents != widget.cents) _from = old.cents;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
       valueListenable: Settings.hideAmounts,
-      builder: (_, hidden, __) => hidden ? Text(Money.hidden, style: style) : _animated(),
-    );
-  }
-
-  Widget _animated() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: cents.toDouble()),
-      duration: animate ? const Duration(milliseconds: 700) : Duration.zero,
-      curve: Curves.easeOutCubic,
-      builder: (_, v, __) {
-        final c = v.round();
-        // fixed-width digits so the number does not jitter while it changes
-        return Text(signed ? Money.signed(c) : Money.format(c),
-            style: style.copyWith(fontFeatures: const [FontFeature.tabularFigures()]));
-      },
+      builder: (_, hidden, __) => hidden
+          ? Text(Money.hidden, style: widget.style)
+          : TweenAnimationBuilder<double>(
+              key: ValueKey(widget.cents),
+              tween: Tween(begin: _from.toDouble(), end: widget.cents.toDouble()),
+              duration: widget.animate ? const Duration(milliseconds: 500) : Duration.zero,
+              curve: Curves.easeOutCubic,
+              builder: (_, v, __) {
+                final c = v.round();
+                return Text(widget.signed ? Money.signed(c) : Money.format(c),
+                    style: widget.style.copyWith(fontFeatures: const [FontFeature.tabularFigures()]));
+              },
+            ),
     );
   }
 }
@@ -60,18 +77,20 @@ class BigNumber extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppColors.textDim, fontSize: 14, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 4),
+        Text(label,
+            style: TextStyle(
+                color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2)),
+        const SizedBox(height: 6),
         AnimatedMoney(
           cents,
           signed: signed,
           animate: animate,
           style: TextStyle(
             color: AppColors.text,
-            fontSize: 40,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1.5,
-            height: 1.1,
+            fontSize: 44,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1.8,
+            height: 1.05,
           ),
         ),
         if (below != null) ...[const SizedBox(height: 6), below!],
@@ -91,30 +110,30 @@ class ChangeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final up = cents >= 0;
-    final color = up ? AppColors.positive : AppColors.error;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: color, size: 24),
-        // in privacy mode only the percentage stays visible
-        ValueListenableBuilder<bool>(
-          valueListenable: Settings.hideAmounts,
-          builder: (_, hidden, __) {
-            final pct = percent != null ? Money.percent(percent!, digits: 2, signed: hidden) : null;
-            return Text(
+    return ValueListenableBuilder<bool>(
+      valueListenable: Settings.hideAmounts,
+      builder: (_, hidden, __) {
+        // privacy: no green/red direction cue over the shoulder
+        final color = hidden ? AppColors.textDim : (up ? AppColors.positive : AppColors.error);
+        final pct = percent != null ? Money.percent(percent!, digits: 2, signed: hidden) : null;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: color, size: 24),
+            Text(
               hidden ? (pct ?? Money.hidden) : Money.signed(cents) + (pct != null ? ' ($pct)' : ''),
               style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 14),
-            );
-          },
-        ),
-        if (suffix != null) ...[
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(suffix!,
-                style: TextStyle(color: AppColors.textDim, fontSize: 14), overflow: TextOverflow.ellipsis),
-          ),
-        ],
-      ],
+            ),
+            if (suffix != null) ...[
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(suffix!,
+                    style: TextStyle(color: AppColors.textDim, fontSize: 14), overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

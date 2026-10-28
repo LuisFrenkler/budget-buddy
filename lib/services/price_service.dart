@@ -13,10 +13,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../utils/instruments.dart';
 import 'backend_service.dart';
 import 'db.dart';
 import 'depot_sync.dart';
 import 'settings_service.dart';
+
+class MarketHeadline {
+  final String title;
+  final String url;
+  final String publisher;
+  const MarketHeadline(this.title, this.url, this.publisher);
+}
 
 class PriceService {
   static const _finnhubKey = String.fromEnvironment('FINNHUB_KEY');
@@ -231,11 +239,38 @@ class PriceService {
     return null;
   }
 
+  // which Yahoo window a chart of [days] needs. 1T is the session (5-minute
+  // bars); 1W is the 5-day daily chart Yahoo actually serves.
+  static ({String range, String interval}) yahooWindow(int days) {
+    if (days <= 1) return (range: '1d', interval: '5m');
+    if (days <= 7) return (range: '5d', interval: '1d');
+    if (days <= 31) return (range: '1mo', interval: '1d');
+    if (days <= 93) return (range: '3mo', interval: '1d');
+    if (days <= 186) return (range: '6mo', interval: '1d');
+    return (range: '1y', interval: '1d');
+  }
+
+  // a 1-day chart that only has daily closes: the last session when it has
+  // several points, otherwise the last two closes so a line can be drawn
+  static List<(DateTime, double)> lastDayPoints(List<(DateTime, double)> pts) {
+    if (pts.length < 2) return pts;
+    final last = pts.last.$1;
+    final same = [
+      for (final p in pts)
+        if (p.$1.year == last.year && p.$1.month == last.month && p.$1.day == last.day) p,
+    ];
+    if (same.length >= 2) return same;
+    return [pts[pts.length - 2], pts.last];
+  }
+
   // Yahoo's chart API; in the browser it sends no CORS headers, so the web
   // build asks through the backend proxy instead
-  static Uri _yahooUrl(String symbol, String range) => kIsWeb
-      ? Uri.parse('${BackendService.base}/market/chart?symbol=${Uri.encodeQueryComponent(symbol)}&range=$range')
-      : Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=$range');
+  static Uri _yahooUrl(String symbol, String range, {String interval = '1d'}) {
+    final query = 'interval=$interval&range=$range';
+    return kIsWeb
+        ? Uri.parse('${BackendService.base}/market/chart?symbol=${Uri.encodeQueryComponent(symbol)}&$query')
+        : Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/$symbol?$query');
+  }
 
   static Future<String?> _yahooRaw(String symbol) async {
     try {
@@ -373,17 +408,25 @@ class PriceService {
     }
   }
 
+  static Future<List<(DateTime, double)>> _yahooSeries(String symbol, String range, String interval) async {
+    final res = await http.get(_yahooUrl(symbol, range, interval: interval));
+    if (res.statusCode != 200) return [];
+    final parsed = parseYahooPoints(res.body);
+    if (parsed == null) return [];
+    // without the rate a dollar chart would pass for euros: better none
+    final rate = await _fxToEur(parsed.currency);
+    if (rate == null) return [];
+    return [for (final p in parsed.points) (p.$1, p.$2 * rate)];
+  }
+
   static Future<List<(DateTime, double)>> _yahooPoints(String symbol, int days) async {
-    final range = days <= 7 ? '7d' : days <= 31 ? '1mo' : days <= 93 ? '3mo' : '1y';
+    final window = yahooWindow(days);
     try {
-      final res = await http.get(_yahooUrl(symbol, range));
-      if (res.statusCode != 200) return [];
-      final parsed = parseYahooPoints(res.body);
-      if (parsed == null) return [];
-      // without the rate a dollar chart would pass for euros: better none
-      final rate = await _fxToEur(parsed.currency);
-      if (rate == null) return [];
-      return [for (final p in parsed.points) (p.$1, p.$2 * rate)];
+      final pts = await _yahooSeries(symbol, window.range, window.interval);
+      // a closed or thin session has no 5-minute bars: fall back to 5d daily
+      if (days > 1 || pts.length >= 2) return pts;
+      final daily = await _yahooSeries(symbol, '5d', '1d');
+      return lastDayPoints(daily.isEmpty ? pts : daily);
     } catch (_) {
       return [];
     }
@@ -397,9 +440,13 @@ class PriceService {
     final cached = _historyCache[cacheKey];
     if (cached != null) return cached;
 
-    final pts = type == 'Krypto'
+    var pts = type == 'Krypto'
         ? await _coinGeckoPoints(symbol, days)
         : await _yahooPoints(symbol, days);
+    // a 1-day crypto series can be a single tick: take the last day of a short window
+    if (type == 'Krypto' && days <= 1 && pts.length < 2) {
+      pts = lastDayPoints(await _coinGeckoPoints(symbol, 5));
+    }
     if (pts.isNotEmpty) _historyCache[cacheKey] = pts; // cache only real data
     return pts;
   }
@@ -414,8 +461,9 @@ class PriceService {
   static int _dayKey(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
 
   // reconstructs the portfolio value (in cents) for each of the last [days]
-  // calendar days. Each holding's price is taken from the most recent quote
-  // on-or-before that day (date-aligned, so mixed instruments sum correctly);
+  // calendar days (at least two: 1T is today against yesterday). Each holding's
+  // price is taken from the most recent quote on-or-before that day
+  // (date-aligned, so mixed instruments sum correctly);
   // holdings without any history contribute a flat line at their current price.
   //
   // Positions of a linked depot use the depot's own value history instead
@@ -425,24 +473,26 @@ class PriceService {
     var holdings = DB.getHoldings();
     if (holdings.isEmpty) return [];
 
+    // one point cannot draw a line: 1T is today against yesterday
+    final span = days < 2 ? 2 : days;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final axis = [for (int i = days - 1; i >= 0; i--) today.subtract(Duration(days: i))];
+    final axis = [for (int i = span - 1; i >= 0; i--) today.subtract(Duration(days: i))];
     final axisKeys = [for (final d in axis) _dayKey(d)];
 
-    final series = List<int>.filled(days, 0);
+    final series = List<int>.filled(span, 0);
     final linked = holdings.where((h) => h.id.startsWith(DepotSync.prefix)).toList();
     final depotHistory = Settings.depotHistory;
     if (linked.isNotEmpty && depotHistory.isNotEmpty) {
       final current = linked.fold<int>(0, (s, h) => s + h.valueCents);
       final part = linkedHistory(depotHistory, axis, current);
-      for (int i = 0; i < days; i++) {
+      for (int i = 0; i < span; i++) {
         series[i] += part[i];
       }
       holdings = holdings.where((h) => !h.id.startsWith(DepotSync.prefix)).toList();
     }
     for (final h in holdings) {
-      final pts = await historyPoints(symbol: h.symbol, type: h.type, days: days);
+      final pts = await historyPoints(symbol: h.symbol, type: h.type, days: span);
 
       // last price seen per calendar day
       final byDay = <int, double>{};
@@ -455,7 +505,7 @@ class PriceService {
       // agree, as long as the two are close (timing, rounding)
       final scale = keys.isEmpty ? 1.0 : alignScale(fallback, byDay[keys.last]!);
 
-      for (int i = 0; i < days; i++) {
+      for (int i = 0; i < span; i++) {
         double price;
         if (keys.isEmpty) {
           price = fallback; // no history (e.g. an ISIN stock in the browser)
@@ -556,5 +606,78 @@ class PriceService {
       await DB.addHolding(h.withLivePrice(newPrice, now, unitEur: euros));
     }
     return (updated: updated, live: live, failed: failed);
+  }
+
+  // --- live instrument search and headlines, always through the backend ---
+
+  static const _types = {'EQUITY': 'Aktie', 'ETF': 'ETF', 'CRYPTOCURRENCY': 'Krypto'};
+
+  static List<Instrument> parseSearch(String body) {
+    final decoded = jsonDecode(body);
+    if (decoded is! Map) return [];
+    final quotes = decoded['quotes'];
+    if (quotes is! List) return [];
+    final out = <Instrument>[];
+    for (final q in quotes.whereType<Map>()) {
+      final type = _types['${q['quoteType']}'];
+      final symbol = '${q['symbol'] ?? ''}'.trim();
+      if (type == null || symbol.isEmpty) continue;
+      var name = '${q['shortname'] ?? ''}'.trim();
+      if (name.isEmpty) name = symbol;
+      out.add(Instrument(name, symbol, type, 0));
+      if (out.length == 10) break;
+    }
+    return out;
+  }
+
+  static List<MarketHeadline> parseNews(String body) {
+    final decoded = jsonDecode(body);
+    if (decoded is! Map) return [];
+    final news = decoded['news'];
+    if (news is! List) return [];
+    final out = <MarketHeadline>[];
+    for (final n in news.whereType<Map>()) {
+      final title = '${n['title'] ?? ''}'.trim();
+      final link = '${n['link'] ?? ''}'.trim();
+      if (title.isEmpty || !(link.startsWith('https://') || link.startsWith('http://'))) continue;
+      out.add(MarketHeadline(title, link, '${n['publisher'] ?? ''}'.trim()));
+      if (out.length == 5) break;
+    }
+    return out;
+  }
+
+  static Future<String?> _marketBody(String path) async {
+    try {
+      final res = await http.get(Uri.parse('${BackendService.base}$path')).timeout(const Duration(seconds: 8));
+      return res.statusCode == 200 ? res.body : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // live matches for the instrument picker; empty when the backend is down
+  static Future<List<Instrument>> search(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return [];
+    final body = await _marketBody('/market/search?q=${Uri.encodeQueryComponent(q)}');
+    if (body == null) return [];
+    try {
+      return parseSearch(body);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // a few headlines for one symbol; empty when there are none or the call fails
+  static Future<List<MarketHeadline>> news(String symbol) async {
+    final s = symbol.trim();
+    if (s.isEmpty) return [];
+    final body = await _marketBody('/market/news?symbol=${Uri.encodeQueryComponent(s)}');
+    if (body == null) return [];
+    try {
+      return parseNews(body);
+    } catch (_) {
+      return [];
+    }
   }
 }

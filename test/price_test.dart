@@ -120,6 +120,57 @@ void main() {
     expect(PriceService.parseCoinSearch(body, 'XYZ'), isNull);
   });
 
+  test('parseSearch maps quote types to Aktie, ETF and Krypto', () {
+    const body = '{"quotes":['
+        '{"symbol":"AAPL","shortname":"Apple Inc.","quoteType":"EQUITY","exchange":"NMS"},'
+        '{"symbol":"VWCE.DE","shortname":"Vanguard","quoteType":"ETF","exchange":"GER"},'
+        '{"symbol":"BTC-USD","shortname":"Bitcoin USD","quoteType":"CRYPTOCURRENCY","exchange":"CCC"},'
+        '{"symbol":"EURUSD=X","shortname":"EUR/USD","quoteType":"CURRENCY","exchange":"CCY"}'
+        ']}';
+    final r = PriceService.parseSearch(body);
+    expect(r.map((i) => (i.symbol, i.type, i.name, i.refCents)).toList(), [
+      ('AAPL', 'Aktie', 'Apple Inc.', 0),
+      ('VWCE.DE', 'ETF', 'Vanguard', 0),
+      ('BTC-USD', 'Krypto', 'Bitcoin USD', 0),
+    ]);
+  });
+
+  test('parseNews keeps headlines that open in a browser', () {
+    const body = '{"news":['
+        '{"title":"Apple steigt","link":"https://example.com/a","publisher":"Reuters"},'
+        '{"title":"ohne","link":"javascript:alert(1)","publisher":"X"}'
+        ']}';
+    final n = PriceService.parseNews(body);
+    expect(n, hasLength(1));
+    expect(n.first.title, 'Apple steigt');
+    expect(n.first.url, 'https://example.com/a');
+    expect(n.first.publisher, 'Reuters');
+  });
+
+  test('short chart windows use 1d intraday and 5d daily', () {
+    expect(PriceService.yahooWindow(1), (range: '1d', interval: '5m'));
+    expect(PriceService.yahooWindow(7), (range: '5d', interval: '1d'));
+    expect(PriceService.yahooWindow(30), (range: '1mo', interval: '1d'));
+    expect(PriceService.yahooWindow(365), (range: '1y', interval: '1d'));
+  });
+
+  test('a daily 1T fallback keeps the last two closes', () {
+    final pts = [
+      (DateTime(2026, 10, 24), 10.0),
+      (DateTime(2026, 10, 27), 11.0),
+      (DateTime(2026, 10, 28, 9), 12.0),
+      (DateTime(2026, 10, 28, 10), 12.5),
+    ];
+    expect(PriceService.lastDayPoints(pts).length, 2);
+    expect(PriceService.lastDayPoints(pts).first.$2, 12.0);
+    final daily = [
+      (DateTime(2026, 10, 27), 11.0),
+      (DateTime(2026, 10, 28), 12.0),
+    ];
+    expect(PriceService.lastDayPoints(daily).map((p) => p.$2).toList(), [11.0, 12.0]);
+    expect(PriceService.lastDayPoints([(DateTime(2026, 10, 28), 12.0)]), hasLength(1));
+  });
+
   test('tiny coin prices keep three significant digits', () {
     expect(Money.unit(5, euros: 0.0543), '0,0543 €');
     expect(Money.unit(0, euros: 0.00000384), '0,00000384 €');

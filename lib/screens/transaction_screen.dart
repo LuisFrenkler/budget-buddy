@@ -29,7 +29,29 @@ class TransactionScreen extends StatelessWidget {
         final all = DB.getTx();
         final matches = all.where((t) => t.id == id);
         // deleted meanwhile: nothing left to show
-        if (matches.isEmpty) return Scaffold(appBar: AppBar());
+        if (matches.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.receipt_long_rounded, size: 48, color: AppColors.textDim),
+                  const SizedBox(height: 12),
+                  const Text('Buchung gelöscht', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Text('Diese Buchung gibt es hier nicht mehr.',
+                      textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Zurück'),
+                  ),
+                ]),
+              ),
+            ),
+          );
+        }
         final tx = matches.first;
         final fromBank = tx.id.startsWith(BankSync.prefix);
         final title = (tx.note?.trim().isNotEmpty ?? false) ? tx.note!.trim() : tx.category;
@@ -197,7 +219,7 @@ class TransactionScreen extends StatelessWidget {
           ValueListenableBuilder<bool>(
             valueListenable: Settings.hideAmounts,
             // counts stay visible, sums hide in privacy mode
-            builder: (_, hidden, __) => Text(hidden && value.contains('€') ? '•••' : value,
+            builder: (_, hidden, __) => Text(hidden && value.contains('€') ? Money.hidden : value,
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
           ),
           const SizedBox(height: 2),
@@ -248,11 +270,21 @@ class TransactionScreen extends StatelessWidget {
     HapticFeedback.selectionClick();
     await DB.addTx(tx.withCategory(picked));
     final name = tx.note?.trim() ?? '';
-    if (name.isEmpty) return;
+    if (name.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Kategorie: $picked')));
+      }
+      return;
+    }
     final others = CategoryRules.others(tx, picked);
-    // nothing else to move: just remember it for new bookings
     if (others.isEmpty) {
       await CategoryRules.remember(name, picked, isIncome: tx.isIncome);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(milliseconds: 3200),
+            content: Text('BudgetBuddy merkt sich $name als $picked — auch bei Bank-Sync und Schnellerfassung.')));
+      }
       return;
     }
     if (!context.mounted) return;
@@ -264,28 +296,45 @@ class TransactionScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('Alle $name-Buchungen zu $picked?', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            Text('$name → $picked merken?', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
-            Text('${others.length} weitere ${others.length == 1 ? 'Buchung' : 'Buchungen'} von $name. '
-                'BudgetBuddy merkt sich das auch für neue.',
+            Text(
+                '${others.length} ältere ${others.length == 1 ? 'Buchung steht' : 'Buchungen stehen'} noch auf einer anderen Kategorie. '
+                'Standard: merken und alle anpassen — künftige $name-Buchungen landen automatisch bei $picked.',
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Ja, alle ${others.length + 1} ändern'),
+              child: Text('Merken & alle ${others.length + 1} ändern'),
             ),
             const SizedBox(height: 6),
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Nur diese')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Nur diese · künftige trotzdem $picked'),
+            ),
           ]),
         ),
       ),
     );
-    if (all != true) return;
-    final moved = await CategoryRules.applyToAll(tx, picked);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('${moved + 1} Buchungen von $name sind jetzt $picked')));
+    if (all == true) {
+      final moved = await CategoryRules.applyToAll(tx, picked);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(milliseconds: 3200),
+            content: Text('$name merken · ${moved + 1} ${moved + 1 == 1 ? 'Buchung' : 'Buchungen'} jetzt $picked')));
+      }
+    } else {
+      // dismissed sheet or "only this": still remember — that is the expected default
+      await CategoryRules.remember(name, picked, isIncome: tx.isIncome);
+      if (context.mounted) {
+        final onlyThis = all == false;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(milliseconds: 3200),
+            content: Text(onlyThis
+                ? 'Nur diese Buchung geändert · $name merken wir uns als $picked'
+                : '$name merken als $picked · ältere Buchungen unverändert')));
+      }
     }
   }
 

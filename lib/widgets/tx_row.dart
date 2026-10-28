@@ -4,6 +4,7 @@ import '../screens/account_screen.dart';
 import '../services/money_accounts.dart';
 import '../screens/add_screen.dart';
 import '../screens/transaction_screen.dart';
+import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
@@ -57,12 +58,18 @@ class TxRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              tx.amountText,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: tx.isIncome ? AppColors.positiveText : AppColors.text,
+            ValueListenableBuilder<bool>(
+              valueListenable: Settings.hideAmounts,
+              builder: (_, hidden, __) => Text(
+                tx.amountText,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  // privacy: no green/red income cue over the shoulder
+                  color: hidden
+                      ? AppColors.text
+                      : (tx.isIncome ? AppColors.positiveText : AppColors.text),
+                ),
               ),
             ),
           ],
@@ -107,8 +114,17 @@ Future<void> showTransactionsSheet(BuildContext context,
           const SizedBox(height: 12),
           if (tx.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(child: Text('Keine Umsätze', style: TextStyle(color: AppColors.textDim))),
+              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 8),
+              child: Column(children: [
+                Icon(Icons.receipt_long_outlined, size: 40, color: AppColors.textDim),
+                const SizedBox(height: 12),
+                const Text('Noch nichts in dieser Kategorie',
+                    textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                const SizedBox(height: 6),
+                Text('Sobald du hier etwas buchst, erscheint es in der Liste.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
+              ]),
             ),
           for (final t in tx) TxRow(t),
         ],

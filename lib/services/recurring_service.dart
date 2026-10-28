@@ -104,7 +104,6 @@ class RecurringService {
       await DB.updateRule(rule);
     }
 
-    if (created > 0) await DB.checkBadges();
     return created;
   }
 }

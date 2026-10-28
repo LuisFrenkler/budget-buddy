@@ -167,37 +167,8 @@ class DB {
     }
   }
   
-  // check if user earned any new badges
-  static Future<void> checkBadges() async {
-    // badges may not exist yet, e.g. when data arrives before the home screen
-    // ever opened (demo data from the onboarding)
-    await initBadges();
-    final tx = getTx();
-    
-    // first transaction added
-    if (tx.isNotEmpty) {
-      await unlockBadge('first');
-    }
-    
-    // 50 or more transactions
-    if (tx.length >= 50) {
-      await unlockBadge('master');
-    }
-    
-    // positive balance of at least 100 euro (10000 cents)
-    if (balance() >= 10000) {
-      await unlockBadge('saver');
-    }
-    
-    // tracked on 7 different days
-    final uniqueDays = <String>{};
-    for (var t in tx) {
-      uniqueDays.add('${t.date.year}-${t.date.month}-${t.date.day}');
-    }
-    if (uniqueDays.length >= 7) {
-      await unlockBadge('week');
-    }
-  }
+  // badges: no product UI — box kept for older backups only
+  static Future<void> checkBadges() async {}
 
   // save a budget; a category with a budget again is no longer "stopped"
   static Future<void> addBudget(Budget b) async {
@@ -371,6 +342,7 @@ class DB {
     if (Hive.isBoxOpen('settings')) {
       await Settings.setOpeningBalanceCents(0);
       await Settings.clearBank();
+      await Settings.clearDepot();
       // the further accounts go with their bookings
       await Hive.box('settings').deleteAll(['moneyAccounts', 'mainAccount']);
     }

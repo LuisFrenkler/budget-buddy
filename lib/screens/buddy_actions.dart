@@ -5,9 +5,13 @@ import 'package:hive/hive.dart';
 import '../services/finance_snapshot.dart';
 import '../services/goals_service.dart';
 import '../services/local_buddy.dart';
+import 'add_holding_screen.dart';
 import 'budget_screen.dart';
 import 'contracts_screen.dart';
+import 'depot_screen.dart';
 import 'goals_screen.dart';
+import 'vorsorge_screen.dart';
+import 'wealth_screen.dart';
 
 class BuddyAction {
   final IconData icon;
@@ -25,6 +29,27 @@ class BuddyActions {
         (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const ContractsScreen())));
     final taken = {for (final b in s.budgets) b.category};
 
+    if (_has(q, ['vorsorge', 'rentenrechner', 'altersvorsorge', 'rentenlücke', 'rentenluecke'])) {
+      return [
+        BuddyAction(Icons.savings_rounded, 'Rentenrechner öffnen',
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const VorsorgeScreen()))),
+      ];
+    }
+    if (_has(q, ['depot', 'aktie', 'aktien', 'etf', 'krypto']) &&
+        _has(q, ['hinzu', 'anlegen', 'einrichten', 'wo', 'wie', 'füge', 'fuege'])) {
+      return [
+        BuddyAction(Icons.add_chart_rounded, 'Position hinzufügen',
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const AddHoldingScreen()))),
+        BuddyAction(Icons.pie_chart_rounded, 'Depot öffnen',
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const DepotScreen()))),
+      ];
+    }
+    if (_has(q, ['vermögen', 'vermoegen', 'schulden']) || (q.contains('notgroschen') && !q.contains('sparziel'))) {
+      return [
+        BuddyAction(Icons.account_balance_wallet_rounded, 'Vermögen öffnen',
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const WealthScreen()))),
+      ];
+    }
     if (_has(q, ['leisten', 'urlaub', 'kaufen', 'sparziel', 'zurücklegen'])) {
       final amount = RegExp(r'(\d[\d.]*)').firstMatch(q);
       final euros = amount == null ? null : int.tryParse(amount.group(1)!.replaceAll('.', ''));

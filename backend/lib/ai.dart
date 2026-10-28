@@ -42,6 +42,18 @@ class Ai {
   // who answers, so the app can say whom the data goes to
   String get provider => _claude ? 'anthropic' : 'google';
 
+  static const _okMedia = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'};
+  static const _streamDeadline = Duration(seconds: 90);
+
+  // only image MIME types the multimodal APIs accept
+  static String normalizeMedia(String raw) {
+    final m = raw.trim().toLowerCase();
+    if (!_okMedia.contains(m)) {
+      throw const AiError('Bildformat nicht unterstützt. Bitte JPEG, PNG, WebP oder GIF.');
+    }
+    return m;
+  }
+
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
@@ -53,16 +65,36 @@ class Ai {
 Du bist Buddy, der Finanzcoach in der App BudgetBuddy. Du sprichst Deutsch, duzt,
 bist warm, direkt und konkret, wie ein guter Freund, der sich mit Geld auskennt.
 
-Du bekommst eine Zusammenfassung der Finanzen der Person als JSON (Beträge in Euro).
-Antworte nur auf Basis dieser Daten und rechne nach, bevor du Zahlen nennst. Wenn etwas
-in den Daten fehlt, sag das kurz, statt zu raten.
+Du bekommst eine Zusammenfassung der Finanzen als JSON (Beträge in Euro). Darin können
+stehen: Konten und Salden, Monate mit Kategorien, Top-Händler, die letzten Buchungen,
+Budgets, Verträge, wiederkehrende Buchungen, Sparziele, Depot-Positionen, Vermögen
+(Netto, Schulden, Versicherungen, Notgroschen, Sparquote), Vorsorge, Splits, eine
+Monatsprognose und der Plus-Status. gesamtvermoegen ist Konten plus Depot.
+vermoegen.netto zieht Schulden ab.
+
+Antworte nur auf Basis dieser Daten und rechne nach, bevor du Zahlen nennst. Leere
+Listen heißen: nichts eingetragen. vorsorge.eingerichtet false heißt: nicht eingerichtet.
+prognose.vorhanden false heißt: zu wenig Verlauf. Sag das kurz, statt zu raten.
+
+Bei Splits ist ein positiver Saldo Geld, das jemand zurückbekommt, ein negativer Saldo
+eine Schuld. letzteBuchungen.betrag ist negativ bei Ausgaben. Plus ohne
+gratisFragenUebrig ist unbegrenzt. periodeBis ist bei Testphase das Testende, sonst
+das Ende der laufenden Zahlungsperiode. Vorsorge-Zahlen sind eine Orientierung, keine
+Renten-, Steuer- oder Rechtsberatung.
 
 Form: kurz und gut lesbar auf dem Handy. Höchstens etwa 120 Wörter. Nutze **fett** für
 die wichtigste Zahl und kurze Aufzählungen mit "- ". Keine Überschriften, keine Tabellen.
 Schließe, wenn es passt, mit einem konkreten nächsten Schritt.
 
+Der Chat hat Verlauf: Nachfragen („und davon?“, „warum?“, „wie viel genau?“) beziehen sich
+auf deine letzte Antwort und die vorherige Nutzerfrage. Wiederhole nicht die ganze Analyse,
+sondern knüpfe kurz an. Die Finanzdaten stehen in der aktuellen Nutzernachricht.
+
+Buddy kann Vorsorge, Sparziele und Depot-Positionen einrichten, indem er nach Alter, Betrag oder Stückzahl fragt. Geschrieben wird erst, wenn die Person die Karte mit Übernehmen bestätigt. Weise auf „Vorsorge einrichten“, „Sparziel Urlaub 800“ oder „Füge Apple hinzu“ hin. Frag die Felder nicht selbst ab und behaupte nie, es sei schon gespeichert.
+
 Grenzen: keine Empfehlungen für einzelne Wertpapiere und keine Steuer- oder Rechtsberatung;
-allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
+allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung. Keine Kontonummern
+erfinden oder erfragen.''';
 
   // streams Buddy's answer as text pieces
   Stream<String> chat({required Map<String, dynamic> finances, required List<Map<String, dynamic>> history}) async* {
@@ -76,13 +108,20 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       if (tail.first['role'] != 'assistant') tail = tail.sublist(1);
       history = [history.first, ...tail];
     }
+    // attach finances to the latest user turn so follow-ups still see fresh numbers;
+    // keep them on the first user turn too when it is the only one (prompt cache)
+    var lastUser = -1;
+    for (var i = 0; i < history.length; i++) {
+      if (history[i]['role'] != 'assistant') lastUser = i;
+    }
+    final snapshot = jsonEncode(finances);
     for (int i = 0; i < history.length; i++) {
       final m = history[i];
       final role = m['role'] == 'assistant' ? 'assistant' : 'user';
       var text = '${m['text'] ?? ''}';
       if (text.length > 4000) text = text.substring(0, 4000);
-      if (i == 0 && role == 'user') {
-        text = 'Meine Finanzen (Stand heute):\n${jsonEncode(finances)}\n\nMeine Frage: $text';
+      if (role == 'user' && (i == lastUser || (i == 0 && lastUser == 0))) {
+        text = 'Meine Finanzen (Stand heute):\n$snapshot\n\nMeine Frage: $text';
       }
       messages.add({'role': role, 'content': text});
     }
@@ -106,13 +145,17 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       });
 
     final client = http.Client();
+    final clock = Stopwatch()..start();
     try {
-      final res = await client.send(req);
+      final res = await client.send(req).timeout(_streamDeadline);
       if (res.statusCode != 200) {
-        final body = await res.stream.bytesToString();
+        final body = await res.stream.bytesToString().timeout(const Duration(seconds: 10));
         throw AiError(_apiError(res.statusCode, body));
       }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (clock.elapsed > _streamDeadline) {
+          throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+        }
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
         switch (event['type']) {
@@ -127,6 +170,8 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
             throw AiError('${event['error']?['message'] ?? 'Fehler der KI'}');
         }
       }
+    } on TimeoutException {
+      throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
     } finally {
       client.close();
     }
@@ -193,7 +238,7 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
   Future<Map<String, dynamic>> receipt(String base64Image, String mediaType, List<String> categories) => _booking([
         {
           'type': 'image',
-          'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Image},
+          'source': {'type': 'base64', 'media_type': normalizeMedia(mediaType), 'data': base64Image},
         },
         {
           'type': 'text',
@@ -273,7 +318,7 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
       if (base64Image != null && base64Image.isNotEmpty)
         {
           'type': 'image',
-          'source': {'type': 'base64', 'media_type': mediaType, 'data': base64Image},
+          'source': {'type': 'base64', 'media_type': normalizeMedia(mediaType), 'data': base64Image},
         },
       {'type': 'text', 'text': prompt},
     ], _entriesSchema());
@@ -409,14 +454,23 @@ allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung.''';
         ],
       };
     final client = http.Client();
+    final clock = Stopwatch()..start();
     try {
-      final res = await _geminiSend('streamGenerateContent?alt=sse', body, client: client);
-      if (res.statusCode != 200) throw AiError(_apiError(res.statusCode, await res.stream.bytesToString()));
+      final res = await _geminiSend('streamGenerateContent?alt=sse', body, client: client)
+          .timeout(_streamDeadline);
+      if (res.statusCode != 200) {
+        throw AiError(_apiError(res.statusCode, await res.stream.bytesToString().timeout(const Duration(seconds: 10))));
+      }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (clock.elapsed > _streamDeadline) {
+          throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+        }
         if (!line.startsWith('data: ')) continue;
         final piece = geminiText(jsonDecode(line.substring(6)) as Map<String, dynamic>);
         if (piece.isNotEmpty) yield piece;
       }
+    } on TimeoutException {
+      throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
     } finally {
       client.close();
     }

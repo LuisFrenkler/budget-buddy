@@ -37,9 +37,8 @@ void main() {
       expect(DB.inMonth(tx, DateTime(now.year, now.month - 6)), isEmpty);
     });
 
-    test('ends up with a positive balance and unlocked badges', () {
+    test('ends up with a positive balance', () {
       expect(DB.balance(), greaterThan(0));
-      expect(DB.getBadges().where((b) => b.isUnlocked).length, 4);
     });
 
     test('books salary and fixed costs as standing orders', () {

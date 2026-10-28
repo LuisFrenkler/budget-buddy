@@ -59,7 +59,13 @@ class EnableBanking implements BankProvider {
     return [
       for (final a in (body['aspsps'] as List? ?? []))
         // the name is the identifier Enable Banking expects in /auth
-        {'id': a['name'], 'name': a['name'], 'logo': a['logo']}
+        {
+          'id': a['name'],
+          'name': a['name'],
+          'logo': a['logo'],
+          'bic': a['bic'],
+          'group': a['group'] is Map ? a['group']['name'] : a['group'],
+        }
     ];
   }
 
@@ -120,10 +126,12 @@ class EnableBanking implements BankProvider {
     // card payments and debits. XPCD is exactly that when the bank sends it.
     final expected = ofType('XPCD');
     if (expected != null) return _cents(expected);
-    // otherwise the booked balance as of now (CLBD is yesterday's closing,
-    // ITAV may include the overdraft) minus what is pending
-    final booked = ofType('ITBD') ?? ofType('CLBD') ?? ofType('CLAV') ?? balances.first;
-    return _cents(booked) + await _pendingCents(accountUid);
+    // ITBD/ITAV = interim booked now; safe to add pending card payments
+    final interim = ofType('ITBD') ?? ofType('ITAV');
+    if (interim != null) return _cents(interim) + await _pendingCents(accountUid);
+    // CLBD is yesterday's close — do not mix with today's pending window
+    final closed = ofType('CLBD') ?? ofType('CLAV') ?? balances.first;
+    return _cents(closed);
   }
 
   static int _cents(Map<String, dynamic> balance) {
@@ -168,7 +176,7 @@ class EnableBanking implements BankProvider {
         // only what is marked pending: a bank that ignores the filter sends
         // booked ones too, sometimes without any status
         if (t['status'] != 'PDNG') continue;
-        final tx = _parse(t as Map<String, dynamic>);
+        final tx = parseTx(t as Map<String, dynamic>);
         if (tx != null) sum += tx.amountCents;
       }
       continuation = body['continuation_key'] as String?;
@@ -180,13 +188,15 @@ class EnableBanking implements BankProvider {
   Future<List<BankTx>> transactions(String accountUid, DateTime from) async {
     final out = <BankTx>[];
     final day = '${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}';
+    // fingerprints that collide (two REWE same day) get #0, #1, …
+    final fpCount = <String, int>{};
     String? continuation;
     do {
       final query = 'date_from=$day${continuation != null ? '&continuation_key=${Uri.encodeQueryComponent(continuation)}' : ''}';
       final body = await _get('/accounts/$accountUid/transactions?$query');
       for (final t in (body['transactions'] as List? ?? [])) {
         if (t['status'] != null && t['status'] != 'BOOK') continue; // skip pending
-        final tx = _parse(t as Map<String, dynamic>);
+        final tx = parseTx(t as Map<String, dynamic>, fpCount);
         if (tx != null) out.add(tx);
       }
       continuation = body['continuation_key'] as String?;
@@ -194,20 +204,50 @@ class EnableBanking implements BankProvider {
     return out;
   }
 
-  BankTx? _parse(Map<String, dynamic> t) {
+  static BankTx? parseTx(Map<String, dynamic> t, [Map<String, int>? fpCount]) {
     final date = DateTime.tryParse('${t['booking_date'] ?? t['value_date'] ?? t['transaction_date']}');
     if (date == null) return null;
     final cents = amountToCents('${t['transaction_amount']?['amount']}').abs();
     final incoming = t['credit_debit_indicator'] == 'CRDT';
-    // the other party: who paid us, or whom we paid
-    final other = (incoming ? t['debtor'] : t['creditor']) as Map?;
+    // the other party: who paid us, or whom we paid. A non-object must not abort the sync.
+    final rawOther = incoming ? t['debtor'] : t['creditor'];
+    final other = rawOther is Map ? rawOther : null;
     final party = other?['name'];
     final remittance = t['remittance_information'];
-    final purpose = remittance is List ? remittance.join(' ') : '${remittance ?? ''}';
-    // banks do not all send an id; fall back to a fingerprint of the booking
-    final fingerprint = '${date.toIso8601String()}|$cents|$party|$purpose';
-    final id = '${t['entry_reference'] ?? t['transaction_id'] ?? fingerprint}';
-    return BankTx(id, date, incoming ? cents : -cents, '${party ?? ''}'.trim(), purpose.trim());
+    final purpose = remittance is List ? remittance.map(_remitPiece).join(' ') : '${remittance ?? ''}';
+    // prefer stable bank ids; fingerprint only when the bank sends none.
+    // transaction_id first: entry_reference sometimes appears only on a later sync
+    // and would otherwise re-import the same booking under a new id.
+    // party and purpose stay exactly as before so an old fingerprint still matches.
+    final bankId = '${t['transaction_id'] ?? ''}'.trim();
+    final entry = '${t['entry_reference'] ?? ''}'.trim();
+    String id;
+    if (bankId.isNotEmpty) {
+      id = bankId;
+    } else if (entry.isNotEmpty) {
+      id = entry;
+    } else {
+      final fingerprint = '${date.toIso8601String()}|$cents|$party|$purpose';
+      final n = fpCount?[fingerprint] ?? 0;
+      if (fpCount != null) fpCount[fingerprint] = n + 1;
+      id = n == 0 ? fingerprint : '$fingerprint#$n';
+    }
+    final code = t['bank_transaction_code'];
+    final codeText = code is Map ? '${code['description'] ?? ''}'.trim() : '';
+    final note = '${t['note'] ?? ''}'.trim();
+    final hint = [codeText, if (note.isNotEmpty && note != codeText) note].where((s) => s.isNotEmpty).join(' ');
+    return BankTx(id, date, incoming ? cents : -cents, '${party ?? ''}'.trim(), purpose.trim(),
+        mcc: '${t['merchant_category_code'] ?? ''}'.trim(), hint: hint.length > 180 ? hint.substring(0, 180) : hint);
+  }
+
+  // a string stays itself so fingerprints of normal remittance do not change
+  static String _remitPiece(dynamic e) => e is String ? e : _flatten(e);
+
+  static String _flatten(dynamic v) {
+    if (v is String) return v;
+    if (v is List) return v.map(_flatten).join(' ');
+    if (v is Map) return v.values.map(_flatten).join(' ');
+    return '';
   }
 
   @override

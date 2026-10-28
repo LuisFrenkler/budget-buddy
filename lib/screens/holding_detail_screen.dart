@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/holding.dart';
 import '../services/db.dart';
 import '../services/depot_sync.dart';
@@ -21,30 +22,36 @@ class HoldingDetailScreen extends StatefulWidget {
 
 class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
   List<ChartPoint> _points = []; // price per share in cents, oldest first
+  List<MarketHeadline> _news = [];
   bool _loading = true;
+  bool _newsLoading = true;
   String _range = '1M';
   // the point under the finger while scrubbing; only the chart header listens
   final _scrub = ValueNotifier<ChartPoint?>(null);
 
-  static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
-  static const _periods = {
-    '1W': 'in 7 Tagen',
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '1J': 'in 12 Monaten',
-  };
+  // 1T asks for one session; the service falls back to the last two closes
+  static const _ranges = {'1T': 1, '1W': 7, '1M': 30, '3M': 90, '1J': 365};
 
   @override
   void initState() {
     super.initState();
     _loadChart();
+    _loadNews();
+  }
+
+  // the saved position, so an edit that changes the symbol reloads the right data
+  Holding _saved() {
+    for (final h in DB.getHoldings()) {
+      if (h.id == widget.holding.id) return h;
+    }
+    return widget.holding;
   }
 
   static bool _tiny(Holding h) => (h.unitEur ?? h.currentPriceCents / 100) < 0.01;
 
   Future<void> _loadChart() async {
     setState(() => _loading = true);
-    final h = widget.holding;
+    final h = _saved();
     final range = _range;
     final pts = await PriceService.historyPoints(symbol: h.symbol, type: h.type, days: _ranges[range]!);
     // ignore late results of a range that is no longer selected
@@ -60,6 +67,26 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _loadNews() async {
+    final symbol = _saved().symbol.trim();
+    if (mounted) setState(() => _newsLoading = true);
+    if (symbol.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _news = [];
+          _newsLoading = false;
+        });
+      }
+      return;
+    }
+    final news = await PriceService.news(symbol);
+    if (!mounted || _saved().symbol.trim() != symbol) return;
+    setState(() {
+      _news = news;
+      _newsLoading = false;
+    });
   }
 
   @override
@@ -94,14 +121,15 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
             children: [
-              // price with an interactive chart; scrubbing shows each day's price
+              // price with an interactive chart; scrubbing shows that point
               ChartHeader(
                 label: '${_tiny(h) ? 'Wert' : 'Kurs'}${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
                 cents: _tiny(h) ? h.valueCents : h.currentPriceCents,
                 startCents: _points.length >= 2 ? _points.first.cents : (_tiny(h) ? h.investedCents : h.buyPriceCents),
-                period: _points.length >= 2 ? _periods[_range]! : 'seit Kauf',
+                period: _points.length >= 2 ? RangeSelector.periods[_range]! : 'seit Kauf',
                 scrubbing: _scrub,
                 startDate: _points.isEmpty ? null : _points.first.date,
+                showTime: InteractiveChart.intraday(_points),
               ),
               const SizedBox(height: 16),
               if (_loading)
@@ -111,7 +139,12 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                   height: 120,
                   child: Center(
                     child: Text(
-                      h.type == 'Krypto' ? 'Chart nicht verfügbar' : 'Aktien-Chart ist auf dem iPhone live',
+                      _range == '1T'
+                          ? 'Für heute liegen noch keine Kurse vor'
+                          : h.type == 'Krypto'
+                              ? 'Chart nicht verfügbar'
+                              : 'Aktien-Chart ist auf dem iPhone live',
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim),
                     ),
                   ),
@@ -158,6 +191,44 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
               _detailRow('Kurs-Stand', h.priceAt == null ? 'eingegeben, nicht live' : 'live, ${Dates.stand(h.priceAt!)}'),
               _detailRow('Investiert', Money.format(h.investedCents)),
               _detailRow('Gewinn/Verlust', Money.signed(h.gainCents), color: color),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 4, 6),
+                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Nachrichten', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                    if (_newsLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      )
+                    else if (_news.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 10, 12, 14),
+                        child: Text(
+                          h.symbol.isEmpty
+                              ? 'Ohne Börsen-Symbol keine Nachrichten.'
+                              : 'Gerade keine Schlagzeilen zu ${h.symbol}.',
+                          style: TextStyle(color: AppColors.textDim, height: 1.35),
+                        ),
+                      )
+                    else
+                      for (final n in _news)
+                        ListTile(
+                          contentPadding: const EdgeInsets.only(right: 8),
+                          title: Text(n.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                          subtitle: n.publisher.isEmpty ? null : Text(n.publisher),
+                          trailing: Icon(Icons.open_in_new, size: 16, color: AppColors.textDim),
+                          onTap: () => launchUrl(Uri.parse(n.url), mode: LaunchMode.externalApplication),
+                        ),
+                  ],
+                ),
+              ),
             ],
           ),
         );
@@ -186,7 +257,10 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
   void _edit(Holding h) async {
     await Navigator.push(
         context, MaterialPageRoute(builder: (_) => AddHoldingScreen(holding: h)));
-    if (mounted) _loadChart(); // symbol may have changed
+    if (mounted) {
+      _loadChart(); // symbol may have changed
+      _loadNews();
+    }
   }
 
   Future<void> _delete(Holding h) async {

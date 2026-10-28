@@ -29,14 +29,19 @@
 //                                    Without them purchases from that store are refused.
 //   PLUS_PRODUCT_MONTHLY, PLUS_PRODUCT_YEARLY  store product ids (default
 //                                    budgetbuddy_plus_monthly / budgetbuddy_plus_yearly)
+//   WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_VERIFY_TOKEN
+//                                    optional WhatsApp Cloud API (lib/whatsapp.dart).
+//                                    Without them the routes answer but send nothing.
+//                                    Numbers are stored as a hash; opt-in required.
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
+//   BIND (default 127.0.0.1)         set to 0.0.0.0 behind a reverse proxy
 //   HTTPS_PORT (default 8443)        with a certificate in .data/tls (see README), the
 //                                    server also answers on https://localhost:<HTTPS_PORT>,
 //                                    for providers that only redirect to https
 //
-// The server only listens on localhost. Users sign in with email and
-// password (see lib/accounts.dart); every bank link belongs to one user and
-// is identified by a random "state" token. Data survives restarts in .data/.
+// Default: localhost only. For hosting set BIND=0.0.0.0 + HTTPS via a proxy.
+// Users sign in with email and password (see lib/accounts.dart); every bank
+// link belongs to one user. Data survives restarts in .data/.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -53,12 +58,14 @@ import 'lib/billing.dart';
 import 'lib/store_billing.dart';
 import 'lib/demo_bank.dart';
 import 'lib/depot.dart';
+import 'lib/market.dart';
 import 'lib/enable_banking.dart';
 import 'lib/json_store.dart';
 import 'lib/rate_limit.dart';
 import 'lib/vault.dart';
 import 'lib/splits.dart';
 import 'lib/net.dart';
+import 'lib/whatsapp.dart';
 
 String _env(String k) => Platform.environment[k] ?? _dotEnv[k] ?? '';
 
@@ -83,27 +90,48 @@ late final StoreBilling _stores;
 
 // consent started but not finished yet: state -> (bank name, owner id)
 final _pending = <String, ({String bank, String owner})>{};
-// consent failed: state -> message
-final _failed = <String, String>{};
+// consent failed: state -> (owner, message) — owner-scoped so others cannot probe
+final _failed = <String, ({String owner, String error})>{};
 // linked banks: state -> session
 final _sessions = <String, Map<String, dynamic>>{};
 final _dataDir = '${File.fromUri(Platform.script).parent.path}/.data';
 final _store = File('$_dataDir/sessions.json');
-// linked depots: state -> {owner, tokens, linkedAt}; consent in progress: state -> owner + PKCE verifier
+// linked depots: state -> {owner, tokens, linkedAt, portfolioIds}; consent in progress
 final _depots = <String, Map<String, dynamic>>{};
 final _depotPending = <String, ({String owner, String verifier})>{};
-final _depotFailed = <String, String>{};
+final _depotFailed = <String, ({String owner, String error})>{};
 // failed logins and new accounts per address
 final _loginLimit = RateLimit(20, const Duration(minutes: 15));
 final _registerLimit = RateLimit(10, const Duration(hours: 1));
+final _chartLimit = RateLimit(60, const Duration(minutes: 1));
+final _marketLimit = RateLimit(60, const Duration(minutes: 1));
+final _storeLimit = RateLimit(30, const Duration(minutes: 1));
+final _lookupLimit = RateLimit(20, const Duration(minutes: 15));
+final _lookupUserLimit = RateLimit(10, const Duration(minutes: 15));
+final _aiIpLimit = RateLimit(40, const Duration(minutes: 1));
+final _institutionsLimit = RateLimit(30, const Duration(minutes: 1));
+final _waLimit = RateLimit(120, const Duration(minutes: 1));
+final _waLinkLimit = RateLimit(10, const Duration(hours: 1));
 
-// The server listens on localhost only, so a request comes from the reverse
-// proxy, which appends the real client to X-Forwarded-For. The last entry is
-// the proxy's own; earlier ones are whatever the client claimed.
+// production hardening
+var _inflight = 0;
+const _maxInflight = 100;
+var _publicBind = false; // true when BIND is not loopback
+var _shuttingDown = false;
+HttpServer? _httpServer;
+HttpServer? _httpsServer;
+final _stripeSeen = <String>{}; // webhook event ids (idempotency)
+final _stripeSeenStore = File('${File.fromUri(Platform.script).parent.path}/.data/stripe_events.json');
+
+// Rate limits key off the peer address. X-Forwarded-For is only trusted when
+// TRUST_PROXY=1 (reverse proxy in front); otherwise clients could rotate IPs.
 String _clientIp(HttpRequest req) {
+  final peer = req.connectionInfo?.remoteAddress.address ?? 'unknown';
+  if (_env('TRUST_PROXY') != '1') return peer;
   final forwarded = req.headers.value('x-forwarded-for');
-  if (forwarded != null && forwarded.trim().isNotEmpty) return forwarded.split(',').last.trim();
-  return req.connectionInfo?.remoteAddress.address ?? 'unknown';
+  if (forwarded == null || forwarded.trim().isEmpty) return peer;
+  // first hop is the original client when the proxy appends
+  return forwarded.split(',').first.trim();
 }
 
 // when each consent above began: abandoned ones are dropped after an hour
@@ -132,6 +160,12 @@ const _trialDays = 7;
 const _promoCodes = {'BUDDY30': 30, 'FREUND': 30, 'CREATOR60': 60, 'START14': 14};
 final _accounts = Accounts(File('$_dataDir/users.json'));
 final _splits = SharedSplits(File('$_dataDir/splits.json'));
+final _whatsapp = WhatsApp(
+  token: _env('WHATSAPP_TOKEN'),
+  phoneId: _env('WHATSAPP_PHONE_ID'),
+  verifyToken: _env('WHATSAPP_VERIFY_TOKEN'),
+  store: File('$_dataDir/whatsapp.json'),
+);
 final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
 
 // AI calls cost money: at most this many per user and day
@@ -165,11 +199,21 @@ Future<void> main() async {
   await _load();
   await _accounts.load();
   await _splits.load();
+  await _whatsapp.load();
 
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-  stdout.writeln('BudgetBuddy backend on $_publicUrl');
+  // 127.0.0.1 for local; BIND=0.0.0.0 when a reverse proxy terminates TLS
+  final bindHost = _env('BIND').isNotEmpty ? _env('BIND') : InternetAddress.loopbackIPv4.address;
+  _publicBind = bindHost != '127.0.0.1' && bindHost != '::1' && bindHost != 'localhost';
+  if (_billing.mode == 'demo' && _publicBind && _env('ALLOW_DEMO_BILLING') != '1') {
+    stdout.writeln('  WARN:   Demo-Plus is OFF on public bind (set ALLOW_DEMO_BILLING=1 or STRIPE_SECRET_KEY)');
+  }
+  await _loadStripeSeen();
+  final server = await HttpServer.bind(bindHost, port);
+  _httpServer = server;
+  stdout.writeln('BudgetBuddy backend on $_publicUrl (bind $bindHost:$port)');
   final secure = await _bindHttps();
   if (secure != null) {
+    _httpsServer = secure;
     stdout.writeln('  HTTPS:  https://localhost:${secure.port}');
     unawaited(_serve(secure));
   }
@@ -178,8 +222,53 @@ Future<void> main() async {
   stdout.writeln('  Plus:   ${_billing.mode == 'live' ? 'Stripe (live)' : 'Demo-Checkout (set STRIPE_SECRET_KEY for real payments)'}');
   stdout.writeln('  Stores: ${_stores.mode.isEmpty ? 'not configured (App Store / Google Play purchases are refused)' : _stores.mode}');
   stdout.writeln('  Depot:  ${_depot.mode == 'live' ? 'Parqet Connect (live)' : 'Demo-Depot (set PARQET_CLIENT_ID for real depots)'}');
+  stdout.writeln('  WhatsApp: ${_whatsapp.configured ? 'Cloud API (opt-in)' : 'not configured'}');
+
+  // drain in-flight work on deploy / Ctrl-C
+  for (final sig in [ProcessSignal.sigint, ProcessSignal.sigterm]) {
+    sig.watch().listen((_) => unawaited(_shutdown()));
+  }
 
   await _serve(server);
+}
+
+Future<void> _shutdown() async {
+  if (_shuttingDown) return;
+  _shuttingDown = true;
+  stdout.writeln('Shutting down…');
+  await _httpServer?.close(force: false);
+  await _httpsServer?.close(force: false);
+  // give in-flight handlers a moment to finish writes
+  for (var i = 0; i < 50 && _inflight > 0; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+  }
+  await _saveStripeSeen();
+  exit(0);
+}
+
+Future<void> _loadStripeSeen() async {
+  try {
+    if (!await _stripeSeenStore.exists()) return;
+    final list = jsonDecode(await _stripeSeenStore.readAsString());
+    if (list is List) {
+      for (final id in list.take(500)) {
+        _stripeSeen.add('$id');
+      }
+    }
+  } catch (_) {}
+}
+
+Future<void> _saveStripeSeen() async {
+  final ids = _stripeSeen.length <= 500 ? _stripeSeen.toList() : _stripeSeen.skip(_stripeSeen.length - 500).toList();
+  await writeJsonAtomic(_stripeSeenStore, ids);
+}
+
+// Demo Plus only on localhost, or when explicitly allowed — never free Plus on a public host by accident
+void _requireBilling() {
+  if (_billing.mode == 'live') return;
+  if (_env('ALLOW_DEMO_BILLING') == '1') return;
+  if (!_publicBind) return;
+  throw const AuthError(503, 'Zahlungen sind noch nicht eingerichtet.');
 }
 
 // the same server on https, when .data/tls has a certificate (mkcert)
@@ -195,36 +284,69 @@ Future<HttpServer?> _bindHttps() async {
 }
 
 // every request runs on its own, so one slow upstream call (a Buddy stream,
-// a bank sync) never makes the others wait
+// a bank sync) never makes the others wait — capped so one noisy client cannot
+// exhaust the process
 Future<void> _serve(HttpServer server) async {
   await for (final req in server) {
-    unawaited(_handleSafe(req));
+    if (_shuttingDown) {
+      unawaited(_json(req, 503, {'error': 'Server fährt herunter.'}));
+      continue;
+    }
+    if (_inflight >= _maxInflight) {
+      unawaited(_json(req, 503, {'error': 'Server ausgelastet. Bitte gleich noch einmal.'}));
+      continue;
+    }
+    _inflight++;
+    unawaited(_handleSafe(req).whenComplete(() => _inflight--));
   }
 }
 
+String _requestId(HttpRequest req) {
+  final incoming = req.headers.value('x-request-id')?.trim();
+  if (incoming != null && incoming.isNotEmpty && incoming.length <= 64) return incoming;
+  return _newState();
+}
+
 Future<void> _handleSafe(HttpRequest req) async {
+  final id = _requestId(req);
+  req.response.headers.set('X-Request-Id', id);
+  final started = DateTime.now();
+  var status = 500;
   try {
     try {
       await _handle(req);
+      status = req.response.statusCode;
     } on AuthError catch (e) {
+      status = e.status;
       await _json(req, e.status, {'error': e.message});
     } on BillingError catch (e) {
+      status = 502;
       await _json(req, 502, {'error': e.message});
     } on AiError catch (e) {
-      stderr.writeln('${req.uri.path}: ${e.message}');
+      status = 502;
+      stderr.writeln('{"id":"$id","path":"${req.uri.path}","err":${jsonEncode(e.message)}}');
       await _json(req, 502, {'error': e.message});
     } on TimeoutException {
+      status = 504;
       await _json(req, 504, {'error': 'Der Dienst antwortet gerade nicht. Versuch es gleich noch einmal.'});
     } on FormatException {
+      status = 400;
       await _json(req, 400, {'error': 'Ungültige Anfrage.'});
     } on TypeError {
+      status = 400;
       await _json(req, 400, {'error': 'Ungültige Anfrage.'});
     } catch (e, st) {
-      stderr.writeln('${req.method} ${req.uri.path}: $e\n$st');
+      status = 500;
+      stderr.writeln('{"id":"$id","method":"${req.method}","path":"${req.uri.path}","err":${jsonEncode('$e')}}\n$st');
       await _json(req, 500, {'error': 'Interner Fehler.'});
     }
   } catch (_) {
     // the response had already started or the client is gone; nothing to send
+  } finally {
+    final ms = DateTime.now().difference(started).inMilliseconds;
+    if (status >= 400 || ms > 2000) {
+      stdout.writeln('{"id":"$id","method":"${req.method}","path":"${req.uri.path}","status":$status,"ms":$ms}');
+    }
   }
 }
 
@@ -255,15 +377,51 @@ String _newState() {
   return List.generate(16, (_) => rnd.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
 }
 
-void _cors(HttpResponse res) {
+void _securityHeaders(HttpResponse res) {
   res.headers
-    ..set('Access-Control-Allow-Origin', '*')
+    ..set('X-Content-Type-Options', 'nosniff')
+    ..set('Referrer-Policy', 'no-referrer')
+    ..set('X-Frame-Options', 'DENY')
+    ..set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+}
+
+// CORS_ORIGINS=https://app.example.com,http://localhost:8765 — empty keeps *
+// only on loopback; public hosts without an allowlist send no ACAO (fail closed)
+void _cors(HttpRequest req, HttpResponse res) {
+  final origin = req.headers.value('origin');
+  final raw = _env('CORS_ORIGINS').trim();
+  if (raw.isEmpty) {
+    if (!_publicBind) {
+      res.headers.set('Access-Control-Allow-Origin', '*');
+    } else if (origin != null && origin.isNotEmpty) {
+      // public + no allowlist: reflect nothing (browser blocks). Local Flutter
+      // apps are not browsers so Bearer calls still work.
+    }
+  } else {
+    final allowed = {for (final o in raw.split(',')) o.trim()}.where((o) => o.isNotEmpty).toSet();
+    if (origin != null && allowed.contains(origin)) {
+      res.headers
+        ..set('Access-Control-Allow-Origin', origin)
+        ..set('Vary', 'Origin');
+    }
+  }
+  res.headers
     ..set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
-    ..set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    ..set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Request-Id');
+}
+
+Future<void> _plain(HttpRequest req, int status, String body) async {
+  _securityHeaders(req.response);
+  req.response
+    ..statusCode = status
+    ..headers.contentType = ContentType.text
+    ..write(body);
+  await req.response.close();
 }
 
 Future<void> _json(HttpRequest req, int status, Object body) async {
-  _cors(req.response);
+  _cors(req, req.response);
+  _securityHeaders(req.response);
   req.response
     ..statusCode = status
     ..headers.contentType = ContentType.json;
@@ -272,7 +430,10 @@ Future<void> _json(HttpRequest req, int status, Object body) async {
 }
 
 Future<void> _html(HttpRequest req, String body) async {
-  req.response.headers.contentType = ContentType.html;
+  _securityHeaders(req.response);
+  req.response.headers
+    ..contentType = ContentType.html
+    ..set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'");
   req.response.write(_page(body));
   await req.response.close();
 }
@@ -314,7 +475,8 @@ Map<String, dynamic> _ownSession(HttpRequest req, String state) {
 
 Future<void> _handle(HttpRequest req) async {
   if (req.method == 'OPTIONS') {
-    _cors(req.response);
+    _cors(req, req.response);
+    _securityHeaders(req.response);
     req.response.statusCode = 204;
     await req.response.close();
     return;
@@ -323,7 +485,26 @@ Future<void> _handle(HttpRequest req) async {
   final q = req.uri.queryParameters;
   switch (req.uri.path) {
     case '/health':
-      return _json(req, 200, {'ok': true, 'bank': _bank.mode, 'ai': _ai.enabled, 'aiProvider': _ai.enabled ? _ai.provider : null, 'depot': _depot.mode, 'billing': _billing.mode, 'stores': _stores.mode});
+      // app reads aiProvider / feature modes from here
+      return _json(req, 200, {
+        'ok': true,
+        'bank': _bank.mode,
+        'ai': _ai.enabled,
+        'aiProvider': _ai.enabled ? _ai.provider : null,
+        'depot': _depot.mode,
+        'billing': _billing.mode,
+        'stores': _stores.mode,
+      });
+    case '/ready':
+      // orchestrators: data dir must be writable
+      try {
+        final probe = File('$_dataDir/.ready');
+        await probe.parent.create(recursive: true);
+        await probe.writeAsString('${DateTime.now().toIso8601String()}', flush: true);
+        return _json(req, 200, {'ok': true});
+      } catch (_) {
+        return _json(req, 503, {'ok': false, 'error': 'data dir not writable'});
+      }
     case '/auth/register':
       final ip = _clientIp(req);
       if (_registerLimit.blocked(ip)) {
@@ -332,16 +513,46 @@ Future<void> _handle(HttpRequest req) async {
       }
       _registerLimit.hit(ip);
       final b = await _body(req);
-      return _json(req, 200,
-          await _accounts.register(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}', name: '${b['name'] ?? ''}'));
+      return _json(
+          req,
+          200,
+          await _accounts.register(
+              email: '${b['email'] ?? ''}',
+              password: '${b['password'] ?? ''}',
+              name: '${b['name'] ?? ''}',
+              device: '${b['device'] ?? ''}'));
     case '/auth/login':
       // the per-email lockout stops guessing one password; this stops one
-      // address from trying many accounts
+      // address from trying many accounts. A correct password on a 2FA
+      // account is not a failure: the client still has to send the code.
       final ip = _clientIp(req);
       if (_loginLimit.blocked(ip)) throw AuthError.wait(_loginLimit.wait(ip));
       final b = await _body(req);
       try {
-        return _json(req, 200, await _accounts.login(email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}'));
+        final result = await _accounts.login(
+            email: '${b['email'] ?? ''}', password: '${b['password'] ?? ''}', device: '${b['device'] ?? ''}');
+        if (result['needsTotp'] == true) {
+          return _json(req, 401, {
+            'needsTotp': true,
+            'challenge': result['challenge'],
+            'error': 'Dieses Konto nutzt Zwei-Faktor. Bitte gib den Code aus der Authenticator-App ein.',
+          });
+        }
+        return _json(req, 200, result);
+      } on AuthError catch (e) {
+        if (e.status == 401) _loginLimit.hit(ip);
+        rethrow;
+      }
+    case '/auth/login/totp':
+      final ip = _clientIp(req);
+      if (_loginLimit.blocked(ip)) throw AuthError.wait(_loginLimit.wait(ip));
+      final b = await _body(req);
+      try {
+        return _json(
+            req,
+            200,
+            await _accounts.loginTotp(
+                challenge: '${b['challenge'] ?? ''}', code: '${b['code'] ?? ''}', device: '${b['device'] ?? ''}'));
       } on AuthError catch (e) {
         if (e.status == 401) _loginLimit.hit(ip);
         rethrow;
@@ -352,10 +563,59 @@ Future<void> _handle(HttpRequest req) async {
       final token = _bearer(req);
       if (token != null) await _accounts.logout(token);
       return _json(req, 200, {'ok': true});
+    case '/auth/logout-all':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      await _accounts.logoutAll(_user(req)['id'] as String);
+      return _json(req, 200, {'ok': true});
+    case '/auth/sessions':
+      if (req.method != 'GET') return _json(req, 405, {'error': 'GET only'});
+      final user = _user(req);
+      return _json(req, 200, {'sessions': _accounts.sessions(user['id'] as String, currentToken: _bearer(req))});
+    case '/auth/sessions/revoke':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final user = _user(req);
+      final b = await _body(req);
+      await _accounts.revokeSession(user['id'] as String, '${b['id'] ?? ''}');
+      return _json(req, 200, {'ok': true});
+    case '/auth/totp/setup':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200, await _accounts.beginTotp(user['id'] as String, '${b['password'] ?? ''}'));
+    case '/auth/totp/confirm':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200, {
+        'user': await _accounts.confirmTotp(user['id'] as String, '${b['code'] ?? ''}', keepToken: _bearer(req)),
+      });
+    case '/auth/totp/disable':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final user = _user(req);
+      final b = await _body(req);
+      return _json(req, 200, {
+        'user': await _accounts.disableTotp(user['id'] as String, '${b['password'] ?? ''}', '${b['code'] ?? ''}',
+            keepToken: _bearer(req)),
+      });
     case '/auth/profile':
       final user = _user(req);
       final b = await _body(req);
       return _json(req, 200, {'user': await _accounts.changeName(user['id'] as String, '${b['name'] ?? ''}')});
+    // POST {email} → {found, name?} — never GET (keeps emails out of access logs)
+    case '/users/lookup':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final user = _user(req);
+      final uid = user['id'] as String;
+      final ip = _clientIp(req);
+      if (_lookupLimit.blocked(ip) || _lookupUserLimit.blocked(uid)) {
+        throw AuthError.wait(_lookupLimit.blocked(ip) ? _lookupLimit.wait(ip) : _lookupUserLimit.wait(uid));
+      }
+      _lookupLimit.hit(ip);
+      _lookupUserLimit.hit(uid);
+      final email = '${(await _body(req))['email'] ?? ''}';
+      final name = _accounts.lookupNameByEmail(email, exceptUserId: uid);
+      // same shape for unknown and self — no enumeration oracle
+      return _json(req, 200, name == null ? {'found': false} : {'found': true, 'name': name});
     case '/auth/email':
       final user = _user(req);
       final b = await _body(req);
@@ -376,19 +636,26 @@ Future<void> _handle(HttpRequest req) async {
       final id = _user(req)['id'] as String;
       if (req.method == 'POST') {
         final b = await _body(req);
-        return _json(req, 200, {'version': await _vault.put(id, b['data'])});
+        final expected = b['expectedVersion'];
+        final ev = expected is int ? expected : int.tryParse('$expected');
+        if (ev == null) throw const AuthError(400, 'expectedVersion fehlt.');
+        return _json(req, 200, {'version': await _vault.put(id, b['data'], expectedVersion: ev)});
       }
+      if (req.method != 'GET') return _json(req, 405, {'error': 'GET or POST only'});
       final v = await _vault.get(id);
       return v == null ? _json(req, 404, {'error': 'Noch keine Sicherung.'}) : _json(req, 200, v);
     case '/ai/chat':
+      _guardAi(req);
       return _aiChat(req);
     case '/ai/parse':
+      _guardAi(req);
       final user = _aiUser(req);
       final b = await _body(req);
       _countAi(user);
       return _json(req, 200, {'booking': await _ai.parse('${b['text'] ?? ''}', _categories(b))});
     // POST {text, image?, mediaType?, categories, accounts: [{id, name, kind}], depots} -> {reply, entries}
     case '/ai/entries':
+      _guardAi(req);
       final user = _aiUser(req);
       final b = await _body(req);
       _countAi(user);
@@ -404,6 +671,7 @@ Future<void> _handle(HttpRequest req) async {
             depots: [for (final d in (b['depots'] as List? ?? const [])) '$d'],
           ));
     case '/ai/receipt':
+      _guardAi(req);
       final user = _aiUser(req);
       final b = await _body(req);
       _countAi(user);
@@ -411,7 +679,15 @@ Future<void> _handle(HttpRequest req) async {
         'booking': await _ai.receipt('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}', _categories(b))
       });
     case '/bank/institutions':
-      return _json(req, 200, {'institutions': await _bank.institutions(q['country'] ?? 'DE')});
+      _user(req); // auth required — was an open proxy into Enable Banking
+      final ip = _clientIp(req);
+      if (_institutionsLimit.blocked(ip)) throw AuthError.wait(_institutionsLimit.wait(ip));
+      _institutionsLimit.hit(ip);
+      final country = q['country'] ?? 'DE';
+      if (!RegExp(r'^[A-Za-z]{2}$').hasMatch(country)) {
+        return _json(req, 400, {'error': 'country ungültig'});
+      }
+      return _json(req, 200, {'institutions': await _bank.institutions(country.toUpperCase())});
     case '/bank/connect':
       return _connect(req);
     case '/bank/demo-consent':
@@ -427,12 +703,16 @@ Future<void> _handle(HttpRequest req) async {
     case '/plus/status':
       return _plusStatus(req);
     case '/plus/checkout':
+      _requireBilling();
       return _plusCheckout(req);
     case '/plus/store':
+      if (_storeLimit.blocked(_clientIp(req))) throw AuthError.wait(_storeLimit.wait(_clientIp(req)));
       return _plusFromStore(req);
     case '/plus/demo-checkout':
+      _requireBilling();
       return _plusDemoCheckout(req);
     case '/plus/demo-pay':
+      _requireBilling();
       return _plusDemoPay(req);
     case '/plus/return':
       return _plusReturn(req);
@@ -496,8 +776,24 @@ Future<void> _handle(HttpRequest req) async {
       return _legal(req, LegalTexts.imprint);
     case '/widerruf':
       return _legal(req, LegalTexts.withdrawal);
+    case '/market/search':
+      return _marketSearch(req);
+    case '/market/news':
+      return _marketNews(req);
     case '/market/chart':
       return _marketChart(req);
+    case '/notify/whatsapp':
+      if (req.method != 'GET') return _json(req, 405, {'error': 'GET only'});
+      return _json(req, 200, {
+        'configured': _whatsapp.configured,
+        'optedIn': _whatsapp.optedIn(_user(req)['id'] as String),
+      });
+    case '/notify/whatsapp/link':
+      return _waLink(req);
+    case '/notify/whatsapp/unlink':
+      return _waUnlink(req);
+    case '/notify/whatsapp/webhook':
+      return _waWebhook(req);
     default:
       return _json(req, 404, {'error': 'unknown endpoint: ${req.uri.path}'});
   }
@@ -511,10 +807,14 @@ Future<void> _connect(HttpRequest req) async {
   final body = await _body(req);
   final institution = '${body['institution'] ?? ''}';
   if (institution.isEmpty) return _json(req, 400, {'error': 'institution required'});
+  final country = '${body['country'] ?? 'DE'}';
+  if (!RegExp(r'^[A-Za-z]{2}$').hasMatch(country)) {
+    return _json(req, 400, {'error': 'country ungültig'});
+  }
   final state = _newState();
   final link = await _bank.startAuth(
     institution: institution,
-    country: '${body['country'] ?? 'DE'}',
+    country: country.toUpperCase(),
     state: state,
     redirectUrl: _redirectUrl,
   );
@@ -528,6 +828,11 @@ Future<void> _connect(HttpRequest req) async {
 Future<void> _demoConsent(HttpRequest req) {
   final state = req.uri.queryParameters['state'] ?? '';
   final bank = _escape(req.uri.queryParameters['bank'] ?? 'Demo-Bank');
+  final pending = _pending[state];
+  final forWhom = pending == null
+      ? ''
+      : '<p class="dim">Die Freigabe landet im Konto <b>${_escape(_accounts.emailOf(pending.owner) ?? 'unbekannt')}</b>. '
+          'Wenn das nicht dein Konto ist, brich ab.</p>';
   final ok = '/bank/callback?state=${Uri.encodeQueryComponent(state)}&code=${Uri.encodeQueryComponent(state)}';
   final no = '/bank/callback?state=${Uri.encodeQueryComponent(state)}&error=access_denied';
   return _html(req, '''
@@ -535,6 +840,7 @@ Future<void> _demoConsent(HttpRequest req) {
 <h1>$bank</h1>
 <p>BudgetBuddy möchte <b>lesend</b> auf dein Girokonto zugreifen:</p>
 <ul><li>Kontostand</li><li>Umsätze der letzten 90 Tage</li></ul>
+$forWhom
 <p class="dim">Bei einer echten Bank meldest du dich hier mit deinen Zugangsdaten an und bestätigst per App oder TAN.</p>
 <a class="btn" href="$ok">Zugriff erlauben</a>
 <a class="link" href="$no">Abbrechen</a>''');
@@ -550,11 +856,27 @@ Future<void> _callback(HttpRequest req) async {
   }
   if (q['code'] == null) {
     _pending.remove(state);
-    _failed[state] = q['error_description'] ?? q['error'] ?? 'abgebrochen';
+    _failed[state] = (owner: pending.owner, error: q['error_description'] ?? q['error'] ?? 'abgebrochen');
     return _html(req, '<h1>Nicht verbunden</h1><p>Der Zugriff wurde nicht erteilt. Du kannst dieses Fenster schließen.</p>');
   }
   try {
     final session = await _bank.createSession(q['code']!);
+    // refuse if any IBAN is already linked to another BudgetBuddy account
+    for (final a in session.accounts) {
+      final taken = _ibanOwner(a.iban);
+      if (taken != null && taken != pending.owner) {
+        try {
+          await _bank.endSession(session.id);
+        } catch (_) {}
+        _pending.remove(state);
+        _failed[state] = (
+          owner: pending.owner,
+          error: 'Dieses Bankkonto ist schon mit einem anderen BudgetBuddy-Konto verbunden.',
+        );
+        return _html(req, '<h1>Nicht verbunden</h1><p>Dieses Bankkonto gehört schon zu einem anderen Konto. '
+            'Du kannst dieses Fenster schließen.</p>');
+      }
+    }
     final bankName = pending.bank;
     _sessions[state] = {
       'owner': pending.owner,
@@ -572,9 +894,20 @@ Future<void> _callback(HttpRequest req) async {
 <script>setTimeout(() => window.close(), 1500)</script>''');
   } catch (e) {
     _pending.remove(state);
-    _failed[state] = '$e';
+    _failed[state] = (owner: pending.owner, error: '$e');
     return _html(req, '<h1>Fehler</h1><p>${_escape('$e')}</p>');
   }
+}
+
+// which account already owns this IBAN, if any
+String? _ibanOwner(String? iban) {
+  if (iban == null || iban.isEmpty) return null;
+  for (final s in _sessions.values) {
+    for (final a in (s['accounts'] as List? ?? const [])) {
+      if (a is Map && '${a['iban']}' == iban) return '${s['owner']}';
+    }
+  }
+  return null;
 }
 
 // GET ?state= -> {status: pending|linked|failed|unknown, ...}
@@ -592,7 +925,10 @@ Future<void> _status(HttpRequest req) {
     });
   }
   if (_pending[state]?.owner == user['id']) return _json(req, 200, {'status': 'pending'});
-  if (_failed.containsKey(state)) return _json(req, 200, {'status': 'failed', 'error': _failed[state]});
+  final failed = _failed[state];
+  if (failed != null && failed.owner == user['id']) {
+    return _json(req, 200, {'status': 'failed', 'error': failed.error});
+  }
   return _json(req, 200, {'status': 'unknown'});
 }
 
@@ -637,9 +973,11 @@ Future<void> _disconnect(HttpRequest req) async {
   return _json(req, 200, {'ok': true});
 }
 
-// DELETE /auth/account: the user, their sign-ins and every bank link
+// DELETE /auth/account {password}: the user, their sign-ins and every bank link
 Future<void> _deleteAccount(HttpRequest req) async {
   final user = _user(req);
+  final body = await _body(req);
+  _accounts.confirmPassword(user['id'] as String, '${body['password'] ?? ''}');
   final own = _sessions.entries.where((e) => e.value['owner'] == user['id']).toList();
   for (final e in own) {
     _sessions.remove(e.key);
@@ -650,7 +988,13 @@ Future<void> _deleteAccount(HttpRequest req) async {
     }
   }
   await _save();
-  _depots.removeWhere((_, d) => d['owner'] == user['id']);
+  final ownDepots = _depots.entries.where((e) => e.value['owner'] == user['id']).toList();
+  for (final e in ownDepots) {
+    _depots.remove(e.key);
+    try {
+      await _depot.revoke(DepotTokens.fromJson(e.value['tokens'] as Map));
+    } catch (_) {}
+  }
   await _vault.delete(user['id'] as String);
   // a deleted account must not keep paying
   final plus = _plus.remove(user['id']);
@@ -664,7 +1008,45 @@ Future<void> _deleteAccount(HttpRequest req) async {
   await _savePlus();
   await _saveDepots();
   await _splits.forget(user['id'] as String);
+  await _whatsapp.unlink(user['id'] as String);
   await _accounts.delete(user['id'] as String);
+  return _json(req, 200, {'ok': true});
+}
+
+// --- WhatsApp (opt-in; no-op without the three env vars) ---
+
+Future<void> _waLink(HttpRequest req) async {
+  if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+  final id = _user(req)['id'] as String;
+  if (_waLinkLimit.blocked(id)) throw AuthError.wait(_waLinkLimit.wait(id));
+  _waLinkLimit.hit(id);
+  final phone = '${(await _body(req))['phone'] ?? ''}';
+  await _whatsapp.link(id, phone);
+  return _json(req, 200, {'ok': true, 'optedIn': true, 'instructions': WhatsApp.linkInstructions});
+}
+
+Future<void> _waUnlink(HttpRequest req) async {
+  if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+  await _whatsapp.unlink(_user(req)['id'] as String);
+  return _json(req, 200, {'ok': true, 'optedIn': false});
+}
+
+Future<void> _waWebhook(HttpRequest req) async {
+  final ip = _clientIp(req);
+  if (_waLimit.blocked(ip)) throw AuthError.wait(_waLimit.wait(ip));
+  _waLimit.hit(ip);
+  if (req.method == 'GET') {
+    final q = req.uri.queryParameters;
+    final challenge = _whatsapp.verify(q['hub.mode'], q['hub.verify_token'], q['hub.challenge']);
+    if (challenge == null) return _plain(req, 403, 'forbidden');
+    return _plain(req, 200, challenge);
+  }
+  if (req.method != 'POST') return _json(req, 405, {'error': 'GET or POST only'});
+  try {
+    await _whatsapp.receive(await _body(req));
+  } catch (e) {
+    stderr.writeln('whatsapp webhook error ${e.runtimeType}');
+  }
   return _json(req, 200, {'ok': true});
 }
 
@@ -690,6 +1072,12 @@ List<String> _categories(Map<String, dynamic> body) {
   return list == null || list.isEmpty ? const ['Sonstiges'] : list;
 }
 
+void _guardAi(HttpRequest req) {
+  final ip = _clientIp(req);
+  if (_aiIpLimit.blocked(ip)) throw AuthError.wait(_aiIpLimit.wait(ip));
+  _aiIpLimit.hit(ip);
+}
+
 // POST {finances, history} -> server-sent events: {"t": "..."} pieces, then {"done": true}
 Future<void> _aiChat(HttpRequest req) async {
   final user = _aiUser(req);
@@ -699,7 +1087,8 @@ Future<void> _aiChat(HttpRequest req) async {
   if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
 
   final res = req.response;
-  _cors(res);
+  _cors(req, res);
+  _securityHeaders(res);
   res.headers
     ..contentType = ContentType('text', 'event-stream', charset: 'utf-8')
     ..set('Cache-Control', 'no-cache');
@@ -914,11 +1303,29 @@ Future<void> _plusWithdraw(HttpRequest req) async {
 // Stripe tells us about renewals, failed payments and cancellations
 Future<void> _stripeWebhook(HttpRequest req) async {
   final secret = _env('STRIPE_WEBHOOK_SECRET');
-  final payload = await utf8.decodeStream(req);
+  // same size cap as other POSTs — never buffer an unbounded body
+  final bytes = BytesBuilder(copy: false);
+  await for (final chunk in req) {
+    bytes.add(chunk);
+    if (bytes.length > 256 << 10) return _json(req, 413, {'error': 'Die Anfrage ist zu groß.'});
+  }
+  final payload = utf8.decode(bytes.takeBytes());
   if (secret.isEmpty || !StripeBilling.verifyWebhook(payload, req.headers.value('stripe-signature') ?? '', secret)) {
     return _json(req, 400, {'error': 'invalid signature'});
   }
   final event = jsonDecode(payload) as Map<String, dynamic>;
+  final eventId = '${event['id'] ?? ''}';
+  if (eventId.isNotEmpty && _stripeSeen.contains(eventId)) {
+    return _json(req, 200, {'received': true, 'duplicate': true});
+  }
+  if (eventId.isNotEmpty) {
+    _stripeSeen.add(eventId);
+    if (_stripeSeen.length > 500) {
+      final drop = _stripeSeen.length - 500;
+      _stripeSeen.removeAll(_stripeSeen.take(drop).toList());
+    }
+    unawaited(_saveStripeSeen());
+  }
   final obj = ((event['data'] as Map?)?['object'] as Map?) ?? const {};
   if ('${event['type']}'.startsWith('customer.subscription.')) {
     final user = '${(obj['metadata'] as Map?)?['user'] ?? ''}';
@@ -965,12 +1372,19 @@ Future<void> _depotConnect(HttpRequest req) async {
 }
 
 Future<void> _depotDemoConsent(HttpRequest req) {
-  final state = Uri.encodeQueryComponent(req.uri.queryParameters['state'] ?? '');
+  final raw = req.uri.queryParameters['state'] ?? '';
+  final state = Uri.encodeQueryComponent(raw);
+  final pending = _depotPending[raw];
+  final forWhom = pending == null
+      ? ''
+      : '<p class="dim">Die Freigabe landet im Konto <b>${_escape(_accounts.emailOf(pending.owner) ?? 'unbekannt')}</b>. '
+          'Wenn das nicht dein Konto ist, brich ab.</p>';
   return _html(req, '''
 <div class="tag">DEMO · keine echten Daten</div>
 <h1>Parqet</h1>
 <p>BudgetBuddy möchte <b>lesend</b> auf deine Depots zugreifen:</p>
 <ul><li>Positionen und Stückzahlen</li><li>Kaufkurse und aktuelle Kurse</li></ul>
+$forWhom
 <p class="dim">Bei Parqet meldest du dich hier an. Dein Trade-Republic-Login bleibt bei Parqet, BudgetBuddy sieht ihn nie.</p>
 <a class="btn" href="/depot/callback?state=$state&code=$state">Zugriff erlauben</a>
 <a class="link" href="/depot/callback?state=$state&error=access_denied">Abbrechen</a>''');
@@ -984,12 +1398,34 @@ Future<void> _depotCallback(HttpRequest req) async {
     return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in BudgetBuddy erneut.</p>');
   }
   if (q['code'] == null) {
-    _depotFailed[state] = q['error_description'] ?? q['error'] ?? 'abgebrochen';
+    _depotFailed[state] = (owner: pending.owner, error: q['error_description'] ?? q['error'] ?? 'abgebrochen');
     return _html(req, '<h1>Nicht verbunden</h1><p>Der Zugriff wurde nicht erteilt. Du kannst dieses Fenster schließen.</p>');
   }
   try {
     final tokens = await _depot.exchange(code: q['code']!, verifier: pending.verifier, redirectUrl: _depotRedirect);
-    _depots[state] = {'owner': pending.owner, 'tokens': tokens.toJson(), 'linkedAt': DateTime.now().toIso8601String()};
+    // refuse Parqet portfolios already linked to another BudgetBuddy account
+    final snap = await _depot.snapshot(tokens);
+    final portfolios = _portfolioIdsFrom(snap);
+    for (final id in portfolios) {
+      final taken = _portfolioOwner(id);
+      if (taken != null && taken != pending.owner) {
+        try {
+          await _depot.revoke(tokens);
+        } catch (_) {}
+        _depotFailed[state] = (
+          owner: pending.owner,
+          error: 'Dieses Depot ist schon mit einem anderen BudgetBuddy-Konto verbunden.',
+        );
+        return _html(req, '<h1>Nicht verbunden</h1><p>Dieses Depot gehört schon zu einem anderen Konto. '
+            'Du kannst dieses Fenster schließen.</p>');
+      }
+    }
+    _depots[state] = {
+      'owner': pending.owner,
+      'tokens': tokens.toJson(),
+      'linkedAt': DateTime.now().toIso8601String(),
+      'portfolioIds': portfolios.toList(),
+    };
     await _saveDepots();
     return _html(req, '''
 <div class="check">✓</div>
@@ -997,9 +1433,26 @@ Future<void> _depotCallback(HttpRequest req) async {
 <p>Dein Depot ist jetzt mit BudgetBuddy verbunden. Du kannst dieses Fenster schließen.</p>
 <script>setTimeout(() => window.close(), 1500)</script>''');
   } catch (e) {
-    _depotFailed[state] = '$e';
+    _depotFailed[state] = (owner: pending.owner, error: '$e');
     return _html(req, '<h1>Fehler</h1><p>${_escape('$e')}</p>');
   }
+}
+
+Set<String> _portfolioIdsFrom(DepotSnapshot snap) {
+  final ids = <String>{};
+  for (final p in snap.positions) {
+    if (p.id.contains(':')) ids.add(p.id.split(':').first);
+  }
+  return ids;
+}
+
+String? _portfolioOwner(String portfolioId) {
+  for (final d in _depots.values) {
+    for (final id in (d['portfolioIds'] as List? ?? const [])) {
+      if ('$id' == portfolioId) return '${d['owner']}';
+    }
+  }
+  return null;
 }
 
 Map<String, dynamic> _ownDepot(HttpRequest req, String state) {
@@ -1015,7 +1468,10 @@ Future<void> _depotStatus(HttpRequest req) {
   final state = req.uri.queryParameters['state'] ?? '';
   if (_depots[state]?['owner'] == user['id']) return _json(req, 200, {'status': 'linked', 'mode': _depot.mode});
   if (_depotPending[state]?.owner == user['id']) return _json(req, 200, {'status': 'pending'});
-  if (_depotFailed.containsKey(state)) return _json(req, 200, {'status': 'failed', 'error': _depotFailed[state]});
+  final failed = _depotFailed[state];
+  if (failed != null && failed.owner == user['id']) {
+    return _json(req, 200, {'status': 'failed', 'error': failed.error});
+  }
   return _json(req, 200, {'status': 'unknown'});
 }
 
@@ -1045,9 +1501,12 @@ Future<void> _depotSync(HttpRequest req) async {
 // POST {state}
 Future<void> _depotDisconnect(HttpRequest req) async {
   final state = '${(await _body(req))['state'] ?? ''}';
-  _ownDepot(req, state);
+  final d = _ownDepot(req, state);
   _depots.remove(state);
   await _saveDepots();
+  try {
+    await _depot.revoke(DepotTokens.fromJson(d['tokens'] as Map));
+  } catch (_) {}
   return _json(req, 200, {'ok': true});
 }
 
@@ -1056,22 +1515,24 @@ Future<void> _depotDisconnect(HttpRequest req) async {
 // Yahoo's chart API sends no CORS headers, so the web app asks through here.
 // Public data only, no sign-in needed; answers are cached for five minutes.
 final _chartCache = <String, (DateTime, String)>{};
-const _ranges = {'1d', '5d', '7d', '1mo', '3mo', '6mo', '1y'};
 
 Future<void> _marketChart(HttpRequest req) async {
+  final ip = _clientIp(req);
+  if (_chartLimit.blocked(ip)) throw AuthError.wait(_chartLimit.wait(ip));
   final symbol = req.uri.queryParameters['symbol'] ?? '';
   final range = req.uri.queryParameters['range'] ?? '1d';
-  if (!RegExp(r'^[A-Za-z0-9.=^-]{1,20}$').hasMatch(symbol) || !_ranges.contains(range)) {
+  final interval = req.uri.queryParameters['interval'] ?? '1d';
+  if (!marketChartQueryOk(symbol, range, interval)) {
     return _json(req, 400, {'error': 'symbol oder range ungültig'});
   }
-  final key = '$symbol|$range';
+  final key = '$symbol|$range|$interval';
   final hit = _chartCache[key];
   if (hit != null && DateTime.now().difference(hit.$1) < const Duration(minutes: 5)) {
     return _raw(req, hit.$2);
   }
   final res = await net.get(
     Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/${Uri.encodeComponent(symbol)}'
-        '?interval=1d&range=$range'),
+        '?interval=$interval&range=$range'),
     headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
   );
   if (res.statusCode != 200) return _json(req, 502, {'error': 'Kursdaten gerade nicht verfügbar'});
@@ -1080,8 +1541,69 @@ Future<void> _marketChart(HttpRequest req) async {
   return _raw(req, res.body);
 }
 
+// Public, like /market/chart: five-minute cache, 60 requests a minute per IP.
+final _searchCache = <String, (DateTime, String)>{};
+final _newsCache = <String, (DateTime, String)>{};
+
+Future<void> _marketSearch(HttpRequest req) {
+  final q = (req.uri.queryParameters['q'] ?? '').trim();
+  if (!marketQueryOk(q)) return _json(req, 400, {'error': 'Suchbegriff ungültig'});
+  return _marketCached(
+    req,
+    cache: _searchCache,
+    key: q.toLowerCase(),
+    uri: Uri.https('query2.finance.yahoo.com', '/v1/finance/search', {
+      'q': q,
+      'quotesCount': '10',
+      'newsCount': '0',
+    }),
+    shape: (body) => jsonEncode({'quotes': marketQuotes(body)}),
+  );
+}
+
+Future<void> _marketNews(HttpRequest req) {
+  final symbol = req.uri.queryParameters['symbol'] ?? '';
+  if (!RegExp(r'^[A-Za-z0-9.=^-]{1,20}$').hasMatch(symbol)) {
+    return _json(req, 400, {'error': 'symbol ungültig'});
+  }
+  return _marketCached(
+    req,
+    cache: _newsCache,
+    key: symbol,
+    uri: Uri.https('query2.finance.yahoo.com', '/v1/finance/search', {
+      'q': symbol,
+      'quotesCount': '0',
+      'newsCount': '8',
+    }),
+    shape: (body) => jsonEncode({'news': marketNews(body, symbol: symbol)}),
+  );
+}
+
+Future<void> _marketCached(
+  HttpRequest req, {
+  required Map<String, (DateTime, String)> cache,
+  required String key,
+  required Uri uri,
+  required String Function(String body) shape,
+}) async {
+  final ip = _clientIp(req);
+  if (_marketLimit.blocked(ip)) throw AuthError.wait(_marketLimit.wait(ip));
+  _marketLimit.hit(ip);
+  final hit = cache[key];
+  if (hit != null && DateTime.now().difference(hit.$1) < const Duration(minutes: 5)) {
+    return _raw(req, hit.$2);
+  }
+  final res = await net.get(uri, headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'});
+  if (res.statusCode != 200) return _json(req, 502, {'error': 'Marktdaten gerade nicht verfügbar'});
+  if (cache.length > 500) cache.clear();
+  final body = shape(res.body);
+  cache[key] = (DateTime.now(), body);
+  return _raw(req, body);
+}
+
 Future<void> _raw(HttpRequest req, String json) async {
-  _cors(req.response);
+  _cors(req, req.response);
+  _securityHeaders(req.response);
   req.response
     ..statusCode = 200
     ..headers.contentType = ContentType.json;

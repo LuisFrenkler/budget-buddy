@@ -50,20 +50,139 @@ class BudgetView extends StatelessWidget {
 
   // shown when no budgets exist yet
   Widget _emptyState() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
-      child: Column(
-        children: [
-          Icon(Icons.savings_outlined, size: 56, color: AppColors.textDim),
-          const SizedBox(height: 16),
-          const Text('Noch keine Budgets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text('Lege ein Limit pro Kategorie fest und behalte es im Blick.',
-              textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
-        ],
-      ),
+    return Builder(
+      builder: (context) {
+        final suggestions = BudgetSuggest.top();
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Column(
+            children: [
+              Icon(Icons.savings_outlined, size: 56, color: AppColors.textDim),
+              const SizedBox(height: 16),
+              const Text('Noch keine Budgets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(
+                  suggestions.isEmpty
+                      ? 'Lege ein Limit pro Kategorie fest und behalte es im Blick.'
+                      : 'Aus deinen Ausgaben vorgeschlagen — ein Tippen reicht.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textDim)),
+              if (suggestions.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                FilledButton.tonalIcon(
+                  onPressed: () => showBudgetSuggestSheet(context, suggestions),
+                  icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                  label: const Text('Vorschläge übernehmen'),
+                ),
+              ] else ...[
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => showAddBudgetDialog(context),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('Erstes Budget anlegen'),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
+}
+
+// top spending categories → suggested monthly limits (~90 % of 3-month average)
+class BudgetSuggest {
+  final String category;
+  final int limitCents;
+  const BudgetSuggest(this.category, this.limitCents);
+
+  static Map<String, int> usualSpending() {
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month - 3);
+    final to = DateTime(now.year, now.month);
+    final sums = <String, int>{};
+    final tx = DB.getTx();
+    final fixed = {for (final c in Contracts.detect(tx)) for (final p in c.payments) p.id};
+    for (final t in tx) {
+      if (t.isIncome || fixed.contains(t.id) || t.date.isBefore(from) || !t.date.isBefore(to)) continue;
+      sums[t.category] = (sums[t.category] ?? 0) + t.amountCents;
+    }
+    return {for (final e in sums.entries) e.key: e.value ~/ 3};
+  }
+
+  static List<BudgetSuggest> top({int max = 3}) {
+    final usual = usualSpending().entries.where((e) => e.value >= 1000).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return [
+      for (final e in usual.take(max))
+        BudgetSuggest(e.key, (e.value * 0.9 / 1000).round() * 1000),
+    ];
+  }
+}
+
+Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? suggestions]) async {
+  final items = suggestions ?? BudgetSuggest.top();
+  if (items.isEmpty) {
+    showAddBudgetDialog(context);
+    return;
+  }
+  final selected = {for (final s in items) s.category: true};
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.surface,
+    showDragHandle: true,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setLocal) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('Budgets vorschlagen', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text('Basierend auf deinem Schnitt der letzten Monate — etwas darunter, damit es greift.',
+              style: TextStyle(color: AppColors.textDim, height: 1.4)),
+          const SizedBox(height: 12),
+          for (final s in items)
+            CheckboxListTile(
+              value: selected[s.category] ?? false,
+              onChanged: (v) => setLocal(() => selected[s.category] = v ?? false),
+              title: Text(s.category, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text('${Money.format(s.limitCents)} / Monat'),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            ),
+          const SizedBox(height: 8),
+          FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            onPressed: selected.values.any((v) => v)
+                ? () async {
+                    final now = DateTime.now();
+                    final start = DateTime(now.year, now.month, 1);
+                    final end = DateTime(now.year, now.month + 1, 0);
+                    var n = 0;
+                    for (final s in items) {
+                      if (selected[s.category] != true) continue;
+                      await DB.addBudget(Budget(
+                        category: s.category,
+                        limitCents: s.limitCents,
+                        startDate: start,
+                        endDate: end,
+                      ));
+                      n++;
+                    }
+                    HapticFeedback.mediumImpact();
+                    if (!ctx.mounted) return;
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 2800),
+                        content: Text(n == 1 ? '1 Budget angelegt' : '$n Budgets angelegt')));
+                  }
+                : null,
+            child: const Text('Übernehmen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          ),
+        ]),
+      ),
+    ),
+  );
 }
 
 // color of a budget: green, yellow from 80 %, red when over the limit
@@ -328,21 +447,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
     super.dispose();
   }
 
-  // average monthly spending per category over the last three full months
-  static Map<String, int> _usualSpending() {
-    final now = DateTime.now();
-    final from = DateTime(now.year, now.month - 3);
-    final to = DateTime(now.year, now.month);
-    final sums = <String, int>{};
-    final tx = DB.getTx();
-    // rent and subscriptions are fixed, a budget would not change them
-    final fixed = {for (final c in Contracts.detect(tx)) for (final p in c.payments) p.id};
-    for (final t in tx) {
-      if (t.isIncome || fixed.contains(t.id) || t.date.isBefore(from) || !t.date.isBefore(to)) continue;
-      sums[t.category] = (sums[t.category] ?? 0) + t.amountCents;
-    }
-    return {for (final e in sums.entries) e.key: e.value ~/ 3};
-  }
+  static Map<String, int> _usualSpending() => BudgetSuggest.usualSpending();
 
   void _pick(String category) {
     setState(() => _category = category);
@@ -384,20 +489,27 @@ class _BudgetSheetState extends State<_BudgetSheet> {
                 : 'Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.',
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 16),
-        if (!_editing)
-        Wrap(spacing: 8, runSpacing: 8, children: [
-          // a transfer to savings is no spending to limit
-          for (final c in Categories.expense.where((c) => Categories.counts(c['name']!)))
-            ChoiceChip(
-              selected: _category == c['name'],
-              showCheckmark: false,
-              side: BorderSide(color: AppColors.border),
-              selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
-              avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
-              label: Text(c['name']!),
-              onSelected: _taken.contains(c['name']) ? null : (_) => _pick(c['name']!),
+        if (!_editing) ...[
+          if (_taken.length >= Categories.expense.where((c) => Categories.counts(c['name']!)).length)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text('Für diesen Monat hast du schon überall ein Limit. Tippe ein Budget zum Anpassen.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
             ),
-        ]),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            // a transfer to savings is no spending to limit
+            for (final c in Categories.expense.where((c) => Categories.counts(c['name']!)))
+              ChoiceChip(
+                selected: _category == c['name'],
+                showCheckmark: false,
+                side: BorderSide(color: AppColors.border),
+                selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
+                avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
+                label: Text(c['name']!),
+                onSelected: _taken.contains(c['name']) ? null : (_) => _pick(c['name']!),
+              ),
+          ]),
+        ],
         const SizedBox(height: 16),
         TextField(
           controller: _limit,

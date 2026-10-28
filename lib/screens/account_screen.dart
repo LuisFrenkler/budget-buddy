@@ -20,6 +20,8 @@ import '../services/tx_search.dart';
 import '../widgets/getting_started.dart';
 import '../widgets/tx_row.dart';
 import 'budget_screen.dart';
+import 'connections_screen.dart';
+import 'smart_entry_sheet.dart';
 import 'stats_screen.dart';
 
 // The account: balance with an interactive chart, then switchable sections
@@ -34,19 +36,16 @@ class AccountScreen extends StatefulWidget {
   // the account shown, null = all together; new bookings go to it
   static final selected = ValueNotifier<String?>(null);
 
+  // Profil shortcuts into this tab: 1 = Budgets, 2 = Analyse. The shell reads it once.
+  static final pendingSegment = ValueNotifier<int?>(null);
+
   @override
   State<AccountScreen> createState() => _AccountScreenState();
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  static const _ranges = ['1M', '3M', '6M', '1J', 'Max'];
-  static const _periods = {
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '6M': 'in 6 Monaten',
-    '1J': 'in 12 Monaten',
-    'Max': 'seit Beginn',
-  };
+  // 1T is yesterday against today; Max stays because the bookings are local
+  static const _ranges = ['1T', '1W', '1M', '3M', '1J', 'Max'];
   String _range = '3M';
   // the point under the finger while scrubbing; only the chart header listens
   final _scrub = ValueNotifier<ChartPoint?>(null);
@@ -54,6 +53,7 @@ class _AccountScreenState extends State<AccountScreen> {
   String _search = '';
   bool _searching = false;
   TxKind _kind = TxKind.all;
+  bool _sonstigesOnly = false;
 
   // ids swiped away but not yet gone from the box, so the Dismissible
   // leaves the tree immediately instead of waiting for Hive's notification
@@ -63,13 +63,15 @@ class _AccountScreenState extends State<AccountScreen> {
     final now = DateTime.now();
     switch (_range) {
       // in days, like the labels say; "a month back" from the 31st would land
-      // on the 3rd of the month before
+      // on the 3rd of the month before. 1T includes yesterday so the line exists.
+      case '1T':
+        return DateTime(now.year, now.month, now.day - 1);
+      case '1W':
+        return DateTime(now.year, now.month, now.day - 6);
       case '1M':
         return DateTime(now.year, now.month, now.day - 30);
       case '3M':
         return DateTime(now.year, now.month, now.day - 91);
-      case '6M':
-        return DateTime(now.year, now.month, now.day - 182);
       case '1J':
         return DateTime(now.year, now.month, now.day - 365);
       default:
@@ -81,8 +83,11 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     // settings carry the linked bank, its last sync and the opening balance
     return ListenableBuilder(
-      listenable: Listenable.merge(
-          [Hive.box('transactions').listenable(), Hive.box('settings').listenable(), AccountScreen.selected]),
+      listenable: Listenable.merge([
+        Hive.box('transactions').listenable(),
+        Hive.box('settings').listenable(),
+        AccountScreen.selected
+      ]),
       builder: (context, _) => ValueListenableBuilder<int>(
         valueListenable: widget.segment,
         builder: (context, segment, _) {
@@ -90,13 +95,21 @@ class _AccountScreenState extends State<AccountScreen> {
           // one account, or all of them together
           // an account removed meanwhile falls back to all accounts
           final chosen = MoneyAccounts.byId(AccountScreen.selected.value);
-          final account = MoneyAccounts.several ? (chosen ?? MoneyAccounts.main) : MoneyAccounts.main;
-          final one = (AccountScreen.selected.value != null && chosen != null) || !MoneyAccounts.several;
+          final account = MoneyAccounts.several
+              ? (chosen ?? MoneyAccounts.main)
+              : MoneyAccounts.main;
+          final one =
+              (AccountScreen.selected.value != null && chosen != null) ||
+                  !MoneyAccounts.several;
           final tx = one ? MoneyAccounts.bookingsOf(account.id, all) : all;
-          final opening = one ? MoneyAccounts.openingOf(account) : MoneyAccounts.openingTotal;
+          final opening = one
+              ? MoneyAccounts.openingOf(account)
+              : MoneyAccounts.openingTotal;
           final balance = DB.balanceOf(tx) + opening;
-          final points = History.dailyBalance(tx, from: _rangeStart(tx), opening: opening);
-          final synced = one ? account.link != null : Settings.bankState.isNotEmpty;
+          final points =
+              History.dailyBalance(tx, from: _rangeStart(tx), opening: opening);
+          final synced =
+              one ? account.link != null : Settings.bankState.isNotEmpty;
 
           return SafeArea(
             bottom: false,
@@ -115,7 +128,9 @@ class _AccountScreenState extends State<AccountScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(children: [
-                            const Text('Konto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                            const Text('Konto',
+                                style: TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.w800)),
                             const SizedBox(width: 12),
                             // shrinks rather than overflows with large text or a long bank name
                             Expanded(
@@ -125,16 +140,26 @@ class _AccountScreenState extends State<AccountScreen> {
                                   fit: BoxFit.scaleDown,
                                   child: synced
                                       ? SyncPill(
-                                          label: one ? (account.bank ?? Settings.bankName) : Settings.bankName,
+                                          label: one
+                                              ? (account.bank ??
+                                                  Settings.bankName)
+                                              : Settings.bankName,
                                           last: Settings.lastSync,
                                           onSync: () => _syncBank(context))
                                       : one
                                           // kept by hand: the real balance can be set any time
                                           ? TextButton.icon(
-                                              onPressed: () => showBalanceSheet(context, account: account),
-                                              icon: const Icon(Icons.edit_rounded, size: 16),
-                                              label: const Text('Kontostand anpassen'),
-                                              style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                                              onPressed: () => showBalanceSheet(
+                                                  context,
+                                                  account: account),
+                                              icon: const Icon(
+                                                  Icons.edit_rounded,
+                                                  size: 16),
+                                              label: const Text(
+                                                  'Kontostand anpassen'),
+                                              style: TextButton.styleFrom(
+                                                  foregroundColor:
+                                                      AppColors.textDim),
                                             )
                                           : const SizedBox.shrink(),
                                 ),
@@ -145,16 +170,21 @@ class _AccountScreenState extends State<AccountScreen> {
                           _accountChips(all),
                           const SizedBox(height: 16),
                           ChartHeader(
-                            label: one && MoneyAccounts.several ? account.name : 'Kontostand',
+                            label: one && MoneyAccounts.several
+                                ? account.name
+                                : 'Kontostand',
                             cents: balance,
-                            startCents: points.isEmpty ? balance : points.first.cents,
-                            period: _periods[_range]!,
+                            startCents:
+                                points.isEmpty ? balance : points.first.cents,
+                            period: RangeSelector.periods[_range]!,
                             scrubbing: _scrub,
-                            startDate: points.isEmpty ? null : points.first.date,
+                            startDate:
+                                points.isEmpty ? null : points.first.date,
                             showPercent: false,
                           ),
                           const SizedBox(height: 16),
-                          InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
+                          InteractiveChart(
+                              points: points, onScrub: (p) => _scrub.value = p),
                           const SizedBox(height: 12),
                           RangeSelector(
                             labels: _ranges,
@@ -177,14 +207,44 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   if (segment == 0) ..._transactionSlivers(tx),
                   if (segment == 1)
-                    const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      sliver: SliverToBoxAdapter(child: BudgetView()),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (one)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                      'Budgets gelten für alle Konten zusammen.',
+                                      style: TextStyle(
+                                          color: AppColors.textDim,
+                                          fontSize: 13)),
+                                ),
+                              const BudgetView(),
+                            ]),
+                      ),
                     ),
                   if (segment == 2)
-                    const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      sliver: SliverToBoxAdapter(child: StatsView()),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (one)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                      'Analyse gilt für alle Konten zusammen.',
+                                      style: TextStyle(
+                                          color: AppColors.textDim,
+                                          fontSize: 13)),
+                                ),
+                              const StatsView(),
+                            ]),
+                      ),
                     ),
                   // room for the floating navigation bar
                   const SliverToBoxAdapter(child: SizedBox(height: 110)),
@@ -201,12 +261,18 @@ class _AccountScreenState extends State<AccountScreen> {
   // again opens its settings
   Widget _accountChips(List<Transaction> all) {
     final accounts = MoneyAccounts.all;
-    final selected = MoneyAccounts.several ? AccountScreen.selected.value : MoneyAccount.main;
-    Widget chip(String label, bool active, VoidCallback onTap, {IconData? icon}) => Semantics(
+    final selected = MoneyAccounts.several
+        ? AccountScreen.selected.value
+        : MoneyAccount.main;
+    Widget chip(String label, bool active, VoidCallback onTap,
+            {IconData? icon}) =>
+        Semantics(
           button: true,
           selected: active,
           child: Material(
-            color: active ? AppColors.primary.withValues(alpha: 0.18) : AppColors.surface,
+            color: active
+                ? AppColors.primary.withValues(alpha: 0.18)
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(999),
             child: InkWell(
               borderRadius: BorderRadius.circular(999),
@@ -216,11 +282,17 @@ class _AccountScreenState extends State<AccountScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: active ? AppColors.primary : AppColors.border),
+                  border: Border.all(
+                      color: active ? AppColors.primary : AppColors.border),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (icon != null) ...[Icon(icon, size: 16, color: AppColors.primaryText), const SizedBox(width: 4)],
-                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  if (icon != null) ...[
+                    Icon(icon, size: 16, color: AppColors.primaryText),
+                    const SizedBox(width: 4)
+                  ],
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 ]),
               ),
             ),
@@ -230,47 +302,97 @@ class _AccountScreenState extends State<AccountScreen> {
       height: 38,
       child: ListView(scrollDirection: Axis.horizontal, children: [
         if (accounts.length > 1) ...[
-          chip('Alle', selected == null, () => AccountScreen.selected.value = null),
+          chip('Alle', selected == null, () {
+            AccountScreen.selected.value = null;
+            setState(() => _sonstigesOnly = false);
+          }),
           const SizedBox(width: 8),
         ],
         for (final a in accounts) ...[
-          chip('${a.name} · ${Money.format(MoneyAccounts.balanceOf(a, all))}', selected == a.id, () {
+          chip('${a.name} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
+              selected == a.id, () {
             HapticFeedback.selectionClick();
             if (selected == a.id) {
               showAccountSheet(context, account: a);
             } else {
               AccountScreen.selected.value = a.id;
+              setState(() => _sonstigesOnly = false);
             }
           }),
           const SizedBox(width: 8),
         ],
         // a real bank first, by hand second
-        chip(MoneyAccounts.several ? 'Konto' : 'Konto oder Bank hinzufügen', false,
+        chip(
+            MoneyAccounts.several ? 'Konto' : 'Konto oder Bank hinzufügen',
+            false,
             () => showAddAccountChoice(context, byHand: () async {
-              final added = await showAccountSheet(context);
-              if (added != null) AccountScreen.selected.value = added.id;
-            }), icon: Icons.add_rounded),
+                  final added = await showAccountSheet(context);
+                  if (added != null) AccountScreen.selected.value = added.id;
+                }),
+            icon: Icons.add_rounded),
       ]),
     );
   }
 
+  int _sonstigesCount(List<Transaction> tx) =>
+      tx.where((t) => t.isSpending && t.category == 'Sonstiges').length;
+
   List<Widget> _transactionSlivers(List<Transaction> tx) {
     final rows = _groupByMonth(_filter(tx));
+    final misc = _sonstigesCount(tx);
     return [
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         sliver: SliverToBoxAdapter(
           child: _searching
-              ? Padding(padding: const EdgeInsets.only(top: 8), child: _searchField())
-              : Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () => setState(() => _searching = true),
-                    icon: const Icon(Icons.search_rounded, size: 18),
-                    label: const Text('Suchen'),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
-                  ),
-                ),
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _searchField(tx))
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                      if (misc > 0) ...[
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: FilterChip(
+                            label: Text(
+                                'Sonstiges · $misc ${misc == 1 ? 'Buchung' : 'Buchungen'}'),
+                            selected: _sonstigesOnly,
+                            showCheckmark: false,
+                            side: BorderSide(
+                                color: _sonstigesOnly
+                                    ? AppColors.warning
+                                    : AppColors.border),
+                            selectedColor:
+                                AppColors.warning.withValues(alpha: 0.18),
+                            onSelected: (on) =>
+                                setState(() => _sonstigesOnly = on),
+                          ),
+                        ),
+                        if (_sonstigesOnly)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6, bottom: 2),
+                            child: Text(
+                              'Tippe eine Buchung — oder frag Buddy „Sonstiges aufräumen“.',
+                              style: TextStyle(
+                                  color: AppColors.textDim,
+                                  fontSize: 12.5,
+                                  height: 1.35),
+                            ),
+                          ),
+                      ],
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: () => setState(() => _searching = true),
+                          icon: const Icon(Icons.search_rounded, size: 18),
+                          label: const Text('Suchen'),
+                          style: TextButton.styleFrom(
+                              foregroundColor: AppColors.textDim),
+                        ),
+                      ),
+                    ]),
         ),
       ),
       if (tx.isEmpty)
@@ -278,8 +400,29 @@ class _AccountScreenState extends State<AccountScreen> {
       else if (rows.isEmpty)
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Center(child: Text('Keine Treffer', style: TextStyle(color: AppColors.textDim))),
+            padding: const EdgeInsets.fromLTRB(32, 40, 32, 32),
+            child: Column(children: [
+              Icon(Icons.search_off_rounded,
+                  size: 40, color: AppColors.textDim),
+              const SizedBox(height: 12),
+              Text('Keine Treffer',
+                  style: TextStyle(
+                      color: AppColors.textDim, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text('Andere Suche oder Filter zurücksetzen.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => setState(() {
+                  _search = '';
+                  _kind = TxKind.all;
+                  _sonstigesOnly = false;
+                  _searching = false;
+                }),
+                child: const Text('Filter zurücksetzen'),
+              ),
+            ]),
           ),
         )
       else
@@ -289,22 +432,25 @@ class _AccountScreenState extends State<AccountScreen> {
             itemCount: rows.length,
             itemBuilder: (_, i) {
               final r = rows[i];
-              return r is _DayGroup ? _dayHeader(r) : _dismissible(r as Transaction);
+              return r is _DayGroup
+                  ? _dayHeader(r)
+                  : _dismissible(r as Transaction);
             },
           ),
         ),
     ];
   }
 
-  // search field, quick filters and what the hits add up to
-  Widget _searchField() {
-    final hits = _filter(DB.getTx());
+  // search field, quick filters and what the hits add up to (same account list as the rows)
+  Widget _searchField(List<Transaction> tx) {
+    final hits = _filter(tx);
     final active = _search.trim().isNotEmpty || _kind != TxKind.all;
     Widget chip(String label, TxKind k) => ChoiceChip(
           label: Text(label),
           selected: _kind == k,
           showCheckmark: false,
-          side: BorderSide(color: _kind == k ? AppColors.primary : AppColors.border),
+          side: BorderSide(
+              color: _kind == k ? AppColors.primary : AppColors.border),
           selectedColor: AppColors.primary.withValues(alpha: 0.2),
           onSelected: (_) => setState(() => _kind = k),
         );
@@ -321,6 +467,7 @@ class _AccountScreenState extends State<AccountScreen> {
               _searching = false;
               _search = '';
               _kind = TxKind.all;
+              _sonstigesOnly = false;
             }),
           ),
         ),
@@ -339,30 +486,73 @@ class _AccountScreenState extends State<AccountScreen> {
           hits.isEmpty
               ? 'Keine Treffer'
               : '${hits.length} ${hits.length == 1 ? 'Umsatz' : 'Umsätze'} · zusammen ${Money.signed(TxSearch.total(hits))}',
-          style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600, fontSize: 13),
+          style: TextStyle(
+              color: AppColors.textDim,
+              fontWeight: FontWeight.w600,
+              fontSize: 13),
         ),
       ],
     ]);
   }
 
   Widget _emptyState() {
+    final bankLinked = Settings.bankState.isNotEmpty;
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          Icon(Icons.receipt_long_rounded, size: 56, color: AppColors.textDim),
+          Icon(bankLinked ? Icons.sync_rounded : Icons.receipt_long_rounded,
+              size: 56, color: AppColors.textDim),
           const SizedBox(height: 16),
-          const Text('Noch keine Umsätze', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+              bankLinked ? 'Noch keine Umsätze sichtbar' : 'Noch keine Umsätze',
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('Tippe auf + um deine erste Buchung zu erfassen.',
-              textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+          Text(
+              bankLinked
+                  ? 'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren — '
+                      'oder erfasse etwas von Hand, bis die ersten Buchungen da sind.'
+                  : 'Verbinde deine Bank — oder tippe die erste Ausgabe.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textDim, height: 1.35)),
+          const SizedBox(height: 20),
+          if (bankLinked)
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48)),
+              onPressed: () => _syncBank(context),
+              icon: const Icon(Icons.sync_rounded, size: 18),
+              label: const Text('Jetzt synchronisieren'),
+            )
+          else
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48)),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
+              icon: const Icon(Icons.account_balance_rounded, size: 18),
+              label: const Text('Bank verbinden'),
+            ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => showSmartEntry(context),
+            child: Text(bankLinked
+                ? 'Ausgabe manuell erfassen'
+                : 'Erste Ausgabe tippen'),
+          ),
         ],
       ),
     );
   }
 
   // filters transactions by the search text and the quick filters
-  List<Transaction> _filter(List<Transaction> tx) => TxSearch.filter(tx, _search, kind: _kind);
+  List<Transaction> _filter(List<Transaction> tx) => TxSearch.filter(
+        tx,
+        _search,
+        kind: _kind,
+        category: _sonstigesOnly ? 'Sonstiges' : null,
+      );
 
   // flattens the (newest first) list into month headers followed by their rows
   // one group per day, newest first, like a banking app statement
@@ -398,15 +588,25 @@ class _AccountScreenState extends State<AccountScreen> {
       child: Row(
         children: [
           Text(_dayLabel(g.day),
-              style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w700)),
+              style: TextStyle(
+                  color: AppColors.textDim,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700)),
           const Spacer(),
           // with one booking the sum would only repeat its amount
           if (g.count > 1)
-            Text(Money.signed(g.net),
-              style: TextStyle(
-                  color: g.net > 0 ? AppColors.positiveText : AppColors.textDim,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+            ValueListenableBuilder<bool>(
+              valueListenable: Settings.hideAmounts,
+              builder: (_, hidden, __) => Text(Money.signed(g.net),
+                  style: TextStyle(
+                      color: hidden
+                          ? AppColors.textDim
+                          : (g.net > 0
+                              ? AppColors.positiveText
+                              : AppColors.textDim),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
+            ),
         ],
       ),
     );
@@ -416,11 +616,14 @@ class _AccountScreenState extends State<AccountScreen> {
     return Dismissible(
       key: Key(t.id),
       // only allow swipe from right to left; bank bookings would come back with the next sync
-      direction: t.id.startsWith(BankSync.prefix) ? DismissDirection.none : DismissDirection.endToStart,
+      direction: t.id.startsWith(BankSync.prefix)
+          ? DismissDirection.none
+          : DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(
+            color: AppColors.error, borderRadius: BorderRadius.circular(14)),
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
       onDismissed: (_) => _deleteTx(t),
@@ -435,8 +638,11 @@ class _AccountScreenState extends State<AccountScreen> {
     DB.deleteTx(t.id);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-      content: Text('${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
+    messenger.showSnackBar(SnackBar(
+      persist: false,
+      duration: const Duration(seconds: 5),
+      content: Text(
+          '${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
       action: SnackBarAction(
         label: 'Rückgängig',
         textColor: AppColors.primary,
@@ -461,13 +667,24 @@ class _DayGroup {
 // what a sync brought, in one sentence; shared with pull-to-refresh
 Future<void> _syncBank(BuildContext context) async {
   final messenger = ScaffoldMessenger.of(context);
-  String text;
+  BankSync.holdSmile(true);
   try {
-    final added = await BankSync.run();
-    text = added == 0 ? 'Alles aktuell' : '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}';
+    final claimed = BankSync.claimSmile(await BankSync.run());
+    final text =
+        BankSync.syncedLine(added: claimed.added, smarter: claimed.smarter);
+    if (claimed.smarter > 0) HapticFeedback.lightImpact();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      duration: Duration(milliseconds: claimed.smarter > 0 ? 3200 : 2800),
+      content: Text(text),
+    ));
   } catch (_) {
-    text = 'Bank gerade nicht erreichbar';
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(const SnackBar(
+        duration: Duration(milliseconds: 2800),
+        content: Text('Bank gerade nicht erreichbar')));
+    rethrow; // SyncPill must show failure, not a fresh sync
+  } finally {
+    BankSync.holdSmile(false);
   }
-  messenger.hideCurrentSnackBar();
-  messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(text)));
 }

@@ -10,7 +10,7 @@ Positionierung: **Alltagsgeld-Coach** (Buddy, Abos, schnelle Erfassung) — nich
 
 ## Promo-Text (kurz, oben sichtbar)
 
-Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben wie du sprichst, erkenne Abos automatisch, verbinde optional deine Bank — klar, privat, auf Deutsch.
+Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben wie du sprichst, erkenne Abos, baue ein Polster — und sieh grob, was für die Vorsorge noch fehlt. Klar, privat, auf Deutsch.
 
 ## Beschreibung
 
@@ -32,6 +32,8 @@ Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: �
 
 - Budgets mit Ampel und Tempo
 - Sparziele und Prognose „noch frei“
+- Notgroschen, Sparquote, Schulden & Versicherungs-Inventar
+- Vorsorge: grobe Rentenlücke (Orientierung, keine Beratung)
 - Depot mitführen (Import / Kurse) — Fokus bleibt der Alltag
 - App-Sperre (Face ID / Fingerabdruck), Beträge verbergen
 - Dark Mode, CSV/Backup, geteilte Ausgaben
@@ -40,7 +42,7 @@ Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: �
 
 Keine Kontonummern an die KI. Buddy-Zusammenfassung nur nach deiner Zustimmung. Konto in der App löschbar.
 
-Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.
+Buddy kann sich irren. Keine Anlage-, Steuer-, Renten- oder Rechtsberatung. Vorsorge-Zahlen sind Orientierung.
 
 ## Screenshot-Reihenfolge (5–6 Frames)
 
@@ -52,8 +54,8 @@ Nimm die Frames im Simulator / Gerät; Bildunterschriften so setzen:
 | 2 | Buddy-Antwort mit konkreter Zahl / Zeitraum | Antwort mit deinen echten Zahlen |
 | 3 | Schnellerfassung „Döner 8,50 gestern“ | Tippen wie du sprichst |
 | 4 | Verträge / Abos mit Monatssumme | Abos erkannt. Erhöhungen auch. |
-| 5 | Start / Übersicht mit Netto oder Prognose | Dein Alltag. Endlich klar. |
-| 6 | (optional) Plus / Buddy ohne Limit | Buddy ohne Limit mit Plus |
+| 5 | Start mit „noch frei“ + Polster/Vorsorge | Noch frei — und was als Nächstes kommt |
+| 6 | (optional) Plus / mehr Buddy | Mehr Buddy-Fragen, gleiche Ehrlichkeit |
 
 Vermeide als erstes Frame: reines Depot-Chart oder leeres Dashboard ohne Buddy.
 

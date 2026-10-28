@@ -8,6 +8,7 @@ import '../services/backend_service.dart';
 import '../services/plus_service.dart';
 import '../services/store_purchases.dart';
 import '../utils/dates.dart';
+import '../utils/errors.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
@@ -267,7 +268,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(duration: const Duration(milliseconds: 3500), content: Text('$e')));
+            SnackBar(duration: const Duration(milliseconds: 3500), content: Text(friendlyError(e))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -294,7 +295,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(duration: const Duration(milliseconds: 4500), content: Text('$e')));
+            SnackBar(duration: const Duration(milliseconds: 4500), content: Text(friendlyError(e))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -553,23 +554,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ]),
         );
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-      // the store said the free week was used already: paid from today
-      child: _inStore && StorePurchases.trial[_plan] == false
-          ? Column(children: [
-              Row(children: [
-                const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
-                const Spacer(),
-                Text(PlusService.price(_plan!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-              ]),
-              Divider(height: 24, color: AppColors.border),
-              step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
-                  'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.'),
-              step(Icons.autorenew_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
-            ])
-          : Column(children: [
+    final trial = StorePurchases.trial[_plan];
+    // paid today | gratis week | store terms unknown — never invent "Heute 0€"
+    final Widget body;
+    if (_inStore && trial == false) {
+      body = Column(children: [
+        Row(children: [
+          const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Spacer(),
+          Text(PlusService.price(_plan!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        ]),
+        Divider(height: 24, color: AppColors.border),
+        step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
+            'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.'),
+        step(Icons.autorenew_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
+      ]);
+    } else if (trial == true || !_inStore) {
+      body = Column(children: [
         Row(children: [
           const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
@@ -597,7 +598,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ]),
           ),
         ],
-      ]),
+      ]);
+    } else {
+      body = Column(children: [
+        Text('Preis und ggf. Testzeitraum siehst du im Store vor dem Kauf.',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
+        Divider(height: 24, color: AppColors.border),
+        step(Icons.payments_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
+      ]);
+    }
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+      child: body,
     );
   }
 
@@ -1051,8 +1064,10 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
                   const SizedBox(height: 10),
                   Text(
-                    'Dein Gratis-Test läuft bis ${Dates.full(sub.trialEnds)}. '
-                    'Bis dahin kostet es nichts, und du kannst jederzeit kündigen.',
+                    sub.inTrial(DateTime.now())
+                        ? 'Dein Gratis-Test läuft bis ${Dates.full(sub.trialEnds)}. '
+                            'Bis dahin kostet es nichts, und du kannst jederzeit kündigen.'
+                        : 'Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4),
                   ),
@@ -1077,7 +1092,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
               FilledButton(
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
                 onPressed: () => Navigator.pop(context),
-                child: const Text("Los geht's", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                child: const Text('Fertig', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               ),
             ]),
           ),

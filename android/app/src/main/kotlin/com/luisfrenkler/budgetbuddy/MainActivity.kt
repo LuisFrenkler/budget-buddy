@@ -1,4 +1,4 @@
-package com.example.budget_buddy
+package com.luisfrenkler.budgetbuddy
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

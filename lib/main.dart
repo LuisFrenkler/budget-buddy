@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
+import 'services/category_rules.dart';
 import 'services/cloud_sync.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
@@ -31,7 +32,7 @@ void main() async {
 
   // initialize hive database
   await Hive.initFlutter();
-  
+
   // open all hive boxes
   await Hive.openBox('transactions');
   await Hive.openBox('budgets');
@@ -42,32 +43,37 @@ void main() async {
   await Hive.openBox('goals');
   await Hive.openBox('splits');
 
+  // apply the saved theme mode
+  ThemeController.isDark.value = Settings.darkMode;
+  Settings.loadHideAmounts();
+  // guest mode removed — clear any leftover flag from older installs
+  await Settings.setGuest(false);
+  PlusService.load();
+  // App Store / Google Play: purchases, renewals and ones left from a crash
+  StorePurchases.init();
+  // session + wipe before any finance mutation (recurring / budgets / autosave)
+  await AccountService.restore();
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();
   // monthly budgets continue into the new month
   await DB.rollOverBudgets();
-  // fetch new bookings from a linked bank in the background
-  BankSync.refreshIfStale();
-
-  // apply the saved theme mode
-  ThemeController.isDark.value = Settings.darkMode;
-  Settings.loadHideAmounts();
-  Settings.loadGuest();
-  PlusService.load();
+  // lift old "Sonstiges" once boxes are open; a remembered category is left alone.
+  // said once on Start when anything actually moved — not on every launch
+  BankSync.offerSmile(smarter: await CategoryRules.upgradeSonstiges());
   // goals on autopilot (a Plus feature, so after Plus is known)
   await AutoSave.run();
-  // App Store / Google Play: purchases, renewals and ones left from a crash
-  StorePurchases.init();
-  await AccountService.restore();
-  // the account's data from other devices, in the background
-  unawaited(CloudSync.start());
+  // the account's vault from the server, then refresh links that belong here
+  unawaited(CloudSync.start().then((_) {
+    BankSync.refreshIfStale();
+    DepotSync.refreshIfStale();
+  }));
   PlusService.watchAccount();
   PlusService.syncWithServer();
-  DepotSync.refreshIfStale();
 
   // the Inter font ships with the app, so its licence belongs on the licences page
   LicenseRegistry.addLicense(() async* {
-    yield LicenseEntryWithLineBreaks(['Inter'], await rootBundle.loadString('assets/fonts/Inter-OFL.txt'));
+    yield LicenseEntryWithLineBreaks(
+        ['Inter'], await rootBundle.loadString('assets/fonts/Inter-OFL.txt'));
   });
 
   // reminders: open the matching page on tap, then bring them up to date
@@ -75,7 +81,8 @@ void main() async {
   final join = Uri.base.queryParameters['join'];
   final code = join?.trim().toUpperCase() ?? '';
   // a reload of the same link after joining asks nothing
-  if (code.isNotEmpty && !SplitService.all().any((g) => g.code == code)) await SplitService.setPendingJoin(code);
+  if (code.isNotEmpty && !SplitService.all().any((g) => g.code == code))
+    await SplitService.setPendingJoin(code);
   // what the others added in shared groups since last time
   SplitService.refreshAll();
 
@@ -98,7 +105,8 @@ void _openFromNotification(String payload) {
     'goals' || 'hint:goals' => const GoalsScreen(),
     _ => null, // budgets and bookings: the start screen is the right place
   };
-  if (page != null) navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
+  if (page != null)
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
 }
 
 class BudgetBuddyApp extends StatefulWidget {
@@ -147,13 +155,13 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
       builder: (_, dark, __) => MaterialApp(
         title: 'BudgetBuddy',
         navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,  // hide debug banner
-        theme: AppTheme.theme(dark),        // reactive light/dark theme
+        debugShowCheckedModeBanner: false, // hide debug banner
+        theme: AppTheme.theme(dark), // reactive light/dark theme
         // the app is German: date pickers, tooltips and dialogs too, weeks start on Monday
         locale: const Locale('de', 'DE'),
         supportedLocales: const [Locale('de', 'DE')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        home: const RootGate(),             // onboarding -> lock -> app
+        home: const RootGate(), // onboarding -> lock -> app
         // the lock sits above the Navigator, so it covers every open page;
         // on wide screens (desktop browser, Mac) keep a phone-width column
         // in the middle instead of stretching every screen edge to edge
@@ -171,20 +179,18 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
   }
 }
 
-// Decides what to show: the welcome screen until someone signs in or chooses
-// to try the app without an account, then the app (the lock wraps it all).
+// Welcome until signed in, then the app (the lock wraps it all).
 class RootGate extends StatelessWidget {
   const RootGate({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Listenable.merge([AccountService.current, Settings.guest]),
-      builder: (context, _) {
-        final inApp = AccountService.current.value != null || Settings.guest.value;
+    return ValueListenableBuilder<Account?>(
+      valueListenable: AccountService.current,
+      builder: (context, account, _) {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
-          child: inApp ? const HomeScreen() : const WelcomeScreen(),
+          child: account != null ? const HomeScreen() : const WelcomeScreen(),
         );
       },
     );

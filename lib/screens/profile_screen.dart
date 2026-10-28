@@ -10,24 +10,38 @@ import '../services/auth_service.dart';
 import '../services/file_saver.dart';
 import '../utils/theme.dart';
 import '../utils/dates.dart';
+import '../utils/errors.dart';
 import '../models/transaction.dart';
 import '../services/savings_rate.dart';
 import '../utils/money.dart';
-import 'recurring_screen.dart';
 import 'connections_screen.dart';
 import 'auth_screens.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import '../services/store_purchases.dart';
+import '../services/cloud_sync.dart';
+import '../services/bank_sync.dart';
+import '../services/depot_sync.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
 import 'about_screen.dart';
+import 'company_screen.dart';
+import 'account_screen.dart';
 import 'splits_screen.dart';
 import 'contracts_screen.dart';
+import 'goals_screen.dart';
+import 'wealth_screen.dart';
+import 'vorsorge_screen.dart';
 import 'account_settings_screen.dart';
+import '../services/avatar_service.dart';
+import '../widgets/user_avatar.dart';
+import '../widgets/settings_list.dart';
+import '../widgets/sync_pill.dart';
 import 'notification_settings_screen.dart';
 import '../legal/legal_info.dart';
+import '../legal/legal_texts.dart';
 import '../services/notification_service.dart';
+import '../services/buddy_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -38,12 +52,17 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _lockHint = 'Gerätecode beim Öffnen';
+  bool _advanced = false;
 
   @override
   void initState() {
     super.initState();
     AuthService.lockSubtitle().then((s) {
       if (mounted) setState(() => _lockHint = s);
+    });
+    // provider known → Schalter liest den richtigen Consent-Key
+    BuddyService.live().then((_) {
+      if (mounted) setState(() {});
     });
   }
 
@@ -83,15 +102,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onTap: account != null ? _openAccount : _signUp,
                 child: Row(
                 children: [
-                  _avatar(account),
+                  GestureDetector(
+                    onTap: account == null ? null : () => _pickAvatar(context),
+                    child: Stack(children: [
+                      UserAvatar(name: account?.name, size: 64, fontSize: 26),
+                      if (account != null)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                    ]),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(account?.name ?? 'Gast', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                        Text(account?.name ?? 'Konto', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 2),
-                        Text(account?.email ?? 'Gast · Tippen, um ein Konto zu erstellen',
+                        Text(account?.email ?? 'Tippen für Konto-Einstellungen',
                             style: TextStyle(color: AppColors.textDim, fontSize: 13), overflow: TextOverflow.ellipsis),
                       ],
                     ),
@@ -101,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               ),
               const SizedBox(height: 20),
-              _group([
+              SettingsGroup([
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Row(children: [
@@ -129,70 +163,166 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 20),
               _plusCard(),
-              _sectionLabel('Konto & Sicherheit'),
-              _group([
+              // Alltag first: account, lock, banks — each at most one tap from here
+              const SectionLabel('Konto'),
+              SettingsGroup([
                 if (account != null)
-                  _row(Icons.manage_accounts_rounded, 'Mein Konto', 'Name, E-Mail, Passwort', _openAccount)
+                  SettingsRow(
+                    icon: Icons.manage_accounts_rounded,
+                    title: 'Mein Konto',
+                    subtitle: 'Name, E-Mail, Sicherheit',
+                    onTap: _openAccount,
+                  )
                 else
-                  _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung und neue Geräte',
-                      _signUp),
-                _switchRow(Icons.lock_rounded, 'App-Sperre', _lockHint,
-                    Settings.appLockEnabled, _toggleAppLock),
-                // the consent from Buddy's first question, to give or take back any time
-                _switchRow(Icons.auto_awesome_rounded, 'Buddy mit KI',
-                    'Schickt eine Zusammenfassung deiner Finanzen an die KI, ohne Kontonummern',
-                    Hive.box('settings').get('aiConsent') == true, (v) async {
-                  await Hive.box('settings').put('aiConsent', v);
-                  if (mounted) setState(() {});
-                }),
+                  SettingsRow(
+                    icon: Icons.person_add_alt_1_rounded,
+                    title: 'Konto erstellen',
+                    subtitle: 'Für die Bankverbindung und neue Geräte',
+                    onTap: _signUp,
+                  ),
                 ValueListenableBuilder<bool>(
                   valueListenable: NotificationService.enabled,
-                  builder: (context, on, _) => _row(Icons.notifications_rounded, 'Mitteilungen',
-                      on ? 'An · Buddy sagt Bescheid, wenn es zählt' : 'Aus', _openNotifications),
+                  builder: (context, on, _) => SettingsRow(
+                    icon: Icons.notifications_rounded,
+                    title: 'Mitteilungen',
+                    subtitle: on ? 'An · nur wenn es zählt, keine Werbung' : 'Aus',
+                    onTap: _openNotifications,
+                  ),
+                ),
+                _switch(Icons.lock_rounded, 'App-Sperre', _lockHint, Settings.appLockEnabled, _toggleAppLock),
+              ]),
+
+              const SectionLabel('Finanzen'),
+              SettingsGroup([
+                SettingsRow(
+                  icon: Icons.account_balance_rounded,
+                  title: 'Banken & Depots',
+                  subtitle: _linkedText(),
+                  onTap: _openConnections,
+                ),
+                SettingsRow(
+                  icon: Icons.sync_rounded,
+                  title: 'Synchronisation',
+                  subtitle: _syncHint(),
+                  onTap: _syncNow,
+                ),
+                SettingsRow(
+                  icon: Icons.savings_rounded,
+                  title: 'Budgets',
+                  subtitle: 'Limits pro Kategorie, im Konto',
+                  onTap: () => _toAccount(1),
+                ),
+                SettingsRow(
+                  icon: Icons.pie_chart_outline_rounded,
+                  title: 'Kategorien',
+                  subtitle: 'Ausgaben nach Kategorie. Umsortieren einer Buchung merkt sich den Händler.',
+                  onTap: () => _toAccount(2),
                 ),
               ]),
 
-              _sectionLabel('Finanzen'),
-              _group([
-                _row(
-                    Icons.account_balance_rounded,
-                    'Banken & Depots',
-                    _linkedText(),
-                    _openConnections),
-                _row(Icons.receipt_long_rounded, 'Verträge & Abos', 'Erkannt, mit Kündigung per Tipp',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen()))),
-                _row(Icons.repeat_rounded, 'Daueraufträge', 'Miete, Gehalt, Abos von Hand', _openRecurring),
-                _row(Icons.call_split_rounded, 'Geteilte Ausgaben', 'WG, Paar, Urlaub',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()))),
-              ]),
-
-              _sectionLabel('Darstellung'),
-              _group([
-                _switchRow(Icons.dark_mode_rounded, 'Dunkler Modus', null, ThemeController.isDark.value,
-                    _toggleDarkMode),
-                _switchRow(Icons.visibility_off_rounded, 'Beträge verbergen', 'Auch per Auge oben auf dem Start',
+              const SectionLabel('Erscheinungsbild'),
+              SettingsGroup([
+                _switch(Icons.dark_mode_rounded, 'Dunkler Modus', 'Gilt für die ganze App',
+                    ThemeController.isDark.value, _toggleDarkMode),
+                _switch(Icons.visibility_off_rounded, 'Beträge verbergen', 'Auch über das Auge auf dem Start',
                     Settings.hideAmounts.value, (v) async {
                   await Settings.setHideAmounts(v);
                   if (mounted) setState(() {});
                 }),
               ]),
 
-              _sectionLabel('Daten'),
-              _group([
-                _row(Icons.swap_vert_rounded, 'Import, Export & Backup', 'Bank-CSV, Depot, Sicherung',
-                    _openDataTools),
+              const SectionLabel('Planen'),
+              SettingsGroup([
+                SettingsRow(
+                  icon: Icons.flag_rounded,
+                  title: 'Sparziele',
+                  subtitle: 'Urlaub, Notgroschen, große Anschaffungen',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
+                ),
+                SettingsRow(
+                  icon: Icons.account_balance_wallet_rounded,
+                  title: 'Vermögen & Absicherung',
+                  subtitle: 'Notgroschen, Sparquote, Schulden, Versicherungen — keine Vermittlung',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen())),
+                ),
+                SettingsRow(
+                  icon: Icons.timelapse_rounded,
+                  title: 'Vorsorge',
+                  subtitle: 'Rentenlücke grob schätzen — Orientierung, keine Beratung',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
+                ),
+                SettingsRow(
+                  icon: Icons.receipt_long_rounded,
+                  title: 'Verträge & Abos',
+                  subtitle: 'Aus Buchungen erkannt — Miete, Streaming, Abos',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen())),
+                ),
+                SettingsRow(
+                  icon: Icons.call_split_rounded,
+                  title: 'Geteilte Ausgaben',
+                  subtitle: 'Mit Code live teilen — oder nur auf dem Gerät',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
+                ),
               ]),
 
-              _sectionLabel('Mehr'),
-              _group([
-                _row(Icons.info_outline_rounded, 'Über BudgetBuddy', 'Hilfe, Impressum, Datenschutz, AGB', _openAbout),
-                if (account == null)
-                  _row(Icons.logout_rounded, 'Gastmodus beenden', 'Zurück zum Start, Daten bleiben', _leaveGuest)
-                else
-                  _row(Icons.logout_rounded, 'Abmelden', account.email, () => AccountSettingsScreen.logout(context)),
-                _row(Icons.restart_alt_rounded, 'App zurücksetzen', 'Alle Daten auf diesem Gerät löschen',
-                    _resetApp, danger: true),
+              const SectionLabel('Privatsphäre & KI'),
+              SettingsGroup([
+                _switch(Icons.auto_awesome_rounded, 'Buddy mit KI',
+                    'Nur mit Zustimmung. Zusammenfassung ohne Kontonummern.', BuddyService.hasConsent, (v) async {
+                  await BuddyService.live();
+                  await BuddyService.setConsent(v);
+                  if (mounted) setState(() {});
+                }),
+                SettingsRow(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Was das Gerät verlässt',
+                  subtitle: 'Bank, Kontokopie, KI, Kurse',
+                  onTap: _whatLeaves,
+                ),
               ]),
+
+              const SectionLabel('BudgetBuddy'),
+              SettingsGroup([
+                SettingsRow(
+                  icon: Icons.apartment_rounded,
+                  title: 'Unternehmen & Vertrauen',
+                  subtitle: 'Wofür wir stehen, Karriere, Rechtliches',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanyScreen())),
+                ),
+              ]),
+
+              _advancedHeader(),
+              if (_advanced)
+                SettingsGroup([
+                  SettingsRow(
+                    icon: Icons.swap_vert_rounded,
+                    title: 'Import, Export & Backup',
+                    subtitle: 'Bank-CSV, Depot, Sicherung auf diesem Gerät',
+                    onTap: _openDataTools,
+                  ),
+                  if (account != null)
+                    SettingsRow(
+                      icon: Icons.logout_rounded,
+                      title: 'Abmelden',
+                      subtitle: account.email,
+                      onTap: () => AccountSettingsScreen.logout(context),
+                    ),
+                  SettingsRow(
+                    icon: Icons.restart_alt_rounded,
+                    title: 'App zurücksetzen',
+                    subtitle: 'Alle Daten auf diesem Gerät löschen',
+                    onTap: _resetApp,
+                    danger: true,
+                  ),
+                  if (account != null)
+                    SettingsRow(
+                      icon: Icons.person_remove_rounded,
+                      title: 'Konto löschen',
+                      subtitle: 'Konto, Bankverbindungen und Cloud-Kopie, endgültig',
+                      onTap: () => AccountSettingsScreen.deleteAccount(context),
+                      danger: true,
+                    ),
+                ]),
               const SizedBox(height: 24),
               Center(
                 child: Text('BudgetBuddy ${LegalInfo.appVersion}', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
@@ -206,68 +336,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Plus status: an invitation, or the subscription with its next date
   Widget _plusCard() {
-    return ValueListenableBuilder<Subscription?>(
-      valueListenable: PlusService.subscription,
-      builder: (context, sub, _) {
-        final plus = sub != null;
-        final now = DateTime.now();
-        final subtitle = sub == null
-            ? 'Buddy, Belege und Ziele ohne Limit · 7 Tage gratis'
-            : sub.cancelled
-                ? 'Gekündigt · aktiv bis ${Dates.dayMonth(sub.endsAt!)}'
-                : sub.inTrial(now)
-                    ? 'Gratis-Test bis ${Dates.dayMonth(sub.trialEnds)} · Abo verwalten'
-                    : 'Nächste Zahlung ${Dates.dayMonth(sub.periodEnd(now))} · Abo verwalten';
-        return Material(
-          borderRadius: BorderRadius.circular(18),
-          clipBehavior: Clip.antiAlias,
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: plus ? null : const LinearGradient(colors: AppColors.heroBrand),
-              color: plus ? AppColors.surface : null,
-            ),
-            child: InkWell(
-              onTap: plus
-                  ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()))
-                  : () => showPlus(context),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(children: [
-                  Text(plus ? '✨' : '🚀', style: const TextStyle(fontSize: 24)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(plus ? 'Mein Abo · Plus' : 'BudgetBuddy Plus',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 16, color: plus ? AppColors.text : Colors.white)),
-                      Text(subtitle, style: TextStyle(fontSize: 13, color: plus ? AppColors.textDim : Colors.white70)),
-                    ]),
-                  ),
-                  Icon(Icons.chevron_right_rounded, color: plus ? AppColors.textDim : Colors.white),
-                ]),
+    return ValueListenableBuilder<String?>(
+      valueListenable: PlusService.syncError,
+      builder: (context, syncErr, _) => ValueListenableBuilder<Subscription?>(
+        valueListenable: PlusService.subscription,
+        builder: (context, sub, _) {
+          final plus = sub != null;
+          final now = DateTime.now();
+          final subtitle = syncErr != null
+              ? syncErr
+              : sub == null
+                  ? 'Buddy, Belege und Ziele ohne Limit · 7 Tage gratis'
+                  : sub.cancelled
+                      ? 'Gekündigt · aktiv bis ${Dates.dayMonth(sub.endsAt!)}'
+                      : sub.inTrial(now)
+                          ? 'Gratis-Test bis ${Dates.dayMonth(sub.trialEnds)} · Abo verwalten'
+                          : 'Nächste Zahlung ${Dates.dayMonth(sub.periodEnd(now))} · Abo verwalten';
+          return Material(
+            borderRadius: BorderRadius.circular(18),
+            clipBehavior: Clip.antiAlias,
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: plus || syncErr != null ? null : const LinearGradient(colors: AppColors.heroBrand),
+                color: plus || syncErr != null ? AppColors.surface : null,
+              ),
+              child: InkWell(
+                onTap: () async {
+                  if (syncErr != null) {
+                    await PlusService.syncWithServer(fresh: true);
+                    return;
+                  }
+                  if (plus) {
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
+                  } else {
+                    await showPlus(context);
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(children: [
+                    Text(syncErr != null ? '⚠️' : plus ? '✨' : '🚀', style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(
+                            syncErr != null
+                                ? 'Plus-Status unklar'
+                                : plus
+                                    ? 'Mein Abo · Plus'
+                                    : 'BudgetBuddy Plus',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                color: plus || syncErr != null ? AppColors.text : Colors.white)),
+                        Text(subtitle,
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: syncErr != null
+                                    ? AppColors.warningText
+                                    : plus
+                                        ? AppColors.textDim
+                                        : Colors.white70)),
+                      ]),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: plus || syncErr != null ? AppColors.textDim : Colors.white),
+                  ]),
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  // round avatar with the initial of the signed-in user
-  Widget _avatar(Account? account) {
-    return Container(
-      width: 64,
-      height: 64,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(colors: AppColors.heroBrand, begin: Alignment.topLeft, end: Alignment.bottomRight),
+  Future<void> _pickAvatar(BuildContext context) async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Profilbild wählen'),
+            onTap: () => Navigator.pop(context, 'pick'),
+          ),
+          if (AvatarService.bytes() != null)
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: const Text('Profilbild entfernen'),
+              onTap: () => Navigator.pop(context, 'clear'),
+            ),
+        ]),
       ),
-      child: account == null
-          ? const Icon(Icons.person_rounded, color: Colors.white, size: 32)
-          : Text(account.name.isEmpty ? '?' : account.name[0].toUpperCase(),
-              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
     );
+    if (choice == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(this.context);
+    try {
+      if (choice == 'clear') {
+        await AvatarService.clear();
+        messenger.showSnackBar(const SnackBar(content: Text('Profilbild entfernt')));
+        return;
+      }
+      final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+      final file = result?.files.single;
+      if (file?.bytes == null) return;
+      await AvatarService.set(file!.bytes!);
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('Profilbild gespeichert')));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   void _signUp() => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
@@ -285,18 +465,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (_) => Scaffold(
             appBar: AppBar(title: const Text('Import, Export & Backup')),
             body: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 40), children: [
-              _sectionLabel('Importieren'),
-              _group([
-                _row(Icons.file_upload_rounded, 'Umsätze importieren', 'CSV deiner Bank, in ein Konto deiner Wahl',
-                    () => importBookings(context)),
-                _row(Icons.show_chart_rounded, 'Depot importieren', 'CSV oder Trade-Republic-Export, in ein Depot',
-                    () => importDepot(context)),
+              const SectionLabel('Importieren'),
+              SettingsGroup([
+                SettingsRow(
+                  icon: Icons.file_upload_rounded,
+                  title: 'Umsätze importieren',
+                  subtitle: 'CSV deiner Bank, in ein Konto deiner Wahl',
+                  onTap: () => importBookings(context),
+                ),
+                SettingsRow(
+                  icon: Icons.show_chart_rounded,
+                  title: 'Depot importieren',
+                  subtitle: 'CSV oder Trade-Republic-Export, in ein Depot',
+                  onTap: () => importDepot(context),
+                ),
               ]),
-              _sectionLabel('Sichern'),
-              _group([
-                _row(Icons.file_download_rounded, 'Als CSV exportieren', 'Für Excel oder die Steuer', _exportCsv),
-                _row(Icons.cloud_upload_rounded, 'Backup erstellen', 'Alle Daten als eine Datei', _backupJson),
-                _row(Icons.restore_rounded, 'Backup wiederherstellen', null, _restoreJson),
+              const SectionLabel('Sichern'),
+              SettingsGroup([
+                SettingsRow(
+                  icon: Icons.file_download_rounded,
+                  title: 'Als CSV exportieren',
+                  subtitle: 'Für Excel oder die Steuer',
+                  onTap: _exportCsv,
+                ),
+                SettingsRow(
+                  icon: Icons.cloud_upload_rounded,
+                  title: 'Backup erstellen',
+                  subtitle: 'Alle Daten als eine Datei',
+                  onTap: _backupJson,
+                ),
+                SettingsRow(
+                  icon: Icons.restore_rounded,
+                  title: 'Backup wiederherstellen',
+                  subtitle: 'Ersetzt die Daten auf diesem Gerät',
+                  onTap: _restoreJson,
+                ),
               ]),
               const SizedBox(height: 16),
               Text('Deine Daten liegen auf diesem Gerät. Ein Backup ist die einfachste Versicherung, '
@@ -307,7 +510,130 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
 
-  void _openAbout() => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
+  void _openConnections() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
+  }
+
+  void _toAccount(int segment) {
+    AccountScreen.pendingSegment.value = segment;
+    Navigator.popUntil(context, (r) => r.isFirst);
+  }
+
+  String _syncHint() {
+    final parts = <String>[];
+    if (Settings.bankState.isNotEmpty || Settings.extraBanks.isNotEmpty) {
+      parts.add('Bank ${SyncPill.ago(Settings.lastSync, DateTime.now())}');
+    }
+    if (Settings.depotState.isNotEmpty || Settings.extraDepots.isNotEmpty) {
+      parts.add('Depot ${SyncPill.ago(Settings.depotSync, DateTime.now())}');
+    }
+    final signedIn = AccountService.current.value != null;
+    if (signedIn && Hive.box('settings').get('vaultDirty') == true) {
+      parts.add('Kontokopie ausstehend');
+    } else if (signedIn) {
+      parts.add('Kontokopie verschlüsselt');
+    } else {
+      parts.add('Kontokopie mit einem Konto');
+    }
+    return parts.join(' · ');
+  }
+
+  Future<void> _syncNow() async {
+    final signedIn = AccountService.current.value != null;
+    try {
+      if (signedIn) await CloudSync.start();
+      await BankSync.refreshIfStale(maxAge: Duration.zero);
+      await DepotSync.refreshIfStale(maxAge: Duration.zero);
+    } catch (e) {
+      _snack(friendlyError(e), error: true);
+      return;
+    }
+    if (!mounted) return;
+    setState(() {});
+    final linked = Settings.bankState.isNotEmpty ||
+        Settings.extraBanks.isNotEmpty ||
+        Settings.depotState.isNotEmpty ||
+        Settings.extraDepots.isNotEmpty;
+    if (!signedIn && !linked) {
+      _snack('Nichts zu synchronisieren. Verbinde eine Bank oder erstelle ein Konto.');
+      return;
+    }
+    _snack(signedIn
+        ? 'Bank, Depot und Kontokopie wurden angestoßen.'
+        : 'Bank und Depot wurden angestoßen. Die Kontokopie braucht ein Konto.');
+  }
+
+  void _whatLeaves() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Was das Gerät verlässt', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 10),
+            Text(
+              'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto '
+              'liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\n'
+              'Bank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank '
+              '(Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\n'
+              'Buddy schickt nur mit dem Schalter oben eine Zusammenfassung ohne Kontonummern '
+              'an den KI-Anbieter. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. '
+              'Mitteilungen plant das Gerät selbst.',
+              style: TextStyle(color: AppColors.textDim, height: 1.45),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    this.context,
+                    MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy)),
+                  );
+                },
+                child: const Text('Datenschutzerklärung'),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _advancedHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => setState(() => _advanced = !_advanced),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(children: [
+            Text('Erweitert',
+                style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            Text(_advanced ? 'Einklappen' : 'Backup, Zurücksetzen, Konto',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+            Icon(_advanced ? Icons.expand_less_rounded : Icons.expand_more_rounded, color: AppColors.textDim, size: 20),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _switch(IconData icon, String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+    return SettingsRow(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      trailing: Switch(value: value, onChanged: onChanged),
+    );
+  }
 
   Future<bool> _confirm(String title, String text, String action) async {
     final ok = await showDialog<bool>(
@@ -337,83 +663,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
           Text(label, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  // rows grouped in one rounded surface, separated by thin lines
-  Widget _group(List<Widget> rows) {
-    return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++) ...[
-            if (i > 0) Divider(height: 1, indent: 60, color: AppColors.border),
-            rows[i],
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _icon(IconData icon, Color color) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(9)),
-      child: Icon(icon, color: color, size: 18),
-    );
-  }
-
-  // tappable settings row with an optional explanation below the title
-  Widget _row(IconData icon, String title, String? subtitle, VoidCallback onTap, {bool danger = false}) {
-    final color = danger ? AppColors.error : AppColors.primary;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            _icon(icon, color),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.errorText : AppColors.text)),
-                  if (subtitle != null)
-                    Text(subtitle,
-                        style: TextStyle(color: AppColors.textDim, fontSize: 12), overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            if (!danger) Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _switchRow(IconData icon, String title, String? subtitle, bool value, ValueChanged<bool> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-      child: Row(
-        children: [
-          _icon(icon, AppColors.primary),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                if (subtitle != null) Text(subtitle, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-              ],
-            ),
-          ),
-          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );
@@ -473,15 +722,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 8, left: 4),
-      child: Text(text,
-          style: TextStyle(
-              color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
-    );
-  }
-
   // helper to show a snackbar
   void _snack(String text, {bool error = false}) {
     if (!mounted) return;
@@ -496,17 +736,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ThemeController.isDark.value = value;
     await Settings.setDarkMode(value);
     if (mounted) setState(() {});
-  }
-
-  // imports portfolio positions from a CSV (broker export)
-  // opens the recurring rules management screen
-  void _openRecurring() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const RecurringScreen()));
-  }
-
-  // opens the live bank/depot connection screen
-  void _openConnections() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
   }
 
   // enables or disables the app lock (requires a successful auth to enable)
@@ -534,7 +763,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final csv = BackupService.transactionsToCsv(txs);
       await saveTextFile('budgetbuddy_export.csv', csv, text: 'BudgetBuddy Export');
     } catch (e) {
-      _snack('Fehler: $e', error: true);
+      _snack(friendlyError(e), error: true);
     }
   }
 
@@ -544,7 +773,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final json = BackupService.toBackupJson();
       await saveTextFile('budgetbuddy_backup.json', json, text: 'BudgetBuddy Backup');
     } catch (e) {
-      _snack('Fehler: $e', error: true);
+      _snack(friendlyError(e), error: true);
     }
   }
 
@@ -583,14 +812,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) setState(() {});
       _snack('Wiederhergestellt');
     } catch (e) {
-      _snack('Fehler: $e', error: true);
+      _snack(friendlyError(e), error: true);
     }
-  }
-
-  // opens file picker, reads csv file and imports each line as transaction
-  Future<void> _leaveGuest() async {
-    await Settings.setGuest(false);
-    if (mounted) Navigator.popUntil(context, (r) => r.isFirst);
   }
 
   // deletes everything on this device and starts over like a fresh install;

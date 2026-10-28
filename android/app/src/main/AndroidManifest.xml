@@ -1,8 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for auth, bank, Buddy, Plus — must be in main (not only debug) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Required by local_auth for biometric authentication -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <!-- reminders: keep scheduled notifications after a restart -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Android 13+: ask before showing local reminders -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="BudgetBuddy"
         android:name="${applicationName}"

@@ -1,20 +1,83 @@
 // Buddy's answers without the AI: the common questions answered with real
-// numbers computed on the device. Used offline, for guests, and whenever the
+// numbers computed on the device. Used offline and whenever the
 // server has no AI configured. The app labels these answers as offline.
+import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'category_coach.dart';
 import 'finance_snapshot.dart';
+import 'forecast_service.dart';
+import 'goals_service.dart';
 
 class LocalBuddy {
-  static String answer(String question, FinanceSnapshot s) {
-    final q = question.toLowerCase();
-    if (_has(q, ['abo', 'vertr', 'fixkost'])) return _contracts(s);
-    if (_has(q, ['leisten', 'urlaub', 'kaufen', 'sparziel', 'zurücklegen'])) return _afford(q, s);
-    if (_has(q, ['spar'])) return _save(s);
-    if (_has(q, ['budget'])) return _budgets(s);
-    if (_has(q, ['depot', 'aktie', 'etf', 'invest', 'anlage'])) return _depot(s);
-    if (_has(q, ['meisten', 'wofür', 'ausgegeben', 'ausgaben', 'kategorie'])) return _spending(s);
+  // [history] is prior turns (user/assistant); follow-ups reuse the last user topic
+  static String answer(String question, FinanceSnapshot s, {List<({bool fromUser, String text})>? history}) {
+    final q = question.toLowerCase().trim();
+    final prior = _priorUser(history);
+    final topic = _followUp(q) && prior != null ? prior.toLowerCase() : q;
+    if (_has(topic, ['kategor', 'sonstiges']) || _has(q, ['kategor', 'sonstiges aufräumen'])) {
+      return _categories(s);
+    }
+    if (_has(topic, ['plus', 'premium']) && !_has(topic, ['depot', 'aktie', 'etf'])) return _plus(s);
+    if (_has(topic, ['vorsorge', 'altersvorsorge', 'rente'])) return _vorsorge(s);
+    if (_has(topic, ['split', 'schuldet', 'geteilt'])) return _splits(s);
+    if (_has(topic, ['vermögen', 'vermoegen', 'schulden', 'notgroschen', 'versicherung', 'sparquote', 'netto'])) {
+      return _wealth(s);
+    }
+    if (_has(topic, ['wiederkehr', 'dauerauftrag'])) return _recurring(s);
+    if (_has(topic, ['letzte buchung', 'letzten buchungen', 'transaktion', 'welche konten', 'meine konten', 'konten'])) {
+      return _accounts(s);
+    }
+    if (_has(topic, ['was bleibt', 'noch ausgeben', 'prognose', 'bleibt', 'monatsende'])) return _forecast(s);
+    if (_goalQuestion(topic)) return _goals(s);
+    if (_has(topic, ['abo', 'vertr', 'fixkost'])) return _contracts(s);
+    if (_has(topic, ['leisten', 'urlaub', 'kaufen', 'sparziel', 'zurücklegen'])) return _afford(topic, s);
+    if (_has(topic, ['spar'])) return _save(s);
+    if (_has(topic, ['budget'])) return _budgets(s);
+    if (_has(topic, ['depot', 'aktie', 'etf', 'invest', 'anlage'])) return _depot(s);
+    if (_has(topic, ['meisten', 'wofür', 'ausgegeben', 'ausgaben', 'kategorie'])) return _spending(s);
     return _overview(s);
   }
+
+  static String? _priorUser(List<({bool fromUser, String text})>? history) {
+    if (history == null || history.length < 2) return null;
+    for (var i = history.length - 2; i >= 0; i--) {
+      if (history[i].fromUser && history[i].text.trim().isNotEmpty) return history[i].text;
+    }
+    return null;
+  }
+
+  static bool _followUp(String q) {
+    if (q.length <= 28 && RegExp(r'^(und|warum|wieso|wie viel|wieviel|genau|davon|dazu|nochmal|mehr dazu|was meinst)\b').hasMatch(q)) {
+      return true;
+    }
+    return q == 'und?' || q == 'warum?' || q == 'wieso?' || q == 'genau?' || q == 'davon?';
+  }
+
+  static String _categories(FinanceSnapshot s) {
+    final n = CategoryCoach.miscCount();
+    if (n == 0) return 'Alles sauber kategorisiert — kein Sonstiges offen.';
+    final auto = CategoryCoach.autoFixes(limit: 5);
+    final left = CategoryCoach.leftovers(limit: 5);
+    final lines = <String>[
+      '**$n** Buchungen stecken noch in Sonstiges.',
+      if (auto.isNotEmpty) ...[
+        '',
+        'Kann ich so zuordnen — sag **„Sonstiges aufräumen“**:',
+        for (final p in auto) '- ${p.sample}: **${p.category}** (${p.count}×)',
+      ],
+      if (left.isNotEmpty) ...[
+        '',
+        'Unklar, sag z. B. „${left.first.sample} → Lebensmittel“:',
+        for (final g in left.take(3)) '- ${g.sample} (${g.count}×)',
+      ],
+    ];
+    return lines.join('\n');
+  }
+
+  // status of a goal, not "kann ich mir etwas leisten"
+  static bool _goalQuestion(String q) =>
+      _has(q, ['sparziel', 'sparziele', 'mein ziel', 'meine ziele', 'ziele']) &&
+      !_has(q, ['leisten', 'kaufen', 'urlaub', 'zurücklegen']);
 
   static bool _has(String q, List<String> words) => words.any(q.contains);
 
@@ -120,10 +183,126 @@ class LocalBuddy {
         'und vorher drei Monatsausgaben als Notgroschen.';
   }
 
+  static String _goals(FinanceSnapshot s) {
+    if (s.goals.isEmpty) return 'Du hast noch keine Sparziele. Leg eins unter Sparziele an, dann rechne ich den Plan.';
+    final surplus = s.avgIncome - s.avgExpenses;
+    final lines = [
+      for (final g in s.goals.take(6))
+        '- ${g.emoji} ${g.name}: ${_eur(g.savedCents)} von ${_eur(g.targetCents)} '
+            '(${(g.progress * 100).round()} %). ${GoalsService.plan(g, avgSurplusCents: surplus, now: s.today).text}'
+    ];
+    return 'Deine Sparziele:\n${lines.join('\n')}';
+  }
+
+  static String _wealth(FinanceSnapshot s) {
+    final net = s.balanceCents + s.depotCents - s.debtCents;
+    final lines = <String>[
+      '- Nettovermögen: **${_eur(net)}** (Konten ${_eur(s.balanceCents)}, Depot ${_eur(s.depotCents)}'
+          '${s.debtCents > 0 ? ', Schulden ${_eur(s.debtCents)}' : ''})',
+    ];
+    if (s.savingsRatePercent != null) lines.add('- Sparquote der letzten vollen Monate: ${s.savingsRatePercent} %');
+    if (s.emergencyTargetCents != null) {
+      lines.add('- Notgroschen: ${_eur(s.emergencyHaveCents)} von ${_eur(s.emergencyTargetCents!)}');
+    } else if (s.emergencyHaveCents > 0) {
+      lines.add('- Auf Sparkonten: ${_eur(s.emergencyHaveCents)}');
+    }
+    if (s.debts.isNotEmpty) {
+      lines.add('- Schulden: ${s.debts.take(4).map((d) => '${d.name} ${_eur(d.cents)}').join(', ')}');
+    }
+    if (s.policies.isNotEmpty) {
+      final sum = s.policies.fold<int>(0, (a, p) => a + p.monthlyCents);
+      lines.add('- Versicherungen: ${s.policies.take(4).map((p) => p.name).join(', ')} (${_eur(sum)} im Monat)');
+    }
+    if (s.runwayMonths != null) lines.add('- Reichweite: etwa ${s.runwayMonths} Monate bei deinem üblichen Verbrauch');
+    return 'Vermögen:\n${lines.join('\n')}';
+  }
+
+  static String _vorsorge(FinanceSnapshot s) {
+    final v = s.vorsorge;
+    if (v == null) {
+      return 'Altersvorsorge ist noch nicht eingerichtet. Trag unter Vorsorge deine Rente ein, dann rechne ich die Lücke. '
+          'Das ist eine Orientierung, keine Beratung.';
+    }
+    if (v.gapClosed) {
+      return 'Orientierung, keine Beratung: Deine Wunschrente von ${_eur(v.input.desiredNetCents)} im Monat '
+          'ist mit den eingetragenen Bausteinen gedeckt.';
+    }
+    return 'Orientierung, keine Beratung: Bis ${v.input.retireAge} sind es **${v.yearsLeft} Jahre**. '
+        'Dir fehlen etwa **${_eur(v.gapMonthlyCents)} im Monat**. Dafür wären ungefähr '
+        '${_eur(v.saveExtraMonthlyCents)} im Monat extra nötig '
+        '(gesetzlich ${_eur(v.input.statutoryCents)}, Kapital ${_eur(v.capitalCents)}).';
+  }
+
+  static String _splits(FinanceSnapshot s) {
+    if (s.splits.isEmpty) return 'Du hast noch keine geteilten Ausgaben.';
+    final lines = [
+      for (final g in s.splits.take(5))
+        '- ${g.name}: ${g.myCents == 0 ? 'ausgeglichen' : g.myCents > 0 ? 'du bekommst ${_eur(g.myCents)}' : 'du schuldest ${_eur(-g.myCents)}'}'
+    ];
+    return 'Splits:\n${lines.join('\n')}';
+  }
+
+  static String _recurring(FinanceSnapshot s) {
+    final rules = s.recurring.where((r) => r.active).toList();
+    if (rules.isEmpty) return 'Du hast keine aktiven wiederkehrenden Buchungen.';
+    final lines = [
+      for (final r in rules.take(6))
+        '- ${r.title}: ${_eur(r.cents)} ${r.interval}${r.income ? ' (Einnahme)' : ''} · nächstes ${_date(r.next)}'
+    ];
+    return 'Wiederkehrend:\n${lines.join('\n')}';
+  }
+
+  static String _accounts(FinanceSnapshot s) {
+    final accounts = s.accounts.isEmpty
+        ? '- Kontostand: **${_eur(s.balanceCents)}**'
+        : s.accounts.map((a) => '- ${a.name} (${a.art}): **${_eur(a.cents)}**').join('\n');
+    final recent = [
+      for (final t in s.recent.take(5))
+        '- ${t.date}: ${t.note} ${t.cents < 0 ? '−' : '+'}${_eur(t.cents.abs())} (${t.account})'
+    ];
+    final tail = recent.isEmpty ? '' : '\n\nLetzte Buchungen:\n${recent.join('\n')}';
+    return 'Konten:\n$accounts$tail';
+  }
+
+  static String _forecast(FinanceSnapshot s) {
+    final f = s.forecast;
+    if (f == null) return 'Dafür brauche ich ein paar volle Monate mit Einnahmen.';
+    final tempo = switch (f.pace) {
+      ForecastPace.relaxed => 'entspannt',
+      ForecastPace.tight => 'knapp',
+      ForecastPace.over => 'über dem Plan',
+    };
+    final due = f.due.isEmpty ? '' : ' Noch fällig: ${f.due.take(3).map((d) => '${d.name} ${_eur(d.cents)}').join(', ')}.';
+    return 'Bis Monatsende bleiben dir **${_eur(f.freeCents)}**, etwa ${_eur(f.perDayCents)} am Tag. Das Tempo ist $tempo.$due';
+  }
+
+  static String _plus(FinanceSnapshot s) {
+    final p = s.plus;
+    if (p.active) {
+      final trial = p.trial && p.bis != null ? ' Testphase bis ${_date(p.bis!)}.' : '';
+      final end = p.cancelled && p.bis != null ? ' Gekündigt, nutzbar bis ${_date(p.bis!)}.' : '';
+      return '**Plus ist aktiv** (${p.plan ?? 'monatlich'}).$trial$end';
+    }
+    final left = p.fragenRest == null
+        ? ''
+        : 'Noch ${p.fragenRest} Gratis-Fragen und ${p.scansRest ?? 0} Beleg-Scans in diesem Monat. ';
+    return 'Plus ist nicht aktiv. ${left}Ein Sparziel ist gratis, weitere mit Plus.';
+  }
+
+  static String _date(String iso) {
+    final d = DateTime.tryParse(iso);
+    return d == null ? iso : Dates.full(d);
+  }
+
   static String _overview(FinanceSnapshot s) {
     final m = s.current;
+    if (s.past.isEmpty && m.expenses == 0 && m.income == 0 && s.depotCents == 0) {
+      return 'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben — '
+          'dann kann ich konkret rechnen.\n\n'
+          'Du kannst trotzdem fragen, z. B. **„Wo kann ich sparen?“** oder **„Wie lege ich ein Sparziel an?“**';
+    }
     return 'Dein Überblick:\n- Kontostand: **${_eur(s.balanceCents)}**\n- Depot: ${_eur(s.depotCents)}\n'
         '- Diesen Monat: ${_eur(m.income)} rein, ${_eur(m.expenses)} raus\n\n'
-        'Frag mich zum Beispiel, wo du sparen kannst oder ob du dir etwas leisten kannst.';
+        'Frag mich zum Beispiel zu Ausgaben, Sparzielen, Depot, Vermögen, Rente oder Splits.';
   }
 }

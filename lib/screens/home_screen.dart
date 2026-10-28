@@ -7,10 +7,10 @@ import '../services/auto_save.dart';
 import '../services/account_service.dart';
 import '../services/cloud_sync.dart';
 import '../services/split_service.dart';
-import '../services/db.dart';
 import '../services/money_accounts.dart';
 import '../widgets/transfer_sheet.dart';
 import '../widgets/add_account_choice.dart';
+import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
 import 'account_screen.dart';
@@ -42,17 +42,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // create default badges if they dont exist yet
-    DB.initBadges();
     // a goal filled by the autopilot gets its celebration, too
     AutoSave.reached.addListener(_goalReached);
     // an invite link opened the app: straight to joining, also right after signing in
     AccountService.current.addListener(_pendingJoin);
     BuddyScreen.ask.addListener(_toBuddy);
+    AccountScreen.pendingSegment.addListener(_toAccountSection);
     CloudSync.conflict.addListener(_vaultConflict);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _pendingJoin();
       _vaultConflict();
+      _toAccountSection();
     });
   }
 
@@ -71,8 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('Daten unterscheiden sich'),
-        content: const Text('Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung '
-            'von einem anderen Gerät. Was soll gelten?'),
+        content: const Text(
+            'Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung '
+            'von einem anderen Gerät.\n\n'
+            'Es gibt kein Zusammenführen: eine komplette Kopie gewinnt '
+            '(Buchungen, Budgets, Depot). Die andere geht verloren.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Kontodaten laden')),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Gerätedaten behalten')),
@@ -90,25 +93,19 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: const Duration(milliseconds: 3500), content: Text('$e')));
+          duration: const Duration(milliseconds: 3500), content: Text(friendlyError(e))));
     }
   }
 
   // waits until the start screen is really on top (not under the sign-up or
   // the "Wie möchtest du starten?" choice), then opens the join sheet once
   bool _joining = false;
-  bool _guestHinted = false;
   void _pendingJoin() {
     final code = SplitService.pendingJoin;
     if (code == null || !mounted || _joining) return;
+    if (AccountService.current.value == null) return;
     if (ModalRoute.of(context)?.isCurrent != true) {
       Future.delayed(const Duration(milliseconds: 800), _pendingJoin);
-      return;
-    }
-    // a guest gets the hint once; signing in brings the sheet back (listener)
-    if (AccountService.current.value == null) {
-      if (!_guestHinted) joinSplitGroup(context, code: code);
-      _guestHinted = true;
       return;
     }
     _joining = true;
@@ -126,9 +123,17 @@ class _HomeScreenState extends State<HomeScreen> {
     if (BuddyScreen.ask.value != null && mounted) _open(3);
   }
 
+  void _toAccountSection() {
+    final segment = AccountScreen.pendingSegment.value;
+    if (segment == null || !mounted) return;
+    AccountScreen.pendingSegment.value = null;
+    _open(1, segment: segment);
+  }
+
   @override
   void dispose() {
     BuddyScreen.ask.removeListener(_toBuddy);
+    AccountScreen.pendingSegment.removeListener(_toAccountSection);
     AutoSave.reached.removeListener(_goalReached);
     AccountService.current.removeListener(_pendingJoin);
     CloudSync.conflict.removeListener(_vaultConflict);
@@ -150,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return;
     }
-    HapticFeedback.selectionClick();
+    HapticFeedback.lightImpact();
     setState(() => _tab = tab);
   }
 
@@ -203,23 +208,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // floating pill with the three areas and the round add button beside it
+  // floating pill nav + add — inspired by modern finance apps (clear, springy, one primary CTA)
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         child: Row(
           children: [
             Expanded(
               child: Container(
-                height: 62,
+                height: 64,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(31),
-                  border: Border.all(color: AppColors.border),
+                  color: AppColors.surface.withValues(alpha: 0.94),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.85)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.35 : 0.08),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -234,20 +247,13 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 12),
             Semantics(
               button: true,
-              label: 'Hinzufügen',
-              child: Material(
-                color: AppColors.primary,
-                shape: const CircleBorder(),
-                elevation: 0,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _showAddMenu,
-                  child: const SizedBox(
-                    width: 62,
-                    height: 62,
-                    child: Icon(Icons.add_rounded, color: Colors.white, size: 30),
-                  ),
-                ),
+              label: 'Schnell erfassen. Lange drücken für mehr.',
+              child: _AddFab(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  showSmartEntry(context);
+                },
+                onLongPress: _showAddMenu,
               ),
             ),
           ],
@@ -258,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _navItem(IconData icon, String label, int i) {
     final active = _tab == i;
-    final color = active ? AppColors.primary : AppColors.textDim;
+    final color = active ? AppColors.primaryText : AppColors.textDim;
     return Expanded(
       child: Semantics(
         button: true,
@@ -266,43 +272,60 @@ class _HomeScreenState extends State<HomeScreen> {
         label: label,
         excludeSemantics: true,
         child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _open(i),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedScale(
-              scale: active ? 1.1 : 1,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(icon, color: color, size: 24),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _open(i),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              color: active ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent,
+              borderRadius: BorderRadius.circular(26),
             ),
-            const SizedBox(height: 2),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11, color: color, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
-          ],
-        ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedScale(
+                  scale: active ? 1.08 : 1,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutBack,
+                  child: Icon(icon, color: color, size: 22),
+                ),
+                const SizedBox(height: 2),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        color: color,
+                        fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+                        letterSpacing: active ? -0.2 : 0)),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  // what can be added: a transaction, a depot position or a budget
   void _showAddMenu() {
-    HapticFeedback.lightImpact();
+    HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
-      // as tall as its options, not capped at half the screen
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       showDragHandle: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (sheet) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: Text('Neu', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+              ),
+              _sectionLabel('Schnell'),
               _addOption(sheet, Icons.auto_awesome_rounded, AppColors.primary, 'Schnell erfassen',
                   'Eintippen wie „Döner 8,50 gestern“', () => showSmartEntry(context)),
               _addOption(sheet, Icons.document_scanner_rounded, const Color(0xFFF472B6), 'Beleg scannen',
@@ -310,24 +333,26 @@ class _HomeScreenState extends State<HomeScreen> {
               _addOption(sheet, Icons.receipt_long_rounded, AppColors.positive, 'Umsatz erfassen',
                   'Mit Ziffernblock', () async {
                 if (await TxRow.openEditor(context) && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
                 }
               }),
               if (MoneyAccounts.several)
                 _addOption(sheet, Icons.swap_horiz_rounded, AppColors.accentBlue, 'Geld verschieben',
-                    'Zwischen deinen Konten, z. B. aufs Sparkonto', () => showTransferSheet(context)),
-              // real banks and depots first, by hand second (see showAddAccountChoice)
+                    'Zwischen deinen Konten', () => showTransferSheet(context)),
+              const SizedBox(height: 8),
+              _sectionLabel('Einrichten'),
               _addOption(sheet, Icons.account_balance_rounded, AppColors.primary, 'Konto hinzufügen',
-                  'Bank verbinden oder Bargeld, Sparkonto von Hand', () => showAddAccountChoice(context)),
+                  'Bank verbinden oder von Hand', () => showAddAccountChoice(context)),
               _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Depot hinzufügen',
-                  'Trade Republic & Co. verbinden oder Position von Hand',
+                  'Trade Republic & Co. oder Position von Hand',
                   () => showAddAccountChoice(context, depot: true, byHand: () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
                       })),
               _addOption(sheet, Icons.savings_rounded, AppColors.warning, 'Budget anlegen',
                   'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
               _addOption(sheet, Icons.call_split_rounded, const Color(0xFF14B8A6), 'Ausgabe teilen',
-                  'WG, Paar, Urlaub: wer schuldet wem', () {
+                  'WG, Paar, Urlaub', () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()));
               }),
             ],
@@ -337,22 +362,103 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _sectionLabel(String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDim, letterSpacing: 0.4)),
+      );
+
   Widget _addOption(BuildContext sheet, IconData icon, Color color, String title, String subtitle, VoidCallback onTap) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
-        child: Icon(icon, color: color),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            Navigator.pop(sheet);
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Row(children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                ]),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textDim.withValues(alpha: 0.7), size: 20),
+            ]),
+          ),
+        ),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: TextStyle(color: AppColors.textDim)),
-      onTap: () {
-        Navigator.pop(sheet);
-        onTap();
+    );
+  }
+}
+
+// round + : tap = Schnell erfassen, long-press = volles Neu-Menü
+class _AddFab extends StatefulWidget {
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  const _AddFab({required this.onTap, required this.onLongPress});
+
+  @override
+  State<_AddFab> createState() => _AddFabState();
+}
+
+class _AddFabState extends State<_AddFab> {
+  bool _down = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _down = true),
+      onTapUp: (_) => setState(() => _down = false),
+      onTapCancel: () => setState(() => _down = false),
+      onTap: widget.onTap,
+      onLongPress: () {
+        HapticFeedback.heavyImpact();
+        widget.onLongPress();
       },
+      child: AnimatedScale(
+        scale: _down ? 0.92 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: AppColors.heroBrand,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+        ),
+      ),
     );
   }
 }
