@@ -8,6 +8,7 @@ import '../utils/dates.dart';
 import '../utils/errors.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../widgets/free_tier_usage.dart';
 import 'checkout_screen.dart';
 import 'plus_screen.dart';
 import 'about_screen.dart';
@@ -38,8 +39,12 @@ class SubscriptionScreen extends StatelessWidget {
             const Text('Du nutzt BudgetBuddy gratis',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text('Buddy mit KI, Beleg-Scan und beliebig viele Sparziele — der Rest bleibt gratis.',
+            Text(
+                'Gratis: ${PlusService.freeAiQuestions} KI-Fragen, ${PlusService.freeReceiptScans} Belege, '
+                '${PlusService.freeGoals} Sparziel — Plus = ohne Limit.',
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 16),
+            const FreeTierUsage(),
             const SizedBox(height: 20),
             FilledButton(onPressed: () => showPlus(context), child: const Text('Plus entdecken')),
             const SizedBox(height: 6),

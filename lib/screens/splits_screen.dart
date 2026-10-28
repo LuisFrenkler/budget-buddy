@@ -91,6 +91,10 @@ class SplitsScreen extends StatelessWidget {
             Text('Lege eine Gruppe an. Freunde einladen geht danach.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim.withValues(alpha: 0.75), fontSize: 14, height: 1.35)),
+            const SizedBox(height: 8),
+            Text('Geteilte Gruppen sind gratis — kein Plus nötig.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.3)),
             const SizedBox(height: 28),
             FilledButton.icon(
               style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
@@ -690,6 +694,14 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                               : 'Nur auf diesem Gerät · Einladen synchronisiert mit anderen',
                           style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                     ),
+                    if (!g.shared && g.expenses.isNotEmpty)
+                      TextButton(
+                        style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            foregroundColor: AppColors.primaryText),
+                        onPressed: () => _invite(context, g),
+                        child: const Text('Jetzt einladen'),
+                      ),
                   ]),
                 ),
                 Text(mine == 0 ? 'Ihr seid quitt' : (mine > 0 ? 'Du bekommst' : 'Du schuldest'),
@@ -1290,6 +1302,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
       date: widget.edit?.date ?? widget.tx?.date ?? DateTime.now(),
       txId: widget.edit?.txId ?? widget.tx?.id,
     );
+    final wasFirstLocal = widget.edit == null && !g.shared && g.expenses.isEmpty;
     try {
       if (widget.edit != null) {
         await SplitService.updateExpense(g, expense);
@@ -1309,12 +1322,14 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     final others = _paidBy == g.me ? cents - (share[g.me] ?? 0) : 0;
     final where = g.shared ? g.name : '${g.name} (nur hier)';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: const Duration(milliseconds: 2800),
+        duration: const Duration(milliseconds: 3200),
         content: Text(widget.edit != null
             ? 'Ausgabe aktualisiert'
-            : others > 0
-                ? 'In $where · ${Money.format(others)} bekommst du zurück'
-                : 'In $where eingetragen')));
+            : wasFirstLocal
+                ? 'Eingetragen · lade Freunde ein (Button „Jetzt einladen“)'
+                : others > 0
+                    ? 'In $where · ${Money.format(others)} bekommst du zurück'
+                    : 'In $where eingetragen')));
   }
 
   @override

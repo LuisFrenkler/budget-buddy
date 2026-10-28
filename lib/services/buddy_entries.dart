@@ -133,7 +133,15 @@ class BuddyEntry {
             '${price > 0 ? ' · ${Money.raw((price * 100).round())} je Stück' : ''}'
             '${note.isEmpty ? '' : ' · $note'}',
         'recategorize' => '„$note“ → $category',
-        'recategorize_all' => '$cents Buchungen aus Sonstiges zuordnen',
+        'recategorize_all' => () {
+          final fixes = CategoryCoach.autoFixes(limit: 4);
+          final head = '$cents Buchungen in ${fixes.isEmpty ? note : '${fixes.length} Händlern'}';
+          if (fixes.isEmpty) return head;
+          final lines = [
+            for (final p in fixes) '„${p.sample}“ → ${p.category} (${p.count}×)',
+          ];
+          return '$head\n${lines.join('\n')}';
+        }(),
         _ => note,
       };
 

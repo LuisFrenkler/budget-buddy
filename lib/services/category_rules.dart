@@ -44,6 +44,7 @@ class CategoryRules {
   }
 
   static Future<void> remember(String name, String category, {required bool isIncome}) async {
+    if (!Hive.isBoxOpen('settings')) return;
     final rules = {...all, _rule(name, isIncome): category};
     final brand = Categorizer.brand(name);
     if (brand != null) rules[_rule(brand, isIncome)] = category;

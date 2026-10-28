@@ -15,6 +15,9 @@ import '../widgets/buddy_orb.dart';
 import '../legal/legal_texts.dart';
 import 'about_screen.dart';
 import 'auth_screens.dart';
+import 'buddy_screen.dart';
+import 'goals_screen.dart';
+import 'smart_entry_sheet.dart';
 
 // Checkout for Plus: what it costs and when, the payment method, a promo
 // code, then a welcome page. Returns true when Plus was started.
@@ -23,10 +26,10 @@ import 'auth_screens.dart';
 // payment page (Stripe Checkout): the app opens it, waits until the server
 // confirms Plus and never touches card or bank details. Otherwise the local
 // test mode below runs and charges nothing.
-Future<bool> showCheckout(BuildContext context, PlusPlan plan) async {
+Future<bool> showCheckout(BuildContext context, PlusPlan plan, {String? reason}) async {
   final ok = await Navigator.push<bool>(
     context,
-    MaterialPageRoute(builder: (_) => PaymentScreen(plan: plan)),
+    MaterialPageRoute(builder: (_) => PaymentScreen(plan: plan, reason: reason)),
   );
   return ok == true;
 }
@@ -58,7 +61,8 @@ List<PayMethod> availableMethods() {
 
 class PaymentScreen extends StatefulWidget {
   final PlusPlan? plan; // null: only change the payment method
-  const PaymentScreen({super.key, this.plan});
+  final String? reason; // why the user opened Plus — first-win CTA after checkout
+  const PaymentScreen({super.key, this.plan, this.reason});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -230,7 +234,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       await Navigator.push(context, PageRouteBuilder(
         opaque: true,
         transitionDuration: const Duration(milliseconds: 400),
-        pageBuilder: (_, a, __) => FadeTransition(opacity: a, child: _Welcome(sub: sub)),
+        pageBuilder: (_, a, __) => FadeTransition(
+            opacity: a, child: _Welcome(sub: sub, reason: widget.reason)),
       ));
     } else {
       await PlusService.changeMethod(_method, _detail);
@@ -309,7 +314,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     await Navigator.push(context, PageRouteBuilder(
       opaque: true,
       transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (_, a, __) => FadeTransition(opacity: a, child: _Welcome(sub: sub)),
+      pageBuilder: (_, a, __) => FadeTransition(
+          opacity: a, child: _Welcome(sub: sub, reason: widget.reason)),
     ));
     if (mounted) Navigator.pop(context, true);
   }
@@ -998,10 +1004,20 @@ class _ExpiryFormatter extends TextInputFormatter {
   }
 }
 
+String _welcomeCta(String reason) {
+  final r = reason.toLowerCase();
+  if (r.contains('beleg') || r.contains('scan')) return 'Beleg jetzt scannen';
+  if (r.contains('sparziel') || r.contains('autopilot') || r.contains('ziel')) {
+    return 'Sparziele öffnen';
+  }
+  return 'Buddy öffnen';
+}
+
 // Shown once after the start: what is unlocked and when the first payment is.
 class _Welcome extends StatefulWidget {
   final Subscription sub;
-  const _Welcome({required this.sub});
+  final String? reason;
+  const _Welcome({required this.sub, this.reason});
 
   @override
   State<_Welcome> createState() => _WelcomeState();
@@ -1089,11 +1105,41 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                 ]),
               ),
               const Spacer(),
-              FilledButton(
-                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Fertig', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              ),
+              if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
+                Text('Das war der Grund — probier es gleich aus.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
+                const SizedBox(height: 10),
+                FilledButton(
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  onPressed: () {
+                    final r = widget.reason!.toLowerCase();
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                    if (r.contains('beleg') || r.contains('scan')) {
+                      showSmartEntry(context, scan: true);
+                    } else if (r.contains('sparziel') ||
+                        r.contains('autopilot') ||
+                        r.contains('ziel')) {
+                      Navigator.push(
+                          context, MaterialPageRoute(builder: (_) => const GoalsScreen()));
+                    } else {
+                      BuddyScreen.open(context);
+                    }
+                  },
+                  child: Text(_welcomeCta(widget.reason!),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Später', style: TextStyle(color: AppColors.textDim)),
+                ),
+              ] else
+                FilledButton(
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Fertig', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                ),
             ]),
           ),
         ),
