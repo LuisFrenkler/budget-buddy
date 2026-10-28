@@ -40,23 +40,10 @@ class Settings {
 
   static Future<void> setDarkMode(bool value) => _box.put('darkMode', value);
 
-  // "try without an account": the app works fully offline, no bank link.
-  // A notifier so the root can switch between welcome and app.
-  static final guest = ValueNotifier<bool>(false);
-
-  static void loadGuest() => guest.value = _box.get('guest', defaultValue: false) as bool;
-
-  static Future<void> setGuest(bool value) {
-    guest.value = value;
-    return _box.put('guest', value);
+  // legacy: older installs stored guest mode; always clear it (account required)
+  static Future<void> setGuest(bool _) async {
+    await _box.delete('guest');
   }
-
-  // after signing out the data stays on the device, but belongs to that
-  // account: guests are asked to sign in instead of seeing it
-  static String get signedOutEmail => _box.get('signedOutEmail', defaultValue: '') as String;
-
-  static Future<void> setSignedOutEmail(String value) =>
-      value.isEmpty ? _box.delete('signedOutEmail') : _box.put('signedOutEmail', value);
 
   // id of the account that linked the bank on this device
   static String get bankOwner => _box.get('bankOwner', defaultValue: '') as String;
@@ -130,6 +117,13 @@ class Settings {
     }
   }
 
+  // forgets only the first depot link; extras (depotLinks) stay
+  static Future<void> clearPrimaryDepot() async {
+    for (final k in ['depotState', 'depotBroker', 'depotSync', 'depotHistory', 'depotOwner']) {
+      await _box.delete(k);
+    }
+  }
+
   // id of the account that linked the depot on this device
   static String get depotOwner => _box.get('depotOwner', defaultValue: '') as String;
 
@@ -163,7 +157,6 @@ class Settings {
     final dark = darkMode;
     await _box.clear();
     await setDarkMode(dark);
-    guest.value = false;
     hideAmounts.value = false;
     Money.masked = false;
   }

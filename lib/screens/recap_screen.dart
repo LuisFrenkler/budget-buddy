@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import '../services/db.dart';
 import '../services/recap_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -304,68 +302,3 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
       );
 }
 
-// Banner on the home screen once a month: "Dein September-Rückblick ist da".
-class RecapBanner extends StatelessWidget {
-  const RecapBanner({super.key});
-
-  static Box get _settings => Hive.box('settings');
-
-  @override
-  Widget build(BuildContext context) {
-    // listens itself: as a const child it is not rebuilt with the home screen
-    return ValueListenableBuilder<Box>(
-      valueListenable: _settings.listenable(),
-      builder: (context, _, __) => _banner(context),
-    );
-  }
-
-  Widget _banner(BuildContext context) {
-    final month = RecapService.recapMonth(DateTime.now());
-    final key = 'recapSeen_${month.year}_${month.month}';
-    if (_settings.get(key) == true) return const SizedBox.shrink();
-    final recap = RecapService.build(DB.getTx(), month);
-    if (recap == null) return const SizedBox.shrink();
-    final name = Dates.months[month.month - 1];
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Material(
-        borderRadius: BorderRadius.circular(20),
-        clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF7C5CFF), Color(0xFFF472B6)]),
-          ),
-          child: InkWell(
-            onTap: () async {
-              await _settings.put(key, true);
-              if (context.mounted) {
-                Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 14, 8, 14),
-              child: Row(children: [
-                const Text('✨', style: TextStyle(fontSize: 26)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Dein $name-Rückblick ist da',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
-                    Text('${recap.savingsRate > 0 ? '${recap.savingsRate} % gespart · ' : ''}jetzt ansehen',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
-                  ]),
-                ),
-                IconButton(
-                  tooltip: 'Ausblenden',
-                  icon: Icon(Icons.close_rounded, color: Colors.white.withValues(alpha: 0.8), size: 20),
-                  onPressed: () => _settings.put(key, true),
-                ),
-              ]),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

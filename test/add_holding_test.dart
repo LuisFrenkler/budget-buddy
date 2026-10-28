@@ -20,4 +20,14 @@ void main() {
       expect(AddHoldingScreen.parseShares('abc'), isNull);
     });
   });
+
+  group('instrument type', () {
+    test('a searched ticker is locked, a custom name is not', () {
+      expect(AddHoldingScreen.typeLocked(symbol: 'AAPL', customSymbol: false), isTrue);
+      expect(AddHoldingScreen.typeLocked(symbol: 'BTC', customSymbol: false), isTrue);
+      expect(AddHoldingScreen.typeLocked(symbol: '', customSymbol: false), isFalse);
+      expect(AddHoldingScreen.typeLocked(symbol: '  ', customSymbol: false), isFalse);
+      expect(AddHoldingScreen.typeLocked(symbol: 'SAP.DE', customSymbol: true), isFalse);
+    });
+  });
 }

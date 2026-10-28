@@ -16,6 +16,10 @@ class Goal {
   bool roundUp;
   DateTime? roundUpSince;
   List<String> roundedIds; // expenses already rounded up
+  // money account contributions are booked to (Umbuchung); null = pick default spar
+  String? potId;
+  // inbound pot bookings already counted toward savedCents (bank sync or GoalMove)
+  List<String> creditedIds;
 
   Goal({
     required this.id,
@@ -30,7 +34,10 @@ class Goal {
     this.roundUp = false,
     this.roundUpSince,
     List<String>? roundedIds,
-  }) : roundedIds = roundedIds ?? [];
+    this.potId,
+    List<String>? creditedIds,
+  })  : roundedIds = roundedIds ?? [],
+        creditedIds = creditedIds ?? [];
 
   bool get automated => monthlyCents > 0 || roundUp;
 
@@ -47,6 +54,8 @@ class Goal {
         'roundUp': roundUp,
         'roundUpSince': roundUpSince?.millisecondsSinceEpoch,
         'roundedIds': roundedIds,
+        if (potId != null) 'potId': potId,
+        'creditedIds': creditedIds,
       };
 
   factory Goal.fromMap(Map<String, dynamic> m) => Goal(
@@ -62,6 +71,8 @@ class Goal {
         roundUp: m['roundUp'] as bool? ?? false,
         roundUpSince: m['roundUpSince'] == null ? null : DateTime.fromMillisecondsSinceEpoch(m['roundUpSince']),
         roundedIds: ((m['roundedIds'] as List?) ?? const []).cast<String>().toList(),
+        potId: m['potId'] as String?,
+        creditedIds: ((m['creditedIds'] as List?) ?? const []).cast<String>().toList(),
       );
 
   int get remainingCents => (targetCents - savedCents).clamp(0, targetCents);

@@ -1,5 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import '../services/db.dart';
 import '../services/notification_service.dart';
@@ -10,11 +10,11 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/weekly_story.dart';
 import 'buddy_screen.dart';
 import 'plus_screen.dart';
 
-// Buddy's weekly report. Everyone sees the week at a glance; the details
-// and Buddy's tip are part of Plus.
+// Buddy's weekly report. Tip + categories are free; AI chat CTA stays Plus-gated.
 class WeeklyReportScreen extends StatelessWidget {
   const WeeklyReportScreen({super.key});
 
@@ -30,7 +30,25 @@ class WeeklyReportScreen extends StatelessWidget {
     // after the frame, never as a side effect of building
     if (report != null) WidgetsBinding.instance.addPostFrameCallback((_) => markSeen(report));
     return Scaffold(
-      appBar: AppBar(title: Text(report == null ? 'Wochenbericht' : 'KW ${report.week}')),
+      appBar: AppBar(
+        title: Text(report == null ? 'Wochenbericht' : 'KW ${report.week}'),
+        actions: [
+          if (report != null)
+            IconButton(
+              tooltip: 'Als Story teilen',
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                final change = report.change;
+                final pct = change == null ? null : (change * 100).round().abs();
+                final text = change == null || report.roughlyUsual
+                    ? 'Meine Woche mit BudgetBuddy: ${report.headline}'
+                    : 'Meine Woche: $pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst · BudgetBuddy';
+                showWeeklyStoryShare(context, report, fallbackText: text);
+              },
+              icon: const Icon(Icons.ios_share_rounded),
+            ),
+        ],
+      ),
       body: report == null
           ? Center(
               child: Padding(
@@ -98,8 +116,7 @@ class _Report extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 14),
-        // the details: blurred with an invitation for the free tier
-        plus ? _details(context) : _locked(context),
+        _details(context),
         const SizedBox(height: 18),
         _remind(context),
       ],
@@ -109,7 +126,7 @@ class _Report extends StatelessWidget {
   Widget _details(BuildContext context) {
     final r = report;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // Buddy's take
+      // Buddy's take — free for retention; AI chat CTA can still pitch Plus
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -132,22 +149,29 @@ class _Report extends StatelessWidget {
           Text(r.tip, style: TextStyle(fontSize: 14.5, height: 1.45, color: AppColors.text.withValues(alpha: 0.85))),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => BuddyScreen.open(context, 'Wie kann ich nächste Woche weniger ausgeben als diese?'),
+            onPressed: () {
+              if (plus) {
+                BuddyScreen.open(context, 'Wie kann ich nächste Woche weniger ausgeben als diese?');
+              } else {
+                showPlus(context, reason: 'Mit Plus redet Buddy weiter und hilft dir, den Plan umzusetzen');
+              }
+            },
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: const Text('Mit Buddy weiterreden'),
+            label: Text(plus ? 'Mit Buddy weiterreden' : 'Mit Plus weiterreden'),
           ),
         ]),
       ),
       const SizedBox(height: 14),
-      // highlights
       Row(children: [
-        Expanded(child: _fact('🗓️', WeeklyReportService.weekdays[r.topDay], 'teuerster Tag')),
+        Expanded(child: _fact(Icons.calendar_today_rounded, WeeklyReportService.weekdays[r.topDay], 'teuerster Tag')),
         const SizedBox(width: 10),
-        Expanded(child: _fact('🌿', '${r.noSpendDays}', r.noSpendDays == 1 ? 'Tag ohne Ausgaben' : 'Tage ohne Ausgaben')),
+        Expanded(
+            child: _fact(Icons.eco_rounded, '${r.noSpendDays}',
+                r.noSpendDays == 1 ? 'Tag ohne Ausgaben' : 'Tage ohne Ausgaben')),
       ]),
       if (r.biggest != null) ...[
         const SizedBox(height: 10),
-        _fact('💸', Money.format(r.biggest!.amountCents),
+        _fact(Icons.payments_rounded, Money.format(r.biggest!.amountCents),
             'größte Ausgabe: ${(r.biggest!.note?.trim().isNotEmpty ?? false) ? r.biggest!.note!.trim() : r.biggest!.category}, ${Dates.weekdays[r.biggest!.date.weekday - 1]}'),
       ],
       const SizedBox(height: 18),
@@ -178,11 +202,11 @@ class _Report extends StatelessWidget {
     ]);
   }
 
-  Widget _fact(String emoji, String value, String label) => Container(
+  Widget _fact(IconData icon, String value, String label) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
         child: Row(children: [
-          Text(emoji, style: const TextStyle(fontSize: 22)),
+          Icon(icon, size: 22, color: AppColors.primaryText),
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -190,40 +214,6 @@ class _Report extends StatelessWidget {
               Text(label,
                   style: TextStyle(color: AppColors.textDim, fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
             ]),
-          ),
-        ]),
-      );
-
-  Widget _locked(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(children: [
-          // a real preview behind the blur, so it is clear what is waiting
-          IgnorePointer(
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
-              child: SizedBox(height: 330, child: SingleChildScrollView(physics: const NeverScrollableScrollPhysics(), child: _details(context))),
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: AppColors.bg.withValues(alpha: 0.35),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(24),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const BuddyOrb(size: 52),
-                const SizedBox(height: 12),
-                const Text('Buddys Auswertung und Tipp',
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                Text('Wo dein Geld hinging, was auffiel und was du nächste Woche besser machen kannst.',
-                    textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
-                const SizedBox(height: 14),
-                FilledButton(
-                  onPressed: () => showPlus(context, reason: 'Buddys Wochenbericht mit Plus'),
-                  child: const Text('Mit Plus freischalten'),
-                ),
-              ]),
-            ),
           ),
         ]),
       );
@@ -242,7 +232,8 @@ class _Report extends StatelessWidget {
                   final ok = await NotificationService.enable();
                   if (ok) await NotificationService.hello();
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(milliseconds: 2800),
                         content: Text(ok
                             ? 'Buddy erinnert dich jeden Sonntag um 18 Uhr'
                             : NotificationService.problem)));

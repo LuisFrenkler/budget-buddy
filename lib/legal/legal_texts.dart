@@ -61,8 +61,10 @@ class LegalTexts {
             '3. Nutzerkonto',
             'Für ein Konto verarbeiten wir deinen Namen, deine E-Mail-Adresse und dein Passwort. Das Passwort '
                 'speichern wir nur als sicheren Hash (bcrypt), Anmelde-Sitzungen nur als Prüfsumme. '
+                'Wenn du Zwei-Faktor einschaltest, speichern wir zusätzlich den Schlüssel dafür, damit der '
+                'Anmeldecode geprüft werden kann. Er schützt die Anmeldung, nicht die Umsätze auf deinem Gerät. '
                 'Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertrag). Die Daten werden gelöscht, sobald '
-                'du dein Konto löschst. Gast-Nutzung ist ohne Konto möglich.\n\n'
+                'du dein Konto löschst.\n\n'
                 'Damit deine Daten nach der Anmeldung auf jedem Gerät da sind, speichern wir eine Kopie deiner '
                 'Umsätze, Budgets, Ziele, geteilten Ausgaben, Depot-Positionen und der Bank- und Depotverbindung. '
                 'Die App verschlüsselt sie vor dem Hochladen (AES-256) mit einem Schlüssel, der aus deinem Passwort '
@@ -86,7 +88,8 @@ class LegalTexts {
         const LegalSection(
             '5. Buddy (KI-Assistent) und Belegscan',
             'Stellst du Buddy eine Frage oder scannst einen Beleg, senden wir deine Frage bzw. das Foto und '
-                'eine zusammengefasste Übersicht deiner Finanzen (z. B. Summen je Kategorie) an Anthropic, PBC '
+                'eine zusammengefasste Übersicht deiner Finanzen (Summen, letzte Buchungen, Budgets, Ziele, '
+                'Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status; keine Kontonummern oder Zahlungsdaten) an Anthropic, PBC '
                 '(San Francisco, USA), die das KI-Modell Claude betreibt. Anthropic verarbeitet die Daten in '
                 'unserem Auftrag, um die Antwort zu erzeugen, und verwendet sie laut Vertrag nicht zum Training. '
                 'Die Übermittlung in die USA stützt sich auf das EU-US Data Privacy Framework bzw. '
@@ -112,9 +115,12 @@ class LegalTexts {
                 'steuerrechtliche Aufbewahrungspflichten (bis zu zehn Jahre) bleiben unberührt.'),
         const LegalSection(
             '8. Mitteilungen',
-            'Erinnerungen und Hinweise plant die App auf deinem Gerät. Es gibt keinen Push-Server, der deine '
-                'Daten dafür erhält. Mitteilungen kannst du jederzeit im Profil oder in den Systemeinstellungen '
-                'abschalten.'),
+            'Erinnerungen und Hinweise plant die App auf deinem Gerät. Für diese lokalen Mitteilungen gibt es '
+                'keinen Push-Server. WhatsApp ist ein eigener Kanal und bleibt aus, bis du in den Mitteilungen '
+                'zustimmst: dann speichert der Server nur einen Hash deiner Nummer, und Meta (WhatsApp Cloud API) '
+                'darf Wochenbericht, Budget-Warnung und Split-Erinnerung zustellen. Kein Spam. Die Zustimmung '
+                'widerrufst du dort jederzeit oder mit „Stop“ in WhatsApp. Rechtsgrundlage ist Art. 6 Abs. 1 lit. a DSGVO. Mitteilungen '
+                'kannst du außerdem im Profil oder in den Systemeinstellungen abschalten.'),
         const LegalSection(
             '9. Server und Sicherheit',
             'Beim Aufruf unseres Servers werden technisch notwendige Daten wie IP-Adresse und Zeitpunkt kurz '
@@ -139,13 +145,15 @@ class LegalTexts {
                 'Stand: ${LegalInfo.updated}.'),
         const LegalSection(
             '2. Was BudgetBuddy ist',
-            'BudgetBuddy hilft dir, Einnahmen, Ausgaben, Budgets, Verträge, Sparziele und dein Depot im Blick '
-                'zu behalten. BudgetBuddy ist keine Bank, führt keine Zahlungen aus und bietet keine Anlage-, '
-                'Steuer- oder Rechtsberatung. Antworten von Buddy werden von einer KI erzeugt und können Fehler '
+            'BudgetBuddy hilft dir, Einnahmen, Ausgaben, Budgets, Verträge, Sparziele, dein Depot und eine '
+                'grobe Orientierung zur Altersvorsorge (Rentenlücke) im Blick zu behalten. BudgetBuddy ist keine '
+                'Bank, führt keine Zahlungen aus und bietet keine Anlage-, Steuer-, Renten- oder Rechtsberatung. '
+                'Vorsorge-Zahlen sind Schätzungen; maßgeblich sind Auskünfte der Deutschen Rentenversicherung '
+                'und deiner Vertragspartner. Antworten von Buddy werden von einer KI erzeugt und können Fehler '
                 'enthalten; triff wichtige Entscheidungen bitte nicht allein auf ihrer Grundlage.'),
         const LegalSection(
             '3. Konto',
-            'Du kannst die App als Gast oder mit Konto nutzen. Halte dein Passwort geheim und sag uns Bescheid, '
+            'Für BudgetBuddy brauchst du ein Konto. Halte dein Passwort geheim und sag uns Bescheid, '
                 'wenn du einen Missbrauch vermutest. Du kannst dein Konto jederzeit in der App löschen.'),
         LegalSection(
             '4. BudgetBuddy Plus',
@@ -234,6 +242,11 @@ class LegalTexts {
         'Buddy rechnet mit deinen Daten und formuliert Antworten mit Hilfe eines KI-Modells. Das ist '
             'praktisch, aber nicht unfehlbar. Prüfe Zahlen, bevor du wichtige Entscheidungen triffst. Für '
             'Steuer- oder Rechtsfragen wende dich an eine Fachperson.'),
+    LegalSection(
+        'Vorsorge und Rentenlücke',
+        'Die Vorsorge-Ansicht ist eine grobe Orientierung: Annahmen zu Entnahme, Rendite und gesetzlicher '
+            'Rente sind vereinfacht. Sie ersetzt keine Rentenberatung und keine Auskunft der Deutschen '
+            'Rentenversicherung oder deiner Vertragspartner. Steuern und Inflation sind nicht eingerechnet.'),
     LegalSection(
         'Automatische Erkennung',
         'Verträge, Kategorien und Hinweise erkennt BudgetBuddy automatisch aus deinen Umsätzen. Das klappt '

@@ -28,6 +28,7 @@ class SyncPill extends StatefulWidget {
 
 class _SyncPillState extends State<SyncPill> {
   bool _busy = false;
+  bool _failed = false;
   Timer? _tick;
 
   @override
@@ -47,8 +48,9 @@ class _SyncPillState extends State<SyncPill> {
 
   @override
   Widget build(BuildContext context) {
-    final when = SyncPill.ago(widget.last, DateTime.now());
+    final when = _failed ? 'Nicht aktualisiert' : SyncPill.ago(widget.last, DateTime.now());
     final text = widget.label.isEmpty ? when : '${widget.label} · $when';
+    final tint = _failed ? AppColors.warningText : AppColors.textDim;
     return Semantics(
       button: true,
       label: 'Aktualisieren, $text',
@@ -62,9 +64,15 @@ class _SyncPillState extends State<SyncPill> {
               ? null
               : () async {
                   HapticFeedback.selectionClick();
-                  setState(() => _busy = true);
+                  setState(() {
+                    _busy = true;
+                    _failed = false;
+                  });
                   try {
                     await widget.onSync();
+                    if (mounted) setState(() => _failed = false);
+                  } catch (_) {
+                    if (mounted) setState(() => _failed = true);
                   } finally {
                     if (mounted) setState(() => _busy = false);
                   }
@@ -77,9 +85,10 @@ class _SyncPillState extends State<SyncPill> {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 _busy
                     ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Icon(Icons.sync_rounded, size: 16, color: AppColors.primaryText),
+                    : Icon(_failed ? Icons.sync_problem_rounded : Icons.sync_rounded,
+                        size: 16, color: _failed ? AppColors.warningText : AppColors.primaryText),
                 const SizedBox(width: 6),
-                Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim)),
+                Text(text, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: tint)),
               ]),
             ),
           ),

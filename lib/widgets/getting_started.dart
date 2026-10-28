@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../screens/budget_screen.dart';
 import '../screens/connections_screen.dart';
-import '../screens/goals_screen.dart';
 import '../screens/smart_entry_sheet.dart';
-import '../services/notification_service.dart';
 import '../models/money_account.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
@@ -105,11 +103,9 @@ class GettingStartedCard extends StatelessWidget {
   const GettingStartedCard({super.key});
 
   static const _steps = {
-    OnboardingStep.booking: (Icons.auto_awesome_rounded, 'Erste Ausgabe oder Buddy', 'Tipp „Kaffee 3,20“ oder frag Buddy'),
-    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit die Zahlen stimmen'),
-    OnboardingStep.budget: (Icons.speed_rounded, 'Ein Budget festlegen', 'z. B. 300 € für Essen im Monat'),
-    OnboardingStep.goal: (Icons.flag_rounded, 'Ein Sparziel anlegen', 'Buddy rechnet dir den Plan aus'),
-    OnboardingStep.notifications: (Icons.notifications_active_rounded, 'Mitteilungen erlauben', 'Buddy warnt, bevor es knapp wird'),
+    OnboardingStep.booking: (Icons.auto_awesome_rounded, 'Erste Ausgabe', 'Tipp „Kaffee 3,20“ oder Bank verbinden'),
+    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit Vermögen und „noch frei“ stimmen'),
+    OnboardingStep.budget: (Icons.pie_chart_rounded, 'Budget setzen', 'Limits aus deinen Umsätzen vorschlagen'),
   };
 
   Future<void> _open(BuildContext context, OnboardingStep s) async {
@@ -120,16 +116,7 @@ class GettingStartedCard extends StatelessWidget {
       case OnboardingStep.balance:
         await showBalanceSheet(context);
       case OnboardingStep.budget:
-        showAddBudgetDialog(context);
-      case OnboardingStep.goal:
-        await addGoal(context);
-      case OnboardingStep.notifications:
-        final ok = await NotificationService.enable();
-        if (ok) await NotificationService.hello();
-        if (!ok && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(duration: const Duration(milliseconds: 3500), content: Text(NotificationService.problem)));
-        }
+        await showBudgetSuggestSheet(context);
     }
   }
 
@@ -138,8 +125,7 @@ class GettingStartedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([
-        for (final b in ['transactions', 'budgets', 'goals', 'settings']) Hive.box(b).listenable(),
-        NotificationService.enabled,
+        for (final b in ['transactions', 'budgets', 'settings']) Hive.box(b).listenable(),
       ]),
       builder: (context, _) => _card(context),
     );
@@ -174,9 +160,12 @@ class GettingStartedCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(complete ? 'Alles eingerichtet 🎉' : 'Erste Schritte',
+              Text(complete ? 'Alles eingerichtet' : 'Erste Schritte',
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              Text(complete ? 'BudgetBuddy kennt jetzt alles, was es braucht.' : '$done von $total erledigt',
+              Text(
+                  complete
+                      ? 'Buchung, Kontostand und Budget stehen. Als Nächstes: Polster und Vorsorge.'
+                      : '$done von $total erledigt',
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),

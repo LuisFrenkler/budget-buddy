@@ -5,50 +5,51 @@ import 'account_screen.dart';
 import '../models/money_account.dart';
 import '../services/money_accounts.dart';
 import '../widgets/sync_pill.dart';
-import '../models/budget.dart';
 import '../models/transaction.dart';
-import '../services/buddy_tips.dart';
 import '../services/account_service.dart';
 import '../services/bank_sync.dart';
+import '../services/cloud_sync.dart';
 import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/history.dart';
 import '../services/settings_service.dart';
-import '../services/insights_service.dart';
 import '../services/price_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
+import '../widgets/user_avatar.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/segmented.dart';
 import '../widgets/tx_row.dart';
 import 'buddy_screen.dart';
 import 'budget_screen.dart';
-import 'goals_screen.dart';
-import 'recap_screen.dart';
 import 'smart_entry_sheet.dart';
 import '../services/goals_service.dart';
 import 'connections_screen.dart';
 import 'contracts_screen.dart';
-import 'subscription_screen.dart';
 import 'splits_screen.dart';
+import '../widgets/transfer_sheet.dart';
 import '../services/split_service.dart';
-import '../services/hints_service.dart';
-import '../services/plus_service.dart';
-import '../widgets/hints_bell.dart';
-import '../widgets/forecast_card.dart';
+import '../services/contracts.dart';
 import '../widgets/getting_started.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
 import '../services/notification_service.dart';
 import '../services/auto_save.dart';
 import '../services/weekly_report.dart';
+import '../services/buddy_tips.dart';
+import '../services/buddy_service.dart';
+import '../services/buddy_suggestions.dart';
+import '../services/wealth.dart';
+import '../widgets/forecast_card.dart';
 import 'weekly_report_screen.dart';
 import 'profile_screen.dart';
+import 'wealth_screen.dart';
+import '../widgets/weekly_story.dart';
 
-// The start screen: total net worth with an interactive chart and a glance at
-// account, depot, budgets and recent activity. Everything leads deeper.
+// The start screen: one calm money story, Buddy tip, Polster — deeper topics
+// live under "Für dich" and in Profil.
 class OverviewScreen extends StatefulWidget {
   // switch to another tab (1 = Konto, 2 = Depot), optionally to a section
   final void Function(int tab, {int? segment}) onOpen;
@@ -61,19 +62,17 @@ class OverviewScreen extends StatefulWidget {
 }
 
 class _OverviewScreenState extends State<OverviewScreen> {
-  static const _ranges = {'1M': 30, '3M': 91, '6M': 182, '1J': 365};
-  static const _periods = {
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '6M': 'in 6 Monaten',
-    '1J': 'in 12 Monaten',
-  };
+  // 1T is yesterday and today; cash and depot are both one value per day
+  static const _ranges = {'1T': 2, '1W': 7, '1M': 30, '3M': 91, '1J': 365};
   String _range = '1M';
   // the point under the finger while scrubbing; only the chart header listens
   final _scrub = ValueNotifier<ChartPoint?>(null);
+  DateTime? _lastSideEffects;
 
   // depot value per day for the current range (loaded asynchronously)
   List<int>? _depot;
+  // eight-day depot series for the honest week-over-week pulse on Start
+  List<int>? _depotWeek;
 
   int get _days => _ranges[_range]!;
 
@@ -81,20 +80,52 @@ class _OverviewScreenState extends State<OverviewScreen> {
   void initState() {
     super.initState();
     _loadDepot();
+    _loadDepotWeek();
     Hive.box('holdings').listenable().addListener(_loadDepot);
+    Hive.box('holdings').listenable().addListener(_loadDepotWeek);
+    BankSync.smileTick.addListener(_onSmile);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onSmile());
   }
 
   @override
   void dispose() {
+    BankSync.smileTick.removeListener(_onSmile);
     Hive.box('holdings').listenable().removeListener(_loadDepot);
+    Hive.box('holdings').listenable().removeListener(_loadDepotWeek);
     super.dispose();
+  }
+
+  // a quieter sync (app start, stale refresh) sorted bookings and nobody
+  // else is about to say so
+  void _onSmile() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showSmile());
+  }
+
+  void _showSmile() {
+    if (!mounted || BankSync.smileHeld) return;
+    final smile = BankSync.takeSmile();
+    if (smile.smarter <= 0) return;
+    HapticFeedback.lightImpact();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      duration: const Duration(milliseconds: 3200),
+      content:
+          Text(BankSync.syncedLine(added: smile.added, smarter: smile.smarter)),
+    ));
+  }
+
+  Future<void> _loadDepotWeek() async {
+    final series = await PriceService.portfolioHistory(days: 8);
+    if (mounted) setState(() => _depotWeek = series.isEmpty ? null : series);
   }
 
   // the oldest of the fetched numbers behind the total: the bank's bookings
   // and the live prices; null when nothing comes from outside
   DateTime? _fetchedAt() {
     final times = [
-      if (Settings.bankState.isNotEmpty && Settings.lastSync != null) Settings.lastSync!,
+      if (Settings.bankState.isNotEmpty && Settings.lastSync != null)
+        Settings.lastSync!,
       for (final h in DB.getHoldings())
         if (h.priceAt != null) h.priceAt!,
     ];
@@ -107,35 +138,60 @@ class _OverviewScreenState extends State<OverviewScreen> {
     HapticFeedback.selectionClick();
     final parts = <String>[];
     var trouble = false;
-    if (Settings.bankState.isNotEmpty) {
-      try {
-        final added = await BankSync.run();
-        parts.add(added > 0 ? '$added neue ${added == 1 ? 'Buchung' : 'Buchungen'}' : 'Keine neuen Buchungen');
-      } catch (_) {
-        parts.add('Bank gerade nicht erreichbar');
-        trouble = true;
+    // hold until the sentence is built, so the quiet smile is not said twice
+    BankSync.holdSmile(true);
+    try {
+      if (Settings.bankState.isNotEmpty) {
+        try {
+          final claimed = BankSync.claimSmile(await BankSync.run());
+          parts.add(BankSync.syncedLine(
+            added: claimed.added,
+            smarter: claimed.smarter,
+            none: 'Keine neuen Buchungen',
+          ));
+          if (claimed.smarter > 0) HapticFeedback.lightImpact();
+        } catch (_) {
+          parts.add('Bank gerade nicht erreichbar');
+          trouble = true;
+        }
       }
-    }
-    if (DB.getHoldings().isNotEmpty) {
-      try {
-        final r = await PriceService.refreshAll();
-        if (r.live > 0) parts.add('Kurse aktualisiert');
-      } catch (_) {
-        parts.add('Kurse gerade nicht erreichbar');
-        trouble = true;
+      if (DB.getHoldings().isNotEmpty) {
+        try {
+          final r = await PriceService.refreshAll();
+          if (r.live > 0) parts.add('Kurse aktualisiert');
+        } catch (_) {
+          parts.add('Kurse gerade nicht erreichbar');
+          trouble = true;
+        }
       }
+      await SplitService.refreshAll();
+      await _loadDepot();
+      if (!mounted) return;
+      final leftover = BankSync.takeSmile();
+      if (leftover.smarter > 0 &&
+          !parts.any((p) => p.contains('eingeordnet'))) {
+        parts.insert(
+            0,
+            BankSync.syncedLine(
+                added: leftover.added, smarter: leftover.smarter));
+      }
+      final now = DateTime.now();
+      final time =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      final warm = parts.any((p) => p.contains('eingeordnet'));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(milliseconds: warm ? 3200 : 2400),
+        content: Text(parts.isEmpty
+            ? 'Alles aktuell · Stand $time'
+            : '${parts.join(' · ')} · Stand $time'),
+        backgroundColor: trouble ? AppColors.warning : null,
+      ));
+      // so SyncPill can show failure, not a fake "fresh"
+      if (trouble) throw 'sync incomplete';
+    } finally {
+      BankSync.holdSmile(false);
     }
-    await SplitService.refreshAll();
-    await _loadDepot();
-    if (!mounted) return;
-    final now = DateTime.now();
-    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      duration: const Duration(milliseconds: 2400),
-      content: Text(parts.isEmpty ? 'Alles aktuell · Stand $time' : '${parts.join(' · ')} · Stand $time'),
-      backgroundColor: trouble ? AppColors.warning : null,
-    ));
   }
 
   Future<void> _loadDepot() async {
@@ -163,9 +219,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
           final cash = DB.balanceOf(tx) + MoneyAccounts.openingTotal;
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
-          // data changed: hints and reminders may have, too
-          NotificationService.syncSoon();
-          AutoSave.runSoon();
+          // throttle side-effects — Hive can fire often during import/sync
+          final now = DateTime.now();
+          if (_lastSideEffects == null ||
+              now.difference(_lastSideEffects!) > const Duration(seconds: 2)) {
+            _lastSideEffects = now;
+            NotificationService.syncSoon();
+            AutoSave.runSoon();
+          }
 
           return SafeArea(
             bottom: false,
@@ -173,44 +234,47 @@ class _OverviewScreenState extends State<OverviewScreen> {
               color: AppColors.primary,
               onRefresh: _refresh,
               child: ListView(
-              controller: widget.scroll,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-              children: [
-                _topBar(),
-                const SizedBox(height: 24),
-                if (empty) ...[
-                  _welcome(),
-                  // joined a group before any own bookings: it still belongs here
-                  ..._splits(),
-                ] else ...[
-                  if (DemoData.active) _demoBanner(),
-                  const RecapBanner(),
-                  if (!OnboardingService.hidden && !OnboardingService.complete) ...[
-                    const GettingStartedCard(),
-                    const SizedBox(height: 24),
+                controller: widget.scroll,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                children: [
+                  _topBar(),
+                  const SizedBox(height: 24),
+                  if (Hive.box('settings').get('vaultLoadFailed') == true)
+                    _vaultBanner(),
+                  if (empty) ...[
+                    _welcome(),
+                    const SizedBox(height: 20),
+                    _quickActions(),
+                  ] else ...[
+                    if (DemoData.active) _demoBanner(),
+                    if (!OnboardingService.hidden &&
+                        !OnboardingService.complete) ...[
+                      const GettingStartedCard(),
+                      const SizedBox(height: 24),
+                    ],
+                    // one ask at a time: don't stack GettingStarted + balance prompt
+                    if (!OnboardingService.balanceKnown &&
+                        (OnboardingService.hidden ||
+                            OnboardingService.complete))
+                      _balancePrompt(cash)
+                    else if (OnboardingService.balanceKnown)
+                      ..._netWorth(tx, cash, depotNow),
+                    const SizedBox(height: 16),
+                    _accountsCard(tx, cash, depotNow),
+                    const SizedBox(height: 16),
+                    _quickActions(),
+                    if (OnboardingService.balanceKnown) ...[
+                      ..._forecast(tx, cash),
+                      // tip + Polster only once money is trusted
+                      ..._bridge(tx, cash, depotNow),
+                    ],
+                    ..._recent(tx),
+                    ..._weeklyStory(tx),
+                    ..._forYou(tx),
                   ],
-                  // without the real balance a chart of "−3,20 €" would only confuse
-                  if (!OnboardingService.balanceKnown)
-                    _balancePrompt(cash)
-                  else
-                    ..._netWorth(tx, cash, depotNow),
-                  const SizedBox(height: 28),
-                  _accountsCard(tx, cash, depotNow),
-                  ..._forecast(tx, cash),
-                  const SizedBox(height: 16),
-                  BuddyCard(tip: BuddyTips.pick(tx: tx, budgets: DB.getBudgets())),
-                  ..._weekly(tx),
-                  const SizedBox(height: 16),
-                  const ContractsCard(),
-                  ..._splits(),
-                  ..._goals(),
-                  ..._budgets(),
-                  ..._insight(tx),
-                  ..._recent(tx),
                 ],
-              ],
-            ),
+              ),
             ),
           );
         },
@@ -228,15 +292,24 @@ class _OverviewScreenState extends State<OverviewScreen> {
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(children: [
-            const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary, size: 30),
+            const Icon(Icons.account_balance_wallet_rounded,
+                color: AppColors.primary, size: 30),
             const SizedBox(width: 14),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Wie viel hast du gerade?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                const SizedBox(height: 2),
-                Text('Trag deinen Kontostand ein, dann zeigt BudgetBuddy dein Vermögen und was frei ist.',
-                    style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Wie viel hast du gerade?',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 16)),
+                    const SizedBox(height: 2),
+                    Text(
+                        'Einmal eintragen — dann stimmen Vermögen, Prognose und „Was ist frei?“.',
+                        style: TextStyle(
+                            color: AppColors.textDim,
+                            fontSize: 13,
+                            height: 1.35)),
+                  ]),
             ),
             const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
           ]),
@@ -245,11 +318,46 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  // the room two lines of text need beyond their normal size at the user's text scale
-  static double _extraTextHeight(BuildContext context) {
-    final scaled = MediaQuery.textScalerOf(context).scale(13) - 13;
-    return scaled <= 0 ? 0 : scaled * 2.4;
-  }
+  Widget _vaultBanner() => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Material(
+          color: AppColors.error.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () async {
+              HapticFeedback.selectionClick();
+              try {
+                await CloudSync.start();
+                if (mounted) setState(() {});
+              } catch (_) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text(
+                        'Noch nicht geladen. Bitte bleib online und tipp noch einmal.')));
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Row(children: [
+                Icon(Icons.cloud_off_rounded,
+                    color: AppColors.errorText, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                      'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch — '
+                      'bis dahin speichere ich nichts in die Cloud.',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: AppColors.errorText,
+                          height: 1.35)),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
 
   // sample data never passes for the user's own money
   Widget _demoBanner() => Padding(
@@ -261,10 +369,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(children: [
-            const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
+            const Icon(Icons.science_rounded,
+                color: AppColors.warning, size: 18),
             const SizedBox(width: 10),
             const Expanded(
-              child: Text('Du siehst Beispieldaten', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+              child: Text('Du siehst Beispieldaten',
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
             ),
             TextButton(onPressed: _removeDemo, child: const Text('Entfernen')),
           ]),
@@ -276,11 +387,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Beispieldaten entfernen?'),
-        content: const Text('Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. '
+        content: const Text(
+            'Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. '
             'Was du selbst eingetragen hast, bleibt.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Entfernen')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Abbrechen')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Entfernen')),
         ],
       ),
     );
@@ -290,164 +406,304 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (mounted) setState(() {});
   }
 
-  // what is still free this month; needs some income history. With a known
-  // balance it never promises more than the account holds.
+  // daily habit number: what is still free this month (mounted when we know the balance)
   List<Widget> _forecast(List<Transaction> tx, int cash) {
-    final f = ForecastService.build(tx,
-        goals: GoalsService.all(), balanceCents: OnboardingService.balanceKnown ? cash : null);
-    if (f == null) return [];
-    return [const SizedBox(height: 16), ForecastCard(f)];
-  }
-
-  // shared spending, once there is a group
-  List<Widget> _splits() {
-    if (!Hive.isBoxOpen('splits') || SplitService.all().isEmpty) return [];
-    final total = SplitService.myTotal();
+    final forecast = ForecastService.build(tx,
+        goals: GoalsService.all(), balanceCents: cash);
+    if (forecast == null) return const [];
     return [
       const SizedBox(height: 16),
-      Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(color: const Color(0xFF14B8A6).withValues(alpha: 0.16), shape: BoxShape.circle),
-                child: const Icon(Icons.call_split_rounded, color: Color(0xFF14B8A6), size: 21),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Geteilt', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  Text(
-                    total == 0
-                        ? 'Alles ausgeglichen'
-                        : total > 0
-                            ? 'Du bekommst ${Money.format(total)}'
-                            : 'Du schuldest ${Money.format(-total)}',
-                    style: TextStyle(fontSize: 13, color: total > 0 ? AppColors.positiveText : AppColors.textDim),
-                  ),
-                ]),
-              ),
-              Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
-            ]),
-          ),
-        ),
-      ),
+      ForecastCard(forecast),
     ];
   }
 
-  // this week's report, until it has been opened
-  List<Widget> _weekly(List<Transaction> tx) {
+  // Buddy tip + wealth/vorsorge bridge under the habit number
+  List<Widget> _bridge(List<Transaction> tx, int cash, int depotNow) {
+    final tip = BuddyTips.pick(
+      tx: tx,
+      budgets: DB.getBudgets(),
+      balanceCents: cash,
+    );
+    final emergency = Wealth.emergency(tx);
+    final rate = Wealth.savingsRatePercent(tx);
+    final out = <Widget>[const SizedBox(height: 16)];
+    out.add(BuddyCard(
+      tip: tip,
+      chips: BuddySuggestions.pick(BuddyService.snapshot()),
+    ));
+    out.add(const SizedBox(height: 10));
+    // one calm Polster row — not a second mini-dashboard of 3 chips
+    out.add(_bridgeChip(
+      Icons.savings_outlined,
+      'Notgroschen',
+      emergency.targetCents <= 0
+          ? 'Polster einrichten'
+          : emergency.ready
+              ? 'Polster steht'
+              : 'Noch ${Money.format(emergency.missingCents)} bis zum Polster',
+      () => Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const WealthScreen())),
+      footnote: rate == null ? null : 'Sparquote $rate % · 3 Mon.',
+    ));
+    return out;
+  }
+
+  Widget _bridgeChip(
+      IconData icon, String title, String value, VoidCallback onTap,
+      {String? footnote}) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+          child: Row(children: [
+            Icon(icon, size: 22, color: AppColors.primaryText),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textDim,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(value,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            height: 1.2)),
+                    if (footnote != null) ...[
+                      const SizedBox(height: 2),
+                      Text(footnote,
+                          style: TextStyle(
+                              fontSize: 11.5, color: AppColors.textDim)),
+                    ],
+                  ]),
+            ),
+            Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  // one gradient card + single CTA into the shareable 9:16 story
+  List<Widget> _weeklyStory(List<Transaction> tx) {
     final report = WeeklyReportService.build(tx);
-    if (report == null || WeeklyReportScreen.seen(report)) return [];
-    final change = report.change;
+    if (report == null) return const [];
+    final fresh = !WeeklyReportScreen.seen(report);
     return [
-      const SizedBox(height: 16),
-      Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () async {
-            HapticFeedback.selectionClick();
-            await Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReportScreen()));
-            if (mounted) setState(() {});
-          },
+      const SizedBox(height: 28),
+      Container(
+        padding: const EdgeInsets.all(1.25),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF7C5CFF), Color(0xFF5B3DF5), Color(0xFF38BDF8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20.75),
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.insights_rounded, color: AppColors.primary),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Dein Wochenbericht · KW ${report.week}',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  const SizedBox(height: 2),
-                  Text(
-                    change == null
-                        ? '${Money.format(report.spentCents)} ausgegeben'
-                        : report.roughlyUsual
-                            ? '${Money.format(report.spentCents)} · wie immer'
-                            : '${Money.format(report.spentCents)} · ${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
-                    style: TextStyle(color: AppColors.textDim, fontSize: 13),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    if (fresh)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                            color: AppColors.primary, shape: BoxShape.circle),
+                      ),
+                    Expanded(
+                      child: Text(
+                        fresh
+                            ? 'Deine Wochen-Story ist da'
+                            : 'Wochen-Story · KW ${report.week}',
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 4),
+                  Text(report.headline,
+                      style: TextStyle(
+                          color: AppColors.textDim,
+                          fontSize: 14,
+                          height: 1.35)),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48)),
+                    onPressed: () async {
+                      await presentWeeklyStory(context, report);
+                      if (mounted) setState(() {});
+                    },
+                    icon: const Icon(Icons.auto_stories_rounded),
+                    label: const Text('Wochen-Story ansehen',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
                   ),
                 ]),
-              ),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
-            ]),
           ),
         ),
       ),
     ];
   }
 
-  // takes the user to where a hint can be acted on
-  void _openHint(HintTarget target) {
-    Widget? page;
-    switch (target) {
-      case HintTarget.budgets:
-        return widget.onOpen(1, segment: 1);
-      case HintTarget.transactions:
-        return widget.onOpen(1, segment: 0);
-      case HintTarget.contracts:
-        page = const ContractsScreen();
-      case HintTarget.subscription:
-        page = const SubscriptionScreen();
-      case HintTarget.connections:
-        page = const ConnectionsScreen();
-      case HintTarget.goals:
-        page = const GoalsScreen();
-      case HintTarget.splits:
-        page = const SplitsScreen();
+  // only signal tiles — no second dashboard
+  List<Widget> _forYou(List<Transaction> tx) {
+    final tiles = <Widget>[];
+
+    final contracts = Contracts.detect(tx);
+    final raised = contracts.where((c) => c.priceChange > 0).length;
+    if (raised > 0) {
+      tiles.add(_forYouTile(
+        Icons.receipt_long_rounded,
+        'Abos teurer geworden',
+        '$raised ${raised == 1 ? 'Vertrag' : 'Verträge'} mit Preisanstieg',
+        () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const ContractsScreen())),
+        subtitleColor: AppColors.warningText,
+      ));
     }
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+
+    if (Hive.isBoxOpen('splits') && SplitService.all().isNotEmpty) {
+      final total = SplitService.myTotal();
+      if (total != 0) {
+        tiles.add(_forYouTile(
+          Icons.call_split_rounded,
+          'Geteilte Ausgaben',
+          total > 0
+              ? 'Du bekommst ${Money.format(total)}'
+              : 'Du schuldest ${Money.format(-total)}',
+          () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
+          subtitleColor:
+              total > 0 ? AppColors.positiveText : AppColors.errorText,
+        ));
+      }
+    }
+
+    final today = DateTime.now();
+    final budgets = DB.getBudgets().where((b) => b.covers(today)).toList();
+    if (budgets.isEmpty) {
+      final suggestions = BudgetSuggest.top();
+      if (suggestions.isNotEmpty) {
+        tiles.add(_forYouTile(
+          Icons.pie_chart_rounded,
+          'Budgets vorschlagen',
+          'Aus deinen Ausgaben · ${suggestions.length} Kategorien',
+          () => showBudgetSuggestSheet(context, suggestions),
+        ));
+      }
+    } else {
+      final tight = budgets
+          .where((b) => b.isOver || b.remainingCents <= b.limitCents * 0.2)
+          .length;
+      if (tight > 0) {
+        tiles.add(_forYouTile(
+          Icons.pie_chart_rounded,
+          'Budgets knapp',
+          '$tight ${tight == 1 ? 'Kategorie' : 'Kategorien'} knapp oder drüber',
+          () => widget.onOpen(1, segment: 1),
+          subtitleColor: AppColors.warningText,
+        ));
+      }
+    }
+
+    if (tiles.isEmpty) return const [];
+    return [
+      const SizedBox(height: 28),
+      const Text('Für dich',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 8),
+      Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (var i = 0; i < tiles.length; i++) ...[
+              if (i > 0) Divider(height: 1, color: AppColors.border),
+              tiles[i],
+            ],
+          ],
+        ),
+      ),
+    ];
   }
 
-  // the signed-in user's initial, or a person for guests
-  Widget _initial() {
-    final name = AccountService.current.value?.name ?? '';
-    if (name.isEmpty) return const Icon(Icons.person_rounded, color: AppColors.primary, size: 22);
-    return Text(name[0].toUpperCase(),
-        style: const TextStyle(color: AppColors.primary, fontSize: 17, fontWeight: FontWeight.w800));
+  Widget _forYouTile(
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap, {
+    bool badge = false,
+    Color? subtitleColor,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(children: [
+          Icon(icon, size: 22, color: AppColors.primaryText),
+          const SizedBox(width: 12),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 15)),
+              const SizedBox(height: 2),
+              Text(subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: subtitleColor ?? AppColors.textDim,
+                      height: 1.3)),
+            ]),
+          ),
+          if (badge) ...[
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                  color: AppColors.primary, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+        ]),
+      ),
+    );
   }
 
   // wordmark on the left, profile avatar on the right
   Widget _topBar() {
+    final name = AccountService.current.value?.name;
     return Row(
       children: [
         const BrandMark(size: 30),
         const SizedBox(width: 10),
         const Wordmark(size: 20),
         const Spacer(),
-        HintsBell(
-          hints: HintsService.current(
-            tx: DB.getTx(),
-            budgets: DB.getBudgets(),
-            goals: GoalsService.all(),
-            subscription: PlusService.subscription.value,
-            bankValidUntil: Settings.bankValidUntil,
-          ),
-          onOpen: _openHint,
-          onChanged: () => setState(() {}),
-        ),
         // privacy mode: hide all balances with one tap
         ValueListenableBuilder<bool>(
           valueListenable: Settings.hideAmounts,
@@ -457,7 +713,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               HapticFeedback.selectionClick();
               Settings.setHideAmounts(!hidden);
             },
-            icon: Icon(hidden ? Icons.visibility_off_rounded : Icons.visibility_rounded, color: AppColors.textDim),
+            icon: Icon(
+                hidden
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
+                color: AppColors.textDim),
           ),
         ),
         const SizedBox(width: 4),
@@ -466,17 +726,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
           label: 'Profil',
           excludeSemantics: true,
           child: Material(
-            color: AppColors.surfaceAlt,
+            color: Colors.transparent,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
-              // 44 pt: a comfortable tap target
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Center(child: _initial()),
-              ),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen())),
+              child: UserAvatar(
+                  name: name, size: 40, fontSize: 16, brandGradient: false),
             ),
           ),
         ),
@@ -484,34 +741,156 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
+  // one-tap actions under the hero (Revolut / Cash App style)
+  Widget _quickActions() {
+    Widget chip(IconData icon, String label, VoidCallback onTap,
+        {Color? color}) {
+      final c = color ?? AppColors.primary;
+      return Expanded(
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Column(children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                      color: c.withValues(alpha: 0.14), shape: BoxShape.circle),
+                  child: Icon(icon, color: c, size: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 12.5, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final bankLinked = Settings.bankState.isNotEmpty;
+    return Row(children: [
+      chip(Icons.auto_awesome_rounded, 'Buddy', () => BuddyScreen.open(context),
+          color: AppColors.primary),
+      const SizedBox(width: 10),
+      chip(Icons.edit_note_rounded, 'Erfassen', () => showSmartEntry(context),
+          color: AppColors.primary),
+      const SizedBox(width: 10),
+      chip(
+          Icons.group_rounded,
+          'Geteilt',
+          () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
+          color: AppColors.accentBlue),
+      if (!bankLinked && !MoneyAccounts.several) ...[
+        const SizedBox(width: 10),
+        chip(
+            Icons.account_balance_rounded,
+            'Bank',
+            () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
+            color: AppColors.accentBlue),
+      ] else ...[
+        const SizedBox(width: 10),
+        chip(Icons.swap_horiz_rounded, 'Transfer',
+            () => showTransferSheet(context),
+            color: AppColors.accentBlue),
+      ],
+    ]);
+  }
+
   // net worth headline, chart and range buttons
   List<Widget> _netWorth(List<Transaction> tx, int cash, int depotNow) {
     final now = DateTime.now();
+    final debts = Wealth.debtTotal();
+    final net = Wealth.netWorthCents(cashCents: cash, depotCents: depotNow);
     final cashPts = History.dailyBalance(tx,
-        from: DateTime(now.year, now.month, now.day - (_days - 1)), opening: MoneyAccounts.openingTotal);
+        from: DateTime(now.year, now.month, now.day - (_days - 1)),
+        opening: MoneyAccounts.openingTotal);
     final depot = _depot;
     final points = [
       for (int i = 0; i < cashPts.length; i++)
         ChartPoint(
           cashPts[i].date,
           // date-aligned depot history when loaded, today's value until then
-          cashPts[i].cents + (depot != null && depot.length == cashPts.length ? depot[i] : depotNow),
+          cashPts[i].cents +
+              (depot != null && depot.length == cashPts.length
+                  ? depot[i]
+                  : depotNow) -
+              debts,
         ),
     ];
     return [
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: ChartHeader(
-            label: 'Gesamtvermögen',
-            cents: cash + depotNow,
-            startCents: points.isEmpty ? cash + depotNow : points.first.cents,
-            period: _periods[_range]!,
+            label: debts > 0 ? 'Nettovermögen' : 'Gesamtvermögen',
+            cents: net,
+            startCents: points.isEmpty ? net : points.first.cents,
+            period: RangeSelector.periods[_range]!,
             scrubbing: _scrub,
             startDate: points.isEmpty ? null : points.first.date,
           ),
         ),
         SyncPill(last: _fetchedAt(), onSync: _refresh),
       ]),
+      Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: GestureDetector(
+          onTap: () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const WealthScreen())),
+          child: Text(
+              debts > 0
+                  ? 'Konto + Depot − ${Money.format(debts)} Schulden · tippen'
+                  : 'Konto + Depot · Vermögen & Absicherung',
+              style: TextStyle(
+                  color: AppColors.textDim,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ),
+      if (Wealth.moment(
+                tx: tx,
+                netNowCents: net,
+                netMonthAgoCents: _centsNear(
+                    points, DateTime(now.year, now.month, now.day - 30)),
+                now: now,
+              ) ??
+              Wealth.weekOverWeekPulse(
+                tx,
+                cashCents: cash,
+                depotCents: depotNow,
+                depotThenCents: _depotWeek != null && _depotWeek!.length >= 2
+                    ? _depotWeek!.first
+                    : null,
+                opening: MoneyAccounts.openingTotal,
+                now: now,
+              )
+          case final pulse?)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(children: [
+            Icon(Icons.trending_up_rounded,
+                size: 16, color: AppColors.positiveText),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(pulse,
+                  style: TextStyle(
+                      color: AppColors.positiveText,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+            ),
+          ]),
+        ),
       const SizedBox(height: 16),
       InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),
@@ -532,14 +911,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
   // account and depot as two tappable rows
   Widget _accountsCard(List<Transaction> tx, int cash, int depotNow) {
     final month = DB.inMonth(tx, DateTime.now());
-    final monthNet = DB.sumOf(month, isIncome: true) - DB.sumOf(month, isIncome: false);
+    final monthNet =
+        DB.sumOf(month, isIncome: true) - DB.sumOf(month, isIncome: false);
     final invested = DB.portfolioInvested();
     final gain = depotNow - invested;
     final known = OnboardingService.balanceKnown;
     final hasHoldings = DB.getHoldings().isNotEmpty;
 
     return Container(
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+      ),
       child: Column(
         children: [
           if (MoneyAccounts.several)
@@ -551,12 +935,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     : a.kind == 'bar'
                         ? Icons.payments_rounded
                         : Icons.account_balance_wallet_rounded,
-                color: a.kind == 'spar' ? AppColors.positive : AppColors.primary,
+                color:
+                    a.kind == 'spar' ? AppColors.positive : AppColors.primary,
                 title: a.name,
                 value: Money.format(MoneyAccounts.balanceOf(a, tx)),
                 change: () {
-                  final net = DB.balanceOf(MoneyAccounts.bookingsOf(a.id, month));
-                  return net == 0 ? MoneyAccount.kinds[a.kind]! : '${Money.signed(net)} im ${Dates.month(DateTime.now())}';
+                  final net =
+                      DB.balanceOf(MoneyAccounts.bookingsOf(a.id, month));
+                  return net == 0
+                      ? MoneyAccount.kinds[a.kind]!
+                      : '${Money.signed(net)} im ${Dates.month(DateTime.now())}';
                 }(),
                 up: null,
                 onTap: () {
@@ -573,7 +961,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
               title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
               // without the real balance the sum of bookings means nothing
               value: known ? Money.format(cash) : 'Eintragen',
-              change: known ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}' : 'Kontostand fehlt noch',
+              change: known
+                  ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}'
+                  : 'Kontostand fehlt noch',
               up: !known || monthNet == 0 ? null : monthNet > 0,
               onTap: () => widget.onOpen(1, segment: 0),
             ),
@@ -625,7 +1015,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 14),
@@ -636,13 +1027,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   Row(children: [
                     Expanded(
                       child: Text(title,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
                           overflow: TextOverflow.ellipsis),
                     ),
-                    Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text(value,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
                   ]),
                   const SizedBox(height: 2),
-                  Text(change, style: TextStyle(fontSize: 13, color: changeColor), overflow: TextOverflow.ellipsis),
+                  Text(change,
+                      style: TextStyle(fontSize: 13, color: changeColor),
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
@@ -654,243 +1050,109 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  // savings goals as a row of rings, with a tile to start a new one
-  List<Widget> _goals() {
-    final goals = GoalsService.all();
-    return [
-      const SizedBox(height: 28),
-      Row(children: [
-        const Text('Sparziele', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-        const Spacer(),
-        if (goals.isNotEmpty)
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
-            child: const Text('Alle'),
-          ),
-      ]),
-      const SizedBox(height: 8),
-      SizedBox(
-        // grows with the system text size, so rings and names never clip
-        height: 132 + _extraTextHeight(context),
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: [
-            for (final g in goals)
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Material(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
-                    child: SizedBox(
-                      width: 128,
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        GoalRing(g, size: 58),
-                        const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(g.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                        ),
-                        Text('${(g.progress * 100).round()} %', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-                      ]),
-                    ),
-                  ),
-                ),
-              ),
-            Material(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => addGoal(context),
-                child: SizedBox(
-                  width: 128,
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Container(
-                      width: 58,
-                      height: 58,
-                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle),
-                      child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 28),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text('Neues Ziel', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text(goals.isEmpty ? 'z. B. Urlaub' : 'mit Sparplan', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-                  ]),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ];
-  }
-
-  // current budgets as small progress rings
-  List<Widget> _budgets() {
-    final today = DateTime.now();
-    final budgets = DB.getBudgets().where((b) => b.covers(today)).toList();
-    if (budgets.isEmpty) return const [];
-    return [
-      const SizedBox(height: 28),
-      SectionTitle('Budgets', action: 'Alle', onAction: () => widget.onOpen(1, segment: 1)),
-      const SizedBox(height: 8),
-      SizedBox(
-        height: 150 + _extraTextHeight(context),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: budgets.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, i) => _budgetRing(budgets[i]),
-        ),
-      ),
-    ];
-  }
-
-  Widget _budgetRing(Budget b) {
-    final color = budgetColor(b);
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => widget.onOpen(1, segment: 1),
-        child: SizedBox(
-          width: 128,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: b.progress),
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, v, __) => Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CircularProgressIndicator(
-                          value: v,
-                          strokeWidth: 6,
-                          strokeCap: StrokeCap.round,
-                          backgroundColor: AppColors.surfaceAlt,
-                          valueColor: AlwaysStoppedAnimation(color),
-                        ),
-                        Center(
-                          child: Text('${b.percentUsed} %',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(b.category,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                    overflow: TextOverflow.ellipsis),
-                Text(
-                  b.isOver ? '${Money.format(b.spentCents - b.limitCents)} drüber' : '${Money.format(b.remainingCents)} übrig',
-                  style: TextStyle(fontSize: 11, color: b.isOver ? AppColors.errorText : AppColors.textDim),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // the most relevant insight of this month, leads to the analysis
-  List<Widget> _insight(List<Transaction> tx) {
-    final insights = InsightsService.forMonth(tx, DateTime.now());
-    if (insights.isEmpty) return const [];
-    return [
-      const SizedBox(height: 28),
-      Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () => widget.onOpen(1, segment: 2),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const Icon(Icons.lightbulb_rounded, color: AppColors.warning),
-                const SizedBox(width: 12),
-                Expanded(child: Text(insights.first, style: const TextStyle(height: 1.35))),
-                Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ];
-  }
-
   List<Widget> _recent(List<Transaction> tx) {
     if (tx.isEmpty) return const [];
     return [
       const SizedBox(height: 28),
-      SectionTitle('Letzte Umsätze', action: 'Alle', onAction: () => widget.onOpen(1, segment: 0)),
+      SectionTitle('Letzte Umsätze',
+          action: 'Alle', onAction: () => widget.onOpen(1, segment: 0)),
       for (final t in tx.take(4)) TxRow(t),
     ];
   }
 
-  // first start without data: one clear job, then the checklist
+  // empty Start: one primary job — get real money in
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(name == null || name.isEmpty ? 'Willkommen 👋' : 'Hallo $name 👋',
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
-      const SizedBox(height: 6),
-      Text('Frag Buddy, was du dir leisten kannst — oder erfasse deine erste Ausgabe in einem Satz.',
-          style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 15)),
-      const SizedBox(height: 20),
-      FilledButton.icon(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        onPressed: () {
-          HapticFeedback.selectionClick();
-          BuddyScreen.open(context, 'Wo kann ich sparen?');
-        },
-        icon: const Icon(Icons.auto_awesome_rounded),
-        label: const Text('Buddy fragen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-      ),
-      const SizedBox(height: 10),
-      OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        onPressed: () {
-          HapticFeedback.selectionClick();
-          showSmartEntry(context);
-        },
-        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-        label: const Text('Schnell erfassen', style: TextStyle(fontWeight: FontWeight.w700)),
-      ),
+      Text(name == null || name.isEmpty ? 'Dein Überblick' : 'Hallo $name',
+          style: const TextStyle(
+              fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
       const SizedBox(height: 8),
-      TextButton.icon(
-        onPressed: () async {
-          await DemoData.load();
-          if (!mounted) return;
-          BuddyScreen.open(context, 'Kann ich mir 800 € Urlaub leisten?');
-        },
-        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-        label: const Text('Mit Beispieldaten Buddy testen'),
+      Text(
+        'Verbinde deine Bank für automatische Umsätze — oder erfasse die erste Ausgabe von Hand.',
+        style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
       ),
       const SizedBox(height: 20),
-      const GettingStartedCard(),
+      Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+        ),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.account_balance_rounded,
+                  color: AppColors.primary, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Bank verbinden',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 16)),
+                    Text('Sicher über Open Banking · du behältst die Kontrolle',
+                        style: TextStyle(
+                            color: AppColors.textDim,
+                            fontSize: 12.5,
+                            height: 1.35)),
+                  ]),
+            ),
+          ]),
+          const SizedBox(height: 14),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
+            },
+            child: const Text('Jetzt verbinden',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+          const SizedBox(height: 6),
+          TextButton(
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              showSmartEntry(context);
+            },
+            child: const Text('Oder Ausgabe manuell erfassen'),
+          ),
+        ]),
+      ),
+      const SizedBox(height: 14),
+      BuddyCard(chips: BuddySuggestions.pick(BuddyService.snapshot())),
     ]);
   }
+}
+
+// a point within a few days of [target], or null when the series does not reach it
+int? _centsNear(List<ChartPoint> points, DateTime target) {
+  if (points.length < 2) return null;
+  if (points.first.date.isAfter(target.add(const Duration(days: 3))))
+    return null;
+  var best = points.first;
+  var gap = best.date.difference(target).inDays.abs();
+  for (final p in points) {
+    final g = p.date.difference(target).inDays.abs();
+    if (g < gap) {
+      best = p;
+      gap = g;
+    }
+  }
+  return gap <= 3 ? best.cents : null;
 }

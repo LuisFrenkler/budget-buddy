@@ -160,7 +160,7 @@ class StorePurchases {
       await PlusService.applyStore(await BackendService.plusStore(platform, id), platform: platform, id: id);
     } catch (e) {
       // not finished with the store: it comes back and is checked again
-      return _fail('Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden ($e). '
+      return _fail('Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden. '
           'Er wird automatisch nachgeholt.');
     }
     if (p.pendingCompletePurchase) await _iap.completePurchase(p);

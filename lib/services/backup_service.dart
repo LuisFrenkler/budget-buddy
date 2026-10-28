@@ -38,6 +38,8 @@ class BackupService {
     'openingBalanceCents', 'balanceSet', 'categoryRules', 'budgetsStopped', 'cancellations', 'contractsHidden',
     // the accounts besides the main one, and the main one's name
     'moneyAccounts', 'mainAccount',
+    // wealth bridge + vorsorge + profile picture (vault / JSON backup)
+    'wealthDebts', 'wealthPolicies', 'emergencyExtraCents', 'vorsorge', 'avatarBytes',
   ];
 
   // serializes every box into a single pretty-printed JSON document
@@ -78,15 +80,17 @@ class BackupService {
       'badges': _entries('badges', data['badges'], (m) => '${m['id']}'),
       'holdings': _entries('holdings', data['holdings'], (m) => '${m['id']}'),
       'recurring': _entries('recurring', data['recurring'], (m) => '${m['id']}'),
-      // older backups had no goals or splits; keep what is there then
-      if (data['goals'] is List) 'goals': _entries('goals', data['goals'], (m) => '${m['id']}'),
-      if (data['splits'] is List) 'splits': _entries('splits', data['splits'], (m) => '${m['id']}'),
+      // older backups had no goals/splits — still clear so another session cannot stick
+      'goals': data['goals'] is List ? _entries('goals', data['goals'], (m) => '${m['id']}') : <String, Map<String, dynamic>>{},
+      'splits': data['splits'] is List ? _entries('splits', data['splits'], (m) => '${m['id']}') : <String, Map<String, dynamic>>{},
     };
     for (final e in boxes.entries) {
+      if (!Hive.isBoxOpen(e.key)) continue;
       final box = Hive.box(e.key);
       await box.clear();
       await box.putAll(e.value);
     }
+    await Hive.box('settings').delete('bankDismissed');
     // every money setting must match the backup: missing keys are cleared so
     // a leftover opening balance or extra account cannot stick around
     final settings = data['settings'];

@@ -11,7 +11,9 @@ class Bank {
   final String id;
   final String name;
   final String? logo;
-  const Bank(this.id, this.name, {this.logo});
+  final String? group; // Enable Banking ASPSP group (e.g. Sparkasse)
+  final String? bic;
+  const Bank(this.id, this.name, {this.logo, this.group, this.bic});
 }
 
 class BankTransaction {
@@ -21,7 +23,10 @@ class BankTransaction {
   final String counterparty;
   final String purpose;
   final String account; // the bank account's uid, '' from an older server
-  const BankTransaction(this.id, this.date, this.amountCents, this.counterparty, this.purpose, [this.account = '']);
+  final String mcc;
+  final String hint; // bank booking text (e.g. LOHN/GEHALT), not shown as the title
+  const BankTransaction(this.id, this.date, this.amountCents, this.counterparty, this.purpose,
+      [this.account = '', this.mcc = '', this.hint = '']);
 }
 
 // one account at the bank with its balance
@@ -52,8 +57,9 @@ class DepotPosition {
   final int priceCents;
   final String broker;
   final String depot; // the portfolio it is in
+  final double? priceEur; // full precision for cheap coins
   const DepotPosition(this.id, this.name, this.symbol, this.type, this.shares, this.buyPriceCents, this.priceCents,
-      this.broker, [this.depot = '']);
+      this.broker, [this.depot = '', this.priceEur]);
 
   static DepotPosition fromJson(Map m) => DepotPosition(
         '${m['id']}',
@@ -65,14 +71,12 @@ class DepotPosition {
         (m['priceCents'] as num).toInt(),
         '${m['broker'] ?? ''}',
         '${m['depot'] ?? ''}',
+        (m['priceEur'] as num?)?.toDouble(),
       );
 }
 
 class BackendService {
   static const base = String.fromEnvironment('BACKEND_URL', defaultValue: 'http://localhost:8090');
-
-  // null when the server is not reachable, otherwise 'live' or 'demo'
-  static Future<String?> bankMode() async => (await health())?['bank'] as String?;
 
   // what the server offers: {bank, depot, billing, ai}, or null when offline
   static Future<Map<String, dynamic>?> health() async {
@@ -110,7 +114,14 @@ class BackendService {
   static Future<List<Bank>> institutions({String country = 'DE'}) async {
     final body = await _get('/bank/institutions?country=$country');
     return [
-      for (final b in (body['institutions'] as List)) Bank('${b['id']}', '${b['name']}', logo: b['logo'] as String?)
+      for (final b in (body['institutions'] as List))
+        Bank(
+          '${b['id']}',
+          '${b['name']}',
+          logo: b['logo'] as String?,
+          group: b['group'] as String?,
+          bic: b['bic'] as String?,
+        )
     ];
   }
 
@@ -148,6 +159,8 @@ class BackendService {
         '${t['counterparty'] ?? ''}',
         '${t['purpose'] ?? ''}',
         '${t['account'] ?? ''}',
+        '${t['mcc'] ?? ''}',
+        '${t['hint'] ?? ''}',
       ));
     }
     return (
@@ -218,4 +231,12 @@ class BackendService {
     final body = await _post('/plus/store', {'platform': platform, 'id': id});
     return (body['plus'] as Map?)?.cast<String, dynamic>();
   }
+
+  // WhatsApp opt-in. {configured, optedIn}. Throws when the server is down.
+  static Future<Map<String, dynamic>> whatsAppStatus() => _get('/notify/whatsapp');
+
+  static Future<Map<String, dynamic>> whatsAppLink(String phone) =>
+      _post('/notify/whatsapp/link', {'phone': phone});
+
+  static Future<void> whatsAppUnlink() => _post('/notify/whatsapp/unlink', {});
 }

@@ -19,6 +19,16 @@ class InteractiveChart extends StatefulWidget {
 
   const InteractiveChart({super.key, required this.points, this.height = 160, this.onScrub});
 
+  // two points on one calendar day means the series is a session, not days
+  static bool intraday(List<ChartPoint> pts) {
+    final seen = <int>{};
+    for (final p in pts) {
+      final d = p.date;
+      if (!seen.add(d.year * 10000 + d.month * 100 + d.day)) return true;
+    }
+    return false;
+  }
+
   @override
   State<InteractiveChart> createState() => _InteractiveChartState();
 }
@@ -75,10 +85,18 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
     // what a screen reader says instead of the drawing: start, end, low and high
     final low = pts.reduce((a, b) => b.cents < a.cents ? b : a);
     final high = pts.reduce((a, b) => b.cents > a.cents ? b : a);
-    final summary = 'Verlauf vom ${Dates.dayMonth(pts.first.date)} bis ${Dates.dayMonth(pts.last.date)}: '
+    final clock = InteractiveChart.intraday(pts);
+    String stamp(DateTime d) {
+      final day = Dates.dayMonth(d);
+      if (!clock) return day;
+      final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+      return '$day, $hm';
+    }
+
+    final summary = 'Verlauf vom ${stamp(pts.first.date)} bis ${stamp(pts.last.date)}: '
         'von ${Money.format(pts.first.cents)} auf ${Money.format(pts.last.cents)}. '
-        'Tiefster Stand ${Money.format(low.cents)} am ${Dates.dayMonth(low.date)}, '
-        'höchster ${Money.format(high.cents)} am ${Dates.dayMonth(high.date)}.';
+        'Tiefster Stand ${Money.format(low.cents)} am ${stamp(low.date)}, '
+        'höchster ${Money.format(high.cents)} am ${stamp(high.date)}.';
 
     return Semantics(
       label: summary,
@@ -220,7 +238,7 @@ class _ChartPainter extends CustomPainter {
       old.values != values || old.progress != progress || old.index != index || old.color != color || old.dim != dim;
 }
 
-// Row of range buttons like "1M 3M 6M 1J Max".
+// Row of range buttons like "1T 1W 1M 3M 1J".
 class RangeSelector extends StatelessWidget {
   final List<String> labels;
   final String selected;
@@ -228,12 +246,22 @@ class RangeSelector extends StatelessWidget {
 
   const RangeSelector({super.key, required this.labels, required this.selected, required this.onChanged});
 
+  // suffix under the chart number, for each range button
+  static const periods = {
+    '1T': 'heute',
+    '1W': 'in 7 Tagen',
+    '1M': 'in 30 Tagen',
+    '3M': 'in 3 Monaten',
+    '1J': 'in 12 Monaten',
+    'Max': 'seit Beginn',
+  };
+
   // "1M" read aloud means nothing
   static const _spoken = {
+    '1T': '1 Tag',
     '1W': '7 Tage',
     '1M': '30 Tage',
     '3M': '3 Monate',
-    '6M': '6 Monate',
     '1J': '12 Monate',
     'Max': 'Gesamter Zeitraum',
   };
@@ -262,7 +290,7 @@ class RangeSelector extends StatelessWidget {
               child: Center(
                 child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: labels.length > 5 ? 8 : 14, vertical: 7),
               decoration: BoxDecoration(
                 color: l == selected ? AppColors.surfaceAlt : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
@@ -298,6 +326,8 @@ class ChartHeader extends StatelessWidget {
   final DateTime? startDate;
   // a percentage means little for a bank balance, so it can be left out
   final bool showPercent;
+  // a 1T session: the scrub label names the clock, not only the date
+  final bool showTime;
 
   const ChartHeader({
     super.key,
@@ -309,6 +339,7 @@ class ChartHeader extends StatelessWidget {
     this.scrubbing,
     this.startDate,
     this.showPercent = true,
+    this.showTime = false,
   });
 
   @override
@@ -323,11 +354,19 @@ class ChartHeader extends StatelessWidget {
     return _header(scrub);
   }
 
+  String _scrubLabel(DateTime d) {
+    if (!showTime) return Dates.full(d);
+    final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    final day = Dates.relativeDay(d);
+    final prefix = (day == 'Heute' || day == 'Gestern') ? day.toLowerCase() : day;
+    return '$prefix, $hm';
+  }
+
   Widget _header(ChartPoint? scrub) {
     final value = scrub?.cents ?? cents;
     final change = value - startCents;
     return BigNumber(
-      label: scrub == null ? label : Dates.full(scrub.date),
+      label: scrub == null ? label : _scrubLabel(scrub.date),
       cents: value,
       animate: scrub == null,
       below: ChangeLabel(

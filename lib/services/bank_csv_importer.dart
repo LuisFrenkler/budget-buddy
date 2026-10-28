@@ -138,6 +138,7 @@ class BankCsvImporter {
     final iAmount = _find(header, _amountNames);
     final iParty = _find(header, _partyNames);
     final iPurpose = _find(header, _purposeNames);
+    final iText = _find(header, const ['buchungstext']);
     final iType = _find(header, _typeNames);
 
     // what is already there, so importing the same file twice adds nothing
@@ -168,6 +169,8 @@ class BankCsvImporter {
       final income = cents > 0;
       final party = iParty >= 0 && iParty < f.length ? f[iParty].replaceAll('"', '').trim() : '';
       final purpose = iPurpose >= 0 && iPurpose < f.length ? f[iPurpose].replaceAll('"', '').trim() : '';
+      // Sparkasse puts "LOHN/GEHALT" in Buchungstext and the employer in the name
+      final booking = iText >= 0 && iText != iPurpose && iText < f.length ? f[iText].replaceAll('"', '').trim() : '';
       final title = party.isNotEmpty ? _tidy(party) : (purpose.isNotEmpty ? _tidy(purpose) : 'Buchung');
 
       final key = '${date.year}-${date.month}-${date.day}|${cents.abs()}|$income';
@@ -180,7 +183,7 @@ class BankCsvImporter {
         id: 'csv_${const Uuid().v4()}',
         amountCents: cents.abs(),
         category: CategoryRules.forName(title, isIncome: income) ??
-            Categorizer.guess('$party $purpose', isIncome: income),
+            Categorizer.guess('$party $purpose $booking', isIncome: income),
         date: date,
         isIncome: income,
         note: title,

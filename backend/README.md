@@ -16,9 +16,17 @@ Keys go into `backend/.env` (git-ignored). Copy `.env.example` to `.env` and
 fill in what you use; environment variables with the same name take precedence.
 Restart the server after a change.
 
-The server listens on localhost only. In production put a reverse proxy
-(Caddy, nginx) in front that adds the client address to `X-Forwarded-For`:
-the login and sign-up limits per address read it.
+By default the server listens on localhost only. For production set
+`BIND=0.0.0.0`, `PUBLIC_URL=https://…`, `TRUST_PROXY=1`, and
+`CORS_ORIGINS=https://your-app-origin` behind a reverse proxy (Caddy/nginx)
+that terminates TLS and sets `X-Forwarded-For`. Demo Plus is blocked on a
+public bind unless `ALLOW_DEMO_BILLING=1`. Probes: `GET /health` (app) and
+`GET /ready` (disk).
+
+WhatsApp is off until `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` and
+`WHATSAPP_VERIFY_TOKEN` are set. Webhook: `GET/POST /notify/whatsapp/webhook`.
+The server stores a hash of the number, not the number, and sends nothing
+without the opt-in in the app.
 
 ## Quick start (demo bank, no account needed)
 
@@ -331,5 +339,5 @@ depot link belongs to the account that created it.
   `state` token that only the app knows.
 - Access is read-only. PSD2 consent is valid for up to 180 days, after which the
   app asks you to renew it.
-- Before hosting this for other people, add HTTPS, restrict CORS to the app's origin
+- Before hosting this for other people, set `CORS_ORIGINS`, HTTPS at the proxy
   and add password reset by email. Enable Banking's free mode is for personal use only.

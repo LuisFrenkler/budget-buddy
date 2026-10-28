@@ -7,6 +7,7 @@ import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import '../legal/legal_texts.dart';
 import 'about_screen.dart';
+import 'subscription_screen.dart';
 
 // Opens the Plus page; [reason] says what the user just tried to do, so the
 // page starts with that instead of a generic pitch.
@@ -47,14 +48,15 @@ class _PlusScreenState extends State<PlusScreen> {
     if (mounted) setState(() {});
   }
 
-  // the store said this account had its free week already: no promise of one
-  bool get _noTrial => StorePurchases.trial[_yearly ? PlusPlan.yearly : PlusPlan.monthly] == false;
+  // only promise a free week when the store confirmed eligibility (true).
+  // Apple often returns null → never claim "7 Tage gratis" / "Heute 0 €".
+  bool? get _trial => StorePurchases.trial[_yearly ? PlusPlan.yearly : PlusPlan.monthly];
+  bool get _hasTrial => _trial == true;
 
   static const _features = [
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
-    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Jeder Kassenbon in Sekunden erfasst'),
-    (Icons.flag_rounded, 'Sparziele auf Autopilot', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
-    (Icons.insights_rounded, 'Buddys Wochenbericht', 'Jeden Sonntag: was auffiel und wo du sparen kannst'),
+    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Belege fotografieren und prüfen — ohne Gratis-Limit'),
+    (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele; Aufrunden & Monatsbetrag — zählt mit, überweist nicht'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
   ];
 
@@ -75,6 +77,53 @@ class _PlusScreenState extends State<PlusScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: PlusService.active,
+      builder: (context, hasPlus, _) {
+        if (hasPlus) return _alreadyPlus(context);
+        return _pitch(context);
+      },
+    );
+  }
+
+  Widget _alreadyPlus(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                  tooltip: 'Schließen', icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+            ),
+            const Spacer(),
+            const BuddyOrb(size: 88),
+            const SizedBox(height: 24),
+            const Text('Plus ist aktiv',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+            const SizedBox(height: 10),
+            Text('Buddy, Belege und Sparziele laufen ohne Limit.',
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4)),
+            const Spacer(),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
+              },
+              child: const Text('Mein Abo verwalten'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Schließen')),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _pitch(BuildContext context) {
     return Scaffold(
       body: Stack(children: [
         // the brand glow behind the orb
@@ -106,12 +155,30 @@ class _PlusScreenState extends State<PlusScreen> {
                 children: [
                   const Center(child: BuddyOrb(size: 88)),
                   const SizedBox(height: 22),
-                  Text(widget.reason ?? 'Hol dir das volle BudgetBuddy',
+                  if (widget.reason != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+                      ),
+                      child: Text(widget.reason!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.text, fontSize: 13.5, height: 1.4, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                  const Text('BudgetBuddy Plus',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
                   const SizedBox(height: 8),
-                  Text(_noTrial ? 'BudgetBuddy Plus · jederzeit kündbar' : 'BudgetBuddy Plus · 7 Tage gratis, jederzeit kündbar',
-                      textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15)),
+                  Text(
+                      _hasTrial
+                          ? '7 Tage gratis testen · danach jederzeit kündbar'
+                          : 'Jederzeit kündbar · ohne Werbung',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textDim, fontSize: 15)),
                   const SizedBox(height: 26),
                   for (final f in _features)
                     Padding(
@@ -143,7 +210,7 @@ class _PlusScreenState extends State<PlusScreen> {
                       Expanded(
                         child: Text(
                           'Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, '
-                          'Hinweise, Gruppen und dein Monatsrückblick.',
+                          'Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.',
                           style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
                         ),
                       ),
@@ -167,16 +234,20 @@ class _PlusScreenState extends State<PlusScreen> {
                 FilledButton(
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
                   onPressed: _buy,
-                  child: Text(_noTrial ? 'Plus starten' : '7 Tage gratis testen',
+                  child: Text(_hasTrial ? '7 Tage gratis testen' : 'Plus starten',
                       style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(height: 8),
                 // what the stores require next to the button: price, period,
                 // automatic renewal, where to cancel, and the legal texts
                 Text(
-                  '${_noTrial ? '' : 'Danach '}${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
-                  '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch.${_noTrial ? '' : ' Heute 0 €,'} jederzeit kündbar '
-                  '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
+                  _hasTrial
+                      ? 'Danach ${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
+                          '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar '
+                          '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.'
+                      : '${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
+                          '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch, jederzeit kündbar '
+                          '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
                 ),

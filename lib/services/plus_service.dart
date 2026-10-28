@@ -224,12 +224,14 @@ class PlusService {
 
   // --- server (signed in) ---
 
-  // takes over the server's copy: it decides whether a managed Plus exists
+  // takes over the server's copy: it decides whether Plus exists for this account
   static Future<void> applyServer(Map<String, dynamic>? entitlement) async {
     if (entitlement != null) {
       await _store(Subscription.fromServer(entitlement));
-    } else if (subscription.value?.managed == true) {
-      await _store(null);
+    } else if (AccountService.token != null) {
+      // signed in: server is source of truth — clear local/debug and managed alike
+      // (store purchases stay via applyStore / plusStore id)
+      if (subscription.value?.fromStore != true) await _store(null);
     }
   }
 
@@ -247,6 +249,9 @@ class PlusService {
     }
   }
 
+  // last sync outcome for UI (null = not tried / ok, text = problem)
+  static final syncError = ValueNotifier<String?>(null);
+
   // asks the server what this device and account have; false when it cannot be asked
   static Future<bool> syncWithServer({bool fresh = false}) async {
     final store = _box.get('plusStore') as Map?;
@@ -258,8 +263,10 @@ class PlusService {
         await applyStore(await BackendService.plusStore(platform, id), platform: platform, id: id);
       }
       if (AccountService.token != null) await applyServer(await BackendService.plusStatus(fresh: fresh));
+      syncError.value = null;
       return true;
     } catch (_) {
+      syncError.value = 'Plus-Status konnte nicht geprüft werden. Tippe hier zum erneuten Versuchen.';
       return false;
     }
   }

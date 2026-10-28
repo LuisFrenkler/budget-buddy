@@ -5,6 +5,7 @@ import '../services/backend_service.dart';
 import '../services/plus_service.dart';
 import '../services/store_purchases.dart';
 import '../utils/dates.dart';
+import '../utils/errors.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'checkout_screen.dart';
@@ -32,15 +33,33 @@ class SubscriptionScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('🚀', style: TextStyle(fontSize: 48)),
+            Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primaryText),
             const SizedBox(height: 12),
             const Text('Du nutzt BudgetBuddy gratis',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text('Mit Plus gibt es Buddy, Belege und Sparziele ohne Limit.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+            Text('Buddy mit KI, Beleg-Scan und beliebig viele Sparziele — der Rest bleibt gratis.',
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
-            FilledButton(onPressed: () => showPlus(context), child: const Text('Plus ansehen')),
+            FilledButton(onPressed: () => showPlus(context), child: const Text('Plus entdecken')),
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Immer gratis'),
+                  content: Text(
+                    'Konto & Depot, Budgets, Monatsprognose, Verträge inkl. Kündigung, '
+                    'Notgroschen & Vorsorge-Orientierung, Hinweise, geteilte Ausgaben und dein Monatsrückblick.',
+                    style: TextStyle(color: AppColors.textDim, height: 1.45),
+                  ),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Verstanden')),
+                  ],
+                ),
+              ),
+              child: Text('Was ist gratis?', style: TextStyle(color: AppColors.textDim)),
+            ),
           ]),
         ),
       );
@@ -325,7 +344,7 @@ class _Details extends StatelessWidget {
       await change();
       return true;
     } catch (e) {
-      if (context.mounted) _snack(context, 'Das hat gerade nicht geklappt: $e');
+      if (context.mounted) _snack(context, friendlyError(e));
       return false;
     }
   }
@@ -339,7 +358,9 @@ class _Details extends StatelessWidget {
       // whatever changed there shows up here once the user is back
       await PlusService.syncWithServer(fresh: true);
     } catch (e) {
-      if (context.mounted) _snack(context, 'Kundenportal gerade nicht erreichbar: $e');
+      if (context.mounted) {
+        _snack(context, friendlyError(e, fallback: 'Kundenportal gerade nicht erreichbar.'));
+      }
     }
   }
 

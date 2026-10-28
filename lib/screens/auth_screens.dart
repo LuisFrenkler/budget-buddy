@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import '../services/cloud_sync.dart';
 import '../services/account_service.dart';
-import '../services/db.dart';
 import '../services/demo_data.dart';
 import '../services/settings_service.dart';
 import '../utils/password.dart';
@@ -16,8 +16,7 @@ import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 
 // First screen for anyone not signed in: what the app does (a slowly
-// turning carousel) and the three ways in. Replaces a separate intro, so a
-// new user is one tap away from starting.
+// turning carousel) and sign-up / sign-in. Replaces a separate intro.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -66,66 +65,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _open(Widget screen) => Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-
-  Future<void> _tryWithoutAccount() async {
-    HapticFeedback.selectionClick();
-    await Settings.setOnboardingDone(true);
-    if (!mounted) return;
-    // a fresh install chooses how to start; returning users go straight in
-    if (DB.getTx().isEmpty && DB.getHoldings().isEmpty) {
-      _open(const StartChoiceScreen(guest: true));
-    } else if (Settings.signedOutEmail.isNotEmpty) {
-      // someone signed out: their data is not for whoever picks up the phone
-      await _askToSignIn();
-    } else {
-      await Settings.setGuest(true);
-    }
-  }
-
-  Future<void> _askToSignIn() async {
-    final choice = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Daten gehören zu einem Konto'),
-        content: Text('Auf diesem Gerät liegen die Daten von ${Settings.signedOutEmail}. '
-            'Melde dich an, um sie zu öffnen, oder lösch sie und starte neu ohne Konto.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'wipe'),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Löschen & neu starten'),
-          ),
-          TextButton(onPressed: () => Navigator.pop(context, 'signin'), child: const Text('Anmelden')),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (choice == 'signin') {
-      _open(const SignInScreen());
-    } else if (choice == 'wipe') {
-      final sure = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Wirklich alles löschen?'),
-          content: const Text('Alle Umsätze, Budgets, Ziele und Depot-Positionen auf diesem Gerät sind dann weg. '
-              'Das Konto selbst bleibt bestehen.'),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: AppColors.error),
-              child: const Text('Löschen'),
-            ),
-          ],
-        ),
-      );
-      if (sure != true || !mounted) return;
-      await DB.clearAll();
-      await Settings.resetApp();
-      await Settings.setOnboardingDone(true);
-      if (mounted) _open(const StartChoiceScreen(guest: true));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,14 +126,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     _PrimaryButton('Konto erstellen', onPressed: () => _open(const SignUpScreen())),
                     const SizedBox(height: 10),
                     _SecondaryButton('Ich habe schon ein Konto', onPressed: () => _open(const SignInScreen())),
-                    const SizedBox(height: 6),
-                    Center(
-                      child: TextButton(
-                        onPressed: _tryWithoutAccount,
-                        child: Text('Ohne Konto ausprobieren', style: TextStyle(color: AppColors.textDim)),
-                      ),
-                    ),
-                    Text('Nur Lesezugriff aufs Konto · Face ID · Keine Kontonummern an die KI',
+                    const SizedBox(height: 12),
+                    Text('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
                   ]),
@@ -302,24 +235,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       TextInput.finishAutofillContext();
       if (!mounted) return;
       HapticFeedback.mediumImpact();
-      if (DB.getTx().isNotEmpty || DB.getHoldings().isNotEmpty) {
-        // a guest with data signed up from inside the app: back to where they
-        // were (Profil, Verbindungen, Buddy), no sample data on top of theirs
-        final messenger = ScaffoldMessenger.of(context);
-        Navigator.pop(context, true);
-        messenger.showSnackBar(SnackBar(
-            duration: const Duration(milliseconds: 3200),
-            content: Text(backedUp
-                ? 'Konto erstellt. Deine Daten sind dabei.'
-                : 'Konto erstellt, aber die Sicherung ist noch nicht hochgeladen. Bleib online — ich versuche es gleich noch einmal.')));
-      } else {
-        if (!backedUp) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              duration: Duration(milliseconds: 3200),
-              content: Text('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.')));
-        }
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
+      if (!backedUp) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            duration: Duration(milliseconds: 3200),
+            content: Text('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.')));
       }
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
     } catch (e) {
       setState(() => _error = '$e');
     } finally {
@@ -384,6 +305,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: TextStyle(fontSize: 12, color: AppColors.textDim)),
           ),
         ]),
+        const SizedBox(height: 10),
+        Text(
+          'Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. '
+          'Vergisst du es, kann niemand — auch wir nicht — deine Daten wiederherstellen.',
+          style: TextStyle(fontSize: 12, color: AppColors.warningText, height: 1.35),
+        ),
         const SizedBox(height: 18),
         InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -441,18 +368,23 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _code = TextEditingController();
   bool _hide = true;
   bool _busy = false;
   String? _error;
+  String? _challenge;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _code.dispose();
     super.dispose();
   }
 
-  bool get _valid => _email.text.contains('@') && _password.text.isNotEmpty;
+  bool get _valid => _challenge == null
+      ? _email.text.contains('@') && _password.text.isNotEmpty
+      : _code.text.length == 6;
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
@@ -461,7 +393,9 @@ class _SignInScreenState extends State<SignInScreen> {
       _error = null;
     });
     try {
-      final account = await AccountService.login(email: _email.text, password: _password.text);
+      final account = _challenge == null
+          ? await AccountService.login(email: _email.text, password: _password.text)
+          : await AccountService.loginTotp(challenge: _challenge!, code: _code.text);
       await Settings.setOnboardingDone(true);
       TextInput.finishAutofillContext();
       if (!mounted) return;
@@ -469,6 +403,12 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
       HapticFeedback.mediumImpact();
       Navigator.popUntil(context, (r) => r.isFirst);
+    } on TotpRequired catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _challenge = e.challenge;
+        _error = null;
+      });
     } catch (e) {
       HapticFeedback.heavyImpact();
       setState(() => _error = '$e');
@@ -477,38 +417,30 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // the account's data from its other devices; asks before it replaces
-  // data of someone else (or a guest) on this device
+  // device is an empty cache after login — load this account's vault from the server
   Future<void> _bringAccountData(Account account, String password) async {
     try {
       await CloudSync.unlock(account.id, password);
       final remote = await CloudSync.fetch();
-      if (remote == null) return await CloudSync.push();
-      final ownHere = (DB.getTx().isNotEmpty || DB.getHoldings().isNotEmpty) && !DemoData.active;
-      if (ownHere && !CloudSync.ownsLocalData(account.id) && mounted) {
-        final load = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Dein Konto hat schon Daten'),
-            content: const Text('Auf diesem Gerät liegen andere Daten als in deinem Konto. '
-                'Lädst du die Kontodaten, ersetzen sie die auf diesem Gerät. '
-                'Behältst du die Gerätedaten, ersetzen sie die in deinem Konto.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Gerätedaten behalten')),
-              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Kontodaten laden')),
-            ],
-          ),
-        );
-        if (load != true) return await CloudSync.push();
+      if (remote == null) {
+        await Hive.box('settings').delete('vaultLoadFailed');
+        await CloudSync.push(); // first device: seed an empty (or just-created) vault
+      } else {
+        await CloudSync.apply(remote);
       }
-      await CloudSync.apply(remote);
-    } catch (_) {
-      // signed in anyway; the data here stays and nothing is overwritten
+    } catch (e) {
+      await Hive.box('settings').put('vaultLoadFailed', true);
+      // wrong key / corrupt seal: drop the key so nothing can force-push an empty vault
+      final msg = '$e';
+      if (msg.contains('MAC') || msg.contains('SecretBox') || msg.contains('Invalid')) {
+        await CloudSync.forget();
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            duration: Duration(milliseconds: 3200),
-            content: Text('Deine gesicherten Daten konnten gerade nicht geladen werden. Beim nächsten Start versuche ich es wieder.')));
+            duration: Duration(milliseconds: 4200),
+            content: Text(
+                'Deine gesicherten Daten konnten gerade nicht geladen werden. '
+                'Schreibe noch nichts — tipp oben auf den Hinweis zum erneuten Versuch.')));
       }
     }
   }
@@ -516,42 +448,61 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return _AuthScaffold(
-      title: 'Willkommen zurück',
-      subtitle: 'Melde dich mit deiner E-Mail an.',
+      title: _challenge == null ? 'Willkommen zurück' : 'Code eingeben',
+      subtitle: _challenge == null
+          ? 'Melde dich mit deiner E-Mail an.'
+          : 'Der Code aus der Authenticator-App schützt nur die Anmeldung. Deine Umsätze bleiben auf dem Gerät.',
       children: [
-        AutofillGroup(
-          child: Column(children: [
-            _Field(
-              controller: _email,
-              label: 'E-Mail',
-              keyboard: TextInputType.emailAddress,
-              hints: const [AutofillHints.email],
-              onChanged: (_) => setState(() => _error = null),
-            ),
-            const SizedBox(height: 12),
-            _Field(
-              controller: _password,
-              label: 'Passwort',
-              obscure: _hide,
-              hints: const [AutofillHints.password],
-              onChanged: (_) => setState(() => _error = null),
-              onSubmitted: (_) => _valid && !_busy ? _submit() : null,
-              suffix: IconButton(
-                icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: AppColors.textDim),
-                onPressed: () => setState(() => _hide = !_hide),
+        if (_challenge == null)
+          AutofillGroup(
+            child: Column(children: [
+              _Field(
+                controller: _email,
+                label: 'E-Mail',
+                keyboard: TextInputType.emailAddress,
+                hints: const [AutofillHints.email],
+                onChanged: (_) => setState(() => _error = null),
               ),
-            ),
-          ]),
-        ),
+              const SizedBox(height: 12),
+              _Field(
+                controller: _password,
+                label: 'Passwort',
+                obscure: _hide,
+                hints: const [AutofillHints.password],
+                onChanged: (_) => setState(() => _error = null),
+                onSubmitted: (_) => _valid && !_busy ? _submit() : null,
+                suffix: IconButton(
+                  icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: AppColors.textDim),
+                  onPressed: () => setState(() => _hide = !_hide),
+                ),
+              ),
+            ]),
+          )
+        else
+          TextField(
+            controller: _code,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+            onChanged: (_) => setState(() => _error = null),
+            onSubmitted: (_) => _valid && !_busy ? _submit() : null,
+            decoration: const InputDecoration(labelText: '6-stelliger Code'),
+          ),
         _ErrorText(_error),
         const SizedBox(height: 24),
-        _PrimaryButton('Anmelden', busy: _busy, onPressed: _valid ? _submit : null),
+        _PrimaryButton(_challenge == null ? 'Anmelden' : 'Code prüfen', busy: _busy, onPressed: _valid ? _submit : null),
         const SizedBox(height: 8),
         Center(
           child: TextButton(
-            onPressed: () =>
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-            child: const Text('Neu hier? Konto erstellen'),
+            onPressed: _challenge == null
+                ? () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SignUpScreen()))
+                : () => setState(() {
+                      _challenge = null;
+                      _code.clear();
+                      _error = null;
+                    }),
+            child: Text(_challenge == null ? 'Neu hier? Konto erstellen' : 'Zurück zum Passwort'),
           ),
         ),
       ],
@@ -562,8 +513,7 @@ class _SignInScreenState extends State<SignInScreen> {
 // --- first start: how to fill the app ---
 
 class StartChoiceScreen extends StatefulWidget {
-  final bool guest;
-  const StartChoiceScreen({super.key, this.guest = false});
+  const StartChoiceScreen({super.key});
 
   @override
   State<StartChoiceScreen> createState() => _StartChoiceScreenState();
@@ -575,8 +525,6 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
   Future<void> _finish({bool demo = false, bool bank = false, bool buddy = false}) async {
     setState(() => _busy = true);
     if (demo) await DemoData.load();
-    // for guests this flips the root from welcome to the app
-    if (widget.guest) await Settings.setGuest(true);
     if (!mounted) return;
     Navigator.popUntil(context, (r) => r.isFirst);
     if (bank) {
@@ -590,13 +538,10 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
   @override
   Widget build(BuildContext context) {
     final name = AccountService.current.value?.firstName;
-    // a guest can still change their mind and go back to the welcome screen
-    final canGoBack = widget.guest && Navigator.canPop(context);
     return Scaffold(
-      appBar: canGoBack ? AppBar(backgroundColor: Colors.transparent, elevation: 0) : null,
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.fromLTRB(24, canGoBack ? 4 : 32, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           children: [
             Text(name != null ? 'Hallo $name 👋' : 'Los geht\'s 👋',
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
@@ -605,33 +550,26 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
             _ChoiceCard(
-              icon: Icons.auto_awesome_rounded,
-              title: 'Buddy ausprobieren',
-              text: 'Beispieldaten laden und Buddy fragen: „Kann ich mir 800 € Urlaub leisten?“',
+              icon: Icons.account_balance_rounded,
+              title: 'Bankkonto verbinden',
+              text: 'Kontostand und Umsätze kommen automatisch. Dauert etwa eine Minute.',
               badge: 'Empfohlen',
-              onTap: _busy ? null : () => _finish(demo: true, buddy: true),
+              onTap: _busy ? null : () => _finish(bank: true),
             ),
             const SizedBox(height: 12),
-            if (!widget.guest) ...[
-              _ChoiceCard(
-                icon: Icons.account_balance_rounded,
-                title: 'Bankkonto verbinden',
-                text: 'Kontostand und Umsätze kommen automatisch. Dauert etwa eine Minute.',
-                onTap: _busy ? null : () => _finish(bank: true),
-              ),
-              const SizedBox(height: 12),
-            ],
             _ChoiceCard(
               icon: Icons.edit_note_rounded,
               title: 'Leer starten',
-              text: 'Selbst tippen oder Belege scannen — ohne Beispielzahlen.',
+              text: 'Selbst tippen oder Belege scannen — mit deinen echten Zahlen.',
               onTap: _busy ? null : () => _finish(),
             ),
-            if (widget.guest) ...[
-              const SizedBox(height: 20),
-              Text('Um dein Bankkonto zu verbinden, brauchst du ein Konto. Das geht später jederzeit im Profil.',
-                  style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4)),
-            ],
+            const SizedBox(height: 12),
+            _ChoiceCard(
+              icon: Icons.science_rounded,
+              title: 'Mit Beispieldaten testen',
+              text: 'Nur zum Ausprobieren von Buddy — klar als Demo markiert, jederzeit entfernbar.',
+              onTap: _busy ? null : () => _finish(demo: true, buddy: true),
+            ),
             if (_busy)
               const Padding(padding: EdgeInsets.only(top: 24), child: Center(child: CircularProgressIndicator())),
           ],

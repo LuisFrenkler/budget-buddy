@@ -7,6 +7,7 @@ import '../models/transaction.dart';
 import '../services/money_accounts.dart';
 import 'account_screen.dart';
 import '../models/recurring.dart';
+import '../services/category_rules.dart';
 import '../services/db.dart';
 import '../services/recurring_service.dart';
 import '../utils/amount_input.dart';
@@ -14,6 +15,7 @@ import '../utils/dates.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
 import '../widgets/segmented.dart';
+import 'recurring_screen.dart';
 
 // Fast entry: a big amount on top, category chips, date/repeat chips and an
 // on-screen number pad. A physical keyboard works too (digits, comma, Enter).
@@ -62,8 +64,17 @@ class _AddScreenState extends State<AddScreen> {
       _category = t.category;
       _date = t.date;
       _account = t.accountId;
+    } else {
+      _category = _pickDefaultCategory();
     }
     _noteFocus.addListener(() => setState(() {}));
+  }
+
+  String? _pickDefaultCategory() {
+    final last = CategoryRules.lastUsed(isIncome: _isIncome, refund: _refund);
+    if (last != null && _categories.contains(last)) return last;
+    final cats = _categories;
+    return cats.isNotEmpty ? cats.first : null;
   }
 
   @override
@@ -210,7 +221,7 @@ class _AddScreenState extends State<AddScreen> {
                     _isIncome = i != 0;
                     _refund = i == 2;
                     // expense, income and refund have different categories
-                    if (!_categories.contains(_category)) _category = null;
+                    if (!_categories.contains(_category)) _category = _pickDefaultCategory();
                   }),
                 ),
               ),
@@ -381,14 +392,22 @@ class _AddScreenState extends State<AddScreen> {
               tooltip: 'Wiederholen',
               color: AppColors.surface,
               initialValue: _repeat,
-              onSelected: (v) => setState(() {
-                _repeat = v;
-                // a one-off booking cannot lie in the future
-                if (v == 'Einmalig' && _date.isAfter(DateTime.now())) _date = DateTime.now();
-              }),
+              onSelected: (v) {
+                if (v == '_manage') {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const RecurringScreen()));
+                  return;
+                }
+                setState(() {
+                  _repeat = v;
+                  // a one-off booking cannot lie in the future
+                  if (v == 'Einmalig' && _date.isAfter(DateTime.now())) _date = DateTime.now();
+                });
+              },
               itemBuilder: (_) => [
                 for (final o in ['Einmalig', ...RecurringService.intervals])
                   PopupMenuItem(value: o, child: Text(o)),
+                if (DB.getRules().isNotEmpty)
+                  const PopupMenuItem(value: '_manage', child: Text('Wiederholungen verwalten…')),
               ],
               child: _chip(Icons.repeat_rounded, _repeat, null),
             ),
@@ -528,7 +547,9 @@ class _AddScreenState extends State<AddScreen> {
           note: note,
           accountId: _account == MoneyAccount.main ? null : _account,
         ));
-        await DB.checkBadges();
+        if (note != null) {
+          await CategoryRules.remember(note, _category!, isIncome: _isIncome);
+        }
       }
       HapticFeedback.lightImpact();
       if (mounted) Navigator.pop(context, true);

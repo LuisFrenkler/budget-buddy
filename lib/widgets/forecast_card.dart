@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../screens/smart_entry_sheet.dart';
+import '../screens/wealth_screen.dart';
 import '../services/forecast_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -15,9 +17,9 @@ class ForecastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final f = forecast;
     final (color, label) = switch (f.pace) {
-      ForecastPace.relaxed => (AppColors.positive, 'Im Plan'),
-      ForecastPace.tight => (AppColors.warning, 'Wird knapp'),
-      ForecastPace.over => (AppColors.error, 'Über Budget'),
+      ForecastPace.relaxed => (AppColors.positive, 'Ruhiges Tempo'),
+      ForecastPace.tight => (AppColors.warning, 'Enger Spielraum'),
+      ForecastPace.over => (AppColors.error, 'Diesen Monat überzogen'),
     };
     final next = f.due.isEmpty ? null : f.due.first;
     return Material(
@@ -162,6 +164,28 @@ class ForecastCard extends StatelessWidget {
                 style: const TextStyle(height: 1.4),
               ),
             ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                showSmartEntry(context);
+              },
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: Text(f.freeCents > 0
+                  ? 'Ausgabe erfassen · noch ${Money.format(f.perDayCents)}/Tag'
+                  : 'Ausgabe erfassen'),
+            ),
+            if (f.freeCents > 0) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen()));
+                },
+                icon: const Icon(Icons.savings_outlined, size: 18),
+                label: const Text('Teil davon fürs Polster'),
+              ),
+            ],
           ]),
         ),
       ),

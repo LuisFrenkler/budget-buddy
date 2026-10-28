@@ -7,6 +7,7 @@ import '../models/transaction.dart';
 import '../services/buddy_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
+import '../services/category_rules.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
 import 'account_screen.dart';
@@ -43,6 +44,7 @@ class _SmartEntryState extends State<_SmartEntry> {
   final _text = TextEditingController();
   ParsedBooking? _preview;
   bool _fromReceipt = false;
+  bool _withoutAi = false; // local parser only (KI aus / offline)
   String? _busy; // what Buddy is doing right now
   String? _error;
   // Buddy refines the preview once typing pauses
@@ -68,6 +70,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     setState(() {
       _preview = QuickParser.parse(value);
       _fromReceipt = false;
+      _withoutAi = true; // until a live refine succeeds
       _error = null;
       _refining = false;
     });
@@ -80,17 +83,20 @@ class _SmartEntryState extends State<_SmartEntry> {
   // Buddy's reading of the same words; shown only if nothing changed meanwhile
   Future<void> _refineNow(String value) async {
     setState(() => _refining = true);
+    final usedAi = await BuddyService.liveAllowed();
     final better = await BuddyService.parse(value);
     if (!mounted || _text.text != value || _fromReceipt) return;
     setState(() {
       if (better != null) _preview = better;
+      _withoutAi = !usedAi;
       _refining = false;
     });
   }
 
   Future<void> _scan() async {
     if (!PlusService.allowed(PlusFeature.receiptScan)) {
-      await showPlus(context, reason: 'Du hast deine ${PlusService.freeReceiptScans} Gratis-Scans genutzt');
+      await showPlus(context,
+          reason: 'Gratis-Scans aufgebraucht — mit Plus jeden Beleg in Sekunden erfassen');
       if (!PlusService.active.value) return;
     }
     final picked = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
@@ -140,7 +146,9 @@ class _SmartEntryState extends State<_SmartEntry> {
       accountId: MoneyAccounts.byId(AccountScreen.selected.value)?.isMain == false ? AccountScreen.selected.value : null,
     );
     await DB.addTx(tx);
-    await DB.checkBadges();
+    if (tx.note != null) {
+      await CategoryRules.remember(tx.note!, tx.category, isIncome: tx.isIncome);
+    }
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
@@ -199,6 +207,11 @@ class _SmartEntryState extends State<_SmartEntry> {
           const SizedBox(height: 10),
           Text(_error!, style: TextStyle(color: AppColors.errorText, fontSize: 13)),
         ],
+        if (_preview == null && _busy == null && _text.text.trim().isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Text('Ich brauche mindestens einen Betrag — z. B. „Kaffee 3,20“.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
+        ],
         const SizedBox(height: 18),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -226,6 +239,7 @@ class _SmartEntryState extends State<_SmartEntry> {
 
   Widget _previewCard(ParsedBooking b) {
     final title = b.note.isNotEmpty ? b.note : b.category;
+    final remembered = b.note.isNotEmpty && CategoryRules.forName(b.note, isIncome: b.isIncome) == b.category;
     return Container(
       key: ValueKey('${b.cents}${b.category}${b.note}${b.date}'),
       padding: const EdgeInsets.all(16),
@@ -243,7 +257,8 @@ class _SmartEntryState extends State<_SmartEntry> {
             const SizedBox(height: 2),
             Text(
                 '${b.category} · ${Dates.relativeDay(b.date)}'
-                '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : ''}',
+                '${remembered ? ' · Merkt sich $title' : ''}'
+                '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : _withoutAi ? ' · Ohne KI erkannt' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           ]),
         ),

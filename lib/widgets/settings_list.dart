@@ -73,7 +73,9 @@ class SettingsRow extends StatelessWidget {
               Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: danger ? AppColors.errorText : AppColors.text)),
               if (subtitle != null)
                 Text(subtitle!,
-                    style: TextStyle(color: AppColors.textDim, fontSize: 12), overflow: TextOverflow.ellipsis),
+                    style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
             ]),
           ),
           // the value sits right next to the chevron, at most about half the row

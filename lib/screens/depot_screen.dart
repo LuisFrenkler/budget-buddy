@@ -35,13 +35,8 @@ class _DepotScreenState extends State<DepotScreen> {
   final _scrub = ValueNotifier<ChartPoint?>(null);
   int? _slice; // highlighted allocation slice
 
-  static const _ranges = {'1W': 7, '1M': 30, '3M': 90, '1J': 365};
-  static const _periods = {
-    '1W': 'in 7 Tagen',
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '1J': 'in 12 Monaten',
-  };
+  // 1T is yesterday and today: the depot history is one value per day
+  static const _ranges = {'1T': 2, '1W': 7, '1M': 30, '3M': 90, '1J': 365};
 
   int get _days => _ranges[_range]!;
 
@@ -102,7 +97,8 @@ class _DepotScreenState extends State<DepotScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 6, right: 12),
                 child: TextButton.icon(
-                  onPressed: () => showAddAccountChoice(context, depot: true, byHand: () => _add()),
+                  onPressed: () => showAddAccountChoice(context,
+                      depot: true, byHand: () => _add()),
                   icon: const Icon(Icons.add_rounded, size: 18),
                   label: const Text('Depot'),
                 ),
@@ -125,8 +121,10 @@ class _DepotScreenState extends State<DepotScreen> {
                         _allocationCard(holdings, value),
                         const SizedBox(height: 28),
                       ],
-                      const Text('Positionen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 8),
+                      const Text('Positionen',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
                       ..._positions(holdings),
                       // room for the floating navigation bar
                       const SizedBox(height: 110),
@@ -138,34 +136,59 @@ class _DepotScreenState extends State<DepotScreen> {
     );
   }
 
-  // the positions, grouped by depot with its value when there are several;
-  // each keeps the colour it has in the allocation chart above
+  // Aktien, then ETFs, then Krypto, then Sonstiges. Each type shows its value;
+  // a named broker (or several) sits underneath with its own total. Avatar
+  // colours stay aligned with the allocation chart above.
   List<Widget> _positions(List<Holding> holdings) {
     final slots = <String, int>{};
     var slot = 0;
     for (final h in holdings) {
       if (holdings.length > 1 && h.valueCents > 0) slots[h.id] = slot++;
     }
-    final groups = <String, List<Holding>>{};
-    for (final h in holdings) {
-      groups.putIfAbsent(h.depot?.trim().isNotEmpty == true ? h.depot!.trim() : 'Weitere Positionen', () => []).add(h);
-    }
-    if (groups.length < 2) return [for (final h in holdings) _holdingCard(h, slots[h.id])];
-    final ordered = groups.entries.toList()
-      ..sort((a, b) => b.value.fold<int>(0, (s, h) => s + h.valueCents).compareTo(a.value.fold<int>(0, (s, h) => s + h.valueCents)));
+    final sections = groupDepotHoldings(holdings);
     return [
-      for (final g in ordered) ...[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 16, 4, 6),
-          child: Row(children: [
-            Expanded(child: Text(g.key, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))),
-            Text(Money.format(g.value.fold<int>(0, (s, h) => s + h.valueCents)),
-                style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
-          ]),
+      for (var i = 0; i < sections.length; i++) ...[
+        _sectionHeader(
+          sections[i].label,
+          sections[i].groups.fold<int>(0, (s, g) => s + _groupCents(g.items)),
+          top: i == 0 ? 8 : 22,
         ),
-        for (final h in g.value) _holdingCard(h, slots[h.id]),
+        for (final g in sections[i].groups) ...[
+          if (showDepotBrokers(sections[i].groups))
+            _sectionHeader(
+                g.depot ?? 'Weitere Positionen', _groupCents(g.items),
+                sub: true),
+          for (final h in g.items) _holdingCard(h, slots[h.id]),
+        ],
       ],
     ];
+  }
+
+  Widget _sectionHeader(String title, int cents,
+      {bool sub = false, double top = 10}) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(2, sub ? 10 : top, 2, sub ? 0 : 2),
+      child: Row(children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: sub ? 13 : 16,
+              fontWeight: sub ? FontWeight.w600 : FontWeight.w700,
+              color: sub ? AppColors.textDim : AppColors.text,
+            ),
+          ),
+        ),
+        Text(
+          Money.format(cents),
+          style: TextStyle(
+            fontSize: sub ? 13 : 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDim,
+          ),
+        ),
+      ]),
+    );
   }
 
   Widget _emptyState() {
@@ -177,20 +200,32 @@ class _DepotScreenState extends State<DepotScreen> {
           children: [
             Icon(Icons.trending_up, size: 64, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch kein Depot', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Noch kein Depot',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            Text(
+                'Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
             FilledButton.icon(
               style: FilledButton.styleFrom(minimumSize: const Size(240, 50)),
               onPressed: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const ConnectionsScreen(start: 'depot'))),
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ConnectionsScreen(start: 'depot'))),
               icon: const Icon(Icons.link_rounded, size: 18),
               label: const Text('Depot verbinden'),
             ),
-            const SizedBox(height: 4),
-            TextButton(onPressed: () => _add(), child: const Text('Position von Hand eintragen')),
+            const SizedBox(height: 16),
+            Text(
+                'Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppColors.textDim, fontSize: 13, height: 1.4)),
+            TextButton(
+                onPressed: () => _add(),
+                child: const Text('Erste Position eintragen')),
           ],
         ),
       ),
@@ -207,20 +242,26 @@ class _DepotScreenState extends State<DepotScreen> {
     if (live.isEmpty) {
       text = 'Kurse eingegeben, nicht live · ↻ zum Aktualisieren';
     } else {
-      final oldest = live.map((h) => h.priceAt!).reduce((a, b) => a.isBefore(b) ? a : b);
+      final oldest =
+          live.map((h) => h.priceAt!).reduce((a, b) => a.isBefore(b) ? a : b);
       final typed = holdings.length - live.length;
-      text = 'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
+      text =
+          'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
     }
     // the curve shows today's positions through time, not past purchases and sales
     return Text('$text\nVerlauf mit deinem heutigen Bestand gerechnet',
-        style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
+        style:
+            TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
   }
 
   List<Widget> _header(int value, int invested, int gain) {
     final today = DateTime.now();
     final points = [
       for (int i = 0; i < _history.length; i++)
-        ChartPoint(DateTime(today.year, today.month, today.day - (_history.length - 1 - i)), _history[i]),
+        ChartPoint(
+            DateTime(
+                today.year, today.month, today.day - (_history.length - 1 - i)),
+            _history[i]),
     ];
     final hasHistory = points.length >= 2;
     return [
@@ -229,7 +270,7 @@ class _DepotScreenState extends State<DepotScreen> {
         cents: value,
         // change over the range, or overall when no history is available
         startCents: hasHistory ? points.first.cents : invested,
-        period: hasHistory ? _periods[_range]! : 'gesamt',
+        period: hasHistory ? RangeSelector.periods[_range]! : 'gesamt',
         scrubbing: _scrub,
         startDate: hasHistory ? points.first.date : null,
       ),
@@ -237,7 +278,10 @@ class _DepotScreenState extends State<DepotScreen> {
       _priceStand(),
       const SizedBox(height: 12),
       if (_historyLoading && !hasHistory)
-        const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+        const SizedBox(
+            height: 160,
+            child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary)))
       else
         InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),
@@ -253,20 +297,31 @@ class _DepotScreenState extends State<DepotScreen> {
       // overall performance since buying
       Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(
+            color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
-            Expanded(child: _stat('Investiert', Money.format(invested), AppColors.text)),
             Expanded(
-              child: _stat('Gewinn/Verlust', Money.signed(gain), gain >= 0 ? AppColors.positive : AppColors.error),
+                child: _stat(
+                    'Investiert (Ø)', Money.format(invested), AppColors.text)),
+            Expanded(
+              child: _stat('Gewinn/Verlust', Money.signed(gain),
+                  gain >= 0 ? AppColors.positive : AppColors.error),
             ),
             Expanded(
-              child: _stat('Rendite', invested == 0 ? '–' : Money.percent(gain / invested * 100),
+              child: _stat(
+                  'Rendite',
+                  invested == 0 ? '–' : Money.percent(gain / invested * 100),
                   gain >= 0 ? AppColors.positive : AppColors.error),
             ),
           ],
         ),
       ),
+      const SizedBox(height: 8),
+      Text(
+          'Investiert = Durchschnittspreis. Dein Broker kann FIFO nutzen — die Zahl kann leicht abweichen.',
+          style:
+              TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
     ];
   }
 
@@ -276,7 +331,9 @@ class _DepotScreenState extends State<DepotScreen> {
       children: [
         Text(label, style: TextStyle(fontSize: 12, color: AppColors.textDim)),
         const SizedBox(height: 2),
-        Text(value, style: TextStyle(fontWeight: FontWeight.w600, color: color), overflow: TextOverflow.ellipsis),
+        Text(value,
+            style: TextStyle(fontWeight: FontWeight.w600, color: color),
+            overflow: TextOverflow.ellipsis),
       ],
     );
   }
@@ -284,7 +341,8 @@ class _DepotScreenState extends State<DepotScreen> {
   // allocation donut + legend; tap a slice or a row to highlight it
   Widget _allocationCard(List<Holding> holdings, int totalValue) {
     final entries = <MapEntry<String, int>>[
-      for (final h in holdings) if (h.valueCents > 0) MapEntry(h.name, h.valueCents)
+      for (final h in holdings)
+        if (h.valueCents > 0) MapEntry(h.name, h.valueCents)
     ];
     if (entries.isEmpty || totalValue == 0) return const SizedBox.shrink();
     final sel = _slice != null && _slice! < entries.length ? _slice : null;
@@ -298,7 +356,8 @@ class _DepotScreenState extends State<DepotScreen> {
     // which slice was tapped, measured clockwise from the top
     void onTap(Offset local, double size) {
       final d = local - Offset(size / 2, size / 2);
-      if (d.distance < size * 0.27 || d.distance > size / 2) return select(null);
+      if (d.distance < size * 0.27 || d.distance > size / 2)
+        return select(null);
       var angle = math.atan2(d.dy, d.dx) + math.pi / 2;
       if (angle < 0) angle += 2 * math.pi;
       double acc = 0;
@@ -311,7 +370,8 @@ class _DepotScreenState extends State<DepotScreen> {
     const size = 130.0;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+          color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           GestureDetector(
@@ -328,14 +388,19 @@ class _DepotScreenState extends State<DepotScreen> {
                     curve: Curves.easeOutCubic,
                     builder: (_, t, __) => CustomPaint(
                       size: const Size(size, size),
-                      painter: _DonutPainter(entries, totalValue, sel, t, AppColors.surface),
+                      painter: _DonutPainter(
+                          entries, totalValue, sel, t, AppColors.surface),
                     ),
                   ),
                   Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(sel == null ? 'Gesamt' : '${pct[sel]} %',
-                        style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                    Text(Money.format(sel == null ? totalValue : entries[sel].value),
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                        style:
+                            TextStyle(fontSize: 11, color: AppColors.textDim)),
+                    Text(
+                        Money.format(
+                            sel == null ? totalValue : entries[sel].value),
+                        style: const TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w700)),
                   ]),
                 ],
               ),
@@ -356,17 +421,22 @@ class _DepotScreenState extends State<DepotScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 5),
                         child: Row(children: [
                           Container(
-                            width: 10, height: 10,
+                            width: 10,
+                            height: 10,
                             decoration: BoxDecoration(
-                              color: AppColors.chart[i % AppColors.chart.length],
+                              color:
+                                  AppColors.chart[i % AppColors.chart.length],
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(entries[i].key,
-                              style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+                          Expanded(
+                              child: Text(entries[i].key,
+                                  style: const TextStyle(fontSize: 12),
+                                  overflow: TextOverflow.ellipsis)),
                           Text('${pct[i]} %',
-                              style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                              style: TextStyle(
+                                  fontSize: 12, color: AppColors.textDim)),
                         ]),
                       ),
                     ),
@@ -386,33 +456,43 @@ class _DepotScreenState extends State<DepotScreen> {
     return Dismissible(
       key: Key(h.id),
       // synced positions come back with the next sync: managed by the depot link
-      direction: h.id.startsWith(DepotSync.prefix) ? DismissDirection.none : DismissDirection.endToStart,
+      direction: h.id.startsWith(DepotSync.prefix)
+          ? DismissDirection.none
+          : DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(14)),
+        decoration: BoxDecoration(
+            color: AppColors.error, borderRadius: BorderRadius.circular(14)),
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
       confirmDismiss: (_) => _confirmDelete(h),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => HoldingDetailScreen(holding: h))),
+        onTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => HoldingDetailScreen(holding: h))),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              InstrumentAvatar(h.name, color: slot == null ? null : AppColors.chart[slot % AppColors.chart.length]),
+              InstrumentAvatar(h.name,
+                  color: slot == null
+                      ? null
+                      : AppColors.chart[slot % AppColors.chart.length]),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(h.name,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
-                    Text('${_trimShares(h.shares)} Stück${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
-                        style: TextStyle(fontSize: 13, color: AppColors.textDim),
+                    Text(
+                        '${_trimShares(h.shares)} Stück${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
+                        style:
+                            TextStyle(fontSize: 13, color: AppColors.textDim),
                         overflow: TextOverflow.ellipsis),
                   ],
                 ),
@@ -421,10 +501,15 @@ class _DepotScreenState extends State<DepotScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(Money.format(h.valueCents), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(Money.format(h.valueCents),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(Money.percent(h.gainPercent),
-                      style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600)),
                 ],
               ),
             ],
@@ -436,13 +521,19 @@ class _DepotScreenState extends State<DepotScreen> {
 
   String _trimShares(double v) {
     final s = v.toStringAsFixed(4);
-    return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '').replaceAll('.', ',');
+    return s
+        .replaceAll(RegExp(r'0+$'), '')
+        .replaceAll(RegExp(r'\.$'), '')
+        .replaceAll('.', ',');
   }
 
   // fetches the latest live prices for all holdings
   // the oldest live price: the value is only as fresh as that
   static DateTime? _pricesAt(List<Holding> holdings) {
-    final live = [for (final h in holdings) if (h.priceAt != null) h.priceAt!];
+    final live = [
+      for (final h in holdings)
+        if (h.priceAt != null) h.priceAt!
+    ];
     return live.isEmpty ? null : live.reduce((a, b) => a.isBefore(b) ? a : b);
   }
 
@@ -460,20 +551,26 @@ class _DepotScreenState extends State<DepotScreen> {
         if (result.failed == 0) {
           msg = 'Alle Kurse aktuell';
         } else if (result.live > 0) {
-          msg = '${result.live} ${result.live == 1 ? 'Kurs' : 'Kurse'} aktualisiert · '
+          msg =
+              '${result.live} ${result.live == 1 ? 'Kurs' : 'Kurse'} aktualisiert · '
               'für ${result.failed} gerade kein Live-Kurs, dort gilt der letzte Stand';
         } else {
-          msg = 'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.';
+          msg =
+              'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.';
           bg = AppColors.warning;
         }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(msg), backgroundColor: bg));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: const Duration(milliseconds: 2800),
+            content: Text(msg),
+            backgroundColor: bg));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               duration: Duration(milliseconds: 2800),
-              content: Text('Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.'),
+              content: Text(
+                  'Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.'),
               backgroundColor: AppColors.error),
         );
       }
@@ -481,6 +578,7 @@ class _DepotScreenState extends State<DepotScreen> {
   }
 
   void _add({Holding? holding}) async {
+    final first = holding == null && DB.getHoldings().isEmpty;
     final ok = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => AddHoldingScreen(holding: holding)),
@@ -488,8 +586,17 @@ class _DepotScreenState extends State<DepotScreen> {
     if (ok == true && mounted) {
       setState(() {});
       _loadHistory(); // include the new/changed position in the trend
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
-        content: Text(holding == null ? 'Hinzugefügt' : 'Aktualisiert'),
+      final name = first && DB.getHoldings().length == 1
+          ? DB.getHoldings().first.name
+          : null;
+      if (name != null) HapticFeedback.lightImpact();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(milliseconds: name != null ? 3200 : 2800),
+        content: Text(name != null
+            ? 'Deine erste Position steht. $name ist im Depot.'
+            : holding == null
+                ? 'Hinzugefügt'
+                : 'Aktualisiert'),
       ));
     }
   }
@@ -503,7 +610,9 @@ class _DepotScreenState extends State<DepotScreen> {
     if (mounted) {
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
+      messenger.showSnackBar(SnackBar(
+        persist: false,
+        duration: const Duration(seconds: 5),
         content: Text('${h.name} gelöscht'),
         action: SnackBarAction(
           label: 'Rückgängig',
@@ -536,9 +645,12 @@ class _DonutPainter extends CustomPainter {
     for (int i = 0; i < entries.length; i++) {
       final sweep = (entries[i].value / total) * 2 * math.pi * t;
       final color = AppColors.chart[i % AppColors.chart.length];
-      paint.color = selected == null || selected == i ? color : color.withValues(alpha: 0.3);
+      paint.color = selected == null || selected == i
+          ? color
+          : color.withValues(alpha: 0.3);
       final r = selected == i ? radius + 4 : radius;
-      canvas.drawArc(Rect.fromCircle(center: center, radius: r), angle, sweep, true, paint);
+      canvas.drawArc(Rect.fromCircle(center: center, radius: r), angle, sweep,
+          true, paint);
       angle += sweep;
     }
     paint.color = hole;
@@ -547,7 +659,89 @@ class _DonutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
-      old.selected != selected || old.t != t || old.entries != entries || old.hole != hole;
+      old.selected != selected ||
+      old.t != t ||
+      old.entries != entries ||
+      old.hole != hole;
+}
+
+/// Stored type → section title. Unknown types keep their own name.
+const _depotTypeOrder = ['Aktie', 'ETF', 'Krypto', 'Sonstiges'];
+
+const _depotTypeLabel = {
+  'Aktie': 'Aktien',
+  'ETF': 'ETFs',
+  'Krypto': 'Krypto',
+  'Sonstiges': 'Sonstiges',
+};
+
+/// One broker inside a type. [depot] is null when the position has no depot name.
+typedef DepotGroup = ({String? depot, List<Holding> items});
+
+/// One asset-type block, already in display order.
+typedef DepotSection = ({String label, List<DepotGroup> groups});
+
+/// Groups by asset type, then by depot. Named brokers are largest first;
+/// positions without a depot name come last. Inside a broker, largest first.
+List<DepotSection> groupDepotHoldings(List<Holding> holdings) {
+  final byType = <String, List<Holding>>{};
+  for (final h in holdings) {
+    final type = h.type.trim().isEmpty ? 'Sonstiges' : h.type.trim();
+    byType.putIfAbsent(type, () => []).add(h);
+  }
+  final types = <String>[
+    for (final t in _depotTypeOrder)
+      if (byType.containsKey(t)) t,
+  ];
+  final rest = byType.keys.where((t) => !_depotTypeOrder.contains(t)).toList()
+    ..sort();
+  types.addAll(rest);
+
+  return [
+    for (final type in types)
+      (
+        label: _depotTypeLabel[type] ?? type,
+        groups: _depotGroups(byType[type]!)
+      ),
+  ];
+}
+
+List<DepotGroup> _depotGroups(List<Holding> holdings) {
+  final byDepot = <String?, List<Holding>>{};
+  for (final h in holdings) {
+    final name = h.depot?.trim();
+    final key = (name == null || name.isEmpty) ? null : name;
+    byDepot.putIfAbsent(key, () => []).add(h);
+  }
+  final groups = [
+    for (final e in byDepot.entries)
+      (
+        depot: e.key,
+        items: [...e.value]..sort((a, b) {
+            final byValue = b.valueCents.compareTo(a.valueCents);
+            return byValue != 0
+                ? byValue
+                : a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          }),
+      ),
+  ];
+  groups.sort((a, b) {
+    if ((a.depot == null) != (b.depot == null)) return a.depot == null ? 1 : -1;
+    final byValue = _groupCents(b.items).compareTo(_groupCents(a.items));
+    if (byValue != 0) return byValue;
+    return a.depot!.toLowerCase().compareTo(b.depot!.toLowerCase());
+  });
+  return groups;
+}
+
+int _groupCents(List<Holding> items) =>
+    items.fold(0, (s, h) => s + h.valueCents);
+
+/// A broker line under the type when that type has a named depot, or more than one.
+bool showDepotBrokers(List<DepotGroup> groups) {
+  if (groups.isEmpty) return false;
+  if (groups.length > 1) return true;
+  return groups.first.depot != null;
 }
 
 // whole percentages that add up to exactly 100 (largest remainder), so the

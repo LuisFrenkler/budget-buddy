@@ -34,6 +34,11 @@ class AddHoldingScreen extends StatefulWidget {
     return double.tryParse(s);
   }
 
+  // A searched ticker keeps its type (Apple stays Aktie). A custom name, or a
+  // symbol the user typed themselves, can still choose the type.
+  static bool typeLocked({required String symbol, required bool customSymbol}) =>
+      symbol.trim().isNotEmpty && !customSymbol;
+
   @override
   State<AddHoldingScreen> createState() => _AddHoldingScreenState();
 }
@@ -49,9 +54,17 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   String _type = 'Aktie';
   // the symbol field stays while the user types into it
   bool _customSymbol = false;
+  // buy price follows the quote until the user types their own
+  bool _buyEdited = false;
+  // a search quote filled the price fields, so the hint applies
+  bool _quoted = false;
+  // drops a live quote that belongs to an instrument the user already replaced
+  int _pickGen = 0;
   bool _saving = false;
 
   bool get _isEdit => widget.holding != null;
+
+  bool get _typeLocked => AddHoldingScreen.typeLocked(symbol: _symbolCtrl.text, customSymbol: _customSymbol);
 
   @override
   void initState() {
@@ -125,7 +138,11 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                       overflow: TextOverflow.ellipsis),
                                   if (_symbolCtrl.text.isNotEmpty)
-                                    Text(_symbolCtrl.text, style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                                    Text(
+                                      _typeLocked ? '${_symbolCtrl.text} · $_type' : _symbolCtrl.text,
+                                      style: TextStyle(color: AppColors.textDim, fontSize: 13),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                 ],
                               ),
                       ),
@@ -135,12 +152,14 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Segmented(
-              labels: types,
-              index: types.indexOf(_type).clamp(0, types.length - 1),
-              onChanged: (i) => setState(() => _type = types[i]),
-            ),
+            if (!_typeLocked) ...[
+              const SizedBox(height: 16),
+              Segmented(
+                labels: types,
+                index: types.indexOf(_type).clamp(0, types.length - 1),
+                onChanged: (i) => setState(() => _type = types[i]),
+              ),
+            ],
             const SizedBox(height: 16),
 
             // amounts as one calm group
@@ -153,12 +172,20 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                     return n == null || n <= 0 ? 'Ungültig' : null;
                   }),
                   Divider(height: 1, indent: 16, color: AppColors.border),
-                  _field('Kaufpreis', _buyCtrl, '0,00', suffix: '€ / Stück', validator: _priceValidator),
+                  _field('Kaufpreis', _buyCtrl, '0,00',
+                      suffix: '€ / Stück', validator: _priceValidator, onUserEdit: () => _buyEdited = true),
                   Divider(height: 1, indent: 16, color: AppColors.border),
                   _field('Aktueller Kurs', _currentCtrl, '0,00', suffix: '€ / Stück', validator: _priceValidator),
                 ],
               ),
             ),
+            if (_quoted) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Kaufpreis ist mit dem aktuellen Kurs vorausgefüllt. Passe ihn an, wenn du einen anderen Preis gezahlt hast.',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
+              ),
+            ],
             // a position from the custom entry has no ticker yet: with one it gets live prices
             if (_nameCtrl.text.isNotEmpty && (_customSymbol || _symbolCtrl.text.isEmpty)) ...[
               const SizedBox(height: 12),
@@ -221,7 +248,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
 
   // label on the left, right-aligned input with a unit on the right
   Widget _field(String label, TextEditingController ctrl, String hint,
-      {required String suffix, required FormFieldValidator<String> validator}) {
+      {required String suffix, required FormFieldValidator<String> validator, VoidCallback? onUserEdit}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -233,7 +260,10 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
               controller: ctrl,
               textAlign: TextAlign.right,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) {
+                onUserEdit?.call();
+                setState(() {});
+              },
               validator: validator,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               decoration: InputDecoration(
@@ -289,8 +319,8 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     );
   }
 
-  // opens the instrument search sheet and fills name/symbol/type (and the
-  // current price when a live API key is configured)
+  // opens the instrument search sheet and fills name, symbol, type and both
+  // prices (reference immediately, live quote when it arrives)
   Future<void> _pickInstrument() async {
     final picked = await showModalBottomSheet<Instrument>(
       context: context,
@@ -301,24 +331,43 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       builder: (_) => const InstrumentSearchSheet(),
     );
     if (picked == null) return;
+    final gen = ++_pickGen;
+    // the same position keeps the price they paid; a new one starts at the quote
+    final keptBuy = _isEdit &&
+        picked.name.trim() == widget.holding!.name.trim() &&
+        picked.symbol.trim() == widget.holding!.symbol.trim();
     setState(() {
       _nameCtrl.text = picked.name;
       _symbolCtrl.text = picked.symbol;
       _type = picked.type;
-      // pre-fill the current price right away from the reference value
+      _customSymbol = false;
+      _buyEdited = keptBuy;
+      _quoted = false;
+      _livePrice = null;
       if (picked.refCents > 0) {
-        _currentCtrl.text =
-            (picked.refCents / 100).toStringAsFixed(2).replaceAll('.', ',');
+        _fillQuote(picked.refCents, live: false);
+      } else if (!keptBuy) {
+        _currentCtrl.text = '';
+        _buyCtrl.text = '';
       }
     });
+    if (picked.symbol.trim().isEmpty) return;
     // upgrade to a live price where available (crypto always, stocks with key)
     final live = await PriceService.livePrice(symbol: picked.symbol, type: picked.type);
-    if (live != null && live > 0 && mounted) {
-      setState(() {
-        _currentCtrl.text = (live / 100).toStringAsFixed(2).replaceAll('.', ',');
-        _livePrice = (cents: live, at: DateTime.now());
-      });
+    if (live != null && live > 0 && mounted && gen == _pickGen) {
+      setState(() => _fillQuote(live, live: true));
     }
+  }
+
+  // current price always; buy price until the user types what they paid
+  void _fillQuote(int cents, {required bool live}) {
+    final text = (cents / 100).toStringAsFixed(2).replaceAll('.', ',');
+    _currentCtrl.text = text;
+    if (!_buyEdited) {
+      _buyCtrl.text = text;
+      _quoted = true;
+    }
+    if (live) _livePrice = (cents: cents, at: DateTime.now());
   }
 
   // the live price fetched for the picked instrument, to keep its "Stand"

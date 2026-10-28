@@ -22,6 +22,15 @@ void main() {
     expect(pay.category, 'Gehalt');
   });
 
+  test('LOHN/GEHALT in Buchungstext counts when the purpose is only a period', () {
+    const csv = '"Buchungstag";"Buchungstext";"Verwendungszweck";"Beguenstigter/Zahlungspflichtiger";"Betrag"\n'
+        '"01.10.2026";"LOHN/GEHALT";"10/2026";"Muster GmbH";"2.500,00"\n';
+    final r = BankCsvImporter.parse(csv);
+    expect(r.transactions.single.isIncome, isTrue);
+    expect(r.transactions.single.category, 'Gehalt');
+    expect(r.transactions.single.note, 'Muster GmbH');
+  });
+
   test('ING with lines before the header', () {
     const csv = 'Umsatzanzeige;Datei erstellt am: 26.10.2026\n'
         '\n'

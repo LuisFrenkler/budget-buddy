@@ -193,6 +193,5 @@ class DemoData {
       await Hive.box('settings').put('onboardingHidden', true);
     }
 
-    await DB.checkBadges();
   }
 }

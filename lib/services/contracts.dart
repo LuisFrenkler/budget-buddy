@@ -6,6 +6,7 @@
 // lately: the latest amount may jump (that is the price rise worth reporting),
 // one skipped debit doesn't end a contract, and the user can say "kein
 // Vertrag" for a regular payment that isn't one (pocket money, a rent share).
+import '../utils/merchant.dart';
 import '../utils/theme.dart';
 import 'package:hive/hive.dart';
 import '../models/transaction.dart';
@@ -47,7 +48,15 @@ class Contracts {
 
   static Future<void> hide(String name, {bool hide = true}) async {
     final set = {...hidden};
-    hide ? set.add(name.toLowerCase().trim()) : set.remove(name.toLowerCase().trim());
+    final key = Merchant.key(name);
+    final legacy = name.toLowerCase().trim();
+    if (hide) {
+      if (key.isNotEmpty) set.add(key);
+      set.add(legacy);
+    } else {
+      set.remove(key);
+      set.remove(legacy);
+    }
     await Hive.box('settings').put('contractsHidden', set.toList());
   }
 
@@ -58,8 +67,10 @@ class Contracts {
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
       // a monthly savings transfer is no contract to cancel
-      if (t.isIncome || name.isEmpty || skip.contains(name.toLowerCase()) || !Categories.counts(t.category)) continue;
-      groups.putIfAbsent(name.toLowerCase(), () => []).add(t);
+      if (t.isIncome || name.isEmpty || !Categories.counts(t.category)) continue;
+      final key = Merchant.key(name);
+      if (key.isEmpty || skip.contains(key) || skip.contains(name.toLowerCase())) continue;
+      groups.putIfAbsent(key, () => []).add(t);
     }
 
     final out = <Contract>[];
@@ -69,7 +80,8 @@ class Contracts {
       if (!_monthly(payments) || !_steadyAmount(payments)) continue;
       // ended contracts: nothing in the last 45 days
       if (today.difference(payments.last.date).inDays > 45) continue;
-      out.add(Contract(payments.last.note!.trim(), payments.last.category, payments));
+      // prefer the latest tidy merchant name (PayPal *Netflix → Netflix)
+      out.add(Contract(Merchant.tidy(payments.last.note!.trim()), payments.last.category, payments));
     }
     // largest first, like on a bank statement summary
     out.sort((a, b) => b.monthlyCents.compareTo(a.monthlyCents));

@@ -39,7 +39,8 @@ class MoneyAccounts {
   static bool get several => others.isNotEmpty;
 
   static MoneyAccount? byId(String? id) {
-    if (id == null || id == MoneyAccount.main) return main;
+    if (id == null) return null;
+    if (id == MoneyAccount.main) return main;
     for (final a in others) {
       if (a.id == id) return a;
     }

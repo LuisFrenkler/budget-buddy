@@ -164,13 +164,21 @@ class AppTheme {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
 
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: AppColors.surface,
+      modalBackgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      showDragHandle: true,
+      dragHandleColor: AppColors.border,
+    ),
+
     // bottom navigation (custom floating nav is used on the home screen)
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.surface,
       indicatorColor: AppColors.primary.withValues(alpha: 0.15),
       height: 65,
     ),
-    
+
     // smoother, modern page transitions on every platform
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.android: ZoomPageTransitionsBuilder(),

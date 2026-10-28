@@ -1,18 +1,27 @@
 import '../services/buddy_entries.dart';
+import '../services/buddy_wizard.dart';
+import '../services/goals_service.dart';
+import '../services/price_service.dart';
+import '../utils/instruments.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/buddy_tips.dart';
-import '../services/account_service.dart';
+import '../services/buddy_suggestions.dart';
 import '../services/buddy_service.dart';
+import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
+import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import 'buddy_actions.dart';
-import 'auth_screens.dart';
+import 'depot_screen.dart';
+import 'goals_screen.dart';
+import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 
@@ -36,12 +45,7 @@ class BuddyScreen extends StatefulWidget {
     ask.value = question ?? '';
   }
 
-  static const suggestions = [
-    (icon: Icons.flight_takeoff_rounded, text: 'Kann ich mir 800 € Urlaub leisten?'),
-    (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
-    (icon: Icons.receipt_long_rounded, text: 'Welche Abos und Verträge habe ich?'),
-    (icon: Icons.account_balance_wallet_rounded, text: 'Wie viel ist diesen Monat noch frei?'),
-  ];
+  static List<BuddyChip> get suggestions => BuddySuggestions.fallback;
 
   @override
   State<BuddyScreen> createState() => _BuddyScreenState();
@@ -56,12 +60,23 @@ class _BuddyScreenState extends State<BuddyScreen> {
   StreamSubscription<String>? _sub;
   // a photo picked for the next message (receipt, bank or broker screenshot)
   ({Uint8List bytes, String type})? _photo;
+  // setup chat (Vorsorge, Sparziel, Depot) that ends in a confirm card
+  final _wizard = BuddyWizard();
 
   static Box get _settings => Hive.box('settings');
+
+  late final ValueListenable _consentListenable;
+  late final VoidCallback _consentListener;
 
   @override
   void initState() {
     super.initState();
+    // Profil-Schalter und Chat-Schalter halten den Status synchron
+    _consentListenable = _settings.listenable(keys: const ['aiConsent', 'aiConsentGoogle']);
+    _consentListener = () {
+      if (mounted) setState(() {});
+    };
+    _consentListenable.addListener(_consentListener);
     BuddyService.live().then((v) {
       if (!mounted) return;
       setState(() => _live = v);
@@ -82,6 +97,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   @override
   void dispose() {
+    _consentListenable.removeListener(_consentListener);
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
     _sub?.cancel();
     _input.dispose();
@@ -90,22 +106,27 @@ class _BuddyScreenState extends State<BuddyScreen> {
     super.dispose();
   }
 
-  // the finance summary leaves the device only after the user agreed once;
-  // a "no" is remembered too (and both can be changed in Profil)
-  Future<bool> _consent() async {
-    // a yes to Anthropic is no yes to Google: each provider is asked once
-    final key = BuddyService.provider == 'google' ? 'aiConsentGoogle' : 'aiConsent';
-    final given = _settings.get(key);
-    if (given == true) return true;
-    if (given == false) return false;
+  // server AI + user consent (what the subtitle and banners show)
+  bool get _aiOn => _live == true && BuddyService.hasConsent;
+
+  // consent sheet; [force] = also when the user said no before (KI einschalten)
+  Future<bool> _askConsent({bool force = false}) async {
+    await BuddyService.live();
+    final given = _settings.get(BuddyService.consentKey);
+    if (!force) {
+      if (given == true) return true;
+      if (given == false) return false;
+    }
+    if (!mounted) return false;
     final ok = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: AppColors.surface,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(24, 0, 24, 20 + MediaQuery.viewInsetsOf(context).bottom),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
@@ -113,7 +134,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
             const SizedBox(height: 10),
             Text(
               'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
-              '(Summen je Monat und Kategorie, Budgets, Verträge, Händlernamen) an die KI von '
+              '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
+              'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
               '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
               'Keine Kontonummern, keine Zugangsdaten. '
               '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
@@ -132,7 +154,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Einverstanden'),
+              child: const Text('KI einschalten'),
             ),
             const SizedBox(height: 6),
             Center(
@@ -146,8 +168,24 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ),
     );
     // closing the sheet without choosing asks again next time
-    if (ok != null) await _settings.put(key, ok);
+    if (ok != null) await BuddyService.setConsent(ok);
+    if (mounted) setState(() {});
     return ok == true;
+  }
+
+  // first message: ask once; later messages keep the remembered choice
+  Future<bool> _consent() => _askConsent();
+
+  // AppBar / Banner: KI an oder aus
+  Future<void> _toggleAi() async {
+    if (_live != true) return;
+    HapticFeedback.selectionClick();
+    if (BuddyService.hasConsent) {
+      await BuddyService.setConsent(false);
+      if (mounted) setState(() {});
+    } else {
+      await _askConsent(force: true);
+    }
   }
 
   Future<void> _pickPhoto() async {
@@ -196,7 +234,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
           });
           return false;
         }
-        PlusService.count(PlusFeature.aiQuestion);
+        // photo path uses receiptScan; plain event text still uses aiQuestion
+        PlusService.count(photo != null ? PlusFeature.receiptScan : PlusFeature.aiQuestion);
         answer.text = r.reply.isNotEmpty
             ? r.reply
             : (r.entries.isEmpty ? 'Auf dem Bild habe ich nichts zum Buchen gefunden.' : 'Das habe ich erkannt:');
@@ -215,7 +254,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ..entries = [fallback];
       } else {
         answer
-          ..text = '$e'
+          ..text = friendlyError(e)
           ..error = true;
       }
     }
@@ -225,28 +264,147 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   Future<void> _apply(_Message m, int i) async {
+    final e = m.entries[i];
+    if (e.type == 'goal' &&
+        !PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
+      await showPlus(context, reason: 'Mehr Sparziele — und Autopilot für Aufrunden & Monatsziel (ohne Überweisung)');
+      if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) return;
+    }
     HapticFeedback.mediumImpact();
     try {
-      final done = await BuddyEntries.apply(m.entries[i]);
-      if (mounted) setState(() => m.applied[i] = done);
-    } catch (e) {
-      if (mounted) setState(() => m.applied[i] = 'Ging nicht: $e');
+      final done = await BuddyEntries.apply(e);
+      if (!mounted) return;
+      setState(() => m.applied[i] = done);
+      if (e.type == 'vorsorge' && done == 'Gespeichert') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Rentenrechner gespeichert'),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Öffnen',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
+          ),
+        ));
+      } else if (e.type == 'goal' && done == 'Angelegt') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Sparziel angelegt'),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Öffnen',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
+          ),
+        ));
+      } else if (e.type == 'holding' && done == 'Im Depot') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Im Depot'),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Öffnen',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DepotScreen())),
+          ),
+        ));
+      }
+    } catch (err) {
+      if (mounted) setState(() => m.applied[i] = 'Ging nicht. ${friendlyError(err)}');
     }
+  }
+
+  // asks only for missing fields, then shows the same confirm card as a booking
+  Future<void> _runWizard(String text) async {
+    _input.clear();
+    final answer = _Message(false, '');
+    setState(() {
+      _messages.add(_Message(true, text));
+      _messages.add(answer);
+      _thinking = true;
+    });
+    _scrollDown();
+    try {
+      var turn = _wizard.consume(text);
+      if (turn.quoteFor != null) {
+        final q = await _lookup(turn.quoteFor!);
+        if (!mounted) return;
+        turn = _wizard.quoted(instrument: q.instrument, cents: q.cents, live: q.live, options: q.options);
+      }
+      answer.text = turn.text.isEmpty ? 'Das habe ich nicht verstanden.' : turn.text;
+      if (turn.proposal != null) answer.entries = [turn.proposal!];
+    } catch (e) {
+      _wizard.reset();
+      answer.text = friendlyError(e);
+      answer.error = true;
+    }
+    if (mounted) setState(() => _thinking = false);
+    _scrollDown();
+  }
+
+  Future<({Instrument? instrument, int cents, bool live, List<Instrument> options})> _lookup(String query) async {
+    final q = query.trim().toLowerCase();
+    final local = Instruments.search(q);
+    Instrument? exact;
+    for (final i in local) {
+      final name = i.name.toLowerCase();
+      if (name == q || i.symbol.toLowerCase() == q || name.startsWith('$q ')) exact = i;
+    }
+    final pick = exact ?? (local.length == 1 ? local.single : null);
+    if (pick == null && local.length > 1) {
+      return (instrument: null, cents: 0, live: false, options: local.take(4).toList());
+    }
+    var instrument = pick;
+    if (instrument == null) {
+      final remote = await PriceService.search(query);
+      if (remote.length > 1) {
+        return (instrument: null, cents: 0, live: false, options: remote.take(4).toList());
+      }
+      instrument = remote.firstOrNull;
+    }
+    if (instrument == null) return (instrument: null, cents: 0, live: false, options: const <Instrument>[]);
+    int? live;
+    try {
+      live = await PriceService.livePrice(symbol: instrument.symbol, type: instrument.type);
+    } catch (_) {}
+    final cents = (live != null && live > 0) ? live : instrument.refCents;
+    final fresh = live != null && live > 0;
+    return (instrument: instrument, cents: cents, live: fresh, options: const <Instrument>[]);
   }
 
   Future<void> _send(String text) async {
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
     HapticFeedback.selectionClick();
+    // setup runs on the device: no KI quota, nothing saved until Übernehmen.
+    // a photo is a receipt, not an answer to the wizard
+    if (_photo != null) {
+      _wizard.reset();
+    } else if (question.isNotEmpty && (_wizard.isOpen || BuddyWizard.detect(question) != null)) {
+      await _runWizard(question);
+      return;
+    }
     var live = _live ?? false;
     if (live && !await _consent()) live = false;
-    // AI answers cost money: the free tier has a few per month
-    if (live && !PlusService.allowed(PlusFeature.aiQuestion)) {
+    // photo → Beleg-Scan quota (same as smart_entry)
+    if (live && _photo != null && !PlusService.allowed(PlusFeature.receiptScan)) {
       if (!mounted) return;
-      await showPlus(context, reason: 'Du hast deine ${PlusService.freeAiQuestions} Gratis-Fragen genutzt');
+      await showPlus(context,
+          reason: 'Gratis-Scans aufgebraucht — mit Plus jeden Beleg in Sekunden erfassen');
       if (!PlusService.active.value) return;
     }
+    // AI answers cost money: the free tier has a few per month
+    if (live && _photo == null && !PlusService.allowed(PlusFeature.aiQuestion)) {
+      if (!mounted) return;
+      await showPlus(
+          context,
+          reason:
+              'Gratis-Fragen aufgebraucht — mit Plus antwortet Buddy so oft du willst. '
+              'Ohne Plus antwortet Buddy weiter offline aus deinen Daten.');
+      // declined Plus → still answer offline (like consent decline)
+      if (!PlusService.active.value) live = false;
+    }
     if (!mounted) return;
+    // last free question: soft note, never blocks send
+    if (live && _photo == null && PlusService.left(PlusFeature.aiQuestion) == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Noch 1 Gratis-Frage diesen Monat'), behavior: SnackBarBehavior.floating),
+      );
+    }
     if (await _entries(question, live)) return;
     if (!mounted || question.isEmpty) return;
 
@@ -272,7 +430,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
         final text = '$e';
         if (!mounted) return;
         // the free AI's quota is used up for now: answer from the data on the device
-        if (live && text.contains('ausgelastet')) {
+        if (live &&
+            (text.contains('ausgelastet') ||
+                text.contains('Tageslimit') ||
+                text.contains('429') ||
+                text.contains('Limit'))) {
           setState(() {
             answer.text = '';
             answer.offline = true;
@@ -288,10 +450,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         }
         HapticFeedback.heavyImpact();
         setState(() {
-          // the server's reasons are German; a dropped connection is not
-          answer.text = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
-              ? 'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'
-              : text;
+          answer.text = friendlyError(e,
+              fallback: 'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.');
           answer.error = true;
           _thinking = false;
         });
@@ -331,31 +491,69 @@ class _BuddyScreenState extends State<BuddyScreen> {
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Buddy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            Row(children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: _live == true ? AppColors.positive : AppColors.textDim,
-                  shape: BoxShape.circle,
-                ),
+            // tippen schaltet die KI um, wenn der Server sie anbietet
+            InkWell(
+              onTap: _live == true ? _toggleAi : null,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: _aiOn ? AppColors.positive : AppColors.textDim,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _statusLabel,
+                    style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
+                  ),
+                  if (_live == true) ...[
+                    const SizedBox(width: 4),
+                    Icon(Icons.expand_more_rounded, size: 14, color: AppColors.textDim),
+                  ],
+                ]),
               ),
-              const SizedBox(width: 6),
-              Text(
-                _live == null
-                    ? 'verbindet …'
-                    : (_live! ? 'KI-Finanzcoach' : (AccountService.current.value == null ? 'ohne Konto' : 'Offline-Modus')),
-                style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
-              ),
-            ]),
+            ),
           ]),
         ]),
+        actions: [
+          if (_live == true)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: _aiOn ? 'KI ausschalten' : 'KI einschalten',
+                onPressed: _toggleAi,
+                icon: Icon(
+                  _aiOn ? Icons.auto_awesome_rounded : Icons.auto_awesome_outlined,
+                  color: _aiOn ? AppColors.primaryText : AppColors.textDim,
+                ),
+              ),
+            ),
+        ],
       ),
       body: Column(children: [
+        if (_live == true && !BuddyService.hasConsent) _aiOffBanner(),
         Expanded(child: _messages.isEmpty ? _welcome() : _chat()),
         _inputBar(),
       ]),
     );
+  }
+
+  String get _statusLabel {
+    if (_live == null) return 'verbindet …';
+    if (_live != true) return 'Offline-Modus';
+    return _aiOn ? 'KI an' : 'KI aus · tippen zum Einschalten';
+  }
+
+  String get _quotaLine {
+    final left = PlusService.left(PlusFeature.aiQuestion);
+    if (left == 0) return 'Gratis-KI-Fragen aufgebraucht · Offline-Antworten gehen weiter';
+    if (left == 1) return 'Noch 1 Gratis-KI-Frage diesen Monat';
+    return 'Noch $left von ${PlusService.freeAiQuestions} Gratis-KI-Fragen diesen Monat';
   }
 
   Widget _welcome() {
@@ -365,17 +563,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
       children: [
         const Center(child: BuddyOrb(size: 120)),
         const SizedBox(height: 32),
-        Text(name != null ? 'Hi $name, ich bin Buddy.' : 'Hi, ich bin Buddy.',
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
+        Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
         const SizedBox(height: 8),
-        Text('Dein Finanzcoach für den Alltag. Frag mich, ob du dir etwas leisten kannst — '
-            'ich rechne mit deinen echten Ausgaben, Budgets und Abos.',
-            style: TextStyle(fontSize: 17, color: AppColors.textDim, height: 1.4)),
-        const SizedBox(height: 8),
-        Text('Oder tipp einfach, was passiert ist („Döner 8,50 gestern“), oder schick ein Foto vom Beleg.',
-            style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
+        Text(
+          AccountService.current.value == null
+              ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
+              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst — '
+                  'ich nutze deine Ausgaben, Budgets und Verträge.',
+          style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
+        ),
         const SizedBox(height: 24),
-        for (final s in BuddyScreen.suggestions)
+        for (final s in BuddySuggestions.pick(BuddyService.snapshot()))
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Material(
@@ -396,36 +595,71 @@ class _BuddyScreenState extends State<BuddyScreen> {
               ),
             ),
           ),
-        if (_live == false) ...[
-          const SizedBox(height: 8),
+        if (AccountService.current.value == null) ...[
+          const SizedBox(height: 12),
+          _signInHint(),
+        ] else if (_live == false) ...[
+          const SizedBox(height: 12),
           _offlineHint(),
         ],
       ],
     );
   }
 
+  Widget _aiOffBanner() {
+    return Material(
+      color: AppColors.surfaceAlt,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        child: Row(children: [
+          Icon(Icons.auto_awesome_outlined, size: 18, color: AppColors.textDim),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'KI ist aus — Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
+            ),
+          ),
+          TextButton(
+            onPressed: _toggleAi,
+            child: const Text('Einschalten'),
+          ),
+        ]),
+      ),
+    );
+  }
+
   Widget _offlineHint() {
-    final guest = AccountService.current.value == null;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
       child: Row(children: [
-        // a guest isn't offline, just without the account the AI runs through
-        Icon(guest ? Icons.phone_iphone_rounded : Icons.wifi_off_rounded, size: 18, color: AppColors.textDim),
+        Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.textDim),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            guest
-                ? 'Buddy rechnet direkt auf deinem Gerät. Mit einem Konto antwortet er mit KI.'
-                : 'Offline-Modus: Buddy rechnet direkt auf deinem Gerät, die KI ist gerade nicht verbunden.',
+            'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.',
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
         ),
-        if (guest)
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-            child: const Text('Konto'),
+      ]),
+    );
+  }
+
+  Widget _signInHint() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primaryText),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'Kostenloses Konto: KI-Fragen, Beleg-Scan und Sync auf allen Geräten. '
+            'Offline-Antworten gehen auch ohne.',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
+        ),
       ]),
     );
   }
@@ -632,7 +866,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ]),
           const SizedBox(height: 6),
           if (_live == true && !PlusService.active.value)
-            Text('Noch ${PlusService.left(PlusFeature.aiQuestion)} von ${PlusService.freeAiQuestions} Gratis-Fragen diesen Monat',
+            Text(_quotaLine,
                 style: TextStyle(fontSize: 11, color: AppColors.primaryText, fontWeight: FontWeight.w600)),
           Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
               style: TextStyle(fontSize: 11, color: AppColors.textDim)),
@@ -742,7 +976,8 @@ class RichMarkdown extends StatelessWidget {
 // seconds) and one-tap questions.
 class BuddyCard extends StatefulWidget {
   final BuddyTip? tip;
-  const BuddyCard({super.key, this.tip});
+  final List<BuddyChip>? chips;
+  const BuddyCard({super.key, this.tip, this.chips});
 
   @override
   State<BuddyCard> createState() => _BuddyCardState();
@@ -757,7 +992,10 @@ class _BuddyCardState extends State<BuddyCard> {
     super.initState();
     _t = Timer.periodic(const Duration(seconds: 4), (_) {
       // a tip stays put; only the general questions take turns
-      if (mounted && widget.tip == null) setState(() => _i = (_i + 1) % BuddyScreen.suggestions.length);
+      if (mounted && widget.tip == null) {
+        final n = (widget.chips ?? BuddyScreen.suggestions).length;
+        if (n > 0) setState(() => _i = (_i + 1) % n);
+      }
     });
   }
 
@@ -772,50 +1010,57 @@ class _BuddyCardState extends State<BuddyCard> {
   @override
   Widget build(BuildContext context) {
     final tip = widget.tip;
+    final base = widget.chips ?? BuddyScreen.suggestions;
     final s = [
       if (tip != null) (icon: Icons.lightbulb_rounded, text: tip.question),
-      ...BuddyScreen.suggestions,
+      ...base,
     ];
     // a 1.5 px gradient border around the card
     return Container(
-      padding: const EdgeInsets.all(1.5),
+      padding: const EdgeInsets.all(1.25),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(colors: [Color(0xFFA48BFF), Color(0xFF38BDF8), Color(0xFFF472B6)]),
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(colors: [
+          AppColors.primary.withValues(alpha: 0.9),
+          const Color(0xFF38BDF8).withValues(alpha: 0.75),
+          const Color(0xFFF472B6).withValues(alpha: 0.6),
+        ]),
       ),
       child: Material(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20.5),
+        borderRadius: BorderRadius.circular(22.75),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20.5),
-          onTap: () => _open(tip?.question),
+          borderRadius: BorderRadius.circular(22.75),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            _open(tip?.question);
+          },
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 14, 14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                const BuddyOrb(size: 40),
+                const BuddyOrb(size: 42),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(tip != null ? 'Buddy hat einen Tipp' : 'Frag Buddy',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                    const SizedBox(height: 3),
                     if (tip != null)
-                      Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35))
+                      Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35))
                     else
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
-                      // old and new question cross-fade in the same place
                       layoutBuilder: (current, previous) =>
                           Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
                       child: Text('„${s[_i % s.length].text}“',
                           key: ValueKey(_i),
-                          style: TextStyle(color: AppColors.textDim, fontSize: 13),
+                          style: TextStyle(color: AppColors.textDim, fontSize: 13.5),
                           overflow: TextOverflow.ellipsis),
                     ),
                   ]),
                 ),
-                Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+                Icon(Icons.north_east_rounded, size: 18, color: AppColors.textDim.withValues(alpha: 0.75)),
               ]),
               const SizedBox(height: 14),
               // all suggestions, full text, swipeable

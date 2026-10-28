@@ -79,6 +79,15 @@ class SplitService {
   static Future<SplitGroup> addExpense(SplitGroup g, SplitExpense e) =>
       _change(g, {'type': 'addExpense', 'expense': e.toMap()}, () => g.expenses.add(e));
 
+  static Future<SplitGroup> updateExpense(SplitGroup g, SplitExpense e) => _change(
+        g,
+        {'type': 'updateExpense', 'expense': e.toMap()},
+        () {
+          final i = g.expenses.indexWhere((x) => x.id == e.id);
+          if (i >= 0) g.expenses[i] = e;
+        },
+      );
+
   static Future<SplitGroup> removeExpense(SplitGroup g, String id) =>
       _change(g, {'type': 'removeExpense', 'id': id}, () => g.expenses.removeWhere((x) => x.id == id));
 

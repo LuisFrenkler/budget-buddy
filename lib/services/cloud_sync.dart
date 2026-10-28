@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'account_isolation.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
 import 'backup_service.dart';
@@ -26,7 +27,8 @@ enum VaultAction { push, apply, conflict, noop }
 
 class CloudSync {
   static const _storage = FlutterSecureStorage();
-  static const _keyName = 'bb_vault_key';
+  static const _legacyKeyName = 'bb_vault_key';
+  static String _keyNameFor(String userId) => 'bb_vault_key:$userId';
   static final _aes = AesGcm.with256bits();
 
   // what is saved besides the backup: the bank and depot links, so they
@@ -40,9 +42,12 @@ class CloudSync {
   static const _boxes = ['transactions', 'budgets', 'badges', 'holdings', 'recurring', 'goals', 'splits'];
 
   static SecretKey? _key;
+  static String? _keyUserId; // which account _key / secure-storage entry belongs to
   static bool _applying = false;
   static Timer? _debounce;
   static final _subs = <StreamSubscription>[];
+  // bumped in forget() so in-flight apply/push abort after logout
+  static int _generation = 0;
 
   // remote vault waiting for the user to pick device vs cloud (dirty + newer)
   static final conflict = ValueNotifier<Map<String, dynamic>?>(null);
@@ -70,8 +75,10 @@ class CloudSync {
   static Future<void> unlock(String userId, String password) async {
     final key = await deriveKey(userId, password);
     _key = key;
+    _keyUserId = userId;
     try {
-      await _storage.write(key: _keyName, value: base64Encode(await key.extractBytes()));
+      await _storage.write(key: _keyNameFor(userId), value: base64Encode(await key.extractBytes()));
+      await _storage.delete(key: _legacyKeyName); // drop unbound legacy slot
     } catch (_) {}
     _watch();
   }
@@ -91,30 +98,73 @@ class CloudSync {
     return VaultAction.noop;
   }
 
+  // true while this start/apply/push still belongs to the same cache + account + sync gen
+  static bool _stillThisSession(int epoch, String? uid, int generation) =>
+      _generation == generation &&
+      AccountIsolation.sameEpoch(epoch) &&
+      AccountService.current.value?.id == uid;
+
   // on app start with a saved session
   static Future<void> start() async {
     if (AccountService.token == null) return;
+    final epoch = AccountIsolation.epoch;
+    final uid = AccountService.current.value?.id;
+    final generation = _generation;
+    if (uid == null) return;
     try {
-      final saved = await _storage.read(key: _keyName);
-      if (saved != null) _key = SecretKey(base64Decode(saved));
+      // prefer per-user key; migrate legacy unbound slot once
+      var saved = await _storage.read(key: _keyNameFor(uid));
+      if (saved == null) {
+        saved = await _storage.read(key: _legacyKeyName);
+        if (saved != null) {
+          await _storage.write(key: _keyNameFor(uid), value: saved);
+          await _storage.delete(key: _legacyKeyName);
+        }
+      }
+      if (saved != null) {
+        _key = SecretKey(base64Decode(saved));
+        _keyUserId = uid;
+      }
     } catch (_) {}
-    if (_key == null) return; // signed in before sync existed: starts with the next sign-in
+    if (_key == null || _keyUserId != uid) return; // signed in before sync / wrong key
+    if (!_stillThisSession(epoch, uid, generation)) return;
     _watch();
     try {
+      final vaultOwner = '${_settings.get('vaultOwner') ?? ''}';
+      // never upload another identity's leftovers into this account's vault
+      final foreign = (vaultOwner.isNotEmpty && vaultOwner != uid) ||
+          (vaultOwner.isEmpty && AccountIsolation.hasFinanceData);
+      if (foreign) {
+        await AccountIsolation.wipeLocalFinance();
+        if (!_stillThisSession(epoch, uid, generation)) return;
+        await AccountIsolation.claimLocalFor(uid);
+      }
       final remote = await fetch();
+      if (!_stillThisSession(epoch, uid, generation)) return;
       final local = _settings.get('vaultVersion') as int? ?? 0;
       final remoteVersion = remote == null ? null : (remote['version'] as int? ?? 0);
       final dirty = _settings.get('vaultDirty') == true;
       switch (decide(dirty: dirty, localVersion: local, remoteVersion: remoteVersion)) {
         case VaultAction.push:
-          await push();
+          // no server vault yet: never invent one from device leftovers
+          if (remote == null && AccountIsolation.hasFinanceData && !ownsLocalData(uid)) {
+            await AccountIsolation.wipeLocalFinance();
+            if (!_stillThisSession(epoch, uid, generation)) return;
+            await AccountIsolation.claimLocalFor(uid);
+          } else {
+            await push();
+          }
         case VaultAction.apply:
           await apply(remote!);
         case VaultAction.conflict:
-          conflict.value = remote;
+          // never silently overwrite dirty local edits — HomeScreen asks Gerät vs Konto
+          if (remote != null && _stillThisSession(epoch, uid, generation)) conflict.value = remote;
         case VaultAction.noop:
           break;
       }
+      if (!_stillThisSession(epoch, uid, generation)) return;
+      await _settings.delete('vaultLoadFailed');
+      await AccountIsolation.reconcileLinksWithServer();
     } catch (_) {
       // offline: the next change or start tries again
     }
@@ -122,7 +172,16 @@ class CloudSync {
 
   // user chose to keep local edits over the newer cloud copy
   static Future<void> keepDevice() async {
+    final remote = conflict.value;
     conflict.value = null;
+    // never force-overwrite cloud after a failed first load of this account
+    if (_settings.get('vaultLoadFailed') == true) {
+      throw 'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte und versuch es noch einmal.';
+    }
+    // OCC: claim the remote version we are replacing, then push
+    if (remote != null) {
+      await _settings.put('vaultVersion', remote['version'] as int? ?? 0);
+    }
     await push(force: true);
   }
 
@@ -134,7 +193,10 @@ class CloudSync {
   }
 
   static Future<void> forget() async {
+    _generation++; // abort in-flight apply/push at the next await
+    final uid = _keyUserId;
     _key = null;
+    _keyUserId = null;
     conflict.value = null;
     _debounce?.cancel();
     for (final s in _subs) {
@@ -142,7 +204,8 @@ class CloudSync {
     }
     _subs.clear();
     try {
-      await _storage.delete(key: _keyName);
+      if (uid != null) await _storage.delete(key: _keyNameFor(uid));
+      await _storage.delete(key: _legacyKeyName);
     } catch (_) {}
   }
 
@@ -162,21 +225,41 @@ class CloudSync {
   static Future<void> apply(Map<String, dynamic> remote) async {
     final key = _key;
     if (key == null) return;
+    final epoch = AccountIsolation.epoch;
+    final uid = AccountService.current.value?.id;
+    final generation = _generation;
     final payload = jsonDecode(await open(key, remote['data'] as String)) as Map<String, dynamic>;
+    if (!_stillThisSession(epoch, uid, generation)) return;
     _applying = true;
     try {
       await BackupService.restoreFromJson(payload['backup'] as String);
+      if (!_stillThisSession(epoch, uid, generation)) return;
       final links = (payload['links'] as Map?) ?? const {};
       for (final k in _linkKeys) {
         links.containsKey(k) ? await _settings.put(k, links[k]) : await _settings.delete(k);
       }
+      // vault is per-account on the server; stamp owners to this session so a
+      // restored copy can never look like another user's leftovers
+      await _settings.put('vaultOwner', uid);
+      if (uid != null && uid.isNotEmpty) {
+        if ((_settings.get('bankState') as String?)?.isNotEmpty == true ||
+            (_settings.get('bankLinks') as List?)?.isNotEmpty == true) {
+          await _settings.put('bankOwner', uid);
+        }
+        if ((_settings.get('depotState') as String?)?.isNotEmpty == true ||
+            (_settings.get('depotLinks') as List?)?.isNotEmpty == true) {
+          await _settings.put('depotOwner', uid);
+        }
+      }
       await _settings.put('vaultVersion', remote['version']);
-      await _settings.put('vaultOwner', AccountService.current.value?.id);
       await _settings.delete('vaultDirty');
+      await _settings.delete('vaultLoadFailed');
     } finally {
       _applying = false;
     }
-    // the links came with the copy: bring their numbers up to date
+    if (!_stillThisSession(epoch, uid, generation)) return;
+    // drop consents the server no longer has, then refresh what remains
+    await AccountIsolation.reconcileLinksWithServer();
     unawaited(BankSync.refreshIfStale());
     unawaited(DepotSync.refreshIfStale());
   }
@@ -190,10 +273,23 @@ class CloudSync {
       if (required) throw 'Sicherung konnte nicht hochgeladen werden.';
       return;
     }
+    final epoch = AccountIsolation.epoch;
+    final uid = AccountService.current.value?.id;
+    final generation = _generation;
+    // never seed an empty vault over a good cloud copy after a failed first load
+    if (_settings.get('vaultLoadFailed') == true) {
+      if (required) throw 'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte kurz und versuch es noch einmal.';
+      return;
+    }
+    if (uid != null && !ownsLocalData(uid) && AccountIsolation.hasFinanceData) {
+      if (required) throw 'Sicherung konnte nicht hochgeladen werden.';
+      return;
+    }
     await _settings.put('vaultDirty', true);
     if (!force) {
       try {
         final remote = await fetch();
+        if (!_stillThisSession(epoch, uid, generation)) return;
         if (remote != null) {
           final remoteVersion = remote['version'] as int? ?? 0;
           final local = _settings.get('vaultVersion') as int? ?? 0;
@@ -210,21 +306,38 @@ class CloudSync {
         // offline: still try the upload below
       }
     }
+    if (!_stillThisSession(epoch, uid, generation)) return;
     final payload = jsonEncode({
       'backup': BackupService.toBackupJson(),
       'links': {for (final k in _linkKeys) if (_settings.containsKey(k)) k: _settings.get(k)},
     });
+    // always send OCC version (0 = first upload); force only skips the local newer-check
+    final expected = _settings.get('vaultVersion') as int? ?? 0;
+    final sealed = await seal(key, payload);
+    if (!_stillThisSession(epoch, uid, generation)) return;
     final res = await http
         .post(Uri.parse('${BackendService.base}/vault'),
             headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ${AccountService.token}'},
-            body: jsonEncode({'data': await seal(key, payload)}))
+            body: jsonEncode({
+              'data': sealed,
+              'expectedVersion': expected,
+            }))
         .timeout(const Duration(seconds: 30));
+    if (!_stillThisSession(epoch, uid, generation)) return;
+    if (res.statusCode == 409) {
+      try {
+        final remote = await fetch();
+        if (remote != null && _stillThisSession(epoch, uid, generation)) conflict.value = remote;
+      } catch (_) {}
+      if (required) throw 'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.';
+      return;
+    }
     if (res.statusCode != 200) {
       if (required) throw 'Sicherung konnte nicht hochgeladen werden (${res.statusCode}). Bitte bleib online und versuch es noch einmal.';
       return; // stays dirty: the next change or start tries again
     }
     await _settings.put('vaultVersion', (jsonDecode(res.body) as Map)['version']);
-    await _settings.put('vaultOwner', AccountService.current.value?.id);
+    await _settings.put('vaultOwner', uid);
     await _settings.delete('vaultDirty');
   }
 

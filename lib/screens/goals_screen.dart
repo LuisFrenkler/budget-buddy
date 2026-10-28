@@ -4,10 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/goal.dart';
+import '../models/money_account.dart';
 import '../services/auto_save.dart';
 import '../services/buddy_service.dart';
 import '../services/db.dart';
+import '../services/goal_move.dart';
 import '../services/goals_service.dart';
+import '../services/money_accounts.dart';
 import '../services/plus_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -15,6 +18,7 @@ import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/confetti.dart';
 import 'plus_screen.dart';
+import 'buddy_screen.dart';
 
 // usual monthly surplus, the base of every plan
 int _surplus() {
@@ -25,7 +29,7 @@ int _surplus() {
 // Starts a new goal, or opens the Plus page when the free goal is used.
 Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
-    return showPlus(context, reason: 'Mehr Ziele, mehr Träume');
+    return showPlus(context, reason: 'Mehr Sparziele — und Autopilot für Aufrunden & Monatsziel (ohne Überweisung)');
   }
   await showModalBottomSheet(
     context: context,
@@ -72,18 +76,31 @@ class GoalsScreen extends StatelessWidget {
     );
   }
 
-  Widget _empty(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('🎯', style: TextStyle(fontSize: 56)),
-            const SizedBox(height: 16),
-            const Text('Worauf sparst du?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text('Urlaub, Notgroschen, neues Handy: Leg ein Ziel an, und Buddy rechnet dir aus, wie du es schaffst.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
-          ]),
-        ),
+  Widget _empty(BuildContext context) => ListView(
+        padding: const EdgeInsets.fromLTRB(32, 48, 32, 120),
+        children: [
+          Icon(Icons.flag_rounded, size: 52, color: AppColors.primaryText),
+          const SizedBox(height: 20),
+          const Text('Worauf sparst du?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(
+            'Urlaub, Notgroschen, neues Handy: Leg ein Ziel an. Zurücklegen bucht aufs Sparkonto — du siehst es bei den Konten.',
+            style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            onPressed: () => addGoal(context),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Erstes Ziel anlegen', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => BuddyScreen.open(context, 'Wie lege ich ein Sparziel an?'),
+            icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+            label: const Text('Mit Buddy planen'),
+          ),
+        ],
       );
 }
 
@@ -108,8 +125,12 @@ class GoalCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text('${Money.format(goal.savedCents)} von ${Money.format(goal.targetCents)}',
                   style: TextStyle(color: AppColors.textDim, fontSize: 14)),
-              if (goal.deadline != null)
+              if (GoalMove.potOf(goal) case final pot?)
+                Text('liegt auf ${pot.name}', style: TextStyle(color: AppColors.textDim, fontSize: 12.5))
+              else if (goal.deadline != null)
                 Text('bis ${Dates.full(goal.deadline!)}', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+              if (goal.deadline != null && GoalMove.potOf(goal) != null)
+                Text('bis ${Dates.full(goal.deadline!)}', style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
             ]),
           ),
           PopupMenuButton<String>(
@@ -169,9 +190,13 @@ class GoalCard extends StatelessWidget {
                   backgroundColor: AppColors.primary.withValues(alpha: 0.16), foregroundColor: AppColors.primary),
               onPressed: () => _deposit(context, goal),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Geld zurücklegen'),
+              label: Text(MoneyAccounts.several ? 'Zurücklegen' : 'Fortschritt eintragen'),
             ),
           ),
+          const SizedBox(height: 6),
+          Text('Zählt nur in der App — überweist kein Geld.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textDim, fontSize: 12)),
         ],
       ]),
     );
@@ -192,7 +217,7 @@ class GoalCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () async {
           if (!plus) {
-            await showPlus(context, reason: 'Sparziele, die sich von selbst füllen');
+            await showPlus(context, reason: 'Autopilot: Aufrunden & Monatsbeträge — App zählt mit, bewegt kein Geld');
             if (!PlusService.active.value || !context.mounted) return;
           }
           await showModalBottomSheet(
@@ -212,7 +237,7 @@ class GoalCard extends StatelessWidget {
             Expanded(
               child: Text(
                 paused
-                    ? 'Autopilot pausiert · mit Plus geht es weiter'
+                    ? 'Autopilot pausiert · mit Plus zählt die App wieder mit'
                     : goal.automated
                         ? 'Automatisch: ${parts.join(' · ')}'
                         : 'Automatisch sparen einrichten',
@@ -237,11 +262,13 @@ class GoalCard extends StatelessWidget {
     );
   }
 
-  // puts money aside, or with [take] takes some out again (plans change);
-  // either way with an undo
+  // puts money aside (Umbuchung onto the pot when there are several accounts),
+  // or with [take] moves it back — always with undo
   static Future<void> _deposit(BuildContext context, Goal goal, {bool take = false}) async {
     final controller = TextEditingController();
-    // one tap for the usual amounts: the plan's monthly rate, round sums, the rest
+    final pot = GoalMove.potOf(goal);
+    var from = pot != null ? GoalMove.sourceOf(pot) : MoneyAccounts.main;
+    var to = pot ?? MoneyAccounts.main;
     final rate = goal.monthlyCents > 0 ? goal.monthlyCents : goal.monthlyNeeded(DateTime.now());
     final quick = take
         ? <(String, int)>[('Alles ${Money.format(goal.savedCents)}', goal.savedCents)]
@@ -253,51 +280,103 @@ class GoalCard extends StatelessWidget {
           ];
     final cents = await showDialog<int>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text(take ? 'Aus ${goal.name} entnehmen' : 'Für ${goal.name} zurücklegen'),
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
-            onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
-          ),
-          const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final (label, c) in quick)
-              ActionChip(
-                label: Text(label),
-                side: BorderSide(color: AppColors.border),
-                onPressed: () => Navigator.pop(context, c),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text(take ? 'Aus ${goal.name} entnehmen' : 'Für ${goal.name} zurücklegen'),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
+              onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
+            ),
+            if (MoneyAccounts.several) ...[
+              const SizedBox(height: 12),
+              Text(
+                take
+                    ? 'Von ${to.name} zurück auf ${from.name}'
+                    : 'Von ${from.name} auf ${to.name}',
+                style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
               ),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                value: take ? from.id : to.id,
+                decoration: InputDecoration(labelText: take ? 'Zurück auf' : 'Sparkonto'),
+                items: [
+                  for (final a in MoneyAccounts.all)
+                    if (a.id != (take ? to.id : from.id))
+                      DropdownMenuItem(value: a.id, child: Text(a.name)),
+                ],
+                onChanged: (id) {
+                  final a = MoneyAccounts.byId(id);
+                  if (a == null) return;
+                  setLocal(() {
+                    if (take) {
+                      from = a;
+                    } else {
+                      to = a;
+                      from = GoalMove.sourceOf(a);
+                    }
+                  });
+                },
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(
+                  'Nur Zähler — mit einem zweiten Konto (z. B. Tagesgeld) buchen wir die Umbuchung mit.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
+                ),
+              ),
+            const SizedBox(height: 12),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final (label, c) in quick)
+                ActionChip(
+                  label: Text(label),
+                  side: BorderSide(color: AppColors.border),
+                  onPressed: () => Navigator.pop(context, c),
+                ),
+            ]),
           ]),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, Money.parseToCents(controller.text)),
-              child: Text(take ? 'Entnehmen' : 'Zurücklegen')),
-        ],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+            TextButton(
+                onPressed: () => Navigator.pop(context, Money.parseToCents(controller.text)),
+                child: Text(take ? 'Entnehmen' : 'Zurücklegen')),
+          ],
+        ),
       ),
     );
     if (cents == null || cents <= 0) return;
     final before = goal.savedCents;
     final wasReached = goal.reached;
-    goal.savedCents = take ? (before - cents).clamp(0, before) : before + cents;
-    await GoalsService.save(goal);
+    final result = await GoalMove.apply(
+      goal: goal,
+      cents: cents,
+      take: take,
+      from: from,
+      to: to,
+    );
+    if (result.moved <= 0) return;
     HapticFeedback.mediumImpact();
     if (!context.mounted) return;
-    final moved = (goal.savedCents - before).abs();
+    final msg = take
+        ? (result.booked
+            ? '${Money.raw(result.moved)} von ${result.potName ?? 'Sparkonto'} zurück'
+            : '${Money.raw(result.moved)} aus ${goal.name} entnommen')
+        : (result.booked
+            ? '${Money.raw(result.moved)} auf ${result.potName ?? 'Sparkonto'} · Ziel aktualisiert'
+            : '${Money.raw(result.moved)} für ${goal.name} gezählt');
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
-      content: Text(take ? '${Money.raw(moved)} aus ${goal.name} entnommen' : '${Money.raw(moved)} für ${goal.name} zurückgelegt'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
-        goal.savedCents = before;
-        GoalsService.save(goal);
-      }),
+      content: Text(msg),
+      action: SnackBarAction(
+        label: 'Rückgängig',
+        onPressed: () => GoalMove.undo(goal, before, result.txIds),
+      ),
     ));
     if (!take && !wasReached && goal.reached) celebrateGoal(context, goal);
   }
@@ -410,6 +489,15 @@ class _NewGoalState extends State<_NewGoal> {
               : '${widget.cents! ~/ 100}');
   late String _emoji = widget.editing?.emoji ?? '🏖️';
   late DateTime? _deadline = widget.editing?.deadline;
+  late String? _potId = widget.editing?.potId ??
+      GoalMove.potOf(Goal(
+              id: '',
+              name: '',
+              emoji: '🎯',
+              targetCents: 1,
+              createdAt: DateTime.now(),
+              potId: widget.editing?.potId))
+          ?.id;
 
   static String _euros(int cents) =>
       (cents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), '');
@@ -436,7 +524,8 @@ class _NewGoalState extends State<_NewGoal> {
     final cents = _cents;
     if (cents == null || cents <= 0 || _name.text.trim().isEmpty) return;
     final old = widget.editing;
-    await GoalsService.save(Goal(
+    final wasReached = old?.reached ?? false;
+    final goal = Goal(
       id: old?.id ?? const Uuid().v4(),
       name: _name.text.trim(),
       emoji: _emoji,
@@ -449,10 +538,15 @@ class _NewGoalState extends State<_NewGoal> {
       roundUp: old?.roundUp ?? false,
       roundUpSince: old?.roundUpSince,
       roundedIds: old?.roundedIds,
-    ));
+      potId: _potId,
+      creditedIds: old?.creditedIds,
+    );
+    await GoalsService.save(goal);
     if (old == null) await PlusService.count(PlusFeature.goal);
     HapticFeedback.mediumImpact();
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    Navigator.pop(context);
+    if (!wasReached && goal.reached) celebrateGoal(context, goal);
   }
 
   @override
@@ -526,6 +620,18 @@ class _NewGoalState extends State<_NewGoal> {
             onPressed: () => setState(() => _deadline = null),
             child: Text('Ohne Datum', style: TextStyle(color: AppColors.textDim)),
           ),
+        if (MoneyAccounts.several) ...[
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _potId != null && MoneyAccounts.byId(_potId) != null ? _potId : MoneyAccounts.others.first.id,
+            decoration: const InputDecoration(labelText: 'Geld landet auf'),
+            items: [
+              for (final a in MoneyAccounts.all)
+                DropdownMenuItem(value: a.id, child: Text(a.name)),
+            ],
+            onChanged: (id) => setState(() => _potId = id),
+          ),
+        ],
         if (preview != null) ...[
           const SizedBox(height: 12),
           Container(
@@ -537,6 +643,14 @@ class _NewGoalState extends State<_NewGoal> {
               Expanded(child: Text(preview.text, style: const TextStyle(fontSize: 13.5, height: 1.4))),
             ]),
           ),
+        ],
+        if ((cents ?? 0) <= 0 || _name.text.trim().isEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+              _name.text.trim().isEmpty
+                  ? 'Gib dem Ziel einen Namen — oder wähle eine Idee oben.'
+                  : 'Trag ein, wie viel du ansparen willst.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
         ],
         const SizedBox(height: 16),
         FilledButton(

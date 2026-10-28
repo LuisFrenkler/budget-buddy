@@ -4,12 +4,10 @@ import '../models/money_account.dart';
 import 'money_accounts.dart';
 import 'package:hive/hive.dart';
 import 'db.dart';
-import 'goals_service.dart';
-import 'notification_service.dart';
 import 'settings_service.dart';
 
-// value first: book or ask Buddy, then balance/bank, then habit-forming steps
-enum OnboardingStep { booking, balance, budget, goal, notifications }
+// booking → balance → first budget (habit after trust)
+enum OnboardingStep { booking, balance, budget }
 
 class OnboardingService {
   static Box get _box => Hive.box('settings');
@@ -32,9 +30,6 @@ class OnboardingService {
         OnboardingStep.booking => DB.getTx().isNotEmpty,
         OnboardingStep.balance => balanceKnown,
         OnboardingStep.budget => DB.getBudgets().isNotEmpty,
-        OnboardingStep.goal => GoalsService.all().isNotEmpty,
-        // nothing to do where notifications are not possible
-        OnboardingStep.notifications => NotificationService.enabled.value || !NotificationService.canAsk,
       };
 
   static int get doneCount => OnboardingStep.values.where(done).length;

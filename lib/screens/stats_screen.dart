@@ -360,7 +360,10 @@ class _StatsViewState extends State<StatsView> {
           children: [
             Icon(Icons.bar_chart, size: 64, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Keine Daten', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Noch keine Analyse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Sobald Umsätze da sind — per Bank oder Erfassen — siehst du hier die Auswertung.',
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.35)),
           ],
         ),
       ),

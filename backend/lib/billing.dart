@@ -13,6 +13,7 @@
 // Without STRIPE_SECRET_KEY the server runs a demo checkout with the same
 // steps that never charges anything.
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'net.dart';
@@ -132,8 +133,9 @@ class StripeBilling implements Billing {
   @override
   String get mode => 'live';
 
-  Future<Map<String, dynamic>> _req(String method, String path, [Map<String, String>? form]) async {
-    final headers = {'Authorization': 'Bearer $secretKey'};
+  Future<Map<String, dynamic>> _req(String method, String path,
+      [Map<String, String>? form, Map<String, String>? extraHeaders]) async {
+    final headers = {'Authorization': 'Bearer $secretKey', ...?extraHeaders};
     final uri = Uri.parse('$_base$path');
     final res = switch (method) {
       'GET' => await net.get(uri, headers: headers),
@@ -157,18 +159,25 @@ class StripeBilling implements Billing {
     required String cancelUrl,
     String? customer,
   }) async {
-    final s = await _req('POST', '/checkout/sessions', {
-      'mode': 'subscription',
-      'line_items[0][price]': plan == 'yearly' ? priceYearly : priceMonthly,
-      'line_items[0][quantity]': '1',
-      'subscription_data[trial_period_days]': '$trialDays',
-      'subscription_data[metadata][user]': user,
-      'client_reference_id': user,
-      if (customer != null && customer.isNotEmpty) 'customer': customer else 'customer_email': email,
-      'locale': 'de',
-      'success_url': '$returnUrl${returnUrl.contains('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}',
-      'cancel_url': cancelUrl,
-    });
+    // same user+plan+day → same Checkout session on retries (Stripe best practice)
+    final day = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+    final s = await _req(
+      'POST',
+      '/checkout/sessions',
+      {
+        'mode': 'subscription',
+        'line_items[0][price]': plan == 'yearly' ? priceYearly : priceMonthly,
+        'line_items[0][quantity]': '1',
+        'subscription_data[trial_period_days]': '$trialDays',
+        'subscription_data[metadata][user]': user,
+        'client_reference_id': user,
+        if (customer != null && customer.isNotEmpty) 'customer': customer else 'customer_email': email,
+        'locale': 'de',
+        'success_url': '$returnUrl${returnUrl.contains('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}',
+        'cancel_url': cancelUrl,
+      },
+      {'Idempotency-Key': 'bb-checkout-$user-$plan-$day-t$trialDays'},
+    );
     return '${s['url']}';
   }
 
@@ -318,7 +327,9 @@ class DemoBilling implements Billing {
     required String cancelUrl,
     String? customer,
   }) async {
-    final id = 'demo_cs_${DateTime.now().microsecondsSinceEpoch}';
+    // 128-bit random id — never guessable from wall-clock microseconds
+    final rnd = Random.secure();
+    final id = 'demo_cs_${List.generate(16, (_) => rnd.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
     _sessions[id] =
         (user: user, plan: plan, trialDays: trialDays, returnUrl: returnUrl, cancelUrl: cancelUrl, paid: false);
     return '$serverUrl/plus/demo-checkout?session=$id';

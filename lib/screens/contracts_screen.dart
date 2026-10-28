@@ -40,7 +40,7 @@ class ContractsScreen extends StatelessWidget {
                       cents: monthly,
                       below: Text(
                           '${contracts.length} ${contracts.length == 1 ? 'Vertrag' : 'Verträge'} · '
-                          '${Settings.hideAmounts.value ? '•••' : Money.format(monthly * 12)} im Jahr',
+                          '${Settings.hideAmounts.value ? Money.hidden : Money.format(monthly * 12)} im Jahr',
                           style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     ),
                     if (raised.isNotEmpty) ...[
@@ -116,7 +116,7 @@ class ContractsScreen extends StatelessWidget {
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             ValueListenableBuilder<bool>(
               valueListenable: Settings.hideAmounts,
-              builder: (_, hidden, __) => Text(hidden ? '•••' : Money.format(c.monthlyCents),
+              builder: (_, hidden, __) => Text(hidden ? Money.hidden : Money.format(c.monthlyCents),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
             if (c.priceChange > 0)
@@ -179,7 +179,7 @@ class ContractsCard extends StatelessWidget {
                   builder: (_, hidden, __) => Text(
                     [
                       '${contracts.length} erkannt',
-                      hidden ? '••• / Monat' : '${Money.format(monthly)} / Monat',
+                      hidden ? '${Money.hidden} / Monat' : '${Money.format(monthly)} / Monat',
                       if (raised > 0) '$raised teurer',
                     ].join(' · '),
                     style: TextStyle(fontSize: 13, color: raised > 0 ? AppColors.warningText : AppColors.textDim),
@@ -358,6 +358,19 @@ class _ContractSheetState extends State<_ContractSheet> {
                 'Dort geht es oft am schnellsten, den Text kannst du dort einfügen.',
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
             const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Checkliste', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDim, fontSize: 12)),
+                const SizedBox(height: 8),
+                _cancelStep('1', 'Brief kopieren oder per E-Mail öffnen'),
+                _cancelStep('2', 'Beim Anbieter absenden (Website oder Mail)'),
+                _cancelStep('3', 'Hier „Habe ich abgeschickt“ tippen'),
+                _cancelStep('4', 'Buddy warnt dich, falls danach noch abgebucht wird'),
+              ]),
+            ),
+            const SizedBox(height: 14),
             Row(children: [
               Expanded(
                 child: OutlinedButton.icon(
@@ -399,4 +412,15 @@ class _ContractSheetState extends State<_ContractSheet> {
       ),
     );
   }
+
+  Widget _cancelStep(String n, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 18,
+            child: Text(n, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.primaryText)),
+          ),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.3))),
+        ]),
+      );
 }

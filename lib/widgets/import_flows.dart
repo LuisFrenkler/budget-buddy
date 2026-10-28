@@ -12,6 +12,7 @@ import '../services/db.dart';
 import '../services/holdings_csv_importer.dart';
 import '../services/money_accounts.dart';
 import '../services/trade_republic_importer.dart';
+import '../utils/errors.dart';
 import '../utils/theme.dart';
 import 'account_sheet.dart';
 
@@ -116,10 +117,9 @@ Future<void> importBookings(BuildContext context, {MoneyAccount? into}) async {
     }
     // a linked account gets its balance from the bank anyway
     if (account.link == null) await MoneyAccounts.setBalance(account, balance, DB.getTx());
-    await DB.checkBadges();
     if (context.mounted) _snack(context, msg);
   } catch (e) {
-    if (context.mounted) _snack(context, 'Import hat nicht geklappt: $e', error: true);
+    if (context.mounted) _snack(context, friendlyError(e, fallback: 'Import hat nicht geklappt.'), error: true);
   }
 }
 
@@ -145,7 +145,7 @@ Future<void> importDepot(BuildContext context, {String? depot}) async {
           '${imported.skipped > 0 ? ' · ${imported.skipped} übersprungen' : ''}');
     }
   } catch (e) {
-    if (context.mounted) _snack(context, 'Import hat nicht geklappt: $e', error: true);
+    if (context.mounted) _snack(context, friendlyError(e, fallback: 'Import hat nicht geklappt.'), error: true);
   }
 }
 
