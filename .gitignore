@@ -47,9 +47,6 @@ app.*.map.json
 # Marketing material (large videos, audio and renders)
 /brand/
 
-# Local tool settings
-.claude/
-
 # Secrets anywhere in the tree (keys, certificates, signing files, env files)
 .env
 .env.*
@@ -62,3 +59,10 @@ app.*.map.json
 *.keystore
 *.mobileprovision
 key.properties
+
+# editor / agent tooling (not part of the product)
+.cursor/
+.claude/
+.cursorrules
+AGENTS.md
+CLAUDE.md

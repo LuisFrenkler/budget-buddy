@@ -86,15 +86,14 @@ Enable Banking application and put the same address into `.env` as
 ## AI features (Buddy, optional)
 
 ```bash
-export ANTHROPIC_API_KEY=...   # from console.anthropic.com
+export ANTHROPIC_API_KEY=...   # optional LLM provider
+# or:
+export GEMINI_API_KEY=...
 ```
 
-With the key, Buddy answers through Claude Haiku 5.5 (streamed, about 0.1 cent a
-question), reads receipts, refines quick entries and turns what the user tells it
-into entries. Each user can make 50 AI calls per day. Without an Anthropic key a
-`GEMINI_API_KEY` (free, 20 requests a day per model) runs the same features on
-Gemini Flash; without either, or when the quota is used up, the app falls back to
-offline answers and the offline parser.
+With a key, Buddy streams answers, reads receipts and refines quick entries
+(server-side LLM proxy, daily quota per user). Without a key — or when the
+quota is used up — the app falls back to offline answers and the offline parser.
 
 | Method | Path | Purpose |
 |---|---|---|
