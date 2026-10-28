@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'account_isolation.dart';
 import 'backend_service.dart';
 import 'cloud_sync.dart';
 import 'settings_service.dart';
@@ -41,8 +42,45 @@ class AccountService {
       _token = null;
     }
     final cached = _box.get('account') as Map?;
-    if (_token != null && cached != null) current.value = Account.fromJson(cached);
+    if (_token != null && cached != null) {
+      final account = Account.fromJson(cached);
+      current.value = account;
+      await _ensureLinksBelongTo(account.id);
+    }
     if (_token != null) _verify();
+  }
+
+  // after a crash or an old build: never leave another account's bank/depot visible
+  static Future<void> _ensureLinksBelongTo(String accountId) async {
+    final vault = '${_box.get('vaultOwner') ?? ''}';
+    Future<void> fix({
+      required bool linked,
+      required String owner,
+      required Future<void> Function() clear,
+      required Future<void> Function() claim,
+    }) async {
+      if (!linked) return;
+      if (owner == accountId) return;
+      // old builds stored the link without an owner: keep only if the vault is ours
+      if (owner.isEmpty && vault == accountId) {
+        await claim();
+        return;
+      }
+      await clear();
+    }
+
+    await fix(
+      linked: Settings.bankState.isNotEmpty || Settings.extraBanks.isNotEmpty,
+      owner: Settings.bankOwner,
+      clear: Settings.clearBank,
+      claim: () => Settings.setBankOwner(accountId),
+    );
+    await fix(
+      linked: Settings.depotState.isNotEmpty || Settings.extraDepots.isNotEmpty,
+      owner: Settings.depotOwner,
+      clear: Settings.clearDepot,
+      claim: () => Settings.setDepotOwner(accountId),
+    );
   }
 
   // the server may have ended the session (deleted, expired); sign out then.
@@ -82,14 +120,26 @@ class AccountService {
     if (res.statusCode != 200) throw map['error'] ?? 'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.';
 
     final account = Account.fromJson(map['user'] as Map);
+    // capture before we flip guest off — guest upgrades may keep their own entries
+    final wasGuest = Settings.guest.value;
+    final keep = AccountIsolation.mayKeepLocal(
+      accountId: account.id,
+      vaultOwner: '${_box.get('vaultOwner') ?? ''}',
+      bankOwner: Settings.bankOwner,
+      depotOwner: Settings.depotOwner,
+      hasBankOrDepotLinks: AccountIsolation.hasBankOrDepotLinks,
+      hasFinanceData: AccountIsolation.hasFinanceData,
+      wasGuest: wasGuest,
+    );
+    if (!keep) await AccountIsolation.wipeLocalFinance();
+
     _token = map['token'] as String;
     await _storage.write(key: _tokenKey, value: _token);
     await _box.put('account', account.toJson());
     await Settings.setGuest(false);
     await Settings.setSignedOutEmail('');
-    // a bank linked by someone else on this device is not theirs to see
-    if (Settings.bankOwner.isNotEmpty && Settings.bankOwner != account.id) await Settings.clearBank();
-    current.value = account;
+    await AccountIsolation.claimLocalFor(account.id);
+    current.value = account; // PlusService.watchAccount reloads entitlement for this user
     return account;
   }
 
@@ -177,6 +227,7 @@ class AccountService {
         headers: {'Authorization': 'Bearer $_token'}).timeout(const Duration(seconds: 15));
     if (res.statusCode != 200 && res.statusCode != 401) throw 'Löschen fehlgeschlagen (${res.statusCode})';
     await Settings.clearBank();
+    await Settings.clearDepot();
     await _forget();
   }
 

@@ -125,10 +125,15 @@ class Settings {
       _box.put('depotLinks', [for (final l in links) {'state': l.state, 'broker': l.broker}]);
 
   static Future<void> clearDepot() async {
-    for (final k in ['depotState', 'depotBroker', 'depotSync', 'depotHistory']) {
+    for (final k in ['depotState', 'depotBroker', 'depotSync', 'depotHistory', 'depotLinks', 'depotOwner']) {
       await _box.delete(k);
     }
   }
+
+  // id of the account that linked the depot on this device
+  static String get depotOwner => _box.get('depotOwner', defaultValue: '') as String;
+
+  static Future<void> setDepotOwner(String value) => _box.put('depotOwner', value);
 
   // banks linked after the first one: [{state, bank}]
   static List<({String state, String bank})> get extraBanks => [
