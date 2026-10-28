@@ -45,6 +45,68 @@ class BuddyScreen extends StatefulWidget {
     ask.value = question ?? '';
   }
 
+  // shared with Beleg-Scan (Schnell erfassen) — same sheet, same consent key
+  static Future<bool> requestAiConsent(BuildContext context, {bool force = false}) async {
+    await BuddyService.live();
+    final given = Hive.box('settings').get(BuddyService.consentKey);
+    if (!force) {
+      if (given == true) return true;
+      if (given == false) return false;
+    }
+    if (!context.mounted) return false;
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(24, 0, 24, 20 + MediaQuery.viewInsetsOf(context).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const BuddyOrb(size: 48),
+            const SizedBox(height: 16),
+            const Text('Buddy mit KI nutzen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 10),
+            Text(
+              'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
+              '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
+              'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
+              '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
+              'Keine Kontonummern, keine Zugangsdaten. '
+              '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
+              style: TextStyle(color: AppColors.textDim, height: 1.45),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                onPressed: () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy))),
+                child: const Text('Datenschutzerklärung lesen'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('KI einschalten'),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('Nur offline antworten', style: TextStyle(color: AppColors.textDim)),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+    if (ok != null) await BuddyService.setConsent(ok);
+    return ok == true;
+  }
+
   static List<BuddyChip> get suggestions => BuddySuggestions.fallback;
 
   @override
@@ -111,66 +173,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // consent sheet; [force] = also when the user said no before (KI einschalten)
   Future<bool> _askConsent({bool force = false}) async {
-    await BuddyService.live();
-    final given = _settings.get(BuddyService.consentKey);
-    if (!force) {
-      if (given == true) return true;
-      if (given == false) return false;
-    }
-    if (!mounted) return false;
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(24, 0, 24, 20 + MediaQuery.viewInsetsOf(context).bottom),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const BuddyOrb(size: 48),
-            const SizedBox(height: 16),
-            const Text('Buddy mit KI nutzen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 10),
-            Text(
-              'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
-              '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
-              'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
-              '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
-              'Keine Kontonummern, keine Zugangsdaten. '
-              '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
-              style: TextStyle(color: AppColors.textDim, height: 1.45),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
-                onPressed: () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy))),
-                child: const Text('Datenschutzerklärung lesen'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('KI einschalten'),
-            ),
-            const SizedBox(height: 6),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('Nur offline antworten', style: TextStyle(color: AppColors.textDim)),
-              ),
-            ),
-          ]),
-        ),
-      ),
-    );
-    // closing the sheet without choosing asks again next time
-    if (ok != null) await BuddyService.setConsent(ok);
+    final ok = await BuddyScreen.requestAiConsent(context, force: force);
     if (mounted) setState(() {});
-    return ok == true;
+    return ok;
   }
 
   // first message: ask once; later messages keep the remembered choice
@@ -573,6 +578,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   'ich nutze deine Ausgaben, Budgets und Verträge.',
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
+        if (AccountService.current.value != null &&
+            _live == true &&
+            !PlusService.active.value) ...[
+          const SizedBox(height: 10),
+          Text(_quotaLine,
+              style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.primaryText,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35)),
+        ],
         const SizedBox(height: 24),
         for (final s in BuddySuggestions.pick(BuddyService.snapshot()))
           Padding(

@@ -12,9 +12,8 @@ import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/weekly_story.dart';
 import 'buddy_screen.dart';
-import 'plus_screen.dart';
 
-// Buddy's weekly report. Tip + categories are free; AI chat CTA stays Plus-gated.
+// Buddy's weekly report. Tip + categories free; Buddy-Chat mit Gratis-Kontingent.
 class WeeklyReportScreen extends StatelessWidget {
   const WeeklyReportScreen({super.key});
 
@@ -149,16 +148,17 @@ class _Report extends StatelessWidget {
           Text(r.tip, style: TextStyle(fontSize: 14.5, height: 1.45, color: AppColors.text.withValues(alpha: 0.85))),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () {
-              if (plus) {
-                BuddyScreen.open(context, 'Wie kann ich nächste Woche weniger ausgeben als diese?');
-              } else {
-                showPlus(context, reason: 'Mit Plus redet Buddy weiter und hilft dir, den Plan umzusetzen');
-              }
-            },
+            onPressed: () => BuddyScreen.open(
+                context, 'Wie kann ich nächste Woche weniger ausgeben als diese?'),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(plus ? 'Mit Buddy weiterreden' : 'Mit Plus weiterreden'),
+            label: const Text('Mit Buddy weiterreden'),
           ),
+          if (!plus)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text('Offline geht auch ohne Plus · Live-KI mit Gratis-Kontingent',
+                  style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3)),
+            ),
         ]),
       ),
       const SizedBox(height: 14),

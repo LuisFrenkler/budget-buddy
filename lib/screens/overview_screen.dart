@@ -41,12 +41,15 @@ import '../services/weekly_report.dart';
 import '../services/buddy_tips.dart';
 import '../services/buddy_service.dart';
 import '../services/buddy_suggestions.dart';
+import '../services/category_coach.dart';
 import '../services/wealth.dart';
 import '../widgets/forecast_card.dart';
 import 'weekly_report_screen.dart';
 import 'profile_screen.dart';
+import 'goals_screen.dart';
 import 'wealth_screen.dart';
 import '../widgets/weekly_story.dart';
+import '../services/plus_service.dart';
 
 // The start screen: one calm money story, Buddy tip, Polster — deeper topics
 // live under "Für dich" and in Profil.
@@ -244,6 +247,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     _vaultBanner(),
                   if (empty) ...[
                     _welcome(),
+                    if (!OnboardingService.hidden) ...[
+                      const SizedBox(height: 20),
+                      const GettingStartedCard(),
+                    ],
                     const SizedBox(height: 20),
                     _quickActions(),
                   ] else ...[
@@ -637,6 +644,30 @@ class _OverviewScreenState extends State<OverviewScreen> {
   // only signal tiles — no second dashboard
   List<Widget> _forYou(List<Transaction> tx) {
     final tiles = <Widget>[];
+
+    final misc = CategoryCoach.miscCount();
+    if (misc > 0) {
+      final auto = CategoryCoach.autoFixes(limit: 1);
+      tiles.add(_forYouTile(
+        Icons.category_rounded,
+        'Buchungen einordnen',
+        auto.isNotEmpty
+            ? '$misc in Sonstiges · Händler erkennbar'
+            : '$misc in Sonstiges · Buddy räumt mit dir auf',
+        () => BuddyScreen.open(context, 'Sonstiges aufräumen'),
+      ));
+    }
+
+    if (GoalsService.all().where((g) => !g.reached).isEmpty) {
+      tiles.add(_forYouTile(
+        Icons.flag_rounded,
+        'Sparziel anlegen',
+        PlusService.active.value
+            ? 'Worauf sparst du?'
+            : '1 Ziel gratis · Autopilot später mit Plus',
+        () => addGoal(context),
+      ));
+    }
 
     final contracts = Contracts.detect(tx);
     final raised = contracts.where((c) => c.priceChange > 0).length;
@@ -1200,6 +1231,15 @@ class _OverviewScreenState extends State<OverviewScreen> {
               showSmartEntry(context);
             },
             child: const Text('Oder Ausgabe manuell erfassen'),
+          ),
+          TextButton(
+            onPressed: () async {
+              HapticFeedback.selectionClick();
+              await DemoData.load();
+              if (mounted) setState(() {});
+            },
+            child: Text('Beispieldaten ansehen',
+                style: TextStyle(color: AppColors.textDim)),
           ),
         ]),
       ),

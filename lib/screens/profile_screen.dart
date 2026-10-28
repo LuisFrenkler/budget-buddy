@@ -356,15 +356,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, sub, _) {
           final plus = sub != null;
           final now = DateTime.now();
-          final subtitle = syncErr != null
-              ? syncErr
-              : sub == null
-                  ? 'Buddy, Belege und Ziele ohne Limit · 7 Tage gratis'
+          final trialOk = StorePurchases.supported &&
+              ((StorePurchases.trial[PlusPlan.yearly] ?? false) ||
+                  (StorePurchases.trial[PlusPlan.monthly] ?? false));
+          final freePitch =
+              'Gratis: ${PlusService.freeAiQuestions} KI-Fragen, ${PlusService.freeReceiptScans} Belege, 1 Sparziel'
+              '${trialOk ? ' · 7 Tage Plus testen' : ' · Plus ohne Limit'}';
+          final subtitle = syncErr ??
+              (sub == null
+                  ? freePitch
                   : sub.cancelled
                       ? 'Gekündigt · aktiv bis ${Dates.dayMonth(sub.endsAt!)}'
                       : sub.inTrial(now)
                           ? 'Gratis-Test bis ${Dates.dayMonth(sub.trialEnds)} · Abo verwalten'
-                          : 'Nächste Zahlung ${Dates.dayMonth(sub.periodEnd(now))} · Abo verwalten';
+                          : 'Nächste Zahlung ${Dates.dayMonth(sub.periodEnd(now))} · Abo verwalten');
           return Material(
             borderRadius: BorderRadius.circular(18),
             clipBehavior: Clip.antiAlias,
@@ -604,9 +609,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'Kurz durchklicken und Feedback schicken, wenn etwas hakt:\n\n'
               '1. Konto anlegen und erneut anmelden\n'
               '2. Bank verbinden (oder Demo) und Sync ziehen\n'
-              '3. Buddy eine echte Frage stellen\n'
-              '4. Sparziel anlegen und Fortschritt prüfen\n'
-              '5. Geteilte Ausgabe mit Code testen\n\n'
+              '3. Buddy fragen + Sonstiges aufräumen (Start-Kachel)\n'
+              '4. 1 Sparziel gratis anlegen · Autopilot braucht Plus\n'
+              '5. Wochenbericht öffnen und „Mit Buddy weiterreden“\n'
+              '6. Geteilte Ausgabe mit Code testen\n\n'
               'Bank kann noch Demo sein — echte Freigaben kommen mit der öffentlichen Version.',
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
