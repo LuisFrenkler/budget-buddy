@@ -13,6 +13,7 @@ import '../widgets/add_account_choice.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
+import '../widgets/vault_banner.dart';
 import 'account_screen.dart';
 import 'add_holding_screen.dart';
 import 'budget_screen.dart';
@@ -24,6 +25,9 @@ import 'overview_screen.dart';
 // bar with a separate add button next to it.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  // switch shell tab from anywhere (e.g. Buddy action → Start / Prognose)
+  static final goTab = ValueNotifier<int?>(null);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -47,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // an invite link opened the app: straight to joining, also right after signing in
     AccountService.current.addListener(_pendingJoin);
     BuddyScreen.ask.addListener(_toBuddy);
+    HomeScreen.goTab.addListener(_toTab);
     AccountScreen.pendingSegment.addListener(_toAccountSection);
     CloudSync.conflict.addListener(_vaultConflict);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -123,6 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (BuddyScreen.ask.value != null && mounted) _open(3);
   }
 
+  void _toTab() {
+    final t = HomeScreen.goTab.value;
+    if (t == null || !mounted) return;
+    HomeScreen.goTab.value = null;
+    _open(t);
+  }
+
   void _toAccountSection() {
     final segment = AccountScreen.pendingSegment.value;
     if (segment == null || !mounted) return;
@@ -133,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     BuddyScreen.ask.removeListener(_toBuddy);
+    HomeScreen.goTab.removeListener(_toTab);
     AccountScreen.pendingSegment.removeListener(_toAccountSection);
     AutoSave.reached.removeListener(_goalReached);
     AccountService.current.removeListener(_pendingJoin);
@@ -174,33 +187,38 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
         // the tabs stay alive (scroll position, loaded charts) and cross-fade
         // with a slight rise when switching
-        body: Stack(children: [
-          for (final (i, tab) in [
-            OverviewScreen(onOpen: _open, scroll: _scrolls[0]),
-            AccountScreen(segment: _segment, scroll: _scrolls[1]),
-            DepotScreen(scroll: _scrolls[2]),
-            BuddyScreen(tab: true, scroll: _scrolls[3]),
-          ].indexed)
-            IgnorePointer(
-              ignoring: i != _tab,
-              // the fade itself must keep running when a tab goes inactive,
-              // so only the tab's own content is paused (TickerMode inside)
-              child: AnimatedOpacity(
-                opacity: i == _tab ? 1 : 0,
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                child: AnimatedSlide(
-                  offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  // a screen reader only reads the tab that is shown
-                  child: ExcludeSemantics(
-                    excluding: i != _tab,
-                    child: TickerMode(enabled: i == _tab, child: tab),
+        body: Column(children: [
+          const VaultBanner(),
+          Expanded(
+            child: Stack(children: [
+              for (final (i, tab) in [
+                OverviewScreen(onOpen: _open, scroll: _scrolls[0]),
+                AccountScreen(segment: _segment, scroll: _scrolls[1]),
+                DepotScreen(scroll: _scrolls[2]),
+                BuddyScreen(tab: true, scroll: _scrolls[3]),
+              ].indexed)
+                IgnorePointer(
+                  ignoring: i != _tab,
+                  // the fade itself must keep running when a tab goes inactive,
+                  // so only the tab's own content is paused (TickerMode inside)
+                  child: AnimatedOpacity(
+                    opacity: i == _tab ? 1 : 0,
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                    child: AnimatedSlide(
+                      offset: i == _tab ? Offset.zero : const Offset(0, 0.015),
+                      duration: const Duration(milliseconds: 260),
+                      curve: Curves.easeOutCubic,
+                      // a screen reader only reads the tab that is shown
+                      child: ExcludeSemantics(
+                        excluding: i != _tab,
+                        child: TickerMode(enabled: i == _tab, child: tab),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+            ]),
+          ),
         ]),
         bottomNavigationBar: _navigation(),
         ),

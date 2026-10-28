@@ -35,6 +35,7 @@ class MonthForecast {
   final int paceCents; // spending at the usual pace until month end
   final List<DueItem> due; // fixed costs still to come this month
   final bool limitedByBalance; // the account holds less than the plan says
+  final bool incomePreliminary; // only this month's earnings so far (no 3-month avg yet)
 
   const MonthForecast({
     required this.incomeCents,
@@ -46,6 +47,7 @@ class MonthForecast {
     required this.paceCents,
     required this.due,
     this.limitedByBalance = false,
+    this.incomePreliminary = false,
   });
 
   int get perDayCents => daysLeft <= 0 ? freeCents : freeCents ~/ daysLeft;
@@ -91,8 +93,19 @@ class ForecastService {
           .where((t) => t.isEarning && !t.date.isBefore(start) && t.date.isBefore(end))
           .fold<int>(0, (s, t) => s + t.amountCents);
     }
-    if (months == 0 || incomeSum == 0) return null;
-    final income = incomeSum ~/ months;
+    var incomePreliminary = false;
+    late final int income;
+    if (months == 0 || incomeSum == 0) {
+      // week 1: only Gehalt this month — still show „noch frei“, labelled preliminary
+      final thisMonth = tx
+          .where((t) => t.isEarning && !t.date.isBefore(monthStart) && !t.date.isAfter(monthEnd))
+          .fold<int>(0, (s, t) => s + t.amountCents);
+      if (thisMonth <= 0) return null;
+      income = thisMonth;
+      incomePreliminary = true;
+    } else {
+      income = incomeSum ~/ months;
+    }
 
     final contracts = Contracts.detect(tx, now: today);
     final fixedIds = {for (final c in contracts) for (final p in c.payments) p.id};
@@ -144,6 +157,7 @@ class ForecastService {
       paceCents: pace,
       due: due,
       limitedByBalance: limited,
+      incomePreliminary: incomePreliminary,
     );
   }
 }

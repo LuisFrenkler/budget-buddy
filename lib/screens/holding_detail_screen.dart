@@ -96,12 +96,28 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
       builder: (_, __, ___) {
         final matches = DB.getHoldings().where((x) => x.id == widget.holding.id).toList();
         if (matches.isEmpty) {
-          // deleted elsewhere — leave the screen
-          // only while this page is on top: after its own delete it is already leaving
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) Navigator.pop(context);
-          });
-          return const SizedBox.shrink();
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.pie_chart_outline_rounded, size: 48, color: AppColors.textDim),
+                  const SizedBox(height: 12),
+                  const Text('Position gelöscht',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Text('Diese Position gibt es hier nicht mehr.',
+                      textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Zurück'),
+                  ),
+                ]),
+              ),
+            ),
+          );
         }
         final h = matches.first;
         final up = h.isUp;

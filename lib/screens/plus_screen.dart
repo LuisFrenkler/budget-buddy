@@ -5,6 +5,7 @@ import '../services/plus_service.dart';
 import '../services/store_purchases.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/free_tier_usage.dart';
 import '../legal/legal_texts.dart';
 import 'about_screen.dart';
 import 'subscription_screen.dart';
@@ -61,7 +62,8 @@ class _PlusScreenState extends State<PlusScreen> {
   ];
 
   Future<void> _buy() async {
-    final ok = await showCheckout(context, _yearly ? PlusPlan.yearly : PlusPlan.monthly);
+    final ok = await showCheckout(context, _yearly ? PlusPlan.yearly : PlusPlan.monthly,
+        reason: widget.reason);
     if (ok && mounted) Navigator.pop(context);
   }
 
@@ -216,6 +218,8 @@ class _PlusScreenState extends State<PlusScreen> {
                       ),
                     ]),
                   ),
+                  const SizedBox(height: 12),
+                  const FreeTierUsage(),
                   const SizedBox(height: 16),
                   _plan(true),
                   const SizedBox(height: 10),

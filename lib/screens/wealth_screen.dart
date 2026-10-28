@@ -4,9 +4,11 @@ import 'package:uuid/uuid.dart';
 import '../services/db.dart';
 import '../services/goals_service.dart';
 import '../services/money_accounts.dart';
+import '../services/onboarding_service.dart';
 import '../services/wealth.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../widgets/getting_started.dart';
 import 'buddy_screen.dart';
 import 'goals_screen.dart';
 
@@ -151,6 +153,25 @@ class _WealthScreenState extends State<WealthScreen> {
             style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
           ),
         ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              foregroundColor: AppColors.primaryText,
+            ),
+            onPressed: () async {
+              await showBalanceSheet(context);
+              if (context.mounted) setState(() {});
+            },
+            child: Text(OnboardingService.balanceKnown
+                ? 'Kontostand aktualisieren'
+                : 'Kontostand eintragen'),
+          ),
+        ),
+        Text('Gleiche Berechnung wie auf Start (Konto + Depot − Schulden).',
+            style: TextStyle(color: AppColors.textDim, fontSize: 11.5, height: 1.3)),
       ]),
     );
   }

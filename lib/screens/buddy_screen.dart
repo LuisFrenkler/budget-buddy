@@ -272,7 +272,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final e = m.entries[i];
     if (e.type == 'goal' &&
         !PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
-      await showPlus(context, reason: 'Mehr Sparziele — und Autopilot für Aufrunden & Monatsziel (ohne Überweisung)');
+      await showPlus(context,
+          reason: 'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.');
       if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) return;
     }
     HapticFeedback.mediumImpact();
@@ -280,7 +281,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
       final done = await BuddyEntries.apply(e);
       if (!mounted) return;
       setState(() => m.applied[i] = done);
-      if (e.type == 'vorsorge' && done == 'Gespeichert') {
+      if (e.type == 'recategorize' || e.type == 'recategorize_all') {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$done — Regeln merkt sich Buddy für künftige Buchungen'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      } else if (e.type == 'vorsorge' && done == 'Gespeichert') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Rentenrechner gespeichert'),
           behavior: SnackBarBehavior.floating,
@@ -443,11 +449,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
           setState(() {
             answer.text = '';
             answer.offline = true;
+            answer.degraded = true;
           });
           _sub = BuddyService.ask(history, live: false).listen(
             (piece) => setState(() => answer.text += piece),
             onDone: () {
-              if (mounted) setState(() => _thinking = false);
+              if (mounted) {
+                setState(() {
+                  _thinking = false;
+                  if (!answer.error) {
+                    answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
+                  }
+                });
+              }
               _scrollDown();
             },
           );
@@ -578,7 +592,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   'ich nutze deine Ausgaben, Budgets und Verträge.',
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
-        if (AccountService.current.value != null &&
+        if (PlusService.syncError.value != null) ...[
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: () => PlusService.syncWithServer(fresh: true),
+            child: Text(
+              '${PlusService.syncError.value} · Tippen zum Aktualisieren',
+              style: TextStyle(
+                  fontSize: 13, color: AppColors.warningText, fontWeight: FontWeight.w600, height: 1.35),
+            ),
+          ),
+        ] else if (AccountService.current.value != null &&
             _live == true &&
             !PlusService.active.value) ...[
           const SizedBox(height: 10),
@@ -671,8 +695,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Kostenloses Konto: KI-Fragen, Beleg-Scan und Sync auf allen Geräten. '
-            'Offline-Antworten gehen auch ohne.',
+            'Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. '
+            'Offline-Antworten ohne Limit auch ohne Konto.',
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
         ),
@@ -744,7 +768,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
             if (m.offline && m.text.isNotEmpty && !m.error)
               Padding(
                 padding: const EdgeInsets.only(top: 6, left: 4),
-                child: Text('Ohne KI berechnet aus deinen Daten',
+                child: Text(
+                    m.degraded
+                        ? 'KI gerade ausgelastet — Antwort offline aus deinen Daten'
+                        : 'Ohne KI berechnet aus deinen Daten',
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
             for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
@@ -881,7 +908,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
           ]),
           const SizedBox(height: 6),
-          if (_live == true && !PlusService.active.value)
+          if (PlusService.syncError.value != null)
+            GestureDetector(
+              onTap: () => PlusService.syncWithServer(fresh: true),
+              child: Text('${PlusService.syncError.value} · Tippen zum Aktualisieren',
+                  style: TextStyle(fontSize: 11, color: AppColors.warningText, fontWeight: FontWeight.w600)),
+            )
+          else if (_live == true && !PlusService.active.value)
             Text(_quotaLine,
                 style: TextStyle(fontSize: 11, color: AppColors.primaryText, fontWeight: FontWeight.w600)),
           Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
@@ -896,6 +929,7 @@ class _Message {
   final bool fromUser;
   String text;
   bool offline;
+  bool degraded = false; // live KI failed → offline fallback
   bool error = false;
   List<BuddyAction> actions = const []; // next steps under an answer
   List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user

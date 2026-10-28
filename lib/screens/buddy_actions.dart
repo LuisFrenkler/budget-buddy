@@ -2,14 +2,18 @@
 // "Wo kann ich sparen?" ends in a budget, not just in a paragraph.
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../services/category_coach.dart';
 import '../services/finance_snapshot.dart';
 import '../services/goals_service.dart';
 import '../services/local_buddy.dart';
 import 'add_holding_screen.dart';
 import 'budget_screen.dart';
+import 'buddy_screen.dart';
 import 'contracts_screen.dart';
 import 'depot_screen.dart';
 import 'goals_screen.dart';
+import 'home_screen.dart';
+import 'splits_screen.dart';
 import 'vorsorge_screen.dart';
 import 'wealth_screen.dart';
 
@@ -75,6 +79,27 @@ class BuddyActions {
       ];
     }
     if (_has(q, ['abo', 'vertr', 'fixkost'])) return s.contracts.isEmpty ? [] : [contracts];
+    if (_has(q, ['sonstiges', 'kategor']) && CategoryCoach.miscCount() > 0) {
+      return [
+        BuddyAction(Icons.auto_fix_high_rounded, 'Sonstiges aufräumen',
+            (c) => BuddyScreen.open(c, 'Sonstiges aufräumen')),
+      ];
+    }
+    if (_has(q, ['was bleibt', 'noch ausgeben', 'prognose', 'monatsende', 'noch frei']) &&
+        s.forecast != null) {
+      return [
+        BuddyAction(Icons.insights_rounded, 'Prognose auf Start', (c) {
+          Navigator.popUntil(c, (r) => r.isFirst);
+          HomeScreen.goTab.value = 0;
+        }),
+      ];
+    }
+    if (_has(q, ['split', 'schuldet', 'geteilt']) && s.splits.any((g) => g.myCents != 0)) {
+      return [
+        BuddyAction(Icons.group_rounded, 'Splits öffnen',
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const SplitsScreen()))),
+      ];
+    }
     if (_has(q, ['spar', 'meisten', 'wofür', 'ausgaben', 'kategorie', 'budget'])) {
       // a budget for what stands out (or the biggest category) that has none yet
       final over = LocalBuddy.overUsual(s).map((e) => e.key);

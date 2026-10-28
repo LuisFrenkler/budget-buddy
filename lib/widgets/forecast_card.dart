@@ -83,6 +83,12 @@ class ForecastCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+            if (f.limitedByBalance) ...[
+              const SizedBox(height: 6),
+              Text('An deinen Kontostand angepasst (noch fällige Abbuchungen).',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.3),
+                  maxLines: 2),
+            ],
           ]),
         ),
       ),
@@ -113,10 +119,13 @@ class ForecastCard extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             const Text('So rechnet Buddy', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.',
-                style: TextStyle(color: AppColors.textDim)),
+            Text(
+                f.incomePreliminary
+                    ? 'Einkommen: dieser Monat — sobald drei volle Monate da sind, rechnen wir mit dem Schnitt.'
+                    : 'Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.',
+                style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),
-            line('Übliches Einkommen', f.incomeCents),
+            line(f.incomePreliminary ? 'Einkommen (dieser Monat)' : 'Übliches Einkommen', f.incomeCents),
             line('Fixkosten (Miete, Abos …)', f.fixedCents, minus: true),
             if (f.goalsCents > 0) line('Für deine Sparziele', f.goalsCents, minus: true),
             line('Bisher ausgegeben', f.spentCents, minus: true),

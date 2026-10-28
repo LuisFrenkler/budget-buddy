@@ -9,6 +9,7 @@ import '../services/cloud_sync.dart';
 import '../services/account_service.dart';
 import '../services/demo_data.dart';
 import '../services/settings_service.dart';
+import '../utils/errors.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
@@ -244,7 +245,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
     } catch (e) {
-      setState(() => _error = '$e');
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -415,7 +416,7 @@ class _SignInScreenState extends State<SignInScreen> {
       });
     } catch (e) {
       HapticFeedback.heavyImpact();
-      setState(() => _error = '$e');
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -437,7 +438,7 @@ class _SignInScreenState extends State<SignInScreen> {
             duration: Duration(milliseconds: 4200),
             content: Text(
                 'Deine gesicherten Daten konnten gerade nicht geladen werden. '
-                'Schreibe noch nichts — tipp oben auf den Hinweis zum erneuten Versuch.')));
+                'Schreibe noch nichts — tipp auf den roten Hinweis zum erneuten Versuch.')));
       }
     }
   }

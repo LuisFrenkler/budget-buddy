@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../screens/budget_screen.dart';
 import '../screens/connections_screen.dart';
 import '../screens/smart_entry_sheet.dart';
+import '../screens/wealth_screen.dart';
 import '../models/money_account.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
@@ -181,6 +182,39 @@ class GettingStartedCard extends StatelessWidget {
           const SizedBox(height: 8),
           for (final s in OnboardingStep.values)
             _row(context, s, OnboardingService.done(s), s == next),
+        ] else ...[
+          const SizedBox(height: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen()));
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Row(children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.savings_outlined, size: 18, color: AppColors.primaryText),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Polster & Absicherung',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+                    Text('Notgroschen, Schulden, Versicherungen',
+                        style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                  ]),
+                ),
+                Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
+              ]),
+            ),
+          ),
         ],
       ]),
     );

@@ -86,6 +86,16 @@ void main() {
       expect(ForecastService.build([_tx('x', 500, 'Sonstiges', now)], now: now), isNull);
     });
 
+    test('this-month income alone yields a preliminary forecast', () {
+      final week1 = [
+        _tx('inc', 250000, 'Gehalt', DateTime(2026, 10, 1), note: 'Gehalt', income: true),
+        _tx('a', 4000, 'Lebensmittel', DateTime(2026, 10, 10)),
+      ];
+      final f = ForecastService.build(week1, now: DateTime(2026, 10, 21))!;
+      expect(f.incomePreliminary, isTrue);
+      expect(f.incomeCents, 250000);
+    });
+
     test('pace: over, tight or relaxed', () {
       final heavy = [...tx, _tx('big', 150000, 'Kleidung', DateTime(2026, 10, 20))];
       expect(ForecastService.build(heavy, now: now)!.pace, ForecastPace.over);
