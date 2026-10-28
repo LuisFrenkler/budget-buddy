@@ -313,7 +313,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     // the same scale as when changing the password later
     final (strength, word) = passwordStrength(_password.text);
-    final colors = [AppColors.border, AppColors.error, AppColors.warning, AppColors.positive, AppColors.positive];
+    final colors = passwordStrengthScale;
     return _AuthScaffold(
       title: 'Konto erstellen',
       subtitle: 'Damit sind deine Bankverbindungen nur für dich sichtbar.',

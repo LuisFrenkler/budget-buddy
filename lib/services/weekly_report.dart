@@ -51,6 +51,12 @@ class WeeklyReport {
   // relative change against the usual week, null without history
   double? get change => usualCents <= 0 ? null : (spentCents - usualCents) / usualCents;
 
+  // same band as the headline "Eine ganz normale Woche": not a coloured ±%
+  bool get roughlyUsual {
+    final c = change;
+    return c != null && c > -0.1 && c < 0.15;
+  }
+
   // ISO 8601 week number
   int get week {
     final thursday = DateTime(start.year, start.month, start.day + 3);

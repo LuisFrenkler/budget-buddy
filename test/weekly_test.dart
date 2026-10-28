@@ -65,6 +65,20 @@ void main() {
     test('no expenses, no report', () {
       expect(WeeklyReportService.build(const [], now: DateTime(2026, 10, 21)), isNull);
     });
+
+    test('a small swing is still a normal week, without a ±% badge', () {
+      final tx = <Transaction>[];
+      for (var w = 1; w <= 4; w++) {
+        final monday = DateTime(2026, 10, 12 - 7 * w);
+        tx.add(_tx('u$w', 10000, 'Lebensmittel', monday));
+      }
+      // 4 % over usual → headline "normale Woche", not a red +4 %
+      tx.add(_tx('a', 10400, 'Lebensmittel', DateTime(2026, 10, 12)));
+      final r = WeeklyReportService.build(tx, now: DateTime(2026, 10, 21))!;
+      expect(r.usualCents, 10000);
+      expect(r.roughlyUsual, isTrue);
+      expect(r.headline, 'Eine ganz normale Woche');
+    });
   });
 
   group('Reminder plan', () {

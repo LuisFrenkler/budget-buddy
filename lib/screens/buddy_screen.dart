@@ -22,7 +22,9 @@ class BuddyScreen extends StatefulWidget {
   final String? question;
   // the Buddy tab of the app shell: the one chat the rest of the app talks to
   final bool tab;
-  const BuddyScreen({super.key, this.question, this.tab = false});
+  // shell scroll: re-tapping Buddy jumps to the top of the chat
+  final ScrollController? scroll;
+  const BuddyScreen({super.key, this.question, this.tab = false, this.scroll});
 
   // a question for the Buddy tab ('' just opens it); the shell switches to the tab
   static final ask = ValueNotifier<String?>(null);
@@ -47,7 +49,7 @@ class BuddyScreen extends StatefulWidget {
 
 class _BuddyScreenState extends State<BuddyScreen> {
   final _input = TextEditingController();
-  final _scroll = ScrollController();
+  late final ScrollController _scroll = widget.scroll ?? ScrollController();
   final _messages = <_Message>[];
   bool _thinking = false;
   bool? _live;
@@ -83,7 +85,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
     _sub?.cancel();
     _input.dispose();
-    _scroll.dispose();
+    // shell owns the controller when Buddy is a tab
+    if (widget.scroll == null) _scroll.dispose();
     super.dispose();
   }
 

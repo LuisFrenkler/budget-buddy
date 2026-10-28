@@ -14,6 +14,8 @@ class AuthService {
   static Future<bool> Function()? debugAvailable;
   @visibleForTesting
   static Future<bool> Function()? debugAuthenticate;
+  @visibleForTesting
+  static Future<List<BiometricType>> Function()? debugBiometrics;
 
   // true if the device can do biometrics or a device passcode
   static Future<bool> isAvailable() async {
@@ -23,6 +25,24 @@ class AuthService {
     } catch (_) {
       return false;
     }
+  }
+
+  // subtitle under "App-Sperre": Face ID, fingerprint or a generic device lock
+  static Future<String> lockSubtitle() async {
+    try {
+      final types = debugBiometrics != null ? await debugBiometrics!() : await _auth.getAvailableBiometrics();
+      if (types.contains(BiometricType.face) || types.contains(BiometricType.iris)) {
+        return 'Face ID oder Code beim Öffnen';
+      }
+      if (types.contains(BiometricType.fingerprint) ||
+          types.contains(BiometricType.strong) ||
+          types.contains(BiometricType.weak)) {
+        return 'Fingerabdruck oder PIN beim Öffnen';
+      }
+    } catch (_) {}
+    return defaultTargetPlatform == TargetPlatform.iOS
+        ? 'Face ID oder Code beim Öffnen'
+        : 'Gerätecode beim Öffnen';
   }
 
   // prompts the user to authenticate. returns true on success.

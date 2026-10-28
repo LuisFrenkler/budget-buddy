@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'theme.dart';
+
 // How strong a new password is, the same on sign-up and when changing it.
 // 0..4 and a word for it; length counts most, then variety
 (int, String) passwordStrength(String p) {
@@ -13,3 +16,7 @@
   if (p.length < 8) score = 0;
   return (score, const ['Zu kurz', 'Schwach', 'Okay', 'Gut', 'Stark'][score]);
 }
+
+// one colour scale for register and change-password (index = score 0..4)
+List<Color> get passwordStrengthScale =>
+    [AppColors.border, AppColors.error, AppColors.warning, AppColors.positive, AppColors.positive];
