@@ -548,7 +548,9 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
         );
     return _Sheet(
       title: 'Passwort ändern',
-      text: 'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet.',
+      text: 'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. '
+          'Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung — '
+          'vergessen heißt, die Kopie ist nicht mehr lesbar.',
       error: error,
       busy: busy,
       onSave: _submit,
