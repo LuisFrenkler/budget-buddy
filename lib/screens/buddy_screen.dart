@@ -37,10 +37,10 @@ class BuddyScreen extends StatefulWidget {
   }
 
   static const suggestions = [
-    (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
-    (icon: Icons.donut_large_rounded, text: 'Wofür gebe ich am meisten aus?'),
     (icon: Icons.flight_takeoff_rounded, text: 'Kann ich mir 800 € Urlaub leisten?'),
+    (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
     (icon: Icons.receipt_long_rounded, text: 'Welche Abos und Verträge habe ich?'),
+    (icon: Icons.account_balance_wallet_rounded, text: 'Wie viel ist diesen Monat noch frei?'),
   ];
 
   @override
@@ -365,14 +365,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
       children: [
         const Center(child: BuddyOrb(size: 120)),
         const SizedBox(height: 32),
-        Text(name != null ? 'Hi $name 👋' : 'Hi 👋',
+        Text(name != null ? 'Hi $name, ich bin Buddy.' : 'Hi, ich bin Buddy.',
             style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
         const SizedBox(height: 8),
-        Text('Ich kenne deine Zahlen. Frag mich, was du über dein Geld wissen willst.',
+        Text('Dein Finanzcoach für den Alltag. Frag mich, ob du dir etwas leisten kannst — '
+            'ich rechne mit deinen echten Ausgaben, Budgets und Abos.',
             style: TextStyle(fontSize: 17, color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 8),
-        Text('Oder erzähl mir, was passiert ist („200 € aufs Tagesgeld“, „10 Apple zu 180 € gekauft“), '
-            'oder schick ein Foto vom Beleg. Ich trage es ein, sobald du es bestätigst.',
+        Text('Oder tipp einfach, was passiert ist („Döner 8,50 gestern“), oder schick ein Foto vom Beleg.',
             style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 24),
         for (final s in BuddyScreen.suggestions)

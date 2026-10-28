@@ -27,6 +27,7 @@ import 'buddy_screen.dart';
 import 'budget_screen.dart';
 import 'goals_screen.dart';
 import 'recap_screen.dart';
+import 'smart_entry_sheet.dart';
 import '../services/goals_service.dart';
 import 'connections_screen.dart';
 import 'contracts_screen.dart';
@@ -843,24 +844,53 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
-  // first launch without any data
-  // first start without data: a short hello, then the guided first steps
+  // first start without data: one clear job, then the checklist
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(name == null || name.isEmpty ? 'Willkommen 👋' : 'Hallo $name 👋',
           style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
       const SizedBox(height: 6),
-      Text('In fünf kurzen Schritten weiß BudgetBuddy, was du ausgeben kannst und wo du sparst.',
+      Text('Frag Buddy, was du dir leisten kannst — oder erfasse deine erste Ausgabe in einem Satz.',
           style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 15)),
       const SizedBox(height: 20),
-      const GettingStartedCard(),
-      const SizedBox(height: 12),
-      TextButton.icon(
-        onPressed: () => DemoData.load(),
-        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-        label: const Text('Erst mal mit Beispieldaten umschauen'),
+      FilledButton.icon(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        onPressed: () {
+          HapticFeedback.selectionClick();
+          BuddyScreen.open(context, 'Wo kann ich sparen?');
+        },
+        icon: const Icon(Icons.auto_awesome_rounded),
+        label: const Text('Buddy fragen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       ),
+      const SizedBox(height: 10),
+      OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        onPressed: () {
+          HapticFeedback.selectionClick();
+          showSmartEntry(context);
+        },
+        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+        label: const Text('Schnell erfassen', style: TextStyle(fontWeight: FontWeight.w700)),
+      ),
+      const SizedBox(height: 8),
+      TextButton.icon(
+        onPressed: () async {
+          await DemoData.load();
+          if (!mounted) return;
+          BuddyScreen.open(context, 'Kann ich mir 800 € Urlaub leisten?');
+        },
+        icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+        label: const Text('Mit Beispieldaten Buddy testen'),
+      ),
+      const SizedBox(height: 20),
+      const GettingStartedCard(),
     ]);
   }
 }

@@ -8,6 +8,7 @@ import 'goals_service.dart';
 import 'notification_service.dart';
 import 'settings_service.dart';
 
+// value first: book or ask Buddy, then balance/bank, then habit-forming steps
 enum OnboardingStep { booking, balance, budget, goal, notifications }
 
 class OnboardingService {

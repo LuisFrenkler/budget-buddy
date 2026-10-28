@@ -10,6 +10,7 @@ import '../services/settings_service.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
+import 'buddy_screen.dart';
 import 'connections_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
@@ -31,19 +32,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   static const _slides = [
     (
-      icon: Icons.account_balance_rounded,
-      title: 'Dein Geld.\nEndlich klar.',
-      text: 'Girokonto, Depot und Budgets in einer App. Verbunden in einer Minute.',
+      icon: Icons.auto_awesome_rounded,
+      title: 'Kann ich mir\ndas leisten?',
+      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen — und antwortet klar.',
+    ),
+    (
+      icon: Icons.chat_bubble_outline_rounded,
+      title: 'Erfassen, wie\ndu sprichst.',
+      text: 'Tipp „Döner 8,50 gestern“ oder knips den Beleg. Fertig. Kein Formular.',
     ),
     (
       icon: Icons.receipt_long_rounded,
-      title: 'Verträge und Abos\nim Blick.',
-      text: 'BudgetBuddy erkennt feste Kosten von selbst und warnt, wenn etwas teurer wird.',
-    ),
-    (
-      icon: Icons.shield_rounded,
-      title: 'Sicher wie\ndeine Bank.',
-      text: 'Login nur bei deiner Bank, reiner Lesezugriff, Sperre per Face ID.',
+      title: 'Abos im Griff.\nErhöhungen auch.',
+      text: 'BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
     ),
   ];
 
@@ -193,6 +194,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         child: Text('Ohne Konto ausprobieren', style: TextStyle(color: AppColors.textDim)),
                       ),
                     ),
+                    Text('Nur Lesezugriff aufs Konto · Face ID · Keine Kontonummern an die KI',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
                   ]),
                 ),
               ],
@@ -568,7 +572,7 @@ class StartChoiceScreen extends StatefulWidget {
 class _StartChoiceScreenState extends State<StartChoiceScreen> {
   bool _busy = false;
 
-  Future<void> _finish({bool demo = false, bool bank = false}) async {
+  Future<void> _finish({bool demo = false, bool bank = false, bool buddy = false}) async {
     setState(() => _busy = true);
     if (demo) await DemoData.load();
     // for guests this flips the root from welcome to the app
@@ -577,6 +581,9 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
     Navigator.popUntil(context, (r) => r.isFirst);
     if (bank) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
+    } else if (buddy) {
+      // demo numbers + the one question that sells the coach
+      BuddyScreen.open(context, 'Kann ich mir 800 € Urlaub leisten?');
     }
   }
 
@@ -594,29 +601,30 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             Text(name != null ? 'Hallo $name 👋' : 'Los geht\'s 👋',
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
-            Text('Wie möchtest du starten?', style: TextStyle(fontSize: 17, color: AppColors.textDim)),
+            Text('In einer Minute weißt du, ob BudgetBuddy zu dir passt.',
+                style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
+            _ChoiceCard(
+              icon: Icons.auto_awesome_rounded,
+              title: 'Buddy ausprobieren',
+              text: 'Beispieldaten laden und Buddy fragen: „Kann ich mir 800 € Urlaub leisten?“',
+              badge: 'Empfohlen',
+              onTap: _busy ? null : () => _finish(demo: true, buddy: true),
+            ),
+            const SizedBox(height: 12),
             if (!widget.guest) ...[
               _ChoiceCard(
                 icon: Icons.account_balance_rounded,
                 title: 'Bankkonto verbinden',
                 text: 'Kontostand und Umsätze kommen automatisch. Dauert etwa eine Minute.',
-                badge: 'Empfohlen',
                 onTap: _busy ? null : () => _finish(bank: true),
               ),
               const SizedBox(height: 12),
             ],
             _ChoiceCard(
-              icon: Icons.auto_awesome_rounded,
-              title: 'Mit Beispieldaten',
-              text: 'Sieh dir alle Funktionen mit einem halben Jahr Beispielfinanzen an.',
-              onTap: _busy ? null : () => _finish(demo: true),
-            ),
-            const SizedBox(height: 12),
-            _ChoiceCard(
               icon: Icons.edit_note_rounded,
-              title: 'Selbst erfassen',
-              text: 'Starte leer und trage Einnahmen und Ausgaben selbst ein.',
+              title: 'Leer starten',
+              text: 'Selbst tippen oder Belege scannen — ohne Beispielzahlen.',
               onTap: _busy ? null : () => _finish(),
             ),
             if (widget.guest) ...[
