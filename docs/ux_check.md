@@ -45,7 +45,7 @@ Status: ✅ behoben · ⏳ offen · 🧑 braucht dich (Entscheidung, Zugang, Ger
 | 21 | App-Sperre | Sperre/Sichtschutz liegen unter geöffneten Unterseiten | ✅ |
 | 22 | Abmelden | Daten bleiben ohne Anmeldung sichtbar, obwohl der Dialog Schutz verspricht | ✅ |
 | 23 | Registrieren | In-App-Registrierung kann Beispieldaten in echte Daten mischen | ✅ |
-| 24 | Anmelden | Kein „Passwort vergessen“ | 🧑 (braucht E-Mail-Versand) |
+| 24 | Anmelden | Kein „Passwort vergessen“ | ✅ ehrlicher Hinweis (kein Reset-Link; Vault = Passwort). Echter E-Mail-Reset später |
 | 25 | Checkout Web | Lokaler Testmodus schaltet Plus gratis frei und fragt echte Kartendaten ab | ✅ |
 | 26 | Verbindungen | Entwickler-Hinweise („cd backend && dart run server.dart“) für Endnutzer | ✅ |
 | 27 | Rechtliches | Platzhalter in Impressum/Support würden ohne Warnung ausgeliefert | 🧑 (deine Angaben) |

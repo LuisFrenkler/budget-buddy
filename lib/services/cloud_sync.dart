@@ -11,8 +11,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
@@ -21,15 +21,17 @@ import 'backend_service.dart';
 import 'backup_service.dart';
 import 'bank_sync.dart';
 import 'depot_sync.dart';
+import 'secure_store.dart';
 
 /// What [CloudSync.start] / a guarded push should do next.
 enum VaultAction { push, apply, conflict, noop }
 
 class CloudSync {
-  static const _storage = FlutterSecureStorage();
   static const _legacyKeyName = 'bb_vault_key';
   static String _keyNameFor(String userId) => 'bb_vault_key:$userId';
-  static final _aes = AesGcm.with256bits();
+  // Always Dart (not Web Crypto): same vault bytes on HTTPS, HTTP LAN and native.
+  static final _crypto = DartCryptography();
+  static final _aes = _crypto.aesGcm(secretKeyLength: 32);
 
   // what is saved besides the backup: the bank and depot links, so they
   // keep working on the next device, and which records are sample data
@@ -54,9 +56,13 @@ class CloudSync {
 
   static Box get _settings => Hive.box('settings');
 
+  static bool get isUnlocked =>
+      _key != null && _keyUserId != null && _keyUserId == AccountService.current.value?.id;
+
   // the key for this account from its password
   static Future<SecretKey> deriveKey(String userId, String password, {int iterations = 210000}) =>
-      Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: iterations, bits: 256)
+      _crypto
+          .pbkdf2(macAlgorithm: Hmac.sha256(), iterations: iterations, bits: 256)
           .deriveKeyFromPassword(password: password, nonce: utf8.encode('budgetbuddy-vault:$userId'));
 
   static Future<String> seal(SecretKey key, String plain) async {
@@ -77,10 +83,30 @@ class CloudSync {
     _key = key;
     _keyUserId = userId;
     try {
-      await _storage.write(key: _keyNameFor(userId), value: base64Encode(await key.extractBytes()));
-      await _storage.delete(key: _legacyKeyName); // drop unbound legacy slot
+      await SecureStore.write(_keyNameFor(userId), base64Encode(await key.extractBytes()));
+      await SecureStore.delete(_legacyKeyName); // drop unbound legacy slot
     } catch (_) {}
     _watch();
+  }
+
+  // login / vault-banner retry: fresh session, unlock, then pull or seed vault
+  static Future<void> loadAccountData(String password) async {
+    final account = AccountService.current.value;
+    if (account == null) throw 'Nicht angemeldet.';
+    await AccountService.refreshSession(password);
+    await unlock(account.id, password);
+    final remote = await fetch();
+    if (remote == null) {
+      await push(required: true);
+    } else {
+      await apply(remote, required: true);
+    }
+    await _settings.delete('vaultLoadFailed');
+  }
+
+  // LAN / phone test: keep using the app without cloud until the next login
+  static Future<void> skipCloudForNow() async {
+    await _settings.delete('vaultLoadFailed');
   }
 
   // pure: dirty local edits must not silently overwrite a newer cloud copy
@@ -113,12 +139,12 @@ class CloudSync {
     if (uid == null) return;
     try {
       // prefer per-user key; migrate legacy unbound slot once
-      var saved = await _storage.read(key: _keyNameFor(uid));
+      var saved = await SecureStore.read(_keyNameFor(uid));
       if (saved == null) {
-        saved = await _storage.read(key: _legacyKeyName);
+        saved = await SecureStore.read(_legacyKeyName);
         if (saved != null) {
-          await _storage.write(key: _keyNameFor(uid), value: saved);
-          await _storage.delete(key: _legacyKeyName);
+          await SecureStore.write(_keyNameFor(uid), saved);
+          await SecureStore.delete(_legacyKeyName);
         }
       }
       if (saved != null) {
@@ -204,8 +230,8 @@ class CloudSync {
     }
     _subs.clear();
     try {
-      if (uid != null) await _storage.delete(key: _keyNameFor(uid));
-      await _storage.delete(key: _legacyKeyName);
+      if (uid != null) await SecureStore.delete(_keyNameFor(uid));
+      await SecureStore.delete(_legacyKeyName);
     } catch (_) {}
   }
 
@@ -222,26 +248,62 @@ class CloudSync {
   }
 
   // replaces the data here with the account's copy
-  static Future<void> apply(Map<String, dynamic> remote) async {
+  static Future<void> apply(Map<String, dynamic> remote, {bool required = false}) async {
     final key = _key;
-    if (key == null) return;
+    if (key == null) {
+      if (required) throw 'Vault-Schlüssel fehlt. Bitte Passwort erneut eingeben.';
+      return;
+    }
     final epoch = AccountIsolation.epoch;
     final uid = AccountService.current.value?.id;
     final generation = _generation;
-    final payload = jsonDecode(await open(key, remote['data'] as String)) as Map<String, dynamic>;
-    if (!_stillThisSession(epoch, uid, generation)) return;
+    final Map<String, dynamic> payload;
+    try {
+      payload = jsonDecode(await open(key, remote['data'] as String)) as Map<String, dynamic>;
+    } catch (e) {
+      if (required) {
+        throw 'Sicherung lässt sich nicht öffnen. Stimmt das Passwort? ($e)';
+      }
+      rethrow;
+    }
+    if (!_stillThisSession(epoch, uid, generation)) {
+      if (required) throw 'Sitzung hat gewechselt. Bitte noch einmal versuchen.';
+      return;
+    }
     _applying = true;
     try {
-      await BackupService.restoreFromJson(payload['backup'] as String);
-      if (!_stillThisSession(epoch, uid, generation)) return;
+      final rawBackup = payload['backup'];
+      final backupJson = rawBackup is String
+          ? rawBackup
+          : rawBackup == null
+              ? null
+              : jsonEncode(rawBackup);
+      if (backupJson == null || backupJson.isEmpty) {
+        throw 'Sicherung ist leer oder beschädigt.';
+      }
+      try {
+        await BackupService.restoreFromJson(backupJson);
+      } catch (e) {
+        if (required) throw 'Daten konnten lokal nicht geschrieben werden ($e)';
+        rethrow;
+      }
+      if (!_stillThisSession(epoch, uid, generation)) {
+        if (required) throw 'Sitzung hat gewechselt. Bitte noch einmal versuchen.';
+        return;
+      }
       final links = (payload['links'] as Map?) ?? const {};
       for (final k in _linkKeys) {
-        links.containsKey(k) ? await _settings.put(k, links[k]) : await _settings.delete(k);
+        final v = BackupService.stripNulls(links[k]);
+        if (v == null) {
+          await _settings.delete(k);
+        } else {
+          await _settings.put(k, v);
+        }
       }
       // vault is per-account on the server; stamp owners to this session so a
       // restored copy can never look like another user's leftovers
-      await _settings.put('vaultOwner', uid);
       if (uid != null && uid.isNotEmpty) {
+        await _settings.put('vaultOwner', uid);
         if ((_settings.get('bankState') as String?)?.isNotEmpty == true ||
             (_settings.get('bankLinks') as List?)?.isNotEmpty == true) {
           await _settings.put('bankOwner', uid);
@@ -251,7 +313,7 @@ class CloudSync {
           await _settings.put('depotOwner', uid);
         }
       }
-      await _settings.put('vaultVersion', remote['version']);
+      await _settings.put('vaultVersion', remote['version'] as int? ?? 0);
       await _settings.delete('vaultDirty');
       await _settings.delete('vaultLoadFailed');
     } finally {

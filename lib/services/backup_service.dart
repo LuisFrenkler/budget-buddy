@@ -88,7 +88,9 @@ class BackupService {
       if (!Hive.isBoxOpen(e.key)) continue;
       final box = Hive.box(e.key);
       await box.clear();
-      await box.putAll(e.value);
+      for (final me in e.value.entries) {
+        await _hivePut(box, me.key, me.value);
+      }
     }
     await Hive.box('settings').delete('bankDismissed');
     // every money setting must match the backup: missing keys are cleared so
@@ -97,11 +99,30 @@ class BackupService {
     final box = Hive.box('settings');
     for (final k in settingKeys) {
       if (settings is Map && settings.containsKey(k)) {
-        await box.put(k, settings[k]);
+        await _hivePut(box, k, settings[k]);
       } else {
         await box.delete(k);
       }
     }
+  }
+
+  // Hive web crashes on null / odd JS types — JSON round-trip keeps only safe values
+  static dynamic stripNulls(dynamic value) {
+    if (value == null) return null;
+    try {
+      return jsonDecode(jsonEncode(value));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _hivePut(Box box, dynamic key, dynamic value) async {
+    final clean = stripNulls(value);
+    if (clean == null) {
+      await box.delete(key);
+      return;
+    }
+    await box.put(key, clean);
   }
 
   static Map<String, Map<String, dynamic>> _entries(String name, dynamic list, String Function(Map) keyOf) {
@@ -113,7 +134,9 @@ class BackupService {
         var key = keyOf(m);
         // never collapse records onto a missing/duplicate key (data loss)
         if (key.isEmpty || key.contains('null') || out.containsKey(key)) key = '${name}_$i';
-        out[key] = m;
+        final clean = stripNulls(m);
+        if (clean is! Map) continue;
+        out[key] = Map<String, dynamic>.from(clean);
       } catch (_) {}
     }
     return out;

@@ -1,5 +1,6 @@
 // Turns "Sonstiges" piles into proposed category moves. Buddy shows them as
 // confirm cards; nothing is stored until the user taps Übernehmen.
+import 'package:hive/hive.dart';
 import '../models/transaction.dart';
 import '../utils/merchant.dart';
 import 'categorizer.dart';
@@ -89,8 +90,10 @@ class CategoryCoach {
     ].take(limit).toList();
   }
 
-  static int miscCount() =>
-      DB.getTx().where((t) => t.isSpending && t.category == 'Sonstiges').length;
+  static int miscCount() {
+    if (!Hive.isBoxOpen('transactions')) return 0;
+    return DB.getTx().where((t) => t.isSpending && t.category == 'Sonstiges').length;
+  }
 
   // moves every Sonstiges booking of this merchant and remembers the rule
   static Future<int> apply(String sample, String category, {required bool isIncome}) async {

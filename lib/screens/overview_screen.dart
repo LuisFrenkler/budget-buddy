@@ -317,6 +317,88 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
+  Future<String?> _askVaultPassword() async {
+    final ctrl = TextEditingController();
+    final pw = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cloud laden'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+                'Das kann auf dem Handy ein paar Sekunden dauern — bitte warten.'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              obscureText: true,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Dein Passwort',
+                hintText: 'Dasselbe wie beim Anmelden',
+              ),
+              onSubmitted: (v) => Navigator.pop(ctx, v),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ''),
+              child: const Text('Ohne Cloud weiter')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text),
+              child: const Text('Laden')),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (pw == null) return null; // abbrechen
+    return pw; // '' = skip cloud, otherwise password (may need trim)
+  }
+
+  Future<void> _retryVault() async {
+    HapticFeedback.selectionClick();
+    final pw = await _askVaultPassword();
+    if (pw == null || !mounted) return;
+    if (pw.isEmpty) {
+      await CloudSync.skipCloudForNow();
+      if (mounted) setState(() {});
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Cloud wird geladen…'),
+            ]),
+          ),
+        ),
+      ),
+    );
+    Object? err;
+    try {
+      await CloudSync.loadAccountData(pw.trim());
+    } catch (e) {
+      err = e;
+    }
+    if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    if (!mounted) return;
+    setState(() {});
+    if (err != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text('$err')));
+    }
+  }
+
   Widget _vaultBanner() => Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Material(
@@ -324,18 +406,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: () async {
-              HapticFeedback.selectionClick();
-              try {
-                await CloudSync.start();
-                if (mounted) setState(() {});
-              } catch (_) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text(
-                        'Noch nicht geladen. Bitte bleib online und tipp noch einmal.')));
-              }
-            },
+            onTap: _retryVault,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
               child: Row(children: [

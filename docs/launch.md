@@ -40,7 +40,7 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 
 ## SHOULD kurz danach
 
-- Passwort-Reset oder klarer Hinweis „Vault stirbt mit Passwort“
+- Passwort-Reset per E-Mail (Hinweis „Vault stirbt mit Passwort“ ist unter Anmelden › Passwort vergessen)
 - Crash-Reporting (Sentry) + CI (`flutter test` / `dart test`)
 - Anwaltspass AGB/Datenschutz (KI / US-Transfer)
 

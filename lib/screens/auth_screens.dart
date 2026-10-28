@@ -3,6 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../legal/legal_info.dart';
 import '../services/cloud_sync.dart';
 import '../services/account_service.dart';
 import '../services/demo_data.dart';
@@ -393,13 +395,15 @@ class _SignInScreenState extends State<SignInScreen> {
       _error = null;
     });
     try {
-      final account = _challenge == null
-          ? await AccountService.login(email: _email.text, password: _password.text)
-          : await AccountService.loginTotp(challenge: _challenge!, code: _code.text);
+      if (_challenge == null) {
+        await AccountService.login(email: _email.text, password: _password.text);
+      } else {
+        await AccountService.loginTotp(challenge: _challenge!, code: _code.text);
+      }
       await Settings.setOnboardingDone(true);
       TextInput.finishAutofillContext();
       if (!mounted) return;
-      await _bringAccountData(account, _password.text);
+      await _bringAccountData(_password.text);
       if (!mounted) return;
       HapticFeedback.mediumImpact();
       Navigator.popUntil(context, (r) => r.isFirst);
@@ -418,16 +422,9 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   // device is an empty cache after login — load this account's vault from the server
-  Future<void> _bringAccountData(Account account, String password) async {
+  Future<void> _bringAccountData(String password) async {
     try {
-      await CloudSync.unlock(account.id, password);
-      final remote = await CloudSync.fetch();
-      if (remote == null) {
-        await Hive.box('settings').delete('vaultLoadFailed');
-        await CloudSync.push(); // first device: seed an empty (or just-created) vault
-      } else {
-        await CloudSync.apply(remote);
-      }
+      await CloudSync.loadAccountData(password);
     } catch (e) {
       await Hive.box('settings').put('vaultLoadFailed', true);
       // wrong key / corrupt seal: drop the key so nothing can force-push an empty vault
@@ -490,7 +487,17 @@ class _SignInScreenState extends State<SignInScreen> {
             decoration: const InputDecoration(labelText: '6-stelliger Code'),
           ),
         _ErrorText(_error),
-        const SizedBox(height: 24),
+        if (_challenge == null) ...[
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => showForgotPasswordSheet(context),
+              child: const Text('Passwort vergessen?'),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ] else
+          const SizedBox(height: 24),
         _PrimaryButton(_challenge == null ? 'Anmelden' : 'Code prüfen', busy: _busy, onPressed: _valid ? _submit : null),
         const SizedBox(height: 8),
         Center(
@@ -508,6 +515,62 @@ class _SignInScreenState extends State<SignInScreen> {
       ],
     );
   }
+}
+
+// Soft launch: no e-mail reset yet — be honest that the vault key is the password.
+Future<void> showForgotPasswordSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    builder: (ctx) => Padding(
+      padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + MediaQuery.paddingOf(ctx).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Passwort vergessen',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+          const SizedBox(height: 12),
+          Text(
+            'Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur '
+            'Cloud-Sicherung — niemand außer dir kann ihn ersetzen, auch wir nicht.',
+            style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Was du tun kannst:\n'
+            '• Passwort noch einmal in Ruhe versuchen\n'
+            '• Neues Konto anlegen und lokal neu starten\n'
+            '• Bei Fragen zur Konto-Löschung schreib uns',
+            style: TextStyle(fontSize: 15, color: AppColors.text, height: 1.5),
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Verstanden'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () async {
+              final uri = Uri(
+                scheme: 'mailto',
+                path: LegalInfo.email,
+                query: 'subject=${Uri.encodeComponent('BudgetBuddy: Passwort / Konto')}',
+              );
+              Navigator.pop(ctx);
+              if (!await launchUrl(uri) && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Schreib an ${LegalInfo.email}')),
+                );
+              }
+            },
+            child: const Text('E-Mail an Support'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // --- first start: how to fill the app ---
@@ -543,16 +606,16 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           children: [
-            Text(name != null ? 'Hallo $name 👋' : 'Los geht\'s 👋',
+            Text(name != null ? 'Hallo $name' : 'Los geht\'s',
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
-            Text('In einer Minute weißt du, ob BudgetBuddy zu dir passt.',
+            Text('Wähle, wie du starten willst — alles später änderbar.',
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
             _ChoiceCard(
               icon: Icons.account_balance_rounded,
               title: 'Bankkonto verbinden',
-              text: 'Kontostand und Umsätze kommen automatisch. Dauert etwa eine Minute.',
+              text: 'Login nur bei deiner Bank. Kontostand und Umsätze kommen automatisch.',
               badge: 'Empfohlen',
               onTap: _busy ? null : () => _finish(bank: true),
             ),
@@ -567,7 +630,7 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             _ChoiceCard(
               icon: Icons.science_rounded,
               title: 'Mit Beispieldaten testen',
-              text: 'Nur zum Ausprobieren von Buddy — klar als Demo markiert, jederzeit entfernbar.',
+              text: 'Buddy ausprobieren — klar als Demo markiert, jederzeit entfernbar.',
               onTap: _busy ? null : () => _finish(demo: true, buddy: true),
             ),
             if (_busy)
