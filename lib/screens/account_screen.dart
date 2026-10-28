@@ -27,8 +27,9 @@ import 'stats_screen.dart';
 class AccountScreen extends StatefulWidget {
   // 0 = Umsätze, 1 = Budgets, 2 = Analyse; shared so other tabs can jump here
   final ValueNotifier<int> segment;
+  final ScrollController? scroll;
 
-  const AccountScreen({super.key, required this.segment});
+  const AccountScreen({super.key, required this.segment, this.scroll});
 
   // the account shown, null = all together; new bookings go to it
   static final selected = ValueNotifier<String?>(null);
@@ -105,6 +106,7 @@ class _AccountScreenState extends State<AccountScreen> {
               notificationPredicate: (_) => Settings.bankState.isNotEmpty,
               onRefresh: () => _syncBank(context),
               child: CustomScrollView(
+                controller: widget.scroll,
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),

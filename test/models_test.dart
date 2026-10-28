@@ -73,7 +73,7 @@ void main() {
     test('covers its month, and the date range reads German', () {
       expect(make(1, 0).covers(DateTime(2025, 3, 31, 23)), isTrue);
       expect(make(1, 0).covers(DateTime(2025, 4, 1)), isFalse);
-      expect(make(1, 0).dateRange, '1.3.–31.3.2025');
+      expect(make(1, 0).dateRange, '1.–31. März 2025');
     });
 
     test('migrates legacy double-euro limit to cents', () {

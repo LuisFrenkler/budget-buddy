@@ -51,8 +51,9 @@ import 'profile_screen.dart';
 class OverviewScreen extends StatefulWidget {
   // switch to another tab (1 = Konto, 2 = Depot), optionally to a section
   final void Function(int tab, {int? segment}) onOpen;
+  final ScrollController? scroll;
 
-  const OverviewScreen({super.key, required this.onOpen});
+  const OverviewScreen({super.key, required this.onOpen, this.scroll});
 
   @override
   State<OverviewScreen> createState() => _OverviewScreenState();
@@ -171,6 +172,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               color: AppColors.primary,
               onRefresh: _refresh,
               child: ListView(
+              controller: widget.scroll,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
               children: [
@@ -375,7 +377,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   Text(
                     change == null
                         ? '${Money.format(report.spentCents)} ausgegeben'
-                        : (change * 100).round().abs() <= 3
+                        : report.roughlyUsual
                             ? '${Money.format(report.spentCents)} · wie immer'
                             : '${Money.format(report.spentCents)} · ${change > 0 ? '+' : '−'}${(change * 100).round().abs()} % zum Schnitt',
                     style: TextStyle(color: AppColors.textDim, fontSize: 13),

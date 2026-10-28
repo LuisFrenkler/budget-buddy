@@ -20,7 +20,8 @@ import 'connections_screen.dart';
 import 'holding_detail_screen.dart';
 
 class DepotScreen extends StatefulWidget {
-  const DepotScreen({super.key});
+  final ScrollController? scroll;
+  const DepotScreen({super.key, this.scroll});
 
   @override
   State<DepotScreen> createState() => _DepotScreenState();
@@ -115,6 +116,7 @@ class _DepotScreenState extends State<DepotScreen> {
                   color: AppColors.primary,
                   onRefresh: _refreshPrices,
                   child: ListView(
+                    controller: widget.scroll,
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                     children: [
                       ..._header(value, invested, gain),

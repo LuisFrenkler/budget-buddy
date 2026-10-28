@@ -1,3 +1,5 @@
+import '../utils/dates.dart';
+
 class Budget {
   final String category;
   final int limitCents;   // budget limit in cents
@@ -55,8 +57,15 @@ class Budget {
   // the month this budget covers
   bool covers(DateTime day) => !day.isBefore(startDate) && day.isBefore(endDate.add(const Duration(days: 1)));
 
-  // formatted date range, e.g. "1.10.–31.10.2026"
+  // formatted date range, e.g. "1.–31. Okt. 2026"
   String get dateRange {
-    return '${startDate.day}.${startDate.month}.–${endDate.day}.${endDate.month}.${endDate.year}';
+    final endMonth = Dates.shortMonths[endDate.month - 1];
+    if (startDate.year == endDate.year && startDate.month == endDate.month) {
+      return '${startDate.day}.–${endDate.day}. $endMonth ${endDate.year}';
+    }
+    if (startDate.year == endDate.year) {
+      return '${startDate.day}. ${Dates.shortMonths[startDate.month - 1]} – ${endDate.day}. $endMonth ${endDate.year}';
+    }
+    return '${Dates.dayMonth(startDate)} ${startDate.year} – ${Dates.dayMonth(endDate)} ${endDate.year}';
   }
 }

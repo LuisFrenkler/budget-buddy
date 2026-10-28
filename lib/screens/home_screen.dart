@@ -35,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
   final _segment = ValueNotifier<int>(0);
 
+  // one scroll per tab: tapping the active tab again jumps to the top
+  final _scrolls = List.generate(4, (_) => ScrollController());
+
   @override
   void initState() {
     super.initState();
@@ -86,13 +89,24 @@ class _HomeScreenState extends State<HomeScreen> {
     AutoSave.reached.removeListener(_goalReached);
     AccountService.current.removeListener(_pendingJoin);
     _segment.dispose();
+    for (final c in _scrolls) {
+      c.dispose();
+    }
     super.dispose();
   }
 
   // switch to a tab, optionally to a section of the account
   void _open(int tab, {int? segment}) {
     if (segment != null) _segment.value = segment;
-    if (_tab != tab) HapticFeedback.selectionClick();
+    if (_tab == tab) {
+      final c = _scrolls[tab];
+      if (c.hasClients) {
+        HapticFeedback.selectionClick();
+        c.animateTo(0, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+      }
+      return;
+    }
+    HapticFeedback.selectionClick();
     setState(() => _tab = tab);
   }
 
@@ -113,10 +127,10 @@ class _HomeScreenState extends State<HomeScreen> {
         // with a slight rise when switching
         body: Stack(children: [
           for (final (i, tab) in [
-            OverviewScreen(onOpen: _open),
-            AccountScreen(segment: _segment),
-            const DepotScreen(),
-            const BuddyScreen(tab: true),
+            OverviewScreen(onOpen: _open, scroll: _scrolls[0]),
+            AccountScreen(segment: _segment, scroll: _scrolls[1]),
+            DepotScreen(scroll: _scrolls[2]),
+            BuddyScreen(tab: true, scroll: _scrolls[3]),
           ].indexed)
             IgnorePointer(
               ignoring: i != _tab,

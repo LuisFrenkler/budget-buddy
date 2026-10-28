@@ -395,7 +395,7 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
   @override
   Widget build(BuildContext context) {
     final (score, label) = passwordStrength(_next.text);
-    final colors = [AppColors.error, AppColors.error, AppColors.warning, AppColors.positive, AppColors.positive];
+    final colors = passwordStrengthScale;
     Widget field(TextEditingController c, String label, List<String> hints, {bool autofocus = false}) => TextField(
           controller: c,
           obscureText: _hide,
@@ -417,19 +417,20 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
         if (_next.text.isNotEmpty) ...[
           const SizedBox(height: 8),
           Row(children: [
-            for (var i = 0; i < 4; i++)
+            for (var i = 1; i <= 4; i++)
               Expanded(
                 child: Container(
                   height: 4,
-                  margin: const EdgeInsets.only(right: 4),
+                  margin: EdgeInsets.only(right: i < 4 ? 6 : 0),
                   decoration: BoxDecoration(
-                    color: i < score ? colors[score] : AppColors.border,
+                    color: score >= i ? colors[score] : AppColors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 12, color: colors[score], fontWeight: FontWeight.w600)),
+            const SizedBox(width: 12),
+            Text(_next.text.length < 8 ? 'Min. 8 Zeichen' : label,
+                style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
           ]),
         ],
         const SizedBox(height: 10),

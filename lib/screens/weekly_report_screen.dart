@@ -56,9 +56,9 @@ class _Report extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = report;
     final change = r.change;
-    // within ±3 % a week is simply normal: no colour, no sign
+    // same band as the headline "Eine ganz normale Woche": no colour, no ±%
     final pct = change == null ? 0 : (change * 100).round();
-    final usual = change != null && pct.abs() <= 3;
+    final usual = r.roughlyUsual;
     final good = change == null || change <= 0;
     final badge = usual ? AppColors.textDim : (good ? AppColors.positiveText : AppColors.errorText);
     return ListView(

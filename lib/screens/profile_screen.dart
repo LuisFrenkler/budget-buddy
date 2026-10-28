@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -38,7 +37,16 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  
+  String _lockHint = 'Gerätecode beim Öffnen';
+
+  @override
+  void initState() {
+    super.initState();
+    AuthService.lockSubtitle().then((s) {
+      if (mounted) setState(() => _lockHint = s);
+    });
+  }
+
   // "ING und Depot verbunden", or what linking brings
   static String _linkedText() {
     final linked = [
@@ -128,8 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 else
                   _row(Icons.person_add_alt_1_rounded, 'Konto erstellen', 'Für die Bankverbindung und neue Geräte',
                       _signUp),
-                _switchRow(Icons.lock_rounded, 'App-Sperre',
-                    defaultTargetPlatform == TargetPlatform.iOS ? 'Face ID oder Code beim Öffnen' : 'Fingerabdruck oder PIN beim Öffnen',
+                _switchRow(Icons.lock_rounded, 'App-Sperre', _lockHint,
                     Settings.appLockEnabled, _toggleAppLock),
                 // the consent from Buddy's first question, to give or take back any time
                 _switchRow(Icons.auto_awesome_rounded, 'Buddy mit KI',
