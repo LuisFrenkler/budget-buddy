@@ -4,12 +4,12 @@
 // vault from the server.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
 import 'backend_service.dart';
 import 'cloud_sync.dart';
+import 'secure_store.dart';
 import 'settings_service.dart';
 
 class Account {
@@ -48,7 +48,6 @@ class DeviceSession {
 }
 
 class AccountService {
-  static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'bb_session_token';
 
   // null = not signed in; the root of the app listens to this
@@ -61,7 +60,7 @@ class AccountService {
   // restores the session on app start; checks it with the server in the background
   static Future<void> restore() async {
     try {
-      _token = await _storage.read(key: _tokenKey);
+      _token = await SecureStore.read(_tokenKey);
     } catch (_) {
       _token = null;
     }
@@ -118,6 +117,19 @@ class AccountService {
         'code': code.trim(),
       });
 
+  // new bearer token only — no cache wipe (for vault retry on web)
+  static Future<void> refreshSession(String password) async {
+    final account = current.value;
+    if (account == null) throw 'Nicht angemeldet.';
+    final map = await _post('/auth/login', {'email': account.email, 'password': password});
+    final token = map['token'];
+    if (token is! String || token.isEmpty) {
+      throw 'Anmeldung ohne Sitzung — bitte App neu laden und noch einmal anmelden.';
+    }
+    _token = token;
+    await SecureStore.write(_tokenKey, token);
+  }
+
   static Future<Map<String, dynamic>> _post(String path, Map<String, String> body) async {
     final http.Response res;
     try {
@@ -150,7 +162,7 @@ class AccountService {
     await AccountIsolation.wipeLocalFinance();
 
     _token = map['token'] as String;
-    await _storage.write(key: _tokenKey, value: _token);
+    await SecureStore.write(_tokenKey, _token!);
     await _box.put('account', account.toJson());
     await Settings.setGuest(false); // clear legacy guest flag if present
     await AccountIsolation.claimLocalFor(account.id);
@@ -322,7 +334,7 @@ class AccountService {
     await CloudSync.forget();
     _token = null;
     try {
-      await _storage.delete(key: _tokenKey);
+      await SecureStore.delete(_tokenKey);
     } catch (_) {}
     await _box.delete('account');
     current.value = null;
