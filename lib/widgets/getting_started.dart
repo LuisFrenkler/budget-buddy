@@ -105,8 +105,8 @@ class GettingStartedCard extends StatelessWidget {
   const GettingStartedCard({super.key});
 
   static const _steps = {
-    OnboardingStep.booking: (Icons.auto_awesome_rounded, 'Erste Ausgabe erfassen', 'Tipp einfach „Kaffee 3,20“'),
-    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand eintragen', 'Oder Bankkonto verbinden'),
+    OnboardingStep.booking: (Icons.auto_awesome_rounded, 'Erste Ausgabe oder Buddy', 'Tipp „Kaffee 3,20“ oder frag Buddy'),
+    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit die Zahlen stimmen'),
     OnboardingStep.budget: (Icons.speed_rounded, 'Ein Budget festlegen', 'z. B. 300 € für Essen im Monat'),
     OnboardingStep.goal: (Icons.flag_rounded, 'Ein Sparziel anlegen', 'Buddy rechnet dir den Plan aus'),
     OnboardingStep.notifications: (Icons.notifications_active_rounded, 'Mitteilungen erlauben', 'Buddy warnt, bevor es knapp wird'),
