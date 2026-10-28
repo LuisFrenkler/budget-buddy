@@ -79,7 +79,8 @@ class BuddyActions {
       ];
     }
     if (_has(q, ['abo', 'vertr', 'fixkost'])) return s.contracts.isEmpty ? [] : [contracts];
-    if (_has(q, ['sonstiges', 'kategor']) && CategoryCoach.miscCount() > 0) {
+    if (_has(q, ['sonstiges', 'aufräumen', 'einordnen', 'zuordnen']) &&
+        CategoryCoach.miscCount() > 0) {
       return [
         BuddyAction(Icons.auto_fix_high_rounded, 'Sonstiges aufräumen',
             (c) => BuddyScreen.open(c, 'Sonstiges aufräumen')),
@@ -89,6 +90,7 @@ class BuddyActions {
         s.forecast != null) {
       return [
         BuddyAction(Icons.insights_rounded, 'Prognose auf Start', (c) {
+          BuddyScreen.ask.value = null; // don't fire a pending ask on the Buddy tab
           Navigator.popUntil(c, (r) => r.isFirst);
           HomeScreen.goTab.value = 0;
         }),

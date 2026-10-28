@@ -7,6 +7,7 @@ import '../services/money_accounts.dart';
 import '../services/account_isolation.dart';
 import '../services/account_service.dart';
 import 'auth_screens.dart';
+import 'contracts_screen.dart';
 import 'profile_screen.dart';
 import '../services/backend_service.dart';
 import '../services/bank_search.dart';
@@ -1111,7 +1112,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         _addingBank ? (_pendingBank ?? Settings.bankName) : Settings.bankName;
     if (!mounted) return;
     if (smarter > 0) HapticFeedback.lightImpact();
-    final go = await showDialog<bool>(
+    final go = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('$name verbunden'),
@@ -1122,20 +1123,30 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                       'Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.') +
               (smarter > 0
                   ? '\n\n${BankSync.syncedLine(added: 0, smarter: smarter)}.'
-                  : ''),
+                  : '') +
+              '\n\nAbos und Miete erkennt Buddy unter Verträge.',
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context, 'stay'),
               child: const Text('Hier bleiben')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, 'contracts'),
+              child: const Text('Verträge')),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(context, 'start'),
               child: const Text('Zum Start')),
         ],
       ),
     );
     if (!mounted) return;
-    if (go == true) Navigator.popUntil(context, (r) => r.isFirst);
+    if (go == 'start') {
+      Navigator.popUntil(context, (r) => r.isFirst);
+    } else if (go == 'contracts') {
+      Navigator.popUntil(context, (r) => r.isFirst);
+      if (!mounted) return;
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen()));
+    }
   }
 
   Future<void> _disconnect() async {

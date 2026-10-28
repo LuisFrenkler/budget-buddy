@@ -11,6 +11,7 @@ import 'backend_service.dart';
 import 'cloud_sync.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
+import 'split_service.dart';
 
 class Account {
   final String id;
@@ -156,10 +157,13 @@ class AccountService {
   static Future<Account> _signIn(String path, Map<String, String> body) async {
     final map = await _post(path, body);
     final account = Account.fromJson(map['user'] as Map);
+    // invite deep-link must survive wipe (stored in settings)
+    final invite = SplitService.pendingJoin;
     // stop stale vault pushes / sync watches before touching the cache
     await CloudSync.forget();
     // Trade Republic model: device starts empty for this session, then vault loads
     await AccountIsolation.wipeLocalFinance();
+    if (invite != null) await SplitService.setPendingJoin(invite);
 
     _token = map['token'] as String;
     await SecureStore.write(_tokenKey, _token!);

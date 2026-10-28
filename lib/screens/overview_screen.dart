@@ -372,7 +372,37 @@ class _OverviewScreenState extends State<OverviewScreen> {
   List<Widget> _forecast(List<Transaction> tx, int cash) {
     final forecast = ForecastService.build(tx,
         goals: GoalsService.all(), balanceCents: cash);
-    if (forecast == null) return const [];
+    if (forecast == null) {
+      if (tx.isEmpty) return const [];
+      return [
+        const SizedBox(height: 16),
+        Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(22),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              showSmartEntry(context);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(children: [
+                Icon(Icons.insights_outlined, color: AppColors.primaryText),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Für „noch frei“ brauchst du eine Einnahme (z. B. Gehalt).',
+                    style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 14),
+                  ),
+                ),
+                Icon(Icons.add_rounded, color: AppColors.primaryText),
+              ]),
+            ),
+          ),
+        ),
+      ];
+    }
     return [
       const SizedBox(height: 16),
       ForecastCard(forecast),
