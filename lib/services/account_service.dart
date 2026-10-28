@@ -161,13 +161,14 @@ class AccountService {
       _update(await _authedPost('/auth/email', {'email': email, 'password': password}));
 
   // other devices are signed out by the server, this one stays signed in
-  // the account's data is sealed with the new password from now on
+  // the account's data is sealed with the new password from now on —
+  // the upload must succeed, or a new device with the new password cannot open it
   static Future<void> changePassword(String current, String next) async {
     await _authedPost('/auth/password', {'current': current, 'next': next});
     final id = AccountService.current.value?.id;
     if (id == null) return;
     await CloudSync.unlock(id, next);
-    await CloudSync.push();
+    await CloudSync.push(required: true, force: true);
   }
 
   // deletes the account on the server (with all bank links), then locally

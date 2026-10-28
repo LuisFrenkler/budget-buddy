@@ -87,10 +87,15 @@ class BackupService {
       await box.clear();
       await box.putAll(e.value);
     }
+    // every money setting must match the backup: missing keys are cleared so
+    // a leftover opening balance or extra account cannot stick around
     final settings = data['settings'];
-    if (settings is Map) {
-      for (final k in settingKeys) {
-        if (settings.containsKey(k)) await Hive.box('settings').put(k, settings[k]);
+    final box = Hive.box('settings');
+    for (final k in settingKeys) {
+      if (settings is Map && settings.containsKey(k)) {
+        await box.put(k, settings[k]);
+      } else {
+        await box.delete(k);
       }
     }
   }

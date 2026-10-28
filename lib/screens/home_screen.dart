@@ -5,6 +5,7 @@ import 'splits_screen.dart';
 import 'goals_screen.dart';
 import '../services/auto_save.dart';
 import '../services/account_service.dart';
+import '../services/cloud_sync.dart';
 import '../services/split_service.dart';
 import '../services/db.dart';
 import '../services/money_accounts.dart';
@@ -48,7 +49,49 @@ class _HomeScreenState extends State<HomeScreen> {
     // an invite link opened the app: straight to joining, also right after signing in
     AccountService.current.addListener(_pendingJoin);
     BuddyScreen.ask.addListener(_toBuddy);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _pendingJoin());
+    CloudSync.conflict.addListener(_vaultConflict);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pendingJoin();
+      _vaultConflict();
+    });
+  }
+
+  bool _askingVault = false;
+  // local edits while offline vs. a newer copy from another device
+  void _vaultConflict() async {
+    final remote = CloudSync.conflict.value;
+    if (remote == null || !mounted || _askingVault) return;
+    if (ModalRoute.of(context)?.isCurrent != true) {
+      Future.delayed(const Duration(milliseconds: 800), _vaultConflict);
+      return;
+    }
+    _askingVault = true;
+    final keepDevice = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Daten unterscheiden sich'),
+        content: const Text('Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung '
+            'von einem anderen Gerät. Was soll gelten?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Kontodaten laden')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Gerätedaten behalten')),
+        ],
+      ),
+    );
+    _askingVault = false;
+    if (!mounted) return;
+    try {
+      if (keepDevice == true) {
+        await CloudSync.keepDevice();
+      } else {
+        await CloudSync.keepCloud();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(milliseconds: 3500), content: Text('$e')));
+    }
   }
 
   // waits until the start screen is really on top (not under the sign-up or
@@ -88,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BuddyScreen.ask.removeListener(_toBuddy);
     AutoSave.reached.removeListener(_goalReached);
     AccountService.current.removeListener(_pendingJoin);
+    CloudSync.conflict.removeListener(_vaultConflict);
     _segment.dispose();
     for (final c in _scrolls) {
       c.dispose();

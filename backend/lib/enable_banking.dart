@@ -127,10 +127,31 @@ class EnableBanking implements BankProvider {
   }
 
   static int _cents(Map<String, dynamic> balance) {
-    final amount = double.tryParse('${balance['balance_amount']?['amount']}') ?? 0;
+    final cents = amountToCents('${balance['balance_amount']?['amount']}');
     // some banks give the amount unsigned with a debit indicator for an overdrawn account
-    final debit = balance['credit_debit_indicator'] == 'DBIT' && amount > 0;
-    return ((debit ? -amount : amount) * 100).round();
+    final debit = balance['credit_debit_indicator'] == 'DBIT' && cents > 0;
+    return debit ? -cents : cents;
+  }
+
+  // bank amount strings → integer cents without binary float (e.g. "12.34", "-0.10")
+  static int amountToCents(String raw) {
+    var s = raw.trim().replaceAll(' ', '').replaceAll(',', '.');
+    if (s.isEmpty || s == 'null') return 0;
+    var neg = false;
+    if (s.startsWith('-')) {
+      neg = true;
+      s = s.substring(1);
+    } else if (s.startsWith('+')) {
+      s = s.substring(1);
+    }
+    final dot = s.indexOf('.');
+    final wholeStr = dot < 0 ? s : s.substring(0, dot);
+    final fracStr = dot < 0 ? '' : s.substring(dot + 1);
+    final whole = int.tryParse(wholeStr.isEmpty ? '0' : wholeStr) ?? 0;
+    final fracCents =
+        fracStr.isEmpty ? 0 : (int.tryParse(fracStr.padRight(2, '0').substring(0, 2)) ?? 0);
+    final cents = whole * 100 + fracCents;
+    return neg ? -cents : cents;
   }
 
   // the signed sum of transactions that are not booked yet
@@ -176,8 +197,7 @@ class EnableBanking implements BankProvider {
   BankTx? _parse(Map<String, dynamic> t) {
     final date = DateTime.tryParse('${t['booking_date'] ?? t['value_date'] ?? t['transaction_date']}');
     if (date == null) return null;
-    final amount = double.tryParse('${t['transaction_amount']?['amount']}') ?? 0;
-    final cents = (amount.abs() * 100).round();
+    final cents = amountToCents('${t['transaction_amount']?['amount']}').abs();
     final incoming = t['credit_debit_indicator'] == 'CRDT';
     // the other party: who paid us, or whom we paid
     final other = (incoming ? t['debtor'] : t['creditor']) as Map?;
