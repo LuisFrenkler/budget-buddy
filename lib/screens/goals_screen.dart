@@ -29,7 +29,8 @@ int _surplus() {
 // Starts a new goal, or opens the Plus page when the free goal is used.
 Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
-    return showPlus(context, reason: 'Mehr Sparziele und Autopilot (Aufrunden & Monatsbetrag)');
+    return showPlus(context,
+        reason: 'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.');
   }
   await showModalBottomSheet(
     context: context,
@@ -63,6 +64,13 @@ class GoalsScreen extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
                   children: [
+                    if (!PlusService.active.value) ...[
+                      Text(
+                        '1 Sparziel gratis · Aufrunden & Monatsbetrag = Plus',
+                        style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Text('Schon zurückgelegt', style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(Money.format(saved),
@@ -208,9 +216,14 @@ class GoalCard extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () => _openAutopilot(context),
-                child: Text('Automatisch sparen (Plus)',
+                child: Text('Autopilot (Plus)',
                     style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               ),
+            ),
+            Text(
+              'Überweist nicht — zählt in der App mit',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textDim, fontSize: 11.5, height: 1.3),
             ),
           ],
         ],

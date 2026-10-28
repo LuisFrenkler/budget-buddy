@@ -35,7 +35,7 @@ class BuddySuggestions {
     }
 
     final misc = CategoryCoach.miscCount();
-    if (misc >= 3) {
+    if (misc >= 1) {
       add((icon: Icons.category_rounded, text: 'Sonstiges aufräumen'));
     }
 

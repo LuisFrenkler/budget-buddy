@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
+import '../services/account_service.dart';
 import '../services/buddy_service.dart';
+import '../services/onboarding_service.dart';
 import '../services/plus_service.dart';
+import 'auth_screens.dart';
+import 'buddy_screen.dart';
 import 'plus_screen.dart';
 import '../services/category_rules.dart';
 import '../services/db.dart';
@@ -17,6 +21,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/getting_started.dart';
 
 // Booking by writing a note ("Döner 8,50 gestern") or snapping a receipt.
 // The preview updates with every key press (offline parser); when typing
@@ -97,7 +102,31 @@ class _SmartEntryState extends State<_SmartEntry> {
     if (!PlusService.allowed(PlusFeature.receiptScan)) {
       await showPlus(context,
           reason: 'Gratis-Scans aufgebraucht — mit Plus jeden Beleg in Sekunden erfassen');
-      if (!PlusService.active.value) return;
+      if (!mounted || !PlusService.active.value) return;
+    }
+    if (AccountService.current.value == null) {
+      if (!mounted) return;
+      final go = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Konto für Beleg-Scan'),
+          content: const Text(
+              'Belege liest Buddy online. Dafür brauchst du ein kostenloses Konto — Tippen geht weiter ohne.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Später')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Konto erstellen')),
+          ],
+        ),
+      );
+      if (go == true && mounted) {
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
+      }
+      return;
+    }
+    if (!BuddyService.hasConsent) {
+      if (!mounted) return;
+      final ok = await BuddyScreen.requestAiConsent(context);
+      if (!ok || !mounted) return;
     }
     final picked = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
     final file = picked?.files.single;
@@ -152,11 +181,24 @@ class _SmartEntryState extends State<_SmartEntry> {
     HapticFeedback.mediumImpact();
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
+    final needBalance = !OnboardingService.balanceKnown;
     Navigator.pop(context);
-    messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
+    messenger.showSnackBar(SnackBar(
+      persist: false,
+      duration: const Duration(seconds: 5),
       content: Text('${tx.note ?? tx.category} · ${tx.amountText} gespeichert'),
       action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.deleteTx(tx.id)),
     ));
+    if (needBalance) {
+      messenger.showSnackBar(SnackBar(
+        duration: const Duration(milliseconds: 3200),
+        content: const Text('Damit „noch frei“ stimmt: Kontostand einmal eintragen.'),
+        action: SnackBarAction(
+          label: 'Kontostand',
+          onPressed: () => showBalanceSheet(messenger.context),
+        ),
+      ));
+    }
   }
 
   @override
@@ -185,7 +227,11 @@ class _SmartEntryState extends State<_SmartEntry> {
             prefixIcon: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
             suffixIcon: IconButton(
               tooltip: 'Beleg scannen',
-              icon: const Icon(Icons.document_scanner_rounded),
+              icon: Icon(Icons.document_scanner_rounded,
+                  color: !PlusService.active.value &&
+                          PlusService.left(PlusFeature.receiptScan) == 0
+                      ? AppColors.textDim
+                      : null),
               onPressed: _busy == null ? _scan : null,
             ),
           ),
@@ -222,6 +268,16 @@ class _SmartEntryState extends State<_SmartEntry> {
           onPressed: _preview != null && _busy == null ? _save : null,
           child: const Text('Speichern', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
+        if (!PlusService.active.value) ...[
+          const SizedBox(height: 8),
+          Text(
+            PlusService.left(PlusFeature.receiptScan) == 0
+                ? 'Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter'
+                : 'Noch ${PlusService.left(PlusFeature.receiptScan)} von ${PlusService.freeReceiptScans} Gratis-Beleg-Scans diesen Monat',
+            style: TextStyle(
+                fontSize: 12, color: AppColors.primaryText, fontWeight: FontWeight.w600, height: 1.3),
+          ),
+        ],
       ]),
     );
   }

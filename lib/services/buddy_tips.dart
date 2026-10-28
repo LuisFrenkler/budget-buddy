@@ -5,6 +5,7 @@ import '../models/budget.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import 'category_coach.dart';
 import 'contracts.dart';
 import 'forecast_service.dart';
 import 'goals_service.dart';
@@ -41,7 +42,14 @@ class BuddyTips {
             'Wie komme ich mit meinem Budget für ${b.category} bis zum Monatsende hin?');
       }
     }
-    // 2. a contract got more expensive
+    // 2. many bookings stuck in Sonstiges — cleanup without burning KI quota
+    final misc = CategoryCoach.miscCount();
+    if (misc >= 5) {
+      return BuddyTip(
+          '$misc Umsätze stecken in Sonstiges — Buddy hilft beim Einordnen.',
+          'Sonstiges aufräumen');
+    }
+    // 3. a contract got more expensive
     final contracts = Contracts.detect(tx, now: today);
     final raised = contracts.where((c) => c.priceChange > 0).toList();
     if (raised.isNotEmpty) {
@@ -49,7 +57,7 @@ class BuddyTips {
       return BuddyTip('${c.name} ist teurer geworden.',
           'Sollte ich ${c.name} kündigen oder behalten?');
     }
-    // 3. free cash this month is running low
+    // 4. free cash this month is running low
     final forecast = ForecastService.build(tx,
         goals: GoalsService.all(), balanceCents: balanceCents, now: today);
     if (forecast != null && forecast.freeCents >= 0 && forecast.pace == ForecastPace.tight) {
@@ -57,7 +65,7 @@ class BuddyTips {
           'Noch ${Money.format(forecast.freeCents)} frei bis Monatsende — eher knapp.',
           'Wie viel ist diesen Monat noch frei?');
     }
-    // 4. many purchases at one place this month: small amounts add up
+    // 5. many purchases at one place this month: small amounts add up
     final shops = <String, ({String name, int count, int cents})>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
@@ -72,14 +80,14 @@ class BuddyTips {
       return BuddyTip('Du warst diesen Monat ${s.count}× bei ${s.name}, zusammen ${Money.format(s.cents)}.',
           'Wie kann ich bei ${s.name} sparen?');
     }
-    // 5. emergency fund still thin
+    // 6. emergency fund still thin
     final emergency = Wealth.emergency(tx, now: today);
     if (emergency.targetCents > 0 && emergency.progress < 0.5) {
       return BuddyTip(
           'Dein Notgroschen steht bei ${(emergency.progress * 100).round()} % — Ziel ${Money.format(emergency.targetCents)}.',
           'Wie baue ich einen Notgroschen auf?');
     }
-    // 6. vorsorge gap once configured
+    // 7. vorsorge gap once configured
     if (Vorsorge.configured) {
       final r = Vorsorge.build(input: Vorsorge.load(), holdings: DB.getHoldings(), goals: GoalsService.all());
       if (!r.gapClosed && r.gapMonthlyCents > 5000) {
@@ -88,7 +96,7 @@ class BuddyTips {
             'Wie schließe ich meine Rentenlücke?');
       }
     }
-    // 7. several open subscriptions — gentle nudge
+    // 8. several open subscriptions — gentle nudge
     if (contracts.length >= 3) {
       return BuddyTip('Du hast ${contracts.length} laufende Verträge — ${Money.format(Contracts.monthlyTotal(contracts))} im Monat.',
           'Welche Abos und Verträge habe ich?');
