@@ -26,7 +26,7 @@ Team zu einem aktiven Developer-Abo gehört, bist du für Builds startklar.
 | Apple Developer Program aktiv | du (99 €/Jahr) |
 | App in App Store Connect angelegt | du |
 | Straße, PLZ/Ort, Datenschutzbehörde in `lib/legal/legal_info.dart` | du |
-| Datenschutz + Impressum als öffentliche HTTPS-URL | erledigt: `docs/legal/` → GitHub Pages (URL unten) |
+| Datenschutz + Impressum als öffentliche HTTPS-URL | erledigt (öffentliches Repo `budget-buddy-legal`) |
 | Production-Backend `https://…` (siehe `docs/launch.md`) | du |
 | Build mit `BACKEND_URL` auf dieses Backend | Build-Befehl unten |
 
@@ -40,8 +40,8 @@ erstmal dezent — kein EB-Commercial nötig.
 3. Plattform iOS, Name **BudgetBuddy**, Bundle-ID **com.luisfrenkler.budgetBuddy**  
 4. SKU z. B. `budgetbuddy1`, Sprache Deutsch  
 5. Unter **App-Datenschutz** die Privacy-URL eintragen:
-   `https://luisfrenkler.github.io/budget-buddy/legal/datenschutz.html`
-   (Impressum: `…/legal/impressum.html`)  
+   `https://luisfrenkler.github.io/budget-buddy-legal/datenschutz.html`
+   (Impressum: `…/impressum.html`)  
 6. Unter **Preise** erstmal kostenlos (Abo später über IAP)
 
 ## Build (IPA für TestFlight)
