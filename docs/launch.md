@@ -29,7 +29,8 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 
 ## MUST vor Store-Submit
 
-1. `lib/legal/legal_info.dart` ausfüllen + Datenschutz/Impressum öffentlich hosten
+1. `lib/legal/legal_info.dart` ausfüllen + Datenschutz/Impressum hosten
+   (`https://luisfrenkler.github.io/budget-buddy/legal/datenschutz.html`)
 2. Android: Release-Signing (nicht Debug) — Package ist jetzt `com.luisfrenkler.budgetbuddy`
 3. `INTERNET` ist im Main-Manifest (erledigt)
 4. Production-Backend HTTPS + CORS einschränken
@@ -46,7 +47,8 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 ## Soft Launch Pfad (2 Wochen)
 
 1. Gemini + kleiner EU-VPS
-2. TestFlight / Play Internal (Freunde)
+2. TestFlight / Play Internal (Freunde) — **Schritt für Schritt 2:** [docs/testflight.md](testflight.md)
+   (Apple Developer Program ~99 €/Jahr ist Pflicht für TestFlight)
 3. Bank nur Demo oder Waitlist
 4. Plus mit Store-Sandbox
 5. Dann Public + EB commercial wenn Nachfrage da ist
