@@ -920,6 +920,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             } else {
               await Settings.setDepot(state);
             }
+            await Settings.setDepotOwner(AccountService.current.value?.id ?? '');
             if (mounted) setState(() => _depotPending = null);
             await _syncDepot(first: true);
           } else if (s.status == 'failed' || s.status == 'unknown') {
