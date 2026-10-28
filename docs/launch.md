@@ -30,7 +30,7 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 ## MUST vor Store-Submit
 
 1. `lib/legal/legal_info.dart` ausfüllen + Datenschutz/Impressum hosten
-   (`https://luisfrenkler.github.io/budget-buddy/legal/datenschutz.html`)
+   (`https://luisfrenkler.github.io/budget-buddy-legal/datenschutz.html`)
 2. Android: Release-Signing (nicht Debug) — Package ist jetzt `com.luisfrenkler.budgetbuddy`
 3. `INTERNET` ist im Main-Manifest (erledigt)
 4. Production-Backend HTTPS + CORS einschränken
