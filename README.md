@@ -1,103 +1,102 @@
 # BudgetBuddy
 
-Persönliche Finanz-App in **Flutter** — Konto, Budgets, Verträge, Depot und Prognose in einer App.  
-Daten liegen lokal auf dem Gerät; optional Konto mit verschlüsselter Cloud-Sicherung und echter Bankanbindung (PSD2).
+**Personal finance app built with Flutter** — accounts, budgets, subscriptions, brokerage portfolio, and cash-flow forecasting in one product.
+
+Local-first data on device, optional encrypted cloud backup, and real bank connectivity (PSD2, read-only). Soft-launched end-to-end: client, Dart backend, vault, and integrations.
 
 <p align="center">
-  <img src="docs/images/bb_readme_hero.jpg" alt="BudgetBuddy — Start mit Vermögen und Monatsprognose" width="720">
+  <img src="docs/images/bb_readme_hero.jpg" alt="BudgetBuddy — net worth overview and monthly forecast" width="720">
 </p>
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/bb_readme_start.jpg" alt="Start: Vermögen und noch frei" width="140">
-  <img src="docs/images/bb_readme_forecast.jpg" alt="Monats-Simulator Was wäre wenn" width="140">
-  <img src="docs/images/bb_readme_buddy.jpg" alt="Buddy, KI-Finanzcoach" width="140">
-  <img src="docs/images/bb_readme_konto.jpg" alt="Konto und Umsätze" width="140">
-  <img src="docs/images/bb_readme_contracts.jpg" alt="Verträge und Abos" width="140">
-  <img src="docs/images/bb_readme_depot.jpg" alt="Depot" width="140">
+  <img src="docs/images/bb_readme_start.jpg" alt="Home: net worth and remaining budget" width="140">
+  <img src="docs/images/bb_readme_forecast.jpg" alt="What-if monthly simulator" width="140">
+  <img src="docs/images/bb_readme_buddy.jpg" alt="Buddy AI finance coach" width="140">
+  <img src="docs/images/bb_readme_konto.jpg" alt="Account and transactions" width="140">
+  <img src="docs/images/bb_readme_contracts.jpg" alt="Subscriptions and contracts" width="140">
+  <img src="docs/images/bb_readme_depot.jpg" alt="Brokerage portfolio" width="140">
 </p>
 
-## Highlights
+## Features
 
-**Monatsprognose & Simulator**
-- „Diesen Monat noch frei“ aus Einkommen, Fixkosten, Sparzielen und bisherigem Tempo
-- **Was wäre wenn…?** — Abos auslassen, Einmalkauf setzen, Sparrate trimmen; Δ und Tempo live, nichts wird gespeichert
+**Monthly forecast & what-if simulator**
+- Remaining budget for the month from income, fixed costs, savings goals, and spending pace
+- Interactive scenarios (skip subscriptions, one-off purchases, adjust savings) with live delta — nothing is persisted
 
-**Buddy (KI-Finanzcoach)**
-- Fragen zu Ausgaben, Sparzielen, Verträgen — Antworten mit echten Zahlen aus der App
-- Beleg-Scan und Schnellerfassung in Alltagssprache („Döner 8,50 gestern“)
-- Offline-Antworten auf dem Gerät, wenn keine KI erreichbar ist
-- Datenschutz: nur nach Einwilligung, nur eine Zusammenfassung (keine IBAN), Schlüssel nur auf dem Server
+**Buddy (AI finance coach)**
+- Answers grounded in the user’s real numbers (spending, goals, contracts)
+- Receipt scan and natural-language quick entry
+- On-device fallback when the model is unavailable
+- Privacy-first: consent-gated; summary only (no IBAN); API keys stay on the server
 
-**Bank & Kategorien**
-- PSD2-Anbindung (Enable Banking, read-only), Demo-Bank zum Ausprobieren
-- Automatische Kategorien, lernende Händlerregeln, SEPA-Müll in Titeln wird bereinigt
-- Kontostand bleibt zum Bankstand kalibriert (Opening Balance)
+**Banking & categorization**
+- PSD2 bank link (Enable Banking, read-only) plus a demo bank for local trials
+- Auto-categorization, learned merchant rules, SEPA noise scrubbed from titles
+- Ledger calibrated to the bank opening balance
 
-**Konto, Budgets, Verträge**
-- Umsätze, Budgets mit Ampel, Monatsanalyse
-- Abos/Verträge aus wiederkehrenden Zahlungen inkl. Preiserhöhung
+**Accounts, budgets, subscriptions**
+- Transactions, budget traffic lights, monthly analysis
+- Recurring payments detected as subscriptions, including price-rise signals
 
-**Depot & Vermögen**
-- Portfolio mit Kursen, Allokation, Trade-Republic-Import
-- Gesamtvermögen (Konto + Depot) mit interaktivem Chart
+**Portfolio & net worth**
+- Holdings with live quotes, allocation, Trade Republic import
+- Combined net worth (cash + brokerage) with an interactive chart
 
-**Sicherheit & Sync**
-- Registrierung, biometrische App-Sperre, Beträge verbergen
-- Vault: AES-256-GCM, Schlüssel aus dem Passwort (Server speichert nur Ciphertext)
+**Security & sync**
+- Auth, biometric lock, hide balances
+- Client-side vault: AES-256-GCM; key derived from the password (server stores ciphertext only)
 
-## Tech-Stack
+## Tech stack
 
-| Bereich | Technik |
+| Layer | Choice |
 |---|---|
 | App | Flutter / Dart |
-| Lokal | Hive |
-| Sicherheit | local_auth, flutter_secure_storage, bcrypt / Session-Hashes serverseitig |
-| Backend | Dart-HTTP-Server (Bank, Depot, Vault, KI-Proxy) |
-| Integrationen | Enable Banking (PSD2), Finnhub (Kurse), optional Parqet, serverseitige LLM-API |
-| Tests | `flutter_test` (Unit- & Widget-Tests) |
+| Local storage | Hive |
+| Security | `local_auth`, `flutter_secure_storage`, bcrypt / session hashes on the server |
+| Backend | Dart HTTP server (bank, portfolio, vault, AI proxy) |
+| Integrations | Enable Banking (PSD2), Finnhub (quotes), optional Parqet, server-side LLM API |
+| Tests | `flutter_test` (unit & widget) |
 
-## Struktur
+## Repository layout
 
 ```
-lib/          # UI, Services, Modelle
-backend/      # API: Bank, Depot, Vault, Buddy
-test/         # Tests
-landing/      # Landingpage
-docs/         # Bilder, Launch-/Legal-Notizen
+lib/          # UI, services, models
+backend/      # API: bank, portfolio, vault, Buddy
+test/         # Automated tests
+landing/      # Marketing landing page
+docs/         # Screenshots and launch notes
 ```
 
-## Starten
+## Getting started
 
-Voraussetzung: [Flutter SDK](https://docs.flutter.dev/get-started/install).
+Requires the [Flutter SDK](https://docs.flutter.dev/get-started/install).
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-Tests:
-
 ```bash
 flutter test
 ```
 
-Web-Build:
+Web build:
 
 ```bash
 tool/build_web.sh
 python3 tool/serve_web.py   # http://127.0.0.1:8765
 ```
 
-Backend: siehe [backend/README.md](backend/README.md).
+Backend setup: see [backend/README.md](backend/README.md).
 
-> Die App-Oberfläche ist auf Deutsch.
+> UI language: German.
 
-Die Schrift Inter liegt unter der SIL Open Font License bei (`assets/fonts/Inter-OFL.txt`).
+Inter font is included under the SIL Open Font License (`assets/fonts/Inter-OFL.txt`).
 
-## Autor
+## Author
 
-**Luis Frenkler** — Flutter-App von Architektur bis Soft-Launch (Bank-Sync, Vault, Prognose, Buddy, Depot).
+**Luis Frenkler** — designed and built BudgetBuddy from architecture through soft launch (bank sync, encrypted vault, forecast, Buddy, portfolio).
 
-Repository: [github.com/LuisFrenkler/budget-buddy](https://github.com/LuisFrenkler/budget-buddy)
+[github.com/LuisFrenkler/budget-buddy](https://github.com/LuisFrenkler/budget-buddy)
