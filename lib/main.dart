@@ -7,7 +7,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
-import 'services/category_rules.dart';
 import 'services/cloud_sync.dart';
 import 'services/account_service.dart';
 import 'services/bank_sync.dart';
@@ -25,6 +24,7 @@ import 'screens/subscription_screen.dart';
 import 'screens/weekly_report_screen.dart';
 import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
+import 'services/note_scrub.dart';
 import 'utils/theme.dart';
 
 void main() async {
@@ -53,22 +53,22 @@ void main() async {
   StorePurchases.init();
   // session + wipe before any finance mutation (recurring / budgets / autosave)
   await AccountService.restore();
+  // vault first — otherwise Recurring/AutoSave mutate local, the UI paints that
+  // Kontostand, then cloud restore overwrites it and the number jumps
+  await CloudSync.start();
   // generate any recurring transactions that came due while the app was closed
   await RecurringService.process();
   // monthly budgets continue into the new month
   await DB.rollOverBudgets();
-  // lift old "Sonstiges" once boxes are open; a remembered category is left alone.
-  // said once on Start when anything actually moved — not on every launch
-  BankSync.offerSmile(smarter: await CategoryRules.upgradeSonstiges());
   // goals on autopilot (a Plus feature, so after Plus is known)
   await AutoSave.run();
-  // the account's vault from the server, then refresh links that belong here
-  unawaited(CloudSync.start().then((_) {
-    BankSync.refreshIfStale();
-    DepotSync.refreshIfStale();
-  }));
+  // Mandats-/Mandantenreferenz titles → readable (once)
+  await NoteScrub.runOnce();
   PlusService.watchAccount();
   PlusService.syncWithServer();
+  // bank/depot after first frame — LedgerBusy freezes Konto while they write
+  unawaited(BankSync.refreshIfStale());
+  unawaited(DepotSync.refreshIfStale());
 
   // the Inter font ships with the app, so its licence belongs on the licences page
   LicenseRegistry.addLicense(() async* {

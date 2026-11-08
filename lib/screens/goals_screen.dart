@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../models/goal.dart';
-import '../models/money_account.dart';
 import '../services/auto_save.dart';
 import '../services/buddy_service.dart';
 import '../services/db.dart';

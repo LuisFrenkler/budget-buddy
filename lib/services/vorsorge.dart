@@ -108,6 +108,7 @@ class Vorsorge {
 
   // only after the user entered at least one pension building block
   static bool get configured {
+    if (!Hive.isBoxOpen('settings')) return false;
     final m = _box.get('vorsorge');
     if (m is! Map) return false;
     final i = VorsorgeInput.fromMap(m);

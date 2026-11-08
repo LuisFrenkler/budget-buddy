@@ -2,7 +2,6 @@
 // much per month it takes, and whether the usual monthly surplus covers it.
 import 'package:hive/hive.dart';
 import '../models/goal.dart';
-import '../utils/dates.dart';
 import '../utils/money.dart';
 
 class GoalPlan {
@@ -16,6 +15,7 @@ class GoalsService {
 
   static List<Goal> all() {
     final list = <Goal>[];
+    if (!Hive.isBoxOpen('goals')) return list;
     for (final v in _box.values) {
       try {
         list.add(Goal.fromMap(Map<String, dynamic>.from(v)));
@@ -69,7 +69,7 @@ class GoalsService {
       }
       final months = (g.remainingCents / perMonth).ceil();
       return GoalPlan(
-          'Ca. ${Money.format(perMonth)}/Monat → $months ${months == 1 ? 'Monat' : 'Monate'}.',
+          'Ca. ${Money.format(perMonth)}/Monat → fertig in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
           true);
     }
     final share = avgSurplusCents <= 0 ? 999.0 : need / avgSurplusCents;

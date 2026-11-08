@@ -36,6 +36,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // current tab index (0 = Start, 1 = Konto, 2 = Depot, 3 = Buddy)
   int _tab = 0;
+  // Start always; others on first visit — avoids mounting Konto/Depot/Buddy at cold start
+  final _visited = <int>{0};
 
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
   final _segment = ValueNotifier<int>(0);
@@ -170,8 +172,18 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     HapticFeedback.lightImpact();
-    setState(() => _tab = tab);
+    setState(() {
+      _visited.add(tab);
+      _tab = tab;
+    });
   }
+
+  Widget _page(int i) => switch (i) {
+        0 => OverviewScreen(onOpen: _open, scroll: _scrolls[0]),
+        1 => AccountScreen(segment: _segment, scroll: _scrolls[1]),
+        2 => DepotScreen(scroll: _scrolls[2]),
+        _ => BuddyScreen(tab: true, scroll: _scrolls[3]),
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -192,12 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const VaultBanner(),
           Expanded(
             child: Stack(children: [
-              for (final (i, tab) in [
-                OverviewScreen(onOpen: _open, scroll: _scrolls[0]),
-                AccountScreen(segment: _segment, scroll: _scrolls[1]),
-                DepotScreen(scroll: _scrolls[2]),
-                BuddyScreen(tab: true, scroll: _scrolls[3]),
-              ].indexed)
+              for (final i in _visited)
                 IgnorePointer(
                   ignoring: i != _tab,
                   // the fade itself must keep running when a tab goes inactive,
@@ -213,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       // a screen reader only reads the tab that is shown
                       child: ExcludeSemantics(
                         excluding: i != _tab,
-                        child: TickerMode(enabled: i == _tab, child: tab),
+                        child: TickerMode(
+                            enabled: i == _tab, child: _page(i)),
                       ),
                     ),
                   ),

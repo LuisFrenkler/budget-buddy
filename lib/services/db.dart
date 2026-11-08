@@ -41,6 +41,8 @@ class DB {
   // get all transactions, sorted by date (newest first)
   static List<Transaction> getTx() {
     final list = <Transaction>[];
+    // calculations also run where nothing was stored yet (tests, first start)
+    if (!Hive.isBoxOpen('transactions')) return list;
     
     // convert each map from hive to Transaction object; skip any corrupt
     // record so one bad entry can't crash the whole list

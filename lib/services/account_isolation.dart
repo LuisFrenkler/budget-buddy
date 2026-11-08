@@ -23,7 +23,7 @@ class AccountIsolation {
 
   // keys that belong to one signed-in identity (not theme / app lock)
   static const financeSettingKeys = [
-    'vaultOwner', 'vaultVersion', 'vaultDirty', 'vaultLoadFailed',
+    'vaultOwner', 'vaultVersion', 'vaultDirty', 'vaultLoadFailed', 'vaultBannerDismissed',
     'demoKeys', 'demoOpeningBefore',
     'categoryRules', 'budgetsStopped', 'cancellations', 'contractsHidden',
     'balanceSet', 'openingBalanceCents',
@@ -210,11 +210,14 @@ class AccountIsolation {
   }
 
   static Future<void> _stripAllBankData() async {
+    // last known giro figure — after bank rows go, keep the Kontostand stable
+    final target = Settings.bankBalanceCents;
     for (final t in DB.getTx().where((t) => t.id.startsWith(BankSync.prefix)).toList()) {
       await DB.deleteTx(t.id);
     }
     await Settings.clearBank();
-    await Settings.setOpeningBalanceCents(0);
+    final left = DB.getTx();
+    await Settings.setOpeningBalanceCents(target - DB.balanceOf(left));
   }
 
   /// Drop synced bookings/accounts that belonged only to this bank link.

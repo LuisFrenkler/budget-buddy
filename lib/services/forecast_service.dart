@@ -11,12 +11,34 @@
 //
 // It never promises more than the account holds: with the balance known,
 // "free" is at most the balance minus what is still due this month.
+import '../utils/merchant.dart';
 import '../utils/theme.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
 
 enum ForecastPace { relaxed, tight, over }
+
+// What-if knobs for the same forecast formula — never persisted.
+class ForecastOverrides {
+  final Set<String> excludedContractKeys; // Merchant.key(contract.name)
+  final int oneTimeSpentCents;
+  final int? incomeCents;
+  final int? goalsMonthlyCents;
+
+  const ForecastOverrides({
+    this.excludedContractKeys = const {},
+    this.oneTimeSpentCents = 0,
+    this.incomeCents,
+    this.goalsMonthlyCents,
+  });
+
+  bool get isEmpty =>
+      excludedContractKeys.isEmpty &&
+      oneTimeSpentCents == 0 &&
+      incomeCents == null &&
+      goalsMonthlyCents == null;
+}
 
 class DueItem {
   final String name;
@@ -68,7 +90,15 @@ class ForecastService {
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
   // [balanceCents]: the real account balance, when the user has told it
-  static MonthForecast? build(List<Transaction> tx, {List<Goal> goals = const [], DateTime? now, int? balanceCents}) {
+  // [overrides]: what-if knobs (cancel Abo, one-time buy, trim goals) — same formula
+  static MonthForecast? build(
+    List<Transaction> tx, {
+    List<Goal> goals = const [],
+    DateTime? now,
+    int? balanceCents,
+    ForecastOverrides? overrides,
+  }) {
+    final o = overrides ?? const ForecastOverrides();
     final today = _day(now ?? DateTime.now());
     final monthStart = DateTime(today.year, today.month);
     final monthEnd = DateTime(today.year, today.month + 1, 0);
@@ -95,7 +125,9 @@ class ForecastService {
     }
     var incomePreliminary = false;
     late final int income;
-    if (months == 0 || incomeSum == 0) {
+    if (o.incomeCents != null) {
+      income = o.incomeCents!;
+    } else if (months == 0 || incomeSum == 0) {
       // week 1: only Gehalt this month — still show „noch frei“, labelled preliminary
       final monthLast = _day(monthEnd);
       final thisMonth = tx
@@ -111,8 +143,13 @@ class ForecastService {
       income = incomeSum ~/ months;
     }
 
-    final contracts = Contracts.detect(tx, now: today);
-    final fixedIds = {for (final c in contracts) for (final p in c.payments) p.id};
+    final allContracts = Contracts.detect(tx, now: today);
+    // keep all payment ids as "fixed" so excluding an Abo doesn't inflate variable spend
+    final fixedIds = {for (final c in allContracts) for (final p in c.payments) p.id};
+    final contracts = [
+      for (final c in allContracts)
+        if (!o.excludedContractKeys.contains(Merchant.key(c.name))) c,
+    ];
     final fixed = Contracts.monthlyTotal(contracts);
 
     // still due: contracts without a payment this month yet
@@ -122,15 +159,17 @@ class ForecastService {
           DueItem(c.name, c.monthlyCents, c.nextDate.isBefore(today) ? today : c.nextDate),
     ]..sort((a, b) => a.date.compareTo(b.date));
 
-    final goalsMonthly = goals
-        .where((g) => !g.reached)
-        // a fixed monthly amount the user chose wins over the computed need
-        .map((g) => g.monthlyCents > 0 ? g.monthlyCents : (g.monthlyNeeded(today) ?? 0))
-        .fold<int>(0, (s, v) => s + v);
+    final goalsMonthly = o.goalsMonthlyCents ??
+        goals
+            .where((g) => !g.reached)
+            // a fixed monthly amount the user chose wins over the computed need
+            .map((g) => g.monthlyCents > 0 ? g.monthlyCents : (g.monthlyNeeded(today) ?? 0))
+            .fold<int>(0, (s, v) => s + v);
 
     final spent = tx
-        .where((t) => t.isSpending && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
-        .fold<int>(0, (s, t) => s + t.spendCents);
+            .where((t) => t.isSpending && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
+            .fold<int>(0, (s, t) => s + t.spendCents) +
+        o.oneTimeSpentCents.clamp(0, 1 << 30);
 
     // the usual daily variable spending over the last 60 days, or over the
     // shorter time the app has known the user (at least a week)

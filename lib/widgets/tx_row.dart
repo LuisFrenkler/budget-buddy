@@ -6,6 +6,7 @@ import '../screens/add_screen.dart';
 import '../screens/transaction_screen.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
+import '../utils/merchant.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'big_number.dart';
@@ -22,8 +23,8 @@ class TxRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final note = tx.note?.trim() ?? '';
-    final title = note.isNotEmpty ? note : tx.category;
+    final raw = tx.note?.trim() ?? '';
+    final title = raw.isNotEmpty ? Merchant.present(raw, fallback: tx.category) : tx.category;
     final day = Dates.relativeDay(tx.date);
     // a refund says so, next to the category it lowers
     // with several accounts and all of them listed: which one it was booked on
@@ -31,7 +32,7 @@ class TxRow extends StatelessWidget {
         ? ' · ${(MoneyAccounts.byId(tx.accountId) ?? MoneyAccounts.main).name}'
         : '';
     final category = (tx.isRefund ? '${tx.category} · Erstattung' : tx.category) + account;
-    final subtitle = !showDay ? category : note.isNotEmpty ? '$category · $day' : day;
+    final subtitle = !showDay ? category : raw.isNotEmpty ? '$category · $day' : day;
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),

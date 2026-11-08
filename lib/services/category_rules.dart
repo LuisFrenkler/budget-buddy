@@ -75,28 +75,4 @@ class CategoryRules {
     return list.length;
   }
 
-  // after smarter keyword rules: lift old "Sonstiges" when we now know better
-  // (never overrides a category the user explicitly remembered)
-  static Future<int> upgradeSonstiges() async {
-    if (!Hive.isBoxOpen('settings')) return 0;
-    var n = 0;
-    for (final t in DB.getTx()) {
-      if (t.category != 'Sonstiges') continue;
-      final note = t.note?.trim() ?? '';
-      if (note.isEmpty) continue;
-      final remembered = forName(note, isIncome: t.isIncome);
-      // a saved "Sonstiges" stays; guessing would undo the user's choice every start
-      if (remembered == 'Sonstiges') continue;
-      if (remembered != null) {
-        await DB.addTx(t.withCategory(remembered));
-        n++;
-        continue;
-      }
-      final guessed = Categorizer.guess(note, isIncome: t.isIncome);
-      if (guessed == 'Sonstiges') continue;
-      await DB.addTx(t.withCategory(guessed));
-      n++;
-    }
-    return n;
-  }
 }

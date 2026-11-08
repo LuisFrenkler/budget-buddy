@@ -78,7 +78,8 @@ class Categorizer {
       'dividende', 'zinsen', 'ertrag', 'ausschüttung', 'ausschuettung', 'kapitalertrag',
       'depotzinsen', 'tagesgeldzinsen',
     ],
-    'Geschenk': ['geschenk', 'geburtstag', 'weihnachten'],
+    // no "weihnachten"/"geburtstag": they match inside Weihnachtsbaum / Geburtstagsessen
+    'Geschenk': ['geschenk', 'geschenkgutschein'],
   };
 
   static const _transfer = [

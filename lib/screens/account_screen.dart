@@ -10,6 +10,7 @@ import '../widgets/add_account_choice.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/history.dart';
+import '../services/ledger_busy.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
@@ -105,7 +106,12 @@ class _AccountScreenState extends State<AccountScreen> {
           final opening = one
               ? MoneyAccounts.openingOf(account)
               : MoneyAccounts.openingTotal;
-          final balance = DB.balanceOf(tx) + opening;
+          // during vault/bank writes the live sum is briefly wrong; freeze the
+          // Gesamtzahl. A single other-account row keeps live (can't reuse total).
+          final live = DB.balanceOf(tx) + opening;
+          final balance = (MoneyAccounts.several && one)
+              ? live
+              : LedgerBusy.cashOr(live);
           final points =
               History.dailyBalance(tx, from: _rangeStart(tx), opening: opening);
           final synced =

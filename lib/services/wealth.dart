@@ -142,14 +142,14 @@ class Wealth {
       if (a.kind == 'spar') have += MoneyAccounts.balanceOf(a, allTx);
     }
     // optional manual cushion on top (cash under the mattress, etc.)
-    have += (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0;
+    have += emergencyExtraCents;
     if (have < 0) have = 0;
     return EmergencyFund(
         targetCents: target, haveCents: have, fixedMonthlyCents: monthly);
   }
 
   static int get emergencyExtraCents =>
-      (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0;
+      Hive.isBoxOpen('settings') ? (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0 : 0;
 
   static Future<void> setEmergencyExtra(int cents) =>
       _box.put('emergencyExtraCents', cents < 0 ? 0 : cents);

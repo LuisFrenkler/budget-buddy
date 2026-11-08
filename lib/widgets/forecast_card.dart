@@ -6,6 +6,7 @@ import '../services/forecast_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import 'scenario_sheet.dart';
 
 // Start screen card: what is still free this month and per day. Tapping it
 // shows how the number comes about, so it can be trusted.
@@ -174,6 +175,15 @@ class ForecastCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                showScenarioSheet(context);
+              },
+              icon: const Icon(Icons.tune_rounded, size: 18),
+              label: const Text('Was wäre wenn…?'),
+            ),
+            const SizedBox(height: 8),
             FilledButton.icon(
               onPressed: () {
                 Navigator.pop(context);

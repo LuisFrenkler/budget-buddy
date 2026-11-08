@@ -290,15 +290,16 @@ class AccountService {
     return name.isEmpty ? null : name;
   }
 
-  // re-seal the vault with the new password first — only then flip the server
-  // password. If the upload fails, the old password still works and the cloud
-  // blob stays readable; never leave a new-password login against an old seal.
+  // Prove current opens the vault and the server accepts it, then re-seal under
+  // next and upload. Never re-seal with next before current is verified — that
+  // left a cloud blob only next can open while login still required current.
   static Future<void> changePassword(String current, String next) async {
     final id = AccountService.current.value?.id;
     if (id == null) throw 'Bitte melde dich neu an und versuch es noch einmal.';
+    await CloudSync.unlock(id, current);
+    await _authedPost('/auth/password', {'current': current, 'next': next});
     await CloudSync.unlock(id, next);
     await CloudSync.push(required: true, force: true);
-    await _authedPost('/auth/password', {'current': current, 'next': next});
   }
 
   // deletes the account on the server (with all bank links), then locally

@@ -22,6 +22,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   bool _unlocked = false;
   bool _authenticating = false;
+  bool _bioAvailable = true;
   // the app switcher shows a snapshot of the app: covered while not in front
   bool _covered = false;
   DateTime? _leftAt;
@@ -70,11 +71,16 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
       setState(() => _unlocked = true);
       return;
     }
-    // fail open if the device can't authenticate at all
-    if (!await AuthService.isAvailable()) {
-      setState(() => _unlocked = true);
+    // fail closed: show the lock screen; user can retry or explicitly continue
+    final available = await AuthService.isAvailable();
+    if (!available) {
+      if (mounted) setState(() {
+        _bioAvailable = false;
+        _unlocked = false;
+      });
       return;
     }
+    if (mounted) setState(() => _bioAvailable = true);
     _authenticate();
   }
 
@@ -117,23 +123,53 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   Widget _lockScreen() => Scaffold(
         backgroundColor: AppColors.bg,
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const BrandMark(size: 72),
-              const SizedBox(height: 24),
-              const Text('BudgetBuddy ist gesperrt', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text('Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.',
-                  textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
-              const SizedBox(height: 32),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
-                onPressed: _authenticating ? null : _authenticate,
-                icon: const Icon(Icons.lock_open_rounded),
-                label: const Text('Entsperren'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const BrandMark(size: 72),
+                const SizedBox(height: 24),
+                const Text('BudgetBuddy ist gesperrt',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text(
+                    _bioAvailable
+                        ? 'Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.'
+                        : 'Dieses Gerät kann gerade nicht biometrisch entsperren. '
+                            'Tippe auf Entsperren zum erneuten Versuch — oder fahre '
+                            'ohne Sperre fort (Sperre bleibt in den Einstellungen an).',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textDim, height: 1.35)),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
+                  onPressed: _authenticating
+                      ? null
+                      : () async {
+                          if (_bioAvailable) {
+                            _authenticate();
+                            return;
+                          }
+                          if (await AuthService.isAvailable()) {
+                            if (mounted) setState(() => _bioAvailable = true);
+                            _authenticate();
+                            return;
+                          }
+                          if (mounted) setState(() => _unlocked = true);
+                        },
+                  icon: const Icon(Icons.lock_open_rounded),
+                  label: Text(_bioAvailable ? 'Entsperren' : 'Erneut versuchen'),
+                ),
+                if (!_bioAvailable) ...[
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => setState(() => _unlocked = true),
+                    child: const Text('Ohne Biometrie fortfahren'),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       );

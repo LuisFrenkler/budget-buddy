@@ -9,6 +9,7 @@ import 'splits_screen.dart';
 import '../services/category_rules.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
+import '../utils/merchant.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
@@ -54,7 +55,9 @@ class TransactionScreen extends StatelessWidget {
         }
         final tx = matches.first;
         final fromBank = tx.id.startsWith(BankSync.prefix);
-        final title = (tx.note?.trim().isNotEmpty ?? false) ? tx.note!.trim() : tx.category;
+        final title = (tx.note?.trim().isNotEmpty ?? false)
+            ? Merchant.present(tx.note, fallback: tx.category)
+            : tx.category;
 
         return Scaffold(
           appBar: AppBar(

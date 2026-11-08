@@ -9,6 +9,7 @@ import '../models/transaction.dart';
 import '../services/account_service.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
+import '../services/ledger_busy.dart';
 import '../services/demo_data.dart';
 import '../services/history.dart';
 import '../services/settings_service.dart';
@@ -43,6 +44,7 @@ import '../services/buddy_suggestions.dart';
 import '../services/category_coach.dart';
 import '../services/wealth.dart';
 import '../widgets/forecast_card.dart';
+import '../widgets/misc_sort_sheet.dart';
 import 'weekly_report_screen.dart';
 import 'profile_screen.dart';
 import 'goals_screen.dart';
@@ -75,7 +77,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
   List<int>? _depot;
   // eight-day depot series for the honest week-over-week pulse on Start
   List<int>? _depotWeek;
-
   int get _days => _ranges[_range]!;
 
   @override
@@ -214,11 +215,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
           Hive.box('settings').listenable(),
           Hive.box('goals').listenable(),
           if (Hive.isBoxOpen('splits')) Hive.box('splits').listenable(),
+          LedgerBusy.on,
         ]),
         builder: (context, _) {
           final tx = DB.getTx();
-          // the money on every account together
-          final cash = DB.balanceOf(tx) + MoneyAccounts.openingTotal;
+          // the money on every account together (frozen while vault/bank rewrite)
+          final cash = LedgerBusy.cashOr(
+              DB.balanceOf(tx) + MoneyAccounts.openingTotal);
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
           // throttle side-effects — Hive can fire often during import/sync
@@ -562,14 +565,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final misc = CategoryCoach.miscCount();
     if (misc > 0) {
-      final auto = CategoryCoach.autoFixes(limit: 1);
       tiles.add(_forYouTile(
         Icons.category_rounded,
         'Buchungen einordnen',
-        auto.isNotEmpty
-            ? '$misc in Sonstiges · Händler erkennbar'
-            : '$misc in Sonstiges · Buddy räumt mit dir auf',
-        () => BuddyScreen.open(context, 'Sonstiges aufräumen'),
+        '$misc in Sonstiges · Händler antippen',
+        () => showMiscSortSheet(context),
       ));
     }
 

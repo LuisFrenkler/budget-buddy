@@ -12,6 +12,7 @@ class MoneyAccounts {
 
   // the main account's name and kind, the others in full
   static MoneyAccount get main {
+    if (!Hive.isBoxOpen('settings')) return const MoneyAccount(id: MoneyAccount.main, name: 'Girokonto');
     final m = (_box.get('mainAccount') as Map?) ?? const {};
     final bank = Settings.bankName;
     return MoneyAccount(
@@ -26,6 +27,7 @@ class MoneyAccounts {
 
   // an account whose bank was disconnected is kept by hand from then on
   static List<MoneyAccount> get others {
+    if (!Hive.isBoxOpen('settings')) return const [];
     final active = {Settings.bankState, for (final l in Settings.extraBanks) l.state}..remove('');
     return [
       for (final m in (_box.get('moneyAccounts') as List?) ?? const [])

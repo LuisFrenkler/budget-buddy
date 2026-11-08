@@ -500,7 +500,7 @@ Future<void> _handle(HttpRequest req) async {
       try {
         final probe = File('$_dataDir/.ready');
         await probe.parent.create(recursive: true);
-        await probe.writeAsString('${DateTime.now().toIso8601String()}', flush: true);
+        await probe.writeAsString(DateTime.now().toIso8601String(), flush: true);
         return _json(req, 200, {'ok': true});
       } catch (_) {
         return _json(req, 503, {'ok': false, 'error': 'data dir not writable'});

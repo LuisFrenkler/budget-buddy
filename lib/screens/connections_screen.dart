@@ -1180,14 +1180,17 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     }
     // further banks stay linked; drop this bank's rows, then promote the first extra
     if (extras.isEmpty) {
-      await Settings.clearBank();
+      final target = Settings.bankBalanceCents;
       for (final t in DB
           .getTx()
           .where((t) => t.id.startsWith(BankSync.prefix))
           .toList()) {
         await DB.deleteTx(t.id);
       }
-      await Settings.setOpeningBalanceCents(0);
+      await Settings.clearBank();
+      // keep Kontostand ≈ last bank figure (manual bookings stay)
+      await Settings.setOpeningBalanceCents(
+          target - DB.balanceOf(DB.getTx()));
     } else {
       await AccountIsolation.deleteBankRowsForLink(state, includeMain: true);
       await Settings.clearBank();

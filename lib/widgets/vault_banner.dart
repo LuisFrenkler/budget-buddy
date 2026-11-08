@@ -10,7 +10,9 @@ class VaultBanner extends StatelessWidget {
   const VaultBanner({super.key});
 
   static bool get failed =>
-      Hive.isBoxOpen('settings') && Hive.box('settings').get('vaultLoadFailed') == true;
+      Hive.isBoxOpen('settings') &&
+      Hive.box('settings').get('vaultLoadFailed') == true &&
+      Hive.box('settings').get('vaultBannerDismissed') != true;
 
   static Future<String?> askPassword(BuildContext context) async {
     final ctrl = TextEditingController();
@@ -97,7 +99,8 @@ class VaultBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!Hive.isBoxOpen('settings')) return const SizedBox.shrink();
     return ValueListenableBuilder(
-      valueListenable: Hive.box('settings').listenable(keys: const ['vaultLoadFailed']),
+      valueListenable: Hive.box('settings')
+          .listenable(keys: const ['vaultLoadFailed', 'vaultBannerDismissed']),
       builder: (context, _, __) {
         if (!failed) return const SizedBox.shrink();
         return Material(

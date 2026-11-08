@@ -21,6 +21,7 @@ import 'backend_service.dart';
 import 'backup_service.dart';
 import 'bank_sync.dart';
 import 'depot_sync.dart';
+import 'ledger_busy.dart';
 import 'secure_store.dart';
 
 /// What [CloudSync.start] / a guarded push should do next.
@@ -102,11 +103,14 @@ class CloudSync {
       await apply(remote, required: true);
     }
     await _settings.delete('vaultLoadFailed');
+    await _settings.delete('vaultBannerDismissed');
   }
 
-  // LAN / phone test: keep using the app without cloud until the next login
+  // Use the app without decrypting cloud — but keep pushes blocked so an empty
+  // post-login cache cannot overwrite a good vault via „Gerät behalten“.
   static Future<void> skipCloudForNow() async {
-    await _settings.delete('vaultLoadFailed');
+    await _settings.put('vaultLoadFailed', true);
+    await _settings.put('vaultBannerDismissed', true);
   }
 
   // pure: dirty local edits must not silently overwrite a newer cloud copy
@@ -152,7 +156,11 @@ class CloudSync {
         _keyUserId = uid;
       }
     } catch (_) {}
-    if (_key == null || _keyUserId != uid) return; // signed in before sync / wrong key
+    if (_key == null || _keyUserId != uid) {
+      // wiped session / missing keychain: prompt password pull, don't sit on 0 €
+      await _settings.put('vaultLoadFailed', true);
+      return;
+    }
     if (!_stillThisSession(epoch, uid, generation)) return;
     _watch();
     try {
@@ -190,6 +198,7 @@ class CloudSync {
       }
       if (!_stillThisSession(epoch, uid, generation)) return;
       await _settings.delete('vaultLoadFailed');
+      await _settings.delete('vaultBannerDismissed');
       await AccountIsolation.reconcileLinksWithServer();
     } catch (_) {
       // offline: the next change or start tries again
@@ -271,6 +280,7 @@ class CloudSync {
       return;
     }
     _applying = true;
+    LedgerBusy.enter();
     try {
       final rawBackup = payload['backup'];
       final backupJson = rawBackup is String
@@ -316,7 +326,9 @@ class CloudSync {
       await _settings.put('vaultVersion', remote['version'] as int? ?? 0);
       await _settings.delete('vaultDirty');
       await _settings.delete('vaultLoadFailed');
+      await _settings.delete('vaultBannerDismissed');
     } finally {
+      LedgerBusy.leave();
       _applying = false;
     }
     if (!_stillThisSession(epoch, uid, generation)) return;

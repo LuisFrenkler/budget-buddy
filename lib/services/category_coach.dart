@@ -1,7 +1,6 @@
 // Turns "Sonstiges" piles into proposed category moves. Buddy shows them as
 // confirm cards; nothing is stored until the user taps Übernehmen.
 import 'package:hive/hive.dart';
-import '../models/transaction.dart';
 import '../utils/merchant.dart';
 import 'categorizer.dart';
 import 'category_rules.dart';
@@ -24,12 +23,14 @@ class CategoryProposal {
 }
 
 class CategoryGroup {
-  final String sample;
+  final String sample; // display title
+  final String key; // groupKey — apply must use this, not tidy(sample)
   final int count;
   final int cents;
   final bool isIncome;
   const CategoryGroup({
     required this.sample,
+    required this.key,
     required this.count,
     required this.cents,
     required this.isIncome,
@@ -37,28 +38,55 @@ class CategoryGroup {
 }
 
 class CategoryCoach {
+  // stable group id: known brands merge (REWE Markt / REWE Sagt Danke);
+  // short/noisy titles stay exact so empty SEPA lines don't become one pile
+  static String groupKey(String note, {required bool isIncome}) {
+    final brand = Categorizer.brand(note);
+    if (brand != null) return '${isIncome ? '+' : '-'}$brand';
+    final k = Merchant.key(note);
+    if (k.length < 4) return '${isIncome ? '+' : '-'}=${note.toLowerCase().trim()}';
+    return '${isIncome ? '+' : '-'}$k';
+  }
+
   // Sonstiges bookings grouped by merchant, biggest spend first
   static List<CategoryGroup> groups({bool spendingOnly = true, int limit = 20}) {
-    final map = <String, ({String sample, int count, int cents, bool isIncome})>{};
+    final map =
+        <String, ({Map<String, int> notes, int count, int cents, bool isIncome})>{};
     for (final t in DB.getTx()) {
       if (t.category != 'Sonstiges') continue;
       if (spendingOnly && !t.isSpending) continue;
       final note = t.note?.trim() ?? '';
       if (note.isEmpty) continue;
-      final key = '${t.isIncome ? '+' : '-'}${Merchant.key(note)}';
+      final key = groupKey(note, isIncome: t.isIncome);
       final prev = map[key];
+      final notes = {...?prev?.notes};
+      notes[note] = (notes[note] ?? 0) + 1;
       map[key] = (
-        sample: prev?.sample ?? note,
+        notes: notes,
         count: (prev?.count ?? 0) + 1,
         cents: (prev?.cents ?? 0) + t.amountCents,
         isIncome: t.isIncome,
       );
     }
-    final list = map.values.toList()
-      ..sort((a, b) => b.cents != a.cents ? b.cents.compareTo(a.cents) : b.count.compareTo(a.count));
+    final entries = map.entries.toList()
+      ..sort((a, b) => b.value.cents != a.value.cents
+          ? b.value.cents.compareTo(a.value.cents)
+          : b.value.count.compareTo(a.value.count));
     return [
-      for (final g in list.take(limit))
-        CategoryGroup(sample: g.sample, count: g.count, cents: g.cents, isIncome: g.isIncome),
+      for (final e in entries.take(limit))
+        CategoryGroup(
+          key: e.key,
+          // most frequent bank title in the pile (not a one-off purpose line)
+          sample: Merchant.present((e.value.notes.entries.toList()
+                ..sort((a, b) => b.value != a.value
+                    ? b.value.compareTo(a.value)
+                    : a.key.length.compareTo(b.key.length)))
+              .first
+              .key),
+          count: e.value.count,
+          cents: e.value.cents,
+          isIncome: e.value.isIncome,
+        ),
     ];
   }
 
@@ -95,19 +123,25 @@ class CategoryCoach {
     return DB.getTx().where((t) => t.isSpending && t.category == 'Sonstiges').length;
   }
 
-  // moves every Sonstiges booking of this merchant and remembers the rule
-  static Future<int> apply(String sample, String category, {required bool isIncome}) async {
-    final key = Merchant.key(sample);
+  // only Sonstiges of this merchant — never rewrite already sorted bookings
+  static Future<int> apply(String sample, String category,
+      {required bool isIncome, String? key}) async {
+    if (category == 'Sonstiges') return 0;
+    final want = key ?? groupKey(sample, isIncome: isIncome);
     var n = 0;
+    String? rememberAs;
     for (final t in DB.getTx()) {
       if (t.isIncome != isIncome) continue;
-      if (t.category == category) continue;
+      if (t.category != 'Sonstiges') continue;
       final note = t.note?.trim() ?? '';
-      if (note.isEmpty || Merchant.key(note) != key) continue;
+      if (note.isEmpty || groupKey(note, isIncome: isIncome) != want) continue;
+      rememberAs ??= note;
       await DB.addTx(t.withCategory(category));
       n++;
     }
-    await CategoryRules.remember(sample, category, isIncome: isIncome);
+    if (n > 0) {
+      await CategoryRules.remember(rememberAs ?? sample, category, isIncome: isIncome);
+    }
     return n;
   }
 

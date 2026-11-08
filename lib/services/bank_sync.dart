@@ -22,6 +22,7 @@ import 'backend_service.dart';
 import 'categorizer.dart';
 import 'category_rules.dart';
 import 'db.dart';
+import 'ledger_busy.dart';
 import 'money_accounts.dart';
 import 'settings_service.dart';
 
@@ -337,6 +338,7 @@ class BankSync {
   static Future<({int added, int smarter})> run() async {
     if (_inflight != null) return _inflight!;
     return _inflight = () async {
+      LedgerBusy.enter();
       try {
         final epoch = AccountIsolation.epoch;
         final accountId = AccountService.current.value?.id;
@@ -371,19 +373,36 @@ class BankSync {
             bankName: l.bank.isEmpty ? 'Bank' : l.bank,
             others: MoneyAccounts.others,
           );
+          final shown = accounts.isNotEmpty
+              ? accounts.first.balanceCents
+              : data.balanceCents;
+          final ledgerDirty =
+              result.added.isNotEmpty || result.moved.isNotEmpty;
+          final openingDirty = result.touchesMain &&
+              (Settings.openingBalanceCents != result.openingBalanceCents ||
+                  Settings.bankBalanceCents != shown);
+          // skip no-op Hive writes — they rebuild Start and the Konto jumps
+          if (!ledgerDirty && !openingDirty) {
+            continue;
+          }
+          if (result.touchesMain && openingDirty) {
+            await Settings.setOpeningBalanceCents(result.openingBalanceCents);
+            await Settings.setBankBalanceCents(shown);
+          }
           for (final a in result.accounts) {
+            final prev = MoneyAccounts.byId(a.id);
+            if (prev != null &&
+                prev.openingCents == a.openingCents &&
+                prev.iban == a.iban &&
+                prev.link == a.link &&
+                prev.bank == a.bank &&
+                prev.name == a.name) {
+              continue;
+            }
             await MoneyAccounts.save(a);
           }
           for (final t in [...result.moved, ...result.added]) {
             await DB.addTx(t);
-          }
-          if (result.touchesMain) {
-            await Settings.setOpeningBalanceCents(result.openingBalanceCents);
-            // giro-first account balance next to its IBAN, not the sum of all accounts
-            final shown = accounts.isNotEmpty
-                ? accounts.first.balanceCents
-                : data.balanceCents;
-            await Settings.setBankBalanceCents(shown);
           }
           added += result.added.length;
           smarter += result.smarter;
@@ -391,12 +410,13 @@ class BankSync {
         if (!AccountIsolation.sameEpoch(epoch)) return (added: 0, smarter: 0);
         if (AccountService.current.value?.id != accountId)
           return (added: 0, smarter: 0);
-        // smarter keyword rules also lift older "Sonstiges" bookings
-        smarter += await CategoryRules.upgradeSonstiges();
+        // never rewrite old Sonstiges here — only new imports are categorized
+        // once in merge()
         offerSmile(added: added, smarter: smarter);
         await Settings.setLastSync(DateTime.now());
         return (added: added, smarter: smarter);
       } finally {
+        LedgerBusy.leave();
         _inflight = null;
       }
     }();

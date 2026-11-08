@@ -16,6 +16,8 @@ import 'home_screen.dart';
 import 'splits_screen.dart';
 import 'vorsorge_screen.dart';
 import 'wealth_screen.dart';
+import '../widgets/misc_sort_sheet.dart';
+import '../widgets/scenario_sheet.dart';
 
 class BuddyAction {
   final IconData icon;
@@ -83,14 +85,18 @@ class BuddyActions {
         CategoryCoach.miscCount() > 0) {
       return [
         BuddyAction(Icons.auto_fix_high_rounded, 'Sonstiges aufräumen',
-            (c) => BuddyScreen.open(c, 'Sonstiges aufräumen')),
+            (c) => showMiscSortSheet(c)),
       ];
     }
-    if (_has(q, ['was bleibt', 'noch ausgeben', 'prognose', 'monatsende', 'noch frei']) &&
+    if (_has(q, ['was bleibt', 'noch ausgeben', 'prognose', 'monatsende', 'noch frei', 'was wäre', 'leisten']) &&
         s.forecast != null) {
       return [
+        BuddyAction(Icons.tune_rounded, 'Was wäre wenn…?', (c) {
+          BuddyScreen.ask.value = null;
+          showScenarioSheet(c);
+        }),
         BuddyAction(Icons.insights_rounded, 'Prognose auf Start', (c) {
-          BuddyScreen.ask.value = null; // don't fire a pending ask on the Buddy tab
+          BuddyScreen.ask.value = null;
           Navigator.popUntil(c, (r) => r.isFirst);
           HomeScreen.goTab.value = 0;
         }),

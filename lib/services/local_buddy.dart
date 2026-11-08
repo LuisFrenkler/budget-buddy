@@ -2,11 +2,14 @@
 // numbers computed on the device. Used offline and whenever the
 // server has no AI configured. The app labels these answers as offline.
 import '../utils/dates.dart';
+import '../utils/merchant.dart';
 import '../utils/money.dart';
 import 'category_coach.dart';
+import 'db.dart';
 import 'finance_snapshot.dart';
 import 'forecast_service.dart';
 import 'goals_service.dart';
+import 'scenario_service.dart';
 
 class LocalBuddy {
   // [history] is prior turns (user/assistant); follow-ups reuse the last user topic
@@ -27,6 +30,7 @@ class LocalBuddy {
     if (_has(topic, ['letzte buchung', 'letzten buchungen', 'transaktion', 'welche konten', 'meine konten', 'konten'])) {
       return _accounts(s);
     }
+    if (_scenarioQuestion(topic, s)) return _scenario(topic, s);
     if (_has(topic, ['was bleibt', 'noch ausgeben', 'prognose', 'bleibt', 'monatsende'])) return _forecast(s);
     if (_goalQuestion(topic)) return _goals(s);
     if (_has(topic, ['abo', 'vertr', 'fixkost'])) return _contracts(s);
@@ -145,13 +149,34 @@ class LocalBuddy {
     }
     final base = 'Im Schnitt bleiben dir **${_eur(surplus)} pro Monat** übrig '
         '(Einnahmen ${_eur(s.avgIncome)}, Ausgaben ${_eur(s.avgExpenses)}).';
-    if (target == null || target <= 0) return '$base\n\nNenn mir einen Betrag, dann rechne ich aus, wie schnell du ihn zusammen hast.';
+    if (target == null || target <= 0) {
+      return '$base\n\nNenn mir einen Betrag, dann rechne ich aus, wie schnell du ihn zusammen hast.';
+    }
     final cents = target * 100;
     final months = (cents / surplus).ceil();
     final buffer = s.balanceCents - cents;
-    return '$base\n\n- Für **${_eur(cents)}** brauchst du etwa **$months ${months == 1 ? 'Monat' : 'Monate'}**.\n'
-        '- Aus dem Kontostand bezahlt blieben dir ${_eur(buffer)}'
-        '${buffer < s.avgExpenses ? ', weniger als ein Monat Ausgaben. Lieber ansparen.' : '. Das passt.'}';
+    final lines = <String>[
+      base,
+      '',
+      '- Für **${_eur(cents)}** brauchst du etwa **$months ${months == 1 ? 'Monat' : 'Monate'}**.',
+      '- Aus dem Kontostand bezahlt blieben dir ${_eur(buffer)}'
+          '${buffer < s.avgExpenses ? ', weniger als ein Monat Ausgaben. Lieber ansparen.' : '. Das passt.'}',
+    ];
+    // same formula as Monats-Simulator for this month
+    final cmp = ScenarioService.compare(
+      DB.getTx(),
+      overrides: ForecastOverrides(oneTimeSpentCents: cents),
+      goals: GoalsService.all(),
+      balanceCents: s.balanceCents,
+      now: s.today,
+    );
+    if (cmp != null) {
+      final free = cmp.sim.freeCents;
+      lines.add(free >= 0
+          ? '- Diesen Monat blieben danach noch **${_eur(free)}** frei (≈ ${_eur(cmp.sim.perDayCents)}/Tag).'
+          : '- Diesen Monat wärst du **${_eur(-free)} über** dem Plan.');
+    }
+    return lines.join('\n');
   }
 
   static String _contracts(FinanceSnapshot s) {
@@ -262,6 +287,55 @@ class LocalBuddy {
     ];
     final tail = recent.isEmpty ? '' : '\n\nLetzte Buchungen:\n${recent.join('\n')}';
     return 'Konten:\n$accounts$tail';
+  }
+
+  // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe" — same formula as the sheet
+  static bool _scenarioQuestion(String q, FinanceSnapshot s) {
+    if (_has(q, ['was wäre', 'wenn ich'])) return true;
+    if (!_has(q, ['kündig', 'ohne'])) return false;
+    return s.contracts.any((c) => q.contains(c.name.toLowerCase()));
+  }
+
+  static String _scenario(String q, FinanceSnapshot s) {
+    if (s.forecast == null) return 'Dafür brauche ich ein paar volle Monate mit Einnahmen.';
+    final named = s.contracts.where((c) => q.contains(c.name.toLowerCase())).toList();
+    final match = RegExp(r'(\d[\d.]*)').firstMatch(q);
+    final euros = match == null ? null : int.tryParse(match.group(1)!.replaceAll('.', ''));
+
+    late final ForecastOverrides overrides;
+    late final String label;
+    if (named.isNotEmpty) {
+      final c = named.first;
+      overrides = ForecastOverrides(excludedContractKeys: {Merchant.key(c.name)});
+      label = 'ohne **${c.name}** (${_eur(c.monthlyCents)}/Monat)';
+    } else if (euros != null && euros > 0) {
+      overrides = ForecastOverrides(oneTimeSpentCents: euros * 100);
+      label = 'mit einem Kauf von **${_eur(euros * 100)}**';
+    } else if (s.contracts.isNotEmpty) {
+      final tip = s.contracts.take(3).map((c) => c.name).join(', ');
+      return 'Sag z. B. „Was wäre ohne ${s.contracts.first.name}?“ oder nenn einen Betrag.\n'
+          'Erkannte Abos: $tip.';
+    } else {
+      return 'Sag z. B. „Was wäre wenn ich 200 € ausgebe?“ — Abos habe ich noch keine erkannt.';
+    }
+
+    final cmp = ScenarioService.compare(
+      DB.getTx(),
+      overrides: overrides,
+      goals: GoalsService.all(),
+      balanceCents: s.balanceCents,
+      now: s.today,
+    );
+    if (cmp == null) return 'Dafür brauche ich ein paar volle Monate mit Einnahmen.';
+    final delta = cmp.deltaFree;
+    final deltaLine = delta == 0
+        ? 'Am freien Betrag ändert sich nichts.'
+        : delta > 0
+            ? 'Das wären **${_eur(delta)} mehr** frei (${_eur(cmp.deltaPerDay)}/Tag).'
+            : 'Das wären **${_eur(-delta)} weniger** frei (${_eur(-cmp.deltaPerDay)}/Tag).';
+    return 'Heute bleiben **${_eur(cmp.base.freeCents)}**.\n'
+        'Szenario $label: **${_eur(cmp.sim.freeCents)}**.\n'
+        '$deltaLine';
   }
 
   static String _forecast(FinanceSnapshot s) {
