@@ -89,7 +89,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final tx = DB.getTx();
         final rate = SavingsRate.headline(tx);
         // oldest transaction = the user's start with the app
-        final since = tx.isEmpty ? null : tx.last.date;
         final account = AccountService.current.value;
 
         return Scaffold(
@@ -137,28 +136,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 20),
               SettingsGroup([
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(children: [
-                    _stat('${tx.length}', 'Umsätze'),
-                    _stat(since == null ? '–' : Dates.month(since), 'Dabei seit'),
-                    Expanded(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () => _explainRate(tx),
-                        child: Column(children: [
-                          Text(rate == null ? '–' : '$rate %',
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 2),
-                          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Text('Sparquote', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-                            const SizedBox(width: 3),
-                            Icon(Icons.info_outline_rounded, size: 13, color: AppColors.textDim),
-                          ]),
-                        ]),
-                      ),
-                    ),
-                  ]),
+                SettingsRow(
+                  icon: Icons.savings_outlined,
+                  title: 'Sparquote',
+                  subtitle: 'Wie viel vom Einkommen übrig bleibt',
+                  value: rate == null ? '–' : '$rate %',
+                  onTap: () => _explainRate(tx),
                 ),
               ]),
 
@@ -720,19 +703,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     return ok == true;
-  }
-
-  // one value of the header statistics
-  Widget _stat(String value, String label) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 2),
-          Text(label, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-        ],
-      ),
-    );
   }
 
   // how the savings rate comes about, month by month

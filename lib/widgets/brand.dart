@@ -26,7 +26,10 @@ class MarkPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // same geometry as assets/icon/icon.png, on a 1024 grid; the glyph's
     // extent (277..747) is centred on 512
-    final s = size.width / 1024;
+    // drawn into the centred square, whatever box the parent gives
+    final side = size.shortestSide;
+    canvas.translate((size.width - side) / 2, (size.height - side) / 2);
+    final s = side / 1024;
     final paint = Paint()..color = Colors.white;
     const w = 118.0;
     canvas.drawRRect(

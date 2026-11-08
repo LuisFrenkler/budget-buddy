@@ -590,7 +590,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
       children: [
-        const Center(child: BuddyOrb(size: 120)),
+        const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 56)),
         const SizedBox(height: 32),
         Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
@@ -602,27 +602,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   'Ich nutze deine Ausgaben, Budgets und Verträge.',
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
-        if (PlusService.syncError.value != null) ...[
-          const SizedBox(height: 10),
-          InkWell(
-            onTap: () => PlusService.syncWithServer(fresh: true),
-            child: Text(
-              '${PlusService.syncError.value} · Tippen zum Aktualisieren',
-              style: TextStyle(
-                  fontSize: 13, color: AppColors.warningText, fontWeight: FontWeight.w600, height: 1.35),
-            ),
-          ),
-        ] else if (AccountService.current.value != null &&
-            _live == true &&
-            !PlusService.active.value) ...[
-          const SizedBox(height: 10),
-          Text(_quotaLine,
-              style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.primaryText,
-                  fontWeight: FontWeight.w600,
-                  height: 1.35)),
-        ],
         const SizedBox(height: 24),
         for (final s in BuddySuggestions.pick(BuddyService.snapshot()))
           Padding(
@@ -889,7 +868,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+                    borderSide: BorderSide(color: AppColors.textDim, width: 1),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
@@ -921,8 +900,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
           if (PlusService.syncError.value != null)
             GestureDetector(
               onTap: () => PlusService.syncWithServer(fresh: true),
-              child: Text('${PlusService.syncError.value} · Tippen zum Aktualisieren',
-                  style: TextStyle(fontSize: 11, color: AppColors.warningText, fontWeight: FontWeight.w600)),
+              child: Text('${PlusService.syncError.value} Erneut versuchen',
+                  style: TextStyle(fontSize: 11, color: AppColors.textDim, decoration: TextDecoration.underline)),
             )
           else if (_live == true && !PlusService.active.value)
             Text(_quotaLine,

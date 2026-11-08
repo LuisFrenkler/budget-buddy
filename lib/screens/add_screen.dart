@@ -303,7 +303,7 @@ class _AddScreenState extends State<AddScreen> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(_category == null && AmountInput.cents(_amount) > 0
                             ? 'Kategorie wählen'

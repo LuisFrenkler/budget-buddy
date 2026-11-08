@@ -157,15 +157,9 @@ class Wealth {
   static int? savingsRatePercent(List<Transaction> tx, {DateTime? now}) =>
       SavingsRate.headline(tx, now: now);
 
-  /// One calm line: last month saved a higher share than the month before,
-  /// otherwise net worth is above its level about a month ago. Null when
-  /// there is nothing kind to say.
-  static String? moment({
-    required List<Transaction> tx,
-    required int netNowCents,
-    int? netMonthAgoCents,
-    DateTime? now,
-  }) {
+  /// One calm line when last month saved a higher share than the month
+  /// before. Null otherwise (the chart already shows the change in value).
+  static String? moment({required List<Transaction> tx, DateTime? now}) {
     final months = SavingsRate.months(tx, now: now);
     if (months.length >= 3) {
       final last = months[1].rate;
@@ -173,9 +167,6 @@ class Wealth {
       if (last != null && prev != null && last > prev && last > 0) {
         return 'Sparquote letzten Monat: $last %, höher als im Monat davor';
       }
-    }
-    if (netMonthAgoCents != null && netNowCents > netMonthAgoCents) {
-      return 'Vermögen ${Money.format(netNowCents - netMonthAgoCents)} über dem Stand vor einem Monat';
     }
     return null;
   }

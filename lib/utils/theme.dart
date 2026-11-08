@@ -18,7 +18,6 @@ class AppColors {
   // the text on it. Plus and minus have their own colors.
   static Color get primary => text;
   static Color get onPrimary => bg;
-  static const accentBlue = Color(0xFF38BDF8);   // secondary accent (depot)
 
   // meaning: money in and gains, money out and losses, attention
   static const positive = Color(0xFF2BD17E);
@@ -98,13 +97,17 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.surfaceAlt,
+      // placeholders are light grey, never the color of typed text
+      hintStyle: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w400),
+      labelStyle: TextStyle(color: AppColors.textDim),
+      floatingLabelStyle: TextStyle(color: AppColors.textDim),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: AppColors.textDim, width: 1),
       ),
     ),
 

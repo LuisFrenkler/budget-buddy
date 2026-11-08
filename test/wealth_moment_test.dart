@@ -25,25 +25,12 @@ void main() {
     ];
     expect(
       Wealth.moment(
-          tx: tx, netNowCents: 50000, netMonthAgoCents: 10000, now: now),
+          tx: tx, now: now),
       'Sparquote letzten Monat: 60 %, höher als im Monat davor',
     );
   });
 
-  test('net worth speaks when the savings rate did not rise', () {
-    final line = Wealth.moment(
-        tx: const [], netNowCents: 20000, netMonthAgoCents: 10000, now: now);
-    expect(line, contains('über dem Stand vor einem Monat'));
-    expect(
-        Wealth.moment(
-            tx: const [],
-            netNowCents: 10000,
-            netMonthAgoCents: 10000,
-            now: now),
-        isNull);
-    expect(
-        Wealth.moment(
-            tx: const [], netNowCents: 10000, netMonthAgoCents: null, now: now),
-        isNull);
+  test('no line when the savings rate did not rise', () {
+    expect(Wealth.moment(tx: const [], now: now), isNull);
   });
 }

@@ -81,16 +81,21 @@ class BigNumber extends StatelessWidget {
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2)),
         const SizedBox(height: 6),
-        AnimatedMoney(
-          cents,
-          signed: signed,
-          animate: animate,
-          style: TextStyle(
-            color: AppColors.text,
-            fontSize: 44,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1.8,
-            height: 1.05,
+        // one line always: large sums shrink instead of pushing "€" down
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: AnimatedMoney(
+            cents,
+            signed: signed,
+            animate: animate,
+            style: TextStyle(
+              color: AppColors.text,
+              fontSize: 44,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.8,
+              height: 1.05,
+            ),
           ),
         ),
         if (below != null) ...[const SizedBox(height: 6), below!],
@@ -116,8 +121,9 @@ class ChangeLabel extends StatelessWidget {
         // privacy: no green/red direction cue over the shoulder
         final color = hidden ? AppColors.textDim : (up ? AppColors.positive : AppColors.error);
         final pct = percent != null ? Money.percent(percent!, digits: 2, signed: hidden) : null;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        // wraps the period onto a second line instead of cutting it off
+        return Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Icon(up ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded, color: color, size: 24),
             Text(
@@ -126,10 +132,7 @@ class ChangeLabel extends StatelessWidget {
             ),
             if (suffix != null) ...[
               const SizedBox(width: 6),
-              Flexible(
-                child: Text(suffix!,
-                    style: TextStyle(color: AppColors.textDim, fontSize: 14), overflow: TextOverflow.ellipsis),
-              ),
+              Text(suffix!, style: TextStyle(color: AppColors.textDim, fontSize: 14)),
             ],
           ],
         );

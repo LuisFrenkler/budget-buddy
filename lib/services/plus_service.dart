@@ -266,7 +266,7 @@ class PlusService {
       syncError.value = null;
       return true;
     } catch (_) {
-      syncError.value = 'Plus-Status konnte nicht geprüft werden. Tippe hier zum erneuten Versuchen.';
+      syncError.value = 'Plus-Status gerade nicht abrufbar.';
       return false;
     }
   }

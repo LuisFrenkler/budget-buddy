@@ -738,7 +738,7 @@ class _PrimaryButton extends StatelessWidget {
       ),
       onPressed: busy ? null : onPressed,
       child: busy
-          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
     );
   }

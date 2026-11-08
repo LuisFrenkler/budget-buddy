@@ -228,7 +228,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
               child: _saving
                   ? const SizedBox(
                       height: 20, width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      child: CircularProgressIndicator(strokeWidth: 2))
                   : Text(_isEdit ? 'Aktualisieren' : 'Zum Depot hinzufügen'),
             ),
           ],

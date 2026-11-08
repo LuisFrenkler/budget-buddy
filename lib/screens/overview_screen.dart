@@ -801,7 +801,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           'Geteilt',
           () => Navigator.push(
               context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
-          color: AppColors.accentBlue),
+          color: AppColors.primary),
       if (!bankLinked && !MoneyAccounts.several) ...[
         const SizedBox(width: 10),
         chip(
@@ -809,12 +809,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
             'Bank',
             () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
-            color: AppColors.accentBlue),
+            color: AppColors.primary),
       ] else ...[
         const SizedBox(width: 10),
         chip(Icons.swap_horiz_rounded, 'Transfer',
             () => showTransferSheet(context),
-            color: AppColors.accentBlue),
+            color: AppColors.primary),
       ],
     ]);
   }
@@ -869,13 +869,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   fontWeight: FontWeight.w600)),
         ),
       ),
-      if (Wealth.moment(
-                tx: tx,
-                netNowCents: net,
-                netMonthAgoCents: _centsNear(
-                    points, DateTime(now.year, now.month, now.day - 30)),
-                now: now,
-              ) ??
+      if (Wealth.moment(tx: tx, now: now) ??
               Wealth.weekOverWeekPulse(
                 tx,
                 cashCents: cash,
@@ -982,7 +976,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ],
           _accountRow(
             icon: Icons.trending_up_rounded,
-            color: AppColors.accentBlue,
+            color: AppColors.primary,
             title: 'Depot',
             value: Money.format(depotNow),
             change: !hasHoldings
@@ -1158,21 +1152,4 @@ class _OverviewScreenState extends State<OverviewScreen> {
       BuddyCard(chips: BuddySuggestions.pick(BuddyService.snapshot())),
     ]);
   }
-}
-
-// a point within a few days of [target], or null when the series does not reach it
-int? _centsNear(List<ChartPoint> points, DateTime target) {
-  if (points.length < 2) return null;
-  if (points.first.date.isAfter(target.add(const Duration(days: 3))))
-    return null;
-  var best = points.first;
-  var gap = best.date.difference(target).inDays.abs();
-  for (final p in points) {
-    final g = p.date.difference(target).inDays.abs();
-    if (g < gap) {
-      best = p;
-      gap = g;
-    }
-  }
-  return gap <= 3 ? best.cents : null;
 }

@@ -36,7 +36,7 @@ Future<void> showAddAccountChoice(BuildContext context, {bool depot = false, Voi
             option(_Choice.bank, Icons.account_balance_rounded, AppColors.primary,
                 Settings.bankState.isEmpty ? 'Bankkonto verbinden' : 'Weitere Bank verbinden',
                 'ING, Sparkasse, DKB, N26 und viele mehr'),
-          option(_Choice.depot, Icons.trending_up_rounded, AppColors.accentBlue,
+          option(_Choice.depot, Icons.trending_up_rounded, AppColors.primary,
               Settings.depotState.isEmpty ? 'Depot verbinden' : 'Weiteres Depot hinzufügen',
               'Trade Republic, Scalable und andere, über Parqet'),
           option(_Choice.hand, depot ? Icons.edit_note_rounded : Icons.edit_rounded, AppColors.textDim,

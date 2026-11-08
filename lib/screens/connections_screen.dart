@@ -295,7 +295,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         Row(children: [
           _iconTile(
               depot ? Icons.show_chart_rounded : Icons.account_balance_rounded,
-              depot ? AppColors.accentBlue : AppColors.primary),
+              depot ? AppColors.primary : AppColors.primary),
           const SizedBox(width: 14),
           Expanded(
             child: Text(depot ? 'Depot verbinden' : 'Bankkonto verbinden',
@@ -605,7 +605,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            _iconTile(Icons.show_chart_rounded, AppColors.accentBlue),
+            _iconTile(Icons.show_chart_rounded, AppColors.primary),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -666,11 +666,11 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             height: 24,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-                color: AppColors.accentBlue.withValues(alpha: 0.15),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle),
             child: Text('$n',
                 style: TextStyle(
-                    color: AppColors.accentBlue,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w800,
                     fontSize: 12.5)),
           ),
@@ -693,7 +693,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          _iconTile(Icons.show_chart_rounded, AppColors.accentBlue),
+          _iconTile(Icons.show_chart_rounded, AppColors.primary),
           const SizedBox(width: 14),
           Expanded(
             child:
