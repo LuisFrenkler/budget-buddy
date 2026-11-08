@@ -329,7 +329,7 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
         // a real bank first, by hand second
         chip(
-            MoneyAccounts.several ? 'Konto' : 'Konto oder Bank hinzufügen',
+            MoneyAccounts.several ? 'Konto' : 'Konto hinzufügen',
             false,
             () => showAddAccountChoice(context, byHand: () async {
                   final added = await showAccountSheet(context);

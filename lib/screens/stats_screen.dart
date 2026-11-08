@@ -7,6 +7,7 @@ import '../services/db.dart';
 import '../models/transaction.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
+import '../utils/dates.dart';
 import '../widgets/big_number.dart';
 import '../services/insights_service.dart';
 import '../widgets/tx_row.dart';
@@ -175,7 +176,7 @@ class _StatsViewState extends State<StatsView> {
         );
     return Row(children: [
       if (recap != null)
-        button(Icons.calendar_month_rounded, '${_monthNames[recapMonth.month - 1]}-Rückblick', () {
+        button(Icons.calendar_month_rounded, 'Rückblick ${Dates.shortMonths[recapMonth.month - 1]}', () {
           Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
         }),
       if (recap != null && weekly != null) const SizedBox(width: 10),
@@ -580,8 +581,11 @@ class _StatsViewState extends State<StatsView> {
 
     // build category cards
     final categoryCards = <Widget>[];
-    for (var entry in sorted) {
+    for (var i = 0; i < sorted.length; i++) {
+      final entry = sorted[i];
       final percent = entry.value / total;
+      // same colour as the slice in the ring above
+      final barColor = AppColors.chart[i % AppColors.chart.length];
 
       categoryCards.add(
         Padding(
@@ -612,7 +616,7 @@ class _StatsViewState extends State<StatsView> {
                       child: LinearProgressIndicator(
                         value: percent,
                         backgroundColor: AppColors.bg,
-                        valueColor: AlwaysStoppedAnimation(color),
+                        valueColor: AlwaysStoppedAnimation(barColor),
                         minHeight: 6,
                       ),
                     ),

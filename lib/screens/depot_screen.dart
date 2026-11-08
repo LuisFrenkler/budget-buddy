@@ -240,7 +240,7 @@ class _DepotScreenState extends State<DepotScreen> {
     final live = holdings.where((h) => h.priceAt != null).toList();
     final String text;
     if (live.isEmpty) {
-      text = 'Kurse eingegeben, nicht live · ↻ zum Aktualisieren';
+      text = 'Kurse von Hand eingegeben';
     } else {
       final oldest =
           live.map((h) => h.priceAt!).reduce((a, b) => a.isBefore(b) ? a : b);
@@ -249,7 +249,7 @@ class _DepotScreenState extends State<DepotScreen> {
           'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
     }
     // the curve shows today's positions through time, not past purchases and sales
-    return Text('$text\nVerlauf mit deinem heutigen Bestand gerechnet',
+    return Text('$text\nVerlauf mit heutigem Bestand',
         style:
             TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
   }
@@ -306,20 +306,20 @@ class _DepotScreenState extends State<DepotScreen> {
                     'Investiert (Ø)', Money.format(invested), AppColors.text)),
             Expanded(
               child: _stat('Gewinn/Verlust', Money.signed(gain),
-                  gain >= 0 ? AppColors.positive : AppColors.error),
+                  gain >= 0 ? AppColors.positiveText : AppColors.errorText),
             ),
             Expanded(
               child: _stat(
                   'Rendite',
                   invested == 0 ? '–' : Money.percent(gain / invested * 100),
-                  gain >= 0 ? AppColors.positive : AppColors.error),
+                  gain >= 0 ? AppColors.positiveText : AppColors.errorText),
             ),
           ],
         ),
       ),
       const SizedBox(height: 8),
       Text(
-          'Investiert = Durchschnittspreis. Dein Broker rechnet vielleicht nach FIFO, die Zahl kann deshalb leicht abweichen.',
+          'Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.',
           style:
               TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
     ];
@@ -451,7 +451,7 @@ class _DepotScreenState extends State<DepotScreen> {
 
   // single holding row in the same calm style as the transaction list
   Widget _holdingCard(Holding h, int? slot) {
-    final color = h.isUp ? AppColors.positive : AppColors.error;
+    final color = h.isUp ? AppColors.positiveText : AppColors.errorText;
 
     return Dismissible(
       key: Key(h.id),

@@ -1011,7 +1011,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = 'Hey $found! Komm in unsere Gruppe „${group.name}“ bei BudgetBuddy. '
+    final text = 'Hallo $found, komm in unsere Gruppe „${group.name}“ bei BudgetBuddy. '
         '${link != null ? 'Tipp hier: $link\n' : ''}Code: ${group.code}. Dann wähl deinen Namen „$found“.';
     await showDialog(
       context: this.context,

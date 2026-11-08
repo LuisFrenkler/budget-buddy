@@ -292,7 +292,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     final invested = (shares * buy).round();
     final value = (shares * current).round();
     final gain = value - invested;
-    final color = gain >= 0 ? AppColors.positive : AppColors.error;
+    final color = gain >= 0 ? AppColors.positiveText : AppColors.errorText;
 
     Widget cell(String label, String v, Color c) => Expanded(
           child: Column(

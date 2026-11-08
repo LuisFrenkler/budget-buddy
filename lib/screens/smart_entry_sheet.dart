@@ -56,7 +56,7 @@ class _SmartEntryState extends State<_SmartEntry> {
   Timer? _refine;
   bool _refining = false;
 
-  static const _examples = ['Kaffee 3,20', 'Tanken 65 gestern', 'Gehalt 2.850 am 1.10.', 'Kino 24 freitag'];
+  static const _examples = ['Kaffee 3,20', 'Tanken 65 gestern', 'Gehalt 2.850 am 1.10.', 'Kino 24 Freitag'];
 
   @override
   void initState() {
@@ -275,7 +275,7 @@ class _SmartEntryState extends State<_SmartEntry> {
                 ? 'Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter'
                 : 'Noch ${PlusService.left(PlusFeature.receiptScan)} von ${PlusService.freeReceiptScans} Gratis-Beleg-Scans diesen Monat',
             style: TextStyle(
-                fontSize: 12, color: AppColors.primaryText, fontWeight: FontWeight.w600, height: 1.3),
+                fontSize: 12, color: AppColors.textDim, height: 1.3),
           ),
         ],
       ]),

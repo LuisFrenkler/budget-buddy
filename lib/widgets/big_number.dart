@@ -119,7 +119,7 @@ class ChangeLabel extends StatelessWidget {
       valueListenable: Settings.hideAmounts,
       builder: (_, hidden, __) {
         // privacy: no green/red direction cue over the shoulder
-        final color = hidden ? AppColors.textDim : (up ? AppColors.positive : AppColors.error);
+        final color = hidden ? AppColors.textDim : (up ? AppColors.positiveText : AppColors.errorText);
         final pct = percent != null ? Money.percent(percent!, digits: 2, signed: hidden) : null;
         // wraps the period onto a second line instead of cutting it off
         return Wrap(

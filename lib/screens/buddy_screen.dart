@@ -905,7 +905,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             )
           else if (_live == true && !PlusService.active.value)
             Text(_quotaLine,
-                style: TextStyle(fontSize: 11, color: AppColors.primaryText, fontWeight: FontWeight.w600)),
+                style: TextStyle(fontSize: 11, color: AppColors.textDim)),
           Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
               style: TextStyle(fontSize: 11, color: AppColors.textDim)),
         ]),
