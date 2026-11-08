@@ -175,7 +175,7 @@ class ContractsCard extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle),
-              child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 21),
+              child: Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 21),
             ),
             const SizedBox(width: 14),
             Expanded(

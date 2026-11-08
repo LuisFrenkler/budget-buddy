@@ -8,33 +8,35 @@ class ThemeController {
 }
 
 class AppColors {
-  // brand: an electric violet for buttons, links, selection and the logo.
-  // It never stands for "plus" or "minus"; those have their own colors.
-  static const primary = Color(0xFF7C5CFF);
-  static const primaryDeep = Color(0xFF5B3DF5);
+  // brand: a deep copper, like the coin ring in the logo. Used sparingly:
+  // logo, Buddy, the add button, shared stories. White text on it passes 4.5:1.
+  static const brand = Color(0xFFB06030);
+  static const brandDeep = Color(0xFF8A4520);
+
+  // everything else that is "active" (buttons, selection, links, switches) is
+  // neutral ink: white in dark mode, near-black in light mode; onPrimary is
+  // the text on it. Plus and minus have their own colors.
+  static Color get primary => text;
+  static Color get onPrimary => bg;
   static const accentBlue = Color(0xFF38BDF8);   // secondary accent (depot)
 
   // meaning: money in and gains, money out and losses, attention
   static const positive = Color(0xFF2BD17E);
   static const error = Color(0xFFFF5D73);
-  static const warning = Color(0xFFFFB020);
+  static const warning = Color(0xFFF2C230);
 
   // the same meaning for small text: on the light background the bright
   // fills are too faint to read (2:1), these reach 4.5:1
   static Color get positiveText => _d ? positive : const Color(0xFF0A7A43);
   static Color get errorText => _d ? error : const Color(0xFFC9283E);
-  static Color get warningText => _d ? warning : const Color(0xFF9A5B00);
-  // the brand violet for links and small text: the fill itself reaches only
-  // about 4:1 on the cards, this stays above 4.5:1 in both modes
-  static Color get primaryText => _d ? const Color(0xFFA48BFF) : primaryDeep;
-
-  // brand gradient for hero areas (onboarding, sign-in)
+  static Color get warningText => _d ? warning : const Color(0xFF7A6200);
+  static Color get primaryText => text;
 
   // categorical colors for charts, brand first
   static const chart = [
-    Color(0xFF7C5CFF), // violet
+    brand, // copper
     Color(0xFF38BDF8), // sky
-    Color(0xFFFFB020), // amber
+    Color(0xFFF2C230), // yellow
     Color(0xFFFF5D73), // rose
     Color(0xFF2BD17E), // green
     Color(0xFFF472B6), // pink
@@ -59,7 +61,7 @@ class AppTheme {
 
     colorScheme: (dark ? const ColorScheme.dark() : const ColorScheme.light()).copyWith(
       primary: AppColors.primary,
-      onPrimary: Colors.white,
+      onPrimary: AppColors.onPrimary,
       secondary: AppColors.primary,
       secondaryContainer: AppColors.surfaceAlt,
       onSecondaryContainer: AppColors.text,
@@ -102,7 +104,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderSide: BorderSide(color: AppColors.primary, width: 2),
       ),
     ),
 
@@ -110,7 +112,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -120,7 +122,7 @@ class AppTheme {
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -134,11 +136,11 @@ class AppTheme {
       ),
     ),
 
-    progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.primary),
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: AppColors.primary),
 
     // floating action button
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.brand,
       foregroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
@@ -146,7 +148,7 @@ class AppTheme {
     // calm switches without the default outline
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected) ? Colors.white : AppColors.textDim),
+          (states) => states.contains(WidgetState.selected) ? AppColors.onPrimary : AppColors.textDim),
       // the off track gets an outline, so the switch reads as one on any card
       trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected) ? AppColors.primary : AppColors.surfaceAlt),

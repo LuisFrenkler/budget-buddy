@@ -470,7 +470,7 @@ class _AddFabState extends State<_AddFab> {
           height: 64,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primary,
+            color: AppColors.brand,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.25),

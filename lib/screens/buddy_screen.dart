@@ -733,7 +733,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         child: Container(
           margin: const EdgeInsets.only(left: 48, bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
@@ -749,7 +749,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Image.memory(image, height: 140, fit: BoxFit.cover),
               ),
             if (image != null && text.isNotEmpty) const SizedBox(height: 8),
-            if (text.isNotEmpty) Text(text, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4)),
+            if (text.isNotEmpty) Text(text, style: TextStyle(color: AppColors.onPrimary, fontSize: 15, height: 1.4)),
           ]),
         ),
       );
@@ -889,7 +889,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                    borderSide: BorderSide(color: AppColors.primary, width: 1.5),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
@@ -908,11 +908,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Container(
                   width: 46,
                   height: 46,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.primary,
                   ),
-                  child: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
+                  child: Icon(Icons.arrow_upward_rounded, color: AppColors.onPrimary),
                 ),
               )),
             ),
@@ -1021,7 +1021,7 @@ class RichMarkdown extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8, right: 8, left: 2),
                 child: Container(
-                    width: 5, height: 5, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+                    width: 5, height: 5, decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
               ),
               Expanded(child: Text.rich(TextSpan(children: _spans(raw.trimLeft().substring(2))), style: base)),
             ]),

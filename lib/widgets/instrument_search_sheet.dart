@@ -135,7 +135,7 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                   hintText: 'Aktie, ETF oder Krypto suchen...',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searching
-                      ? const Padding(
+                      ? Padding(
                           padding: EdgeInsets.all(14),
                           child: SizedBox(
                             width: 18,
@@ -152,7 +152,7 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                 children: [
                   if (q.isNotEmpty && !exact)
                     ListTile(
-                      leading: const Icon(Icons.add, color: AppColors.primary),
+                      leading: Icon(Icons.add, color: AppColors.primary),
                       title: Text('„${_q.trim()}" verwenden'),
                       subtitle: const Text('Eigenes Wertpapier'),
                       onTap: () => Navigator.pop(context, Instrument(_q.trim(), '', 'Aktie', 0)),
@@ -253,7 +253,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                   Text('Aktueller Kurs', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                   const SizedBox(height: 4),
                   if (_priceLoading && (_cents == null || _cents == 0))
-                    const SizedBox(height: 28, child: Align(alignment: Alignment.centerLeft, child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))))
+                    SizedBox(height: 28, child: Align(alignment: Alignment.centerLeft, child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))))
                   else
                     Text(
                       (_cents != null && _cents! > 0) ? Money.format(_cents!) : 'Kurs gerade nicht verfügbar',
@@ -266,7 +266,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
               const SizedBox(height: 6),
               Expanded(
                 child: _newsLoading
-                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    ? Center(child: CircularProgressIndicator(color: AppColors.primary))
                     : _news.isEmpty
                         ? Text(
                             i.symbol.isEmpty

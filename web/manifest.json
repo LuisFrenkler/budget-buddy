@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0B0B10",
-    "theme_color": "#7C5CFF",
+    "theme_color": "#B06030",
     "description": "Deine Finanzen mit KI",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,

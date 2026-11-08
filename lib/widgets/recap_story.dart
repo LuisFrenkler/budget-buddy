@@ -33,7 +33,7 @@ class RecapStory extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: Container(
-        color: AppColors.primaryDeep,
+        color: AppColors.brandDeep,
         // everything scales with the picture, so preview and export match
         child: FittedBox(
           child: SizedBox(

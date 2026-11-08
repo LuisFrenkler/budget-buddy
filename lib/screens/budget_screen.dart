@@ -527,7 +527,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         if (usual != null && usual > 0) ...[
           const SizedBox(height: 8),
           Row(children: [
-            const Icon(Icons.history_rounded, size: 16, color: AppColors.primary),
+            Icon(Icons.history_rounded, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
             Expanded(
               child: Text('Du gibst dafür im Schnitt ${Money.format(usual)} im Monat aus.',

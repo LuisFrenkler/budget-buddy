@@ -39,10 +39,10 @@ class UserAvatar extends StatelessWidget {
           child: bytes != null
               ? null
               : name == null
-                  ? Icon(Icons.person_rounded, color: brandGradient ? Colors.white : AppColors.primary, size: size * 0.5)
+                  ? Icon(Icons.person_rounded, color: brandGradient ? AppColors.onPrimary : AppColors.primary, size: size * 0.5)
                   : Text(initial,
                       style: TextStyle(
-                        color: brandGradient ? Colors.white : AppColors.primary,
+                        color: brandGradient ? AppColors.onPrimary : AppColors.primary,
                         fontSize: fontSize,
                         fontWeight: FontWeight.w800,
                       )),

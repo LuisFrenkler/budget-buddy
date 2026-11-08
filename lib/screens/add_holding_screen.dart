@@ -123,7 +123,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                           height: 44,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
-                          child: const Icon(Icons.search_rounded, color: AppColors.primary),
+                          child: Icon(Icons.search_rounded, color: AppColors.primary),
                         )
                       else
                         InstrumentAvatar(_nameCtrl.text, size: 44),

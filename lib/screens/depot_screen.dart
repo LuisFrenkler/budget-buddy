@@ -278,7 +278,7 @@ class _DepotScreenState extends State<DepotScreen> {
       _priceStand(),
       const SizedBox(height: 12),
       if (_historyLoading && !hasHistory)
-        const SizedBox(
+        SizedBox(
             height: 160,
             child: Center(
                 child: CircularProgressIndicator(color: AppColors.primary)))

@@ -56,10 +56,10 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   // one calm, dark tone per page, white text stays readable on all
   static const _tones = [
-    Color(0xFF3B1FB8),
+    Color(0xFF7A3F1C),
     Color(0xFF1E3A5F),
     Color(0xFF0E5E6F),
-    Color(0xFF6B3A1E),
+    Color(0xFF2E2A5C),
     Color(0xFF1F5132),
     Color(0xFF5A1E3A),
     Color(0xFF16161E),

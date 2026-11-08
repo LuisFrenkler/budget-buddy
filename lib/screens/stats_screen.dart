@@ -214,7 +214,7 @@ class _StatsViewState extends State<StatsView> {
         IconButton(
           tooltip: 'Vorheriger Monat',
           onPressed: () => _selectMonth(DateTime(_month.year, _month.month - 1)),
-          icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primary),
+          icon: Icon(Icons.chevron_left_rounded, color: AppColors.primary),
         ),
         // display current month and year
         Text(
@@ -338,7 +338,7 @@ class _StatsViewState extends State<StatsView> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 6, right: 8),
                     child: Icon(Icons.circle, size: 6, color: AppColors.primary),
                   ),

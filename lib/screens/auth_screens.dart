@@ -805,7 +805,7 @@ class _ChoiceCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(999)),
                       child: Text(badge!,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                          style: TextStyle(color: AppColors.onPrimary, fontSize: 11, fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ]),

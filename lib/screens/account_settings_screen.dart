@@ -63,8 +63,8 @@ class AccountSettingsScreen extends StatelessWidget {
               UserAvatar(name: account.name, size: 84, fontSize: 34),
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                child: Icon(Icons.camera_alt_rounded, size: 14, color: AppColors.onPrimary),
               ),
             ]),
           ),

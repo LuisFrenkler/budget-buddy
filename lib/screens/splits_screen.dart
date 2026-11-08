@@ -283,7 +283,7 @@ class _JoinSheetState extends State<_JoinSheet> {
               leading: CircleAvatar(
                 backgroundColor: AppColors.primary.withValues(alpha: taken.contains(i) ? 0.06 : 0.18),
                 child: Text(members[i].isEmpty ? '?' : members[i][0].toUpperCase(),
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
+                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
               ),
               title: Text(members[i], style: const TextStyle(fontWeight: FontWeight.w600)),
               subtitle: taken.contains(i) ? const Text('schon dabei') : null,

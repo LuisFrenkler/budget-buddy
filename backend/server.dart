@@ -1644,9 +1644,9 @@ String _page(String body) => '''<!doctype html>
   ul{color:#c9ced6;padding-left:20px}
   .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;color:#f5b84c;
        background:rgba(245,184,76,.12);padding:4px 10px;border-radius:999px}
-  .btn{display:block;text-align:center;background:#7c5cff;color:#fff;font-weight:700;
+  .btn{display:block;text-align:center;background:#f7f7fa;color:#0b0b10;font-weight:700;
        padding:14px;border-radius:14px;text-decoration:none;margin-top:24px}
   .link{display:block;text-align:center;color:#7d8590;margin-top:14px;text-decoration:none}
-  .check{width:56px;height:56px;border-radius:50%;background:rgba(124,92,255,.18);color:#a48bff;
+  .check{width:56px;height:56px;border-radius:50%;background:rgba(176,96,48,.18);color:#d99a6c;
          display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800}
 </style></head><body><main>$body</main></body></html>''';

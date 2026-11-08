@@ -149,7 +149,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
               ),
               const SizedBox(height: 16),
               if (_loading)
-                const SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+                SizedBox(height: 160, child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
               else if (_points.length < 2)
                 SizedBox(
                   height: 120,
@@ -216,7 +216,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                   children: [
                     Text('Nachrichten', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                     if (_newsLoading)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 24),
                         child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
                       )

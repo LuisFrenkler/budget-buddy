@@ -44,7 +44,7 @@ class WeeklyStory extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: Container(
-        color: AppColors.primaryDeep,
+        color: AppColors.brandDeep,
         child: FittedBox(
           child: SizedBox(
             width: 360,
@@ -183,7 +183,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
+                        color: Colors.black.withValues(alpha: 0.35),
                         blurRadius: 28,
                         offset: const Offset(0, 12),
                       ),

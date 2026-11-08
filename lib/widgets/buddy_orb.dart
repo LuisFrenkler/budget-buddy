@@ -16,8 +16,8 @@ class BuddyOrb extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.primary,
-        border: active ? Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: size * 0.06, strokeAlign: BorderSide.strokeAlignOutside) : null,
+        color: AppColors.brand,
+        border: active ? Border.all(color: AppColors.brand.withValues(alpha: 0.35), width: size * 0.06, strokeAlign: BorderSide.strokeAlignOutside) : null,
       ),
       child: CustomPaint(painter: MarkPainter()),
     );

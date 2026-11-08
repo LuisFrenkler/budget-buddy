@@ -689,7 +689,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ? Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: Text(PaymentChecks.cardBrand(_cardNumber.text),
-                          style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary)),
+                          style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary)),
                     )
                   : null),
           const SizedBox(height: 10),
@@ -947,7 +947,7 @@ class MethodLogo extends StatelessWidget {
       PayMethod.card => (
           AppColors.primary.withValues(alpha: 0.15),
           AppColors.primary,
-          const Icon(Icons.credit_card_rounded, color: AppColors.primary, size: 20)
+          Icon(Icons.credit_card_rounded, color: AppColors.primary, size: 20)
         ),
       PayMethod.sepa => (
           const Color(0xFF1A4B9B),
@@ -1048,11 +1048,11 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                 child: Container(
                   width: 110,
                   height: 110,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.primary,
                   ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 60),
+                  child: Icon(Icons.check_rounded, color: AppColors.onPrimary, size: 60),
                 ),
               ),
               const SizedBox(height: 28),

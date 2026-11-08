@@ -85,8 +85,8 @@ flutter_launcher_icons:
   web:
     generate: true
     background_color: "#0B0B10"
-    theme_color: "#7C5CFF"
-  adaptive_icon_background: "#7C5CFF"
+    theme_color: "#B06030"
+  adaptive_icon_background: "#B06030"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 
 # native splash screen (run: dart run flutter_native_splash:create)

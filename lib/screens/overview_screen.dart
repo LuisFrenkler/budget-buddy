@@ -299,7 +299,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(children: [
-            const Icon(Icons.account_balance_wallet_rounded,
+            Icon(Icons.account_balance_wallet_rounded,
                 color: AppColors.primary, size: 30),
             const SizedBox(width: 14),
             Expanded(
@@ -317,7 +317,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                             height: 1.35)),
                   ]),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+            Icon(Icons.chevron_right_rounded, color: AppColors.primary),
           ]),
         ),
       ),
@@ -517,7 +517,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         margin: const EdgeInsets.only(right: 8),
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                             color: AppColors.primary, shape: BoxShape.circle),
                       ),
                     Expanded(
@@ -695,7 +695,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   color: AppColors.primary, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
@@ -1101,7 +1101,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 color: AppColors.primary.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.account_balance_rounded,
+              child: Icon(Icons.account_balance_rounded,
                   color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 14),

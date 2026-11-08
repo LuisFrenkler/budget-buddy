@@ -14,7 +14,7 @@ class BrandMark extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(size * 0.28),
-        color: AppColors.primary,
+        color: AppColors.brand,
       ),
       child: CustomPaint(painter: MarkPainter()),
     );
@@ -54,7 +54,7 @@ class Wordmark extends StatelessWidget {
     return Text.rich(
       TextSpan(children: [
         TextSpan(text: 'Budget', style: TextStyle(color: AppColors.text)),
-        const TextSpan(text: 'Buddy', style: TextStyle(color: AppColors.primary)),
+        const TextSpan(text: 'Buddy', style: TextStyle(color: AppColors.brand)),
       ]),
       style: TextStyle(fontSize: size, fontWeight: FontWeight.w800, letterSpacing: -0.5),
     );

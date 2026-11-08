@@ -122,7 +122,7 @@ class _Details extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            color: sub.cancelled ? AppColors.surface : AppColors.primary,
+            color: sub.cancelled ? AppColors.surface : AppColors.brand,
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -416,7 +416,7 @@ class _Details extends StatelessWidget {
                 subtitle: Text(p == PlusPlan.yearly
                     ? 'Nur ${PlusService.yearlyPerMonth} im Monat, du sparst 33 %'
                     : 'Monatlich kündbar'),
-                trailing: p == sub.plan ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                trailing: p == sub.plan ? Icon(Icons.check_rounded, color: AppColors.primary) : null,
                 onTap: () => Navigator.pop(context, p),
               ),
             ),

@@ -113,8 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           bottom: 0,
                           child: Container(
                             padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                            child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
+                            decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            child: Icon(Icons.camera_alt_rounded, size: 12, color: AppColors.onPrimary),
                           ),
                         ),
                     ]),
@@ -375,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             clipBehavior: Clip.antiAlias,
             child: Ink(
               decoration: BoxDecoration(
-                color: plus || syncErr != null ? AppColors.surface : AppColors.primary,
+                color: plus || syncErr != null ? AppColors.surface : AppColors.brand,
               ),
               child: InkWell(
                 onTap: () async {
