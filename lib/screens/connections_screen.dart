@@ -1336,7 +1336,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   }
 }
 
-// searchable list of banks — ranked so "ING" is not Recklinghausen
+// searchable list of banks, ranked so "ING" is not Recklinghausen
 class _BankPicker extends StatefulWidget {
   final List<Bank> banks;
   const _BankPicker(this.banks);
@@ -1380,7 +1380,7 @@ class _BankPickerState extends State<_BankPicker> {
                       child: Text(
                           _q.trim().isEmpty
                               ? 'Keine Banken geladen'
-                              : 'Keine Bank zu „${_q.trim()}“ — anderen Namen versuchen',
+                              : 'Keine Bank zu „${_q.trim()}“ gefunden. Versuch einen anderen Namen.',
                           style: TextStyle(color: AppColors.textDim)))
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),

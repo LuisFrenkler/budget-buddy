@@ -32,7 +32,7 @@ List<Transaction> transferBookings({
 }
 
 Future<void> showTransferSheet(BuildContext context) async {
-  // need two accounts before the sheet runs — else .firstWhere crashed on open
+  // need two accounts before the sheet runs, else .firstWhere crashed on open
   if (!MoneyAccounts.several) {
     if (!context.mounted) return;
     await showModalBottomSheet<void>(
@@ -45,7 +45,7 @@ Future<void> showTransferSheet(BuildContext context) async {
           const Text('Geld verschieben', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
-            'Dafür brauchst du mindestens zwei Konten — z. B. Giro und Sparkonto.',
+            'Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.',
             style: TextStyle(color: AppColors.textDim, height: 1.4),
           ),
           const SizedBox(height: 18),

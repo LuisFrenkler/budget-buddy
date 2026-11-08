@@ -80,7 +80,7 @@ class BackupService {
       'badges': _entries('badges', data['badges'], (m) => '${m['id']}'),
       'holdings': _entries('holdings', data['holdings'], (m) => '${m['id']}'),
       'recurring': _entries('recurring', data['recurring'], (m) => '${m['id']}'),
-      // older backups had no goals/splits — still clear so another session cannot stick
+      // older backups had no goals/splits, still clear so another session cannot stick
       'goals': data['goals'] is List ? _entries('goals', data['goals'], (m) => '${m['id']}') : <String, Map<String, dynamic>>{},
       'splits': data['splits'] is List ? _entries('splits', data['splits'], (m) => '${m['id']}') : <String, Map<String, dynamic>>{},
     };
@@ -106,7 +106,7 @@ class BackupService {
     }
   }
 
-  // Hive web crashes on null / odd JS types — JSON round-trip keeps only safe values
+  // Hive web crashes on null / odd JS types. JSON round-trip keeps only safe values
   static dynamic stripNulls(dynamic value) {
     if (value == null) return null;
     try {

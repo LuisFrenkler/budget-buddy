@@ -337,7 +337,7 @@ class Accounts {
     };
   }
 
-  // enables 2FA and signs out every other device — those sessions never passed the new factor
+  // enables 2FA and signs out every other device, those sessions never passed the new factor
   Future<Map<String, dynamic>> confirmTotp(String userId, String code, {String? keepToken, DateTime? now}) async {
     final user = _must(userId);
     final pending = user['totpPending'] as String?;

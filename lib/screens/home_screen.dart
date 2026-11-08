@@ -36,7 +36,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // current tab index (0 = Start, 1 = Konto, 2 = Depot, 3 = Buddy)
   int _tab = 0;
-  // Start always; others on first visit — avoids mounting Konto/Depot/Buddy at cold start
+  // Start always; others on first visit, avoids mounting Konto/Depot/Buddy at cold start
   final _visited = <int>{0};
 
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
@@ -235,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // floating pill nav + add — inspired by modern finance apps (clear, springy, one primary CTA)
+  // floating pill nav + add, inspired by modern finance apps (clear, springy, one primary CTA)
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();

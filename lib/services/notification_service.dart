@@ -166,7 +166,7 @@ class NotificationService {
   // a short confirmation right after turning it on
   static Future<void> hello() => _show(
         1,
-        'Buddy meldet sich ab jetzt 👋',
+        'Buddy meldet sich ab jetzt',
         'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.',
         'home',
       );
@@ -245,7 +245,7 @@ class NotificationService {
         final key = 'weekly-${report?.start.toIso8601String().substring(0, 10)}';
         final fresh = report != null && today.difference(report.end).inDays < 2 && !_shown.contains(key);
         if (fresh) {
-          await _show(_idFor(key), 'Dein Wochenbericht ist da 📊', report.summary, 'weekly');
+          await _show(_idFor(key), 'Dein Wochenbericht ist da', report.summary, 'weekly');
           await _markShown([key]);
         }
       }
@@ -290,7 +290,7 @@ class NotificationService {
     DateTime before(DateTime d, int days, int hour) => DateTime(d.year, d.month, d.day - days, hour);
 
     final weekly = WeeklyReportService.nextReady(now);
-    out.add(Reminder(_idFor('weekly-$weekly'), weekly, 'Dein Wochenbericht ist da 📊',
+    out.add(Reminder(_idFor('weekly-$weekly'), weekly, 'Dein Wochenbericht ist da',
         'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.', NotifyTopic.weekly, 'weekly'));
 
     for (final c in Contracts.detect(tx, now: now)) {

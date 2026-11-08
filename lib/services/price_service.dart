@@ -572,7 +572,7 @@ class PriceService {
 
   // refreshes every holding with a real live price. holdings whose price can't
   // be fetched live (e.g. a stock in the browser without a Finnhub key) are
-  // left untouched — nothing is ever simulated. returns how many changed
+  // left untouched, nothing is ever simulated. returns how many changed
   // (updated), how many were successfully fetched live (live, incl. unchanged),
   // and how many had no reachable live source (failed).
   static Future<({int updated, int live, int failed})> refreshAll() async {

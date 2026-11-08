@@ -25,7 +25,7 @@ class VaultBanner extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-                'Das kann auf dem Handy ein paar Sekunden dauern — bitte warten.'),
+                'Das kann auf dem Handy ein paar Sekunden dauern, bitte warten.'),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
@@ -116,8 +116,8 @@ class VaultBanner extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch — '
-                      'bis dahin speichere ich nichts in die Cloud.',
+                      'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. '
+                      'Bis dahin speichere ich nichts in die Cloud.',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,

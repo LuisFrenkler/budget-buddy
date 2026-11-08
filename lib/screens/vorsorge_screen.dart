@@ -159,7 +159,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           ]),
           const SizedBox(height: 10),
           Text(
-            'Gib unten mindestens deine erwartete gesetzliche Rente an — ideal aus der DRV-Auskunft. '
+            'Gib unten mindestens deine erwartete gesetzliche Rente an, ideal aus der DRV-Auskunft. '
             'Alternativ kannst du sie grob aus deinem Netto schätzen.',
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 13.5),
           ),
@@ -231,11 +231,11 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
             const SizedBox(height: 12),
             Text(
               '• Kapital (Depot, optional Sparziele ohne Notgroschen) wird über ${Vorsorge.drawYears} Jahre '
-              'ohne Rendite aufgeteilt — konservativ für die Entnahmephase.\n\n'
+              'ohne Rendite aufgeteilt, konservativ für die Entnahmephase.\n\n'
               '• Die „extra sparen“-Rate nimmt ~${(Vorsorge.realReturn * 100).round()} % Realrendite bis zur Rente an '
               '(Faustformel, kein Versprechen).\n\n'
-              '• Netto-Schätzung der gesetzlichen Rente: etwa ${(Vorsorge.estimateShare * 100).round()} % deines heutigen Nettos — '
-              'nur Platzhalter. Ersetze sie mit der DRV-Auskunft.\n\n'
+              '• Netto-Schätzung der gesetzlichen Rente: etwa ${(Vorsorge.estimateShare * 100).round()} % deines heutigen Nettos. '
+              'Das ist nur ein Platzhalter. Ersetze ihn durch die Zahl aus der DRV-Auskunft.\n\n'
               '• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.',
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),

@@ -319,7 +319,7 @@ class _DepotScreenState extends State<DepotScreen> {
       ),
       const SizedBox(height: 8),
       Text(
-          'Investiert = Durchschnittspreis. Dein Broker kann FIFO nutzen — die Zahl kann leicht abweichen.',
+          'Investiert = Durchschnittspreis. Dein Broker rechnet vielleicht nach FIFO, die Zahl kann deshalb leicht abweichen.',
           style:
               TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
     ];

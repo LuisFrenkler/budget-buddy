@@ -169,7 +169,7 @@ class DB {
     }
   }
   
-  // badges: no product UI — box kept for older backups only
+  // badges: no product UI, box kept for older backups only
   static Future<void> checkBadges() async {}
 
   // save a budget; a category with a budget again is no longer "stopped"

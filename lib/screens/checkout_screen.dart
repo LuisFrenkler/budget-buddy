@@ -61,7 +61,7 @@ List<PayMethod> availableMethods() {
 
 class PaymentScreen extends StatefulWidget {
   final PlusPlan? plan; // null: only change the payment method
-  final String? reason; // why the user opened Plus — first-win CTA after checkout
+  final String? reason; // why the user opened Plus, first-win CTA after checkout
   const PaymentScreen({super.key, this.plan, this.reason});
 
   @override
@@ -561,7 +561,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ]),
         );
     final trial = StorePurchases.trial[_plan];
-    // paid today | gratis week | store terms unknown — never invent "Heute 0€"
+    // paid today | gratis week | store terms unknown, never invent "Heute 0€"
     final Widget body;
     if (_inStore && trial == false) {
       body = Column(children: [
@@ -1106,7 +1106,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
               ),
               const Spacer(),
               if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
-                Text('Das war der Grund — probier es gleich aus.',
+                Text('Das war der Grund. Probier es gleich aus.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
                 const SizedBox(height: 10),

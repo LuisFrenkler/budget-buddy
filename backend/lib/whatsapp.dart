@@ -42,7 +42,7 @@ class WhatsApp {
 
   static const linkInstructions =
       'Deine Freigabe ist gespeichert. Die Nummer liegt nur als Hash auf dem Server, nicht im Klartext. '
-      'Schreib in WhatsApp „Hilfe“ an die BudgetBuddy-Nummer aus der Meta Business Suite — du bekommst eine kurze Bestätigung, sonst nichts. '
+      'Schreib in WhatsApp „Hilfe“ an die BudgetBuddy-Nummer aus der Meta Business Suite. Du bekommst eine kurze Bestätigung, sonst nichts. '
       'Solange der Schalter an ist, sind nur diese Nachrichten möglich: Wochenbericht, Budget-Warnung, Split-Erinnerung. '
       'Kein Spam, keine Werbung. Abmelden: Schalter aus, oder in WhatsApp „Stop“ schreiben.';
 

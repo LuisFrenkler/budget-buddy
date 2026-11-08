@@ -64,7 +64,7 @@ class BudgetView extends StatelessWidget {
               Text(
                   suggestions.isEmpty
                       ? 'Lege ein Limit pro Kategorie fest und behalte es im Blick.'
-                      : 'Aus deinen Ausgaben vorgeschlagen — ein Tippen reicht.',
+                      : 'Aus deinen Ausgaben vorgeschlagen. Ein Tippen reicht.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim)),
               if (suggestions.isNotEmpty) ...[
@@ -138,7 +138,7 @@ Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? 
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           const Text('Budgets vorschlagen', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('Basierend auf deinem Schnitt der letzten Monate — etwas darunter, damit es greift.',
+          Text('Etwas unter deinem Schnitt der letzten Monate, damit es greift.',
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 12),
           for (final s in items)
@@ -351,7 +351,7 @@ class _BudgetCardState extends State<_BudgetCard> {
     final end = DateTime(budget.endDate.year, budget.endDate.month, budget.endDate.day);
     final days = end.difference(DateTime(now.year, now.month, now.day)).inDays + 1;
     final ahead = budget.progress > pace + 0.1;
-    return '$spent · ≈ ${Money.format(budget.remainingCents ~/ days)} pro Tag'
+    return '$spent · etwa ${Money.format(budget.remainingCents ~/ days)} pro Tag'
         '${ahead ? ' · schneller als geplant' : ''}';
   }
 

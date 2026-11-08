@@ -121,7 +121,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
   Widget _ruleRow(RecurringRule r) {
     final note = r.note?.trim() ?? '';
     final title = note.isNotEmpty ? note : r.category;
-    final interval = r.interval.isEmpty ? '—' : '${r.interval[0].toUpperCase()}${r.interval.substring(1)}';
+    final interval = r.interval.isEmpty ? '–' : '${r.interval[0].toUpperCase()}${r.interval.substring(1)}';
     // date of the next booking, short enough to never be cut off
     final when = r.active ? Dates.dayMonth(RecurringService.nextDate(r)) : 'pausiert';
 

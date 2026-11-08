@@ -42,11 +42,11 @@ class BuddyTips {
             'Wie komme ich mit meinem Budget für ${b.category} bis zum Monatsende hin?');
       }
     }
-    // 2. many bookings stuck in Sonstiges — cleanup without burning KI quota
+    // 2. many bookings stuck in Sonstiges, cleanup without burning KI quota
     final misc = CategoryCoach.miscCount();
     if (misc >= 5) {
       return BuddyTip(
-          '$misc Umsätze stecken in Sonstiges — Buddy hilft beim Einordnen.',
+          '$misc Umsätze stecken in Sonstiges. Buddy hilft beim Einordnen.',
           'Sonstiges aufräumen');
     }
     // 3. a contract got more expensive
@@ -62,7 +62,7 @@ class BuddyTips {
         goals: GoalsService.all(), balanceCents: balanceCents, now: today);
     if (forecast != null && forecast.freeCents >= 0 && forecast.pace == ForecastPace.tight) {
       return BuddyTip(
-          'Noch ${Money.format(forecast.freeCents)} frei bis Monatsende — eher knapp.',
+          'Noch ${Money.format(forecast.freeCents)} frei bis Monatsende, eher knapp.',
           'Wie viel ist diesen Monat noch frei?');
     }
     // 5. many purchases at one place this month: small amounts add up
@@ -84,7 +84,7 @@ class BuddyTips {
     final emergency = Wealth.emergency(tx, now: today);
     if (emergency.targetCents > 0 && emergency.progress < 0.5) {
       return BuddyTip(
-          'Dein Notgroschen steht bei ${(emergency.progress * 100).round()} % — Ziel ${Money.format(emergency.targetCents)}.',
+          'Dein Notgroschen steht bei ${(emergency.progress * 100).round()} % von ${Money.format(emergency.targetCents)}.',
           'Wie baue ich einen Notgroschen auf?');
     }
     // 7. vorsorge gap once configured
@@ -92,13 +92,13 @@ class BuddyTips {
       final r = Vorsorge.build(input: Vorsorge.load(), holdings: DB.getHoldings(), goals: GoalsService.all());
       if (!r.gapClosed && r.gapMonthlyCents > 5000) {
         return BuddyTip(
-            'Rentenlücke grob ${Money.format(r.gapMonthlyCents)} im Monat — ca. ${Money.format(r.saveExtraMonthlyCents)} extra sparen.',
+            'Rentenlücke grob ${Money.format(r.gapMonthlyCents)} im Monat. Etwa ${Money.format(r.saveExtraMonthlyCents)} mehr sparen würde sie schließen.',
             'Wie schließe ich meine Rentenlücke?');
       }
     }
-    // 8. several open subscriptions — gentle nudge
+    // 8. several open subscriptions, gentle nudge
     if (contracts.length >= 3) {
-      return BuddyTip('Du hast ${contracts.length} laufende Verträge — ${Money.format(Contracts.monthlyTotal(contracts))} im Monat.',
+      return BuddyTip('Du hast ${contracts.length} laufende Verträge, zusammen ${Money.format(Contracts.monthlyTotal(contracts))} im Monat.',
           'Welche Abos und Verträge habe ich?');
     }
     return null;

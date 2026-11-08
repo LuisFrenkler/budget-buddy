@@ -286,7 +286,7 @@ class TransactionScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 3200),
-            content: Text('BudgetBuddy merkt sich $name als $picked — auch bei Bank-Sync und Schnellerfassung.')));
+            content: Text('BudgetBuddy merkt sich $name als $picked, auch bei Bank-Sync und Schnellerfassung.')));
       }
       return;
     }
@@ -303,7 +303,7 @@ class TransactionScreen extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
                 '${others.length} ältere ${others.length == 1 ? 'Buchung steht' : 'Buchungen stehen'} noch auf einer anderen Kategorie. '
-                'Standard: merken und alle anpassen — künftige $name-Buchungen landen automatisch bei $picked.',
+                'Standard: merken und alle anpassen, künftige $name-Buchungen landen automatisch bei $picked.',
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             FilledButton(
@@ -328,7 +328,7 @@ class TransactionScreen extends StatelessWidget {
             content: Text('$name merken · ${moved + 1} ${moved + 1 == 1 ? 'Buchung' : 'Buchungen'} jetzt $picked')));
       }
     } else {
-      // dismissed sheet or "only this": still remember — that is the expected default
+      // dismissed sheet or "only this": still remember, that is the expected default
       await CategoryRules.remember(name, picked, isIncome: tx.isIncome);
       if (context.mounted) {
         final onlyThis = all == false;

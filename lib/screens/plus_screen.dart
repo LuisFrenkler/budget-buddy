@@ -56,8 +56,8 @@ class _PlusScreenState extends State<PlusScreen> {
 
   static const _features = [
     (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
-    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Belege fotografieren und prüfen — ohne Gratis-Limit'),
-    (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele; Aufrunden & Monatsbetrag — zählt mit, überweist nicht'),
+    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Belege fotografieren und prüfen, ohne Gratis-Limit'),
+    (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
   ];
 

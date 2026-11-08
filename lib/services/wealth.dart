@@ -171,7 +171,7 @@ class Wealth {
       final last = months[1].rate;
       final prev = months[2].rate;
       if (last != null && prev != null && last > prev && last > 0) {
-        return 'Sparquote letzten Monat $last % — höher als im Monat davor';
+        return 'Sparquote letzten Monat: $last %, höher als im Monat davor';
       }
     }
     if (netMonthAgoCents != null && netNowCents > netMonthAgoCents) {

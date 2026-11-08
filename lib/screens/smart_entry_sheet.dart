@@ -101,7 +101,7 @@ class _SmartEntryState extends State<_SmartEntry> {
   Future<void> _scan() async {
     if (!PlusService.allowed(PlusFeature.receiptScan)) {
       await showPlus(context,
-          reason: 'Gratis-Scans aufgebraucht — mit Plus jeden Beleg in Sekunden erfassen');
+          reason: 'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.');
       if (!mounted || !PlusService.active.value) return;
     }
     if (AccountService.current.value == null) {
@@ -111,7 +111,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         builder: (ctx) => AlertDialog(
           title: const Text('Konto für Beleg-Scan'),
           content: const Text(
-              'Belege liest Buddy online. Dafür brauchst du ein kostenloses Konto — Tippen geht weiter ohne.'),
+              'Belege liest Buddy online. Dafür brauchst du ein kostenloses Konto. Tippen geht weiter ohne.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Später')),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Konto erstellen')),
@@ -255,7 +255,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         ],
         if (_preview == null && _busy == null && _text.text.trim().isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text('Ich brauche mindestens einen Betrag — z. B. „Kaffee 3,20“.',
+          Text('Ich brauche mindestens einen Betrag, zum Beispiel „Kaffee 3,20“.',
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
         ],
         const SizedBox(height: 18),

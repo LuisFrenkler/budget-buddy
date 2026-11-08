@@ -1,5 +1,5 @@
 // Saving on autopilot for goals. Manual "Zurücklegen" books a real Umbuchung
-// (see GoalMove). Autopilot only bumps the counter — bank sync would otherwise
+// (see GoalMove). Autopilot only bumps the counter, bank sync would otherwise
 // double-count a transfer the user already made.
 //
 // - monthly: on the first app start of a month the fixed amount is added
@@ -84,7 +84,7 @@ class AutoSave {
   static Future<int> run({DateTime? now}) async {
     final today = now ?? DateTime.now();
     final tx = DB.getTx();
-    // bank/Umbuchung onto a pot counts even without Plus — it already happened
+    // bank/Umbuchung onto a pot counts even without Plus, it already happened
     var total = await GoalCredit.run(tx: tx);
     // monthly + round-up autopilot is Plus-only
     if (!PlusService.active.value) return total;

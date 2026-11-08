@@ -135,7 +135,7 @@ class AccountSettingsScreen extends StatelessWidget {
           'Zwei-Faktor schützt die Anmeldung: ohne den Code aus deiner Authenticator-App reicht das Passwort nicht. '
           'Der Schlüssel dafür liegt auf dem Server, damit der Code geprüft werden kann. '
           'Die App-Sperre bleibt auf diesem Gerät und versteckt nur die Anzeige. '
-          'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt — BudgetBuddy kann sie nicht lesen. '
+          'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt. BudgetBuddy kann sie nicht lesen. '
           'Das Passwort selbst speichern wir nur als Hash (bcrypt).',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 12),
@@ -237,7 +237,7 @@ class AccountSettingsScreen extends StatelessWidget {
   static Future<void> logout(BuildContext context) async {
     if (!await _confirm(context, 'Abmelden?',
         'Auf diesem Gerät werden die Finanzdaten gelöscht. '
-            'Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück — '
+            'Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück, '
             'sonst sind nur die Daten auf anderen Geräten noch da.',
         'Abmelden')) {
       return;
@@ -258,7 +258,7 @@ class AccountSettingsScreen extends StatelessWidget {
                 ? '\n\nDein Plus-Abo wird mit dem Konto gekündigt.'
                 : '';
     final text = 'Dein Konto, alle Bankverbindungen und die Sicherung in der Cloud '
-        'werden dauerhaft gelöscht — auch die Umsätze auf diesem Gerät.$plusNote';
+        'werden dauerhaft gelöscht, auch die Umsätze auf diesem Gerät.$plusNote';
     if (!await _confirm(context, 'Konto löschen?', text, 'Weiter')) return;
     if (!context.mounted) return;
     final password = await _askPassword(context);
@@ -549,8 +549,8 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
     return _Sheet(
       title: 'Passwort ändern',
       text: 'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. '
-          'Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung — '
-          'vergessen heißt, die Kopie ist nicht mehr lesbar.',
+          'Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung. '
+          'Vergisst du es, ist die Kopie nicht mehr lesbar.',
       error: error,
       busy: busy,
       onSave: _submit,
@@ -715,7 +715,7 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
       action: secret == null ? 'Weiter' : 'Aktivieren',
       text: secret == null
           ? 'Der Code schützt nur die Anmeldung. Umsätze auf dem Gerät und in der Cloud bleiben mit deinem Passwort verschlüsselt. '
-              'Ohne den Code kommst du nicht mehr rein — ein Zurücksetzen per E-Mail gibt es noch nicht.'
+              'Ohne den Code kommst du nicht mehr rein. Ein Zurücksetzen per E-Mail gibt es noch nicht.'
           : 'Trag den Schlüssel in deine Authenticator-App ein (Konto manuell hinzufügen) und gib den ersten Code ein. '
               'Andere Geräte werden abgemeldet.',
       error: error,

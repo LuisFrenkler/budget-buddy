@@ -50,9 +50,9 @@ class BuddyService {
     await _settings.put('aiConsentGoogle', on);
   }
 
-  // true when the server has AI configured (ignores consent — used to offer the ask)
+  // true when the server has AI configured (ignores consent, used to offer the ask)
   static Future<bool> live() async {
-    // signed in + server with AI — consent is checked separately before sending data
+    // signed in + server with AI, consent is checked separately before sending data
     if (AccountService.current.value == null) return false;
     if (_serverAi != null) return _serverAi!;
     try {
@@ -66,7 +66,7 @@ class BuddyService {
     return _serverAi!;
   }
 
-  // server AI and user consent — the only path that may leave the device
+  // server AI and user consent, the only path that may leave the device
   static Future<bool> liveAllowed() async => await live() && hasConsent;
 
   static FinanceSnapshot snapshot() {

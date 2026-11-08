@@ -1,6 +1,6 @@
 // Profile picture: stored locally and synced through the vault (same box as
 // other settings). Kept as JPEG/PNG/WebP bytes under a size cap so the vault
-// stays small. Other users never see it — only the signed-in device(s).
+// stays small. Other users never see it, only the signed-in device(s).
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';

@@ -1,5 +1,5 @@
 // Imports portfolio positions from a CSV file (a broker export or a manually
-// prepared list) — a no-backend way to "connect" an existing depot.
+// prepared list), a no-backend way to "connect" an existing depot.
 //
 // Expected format (one position per line, header skipped):
 //   Name;Symbol;Typ;Anzahl;Kaufpreis;AktuellerKurs

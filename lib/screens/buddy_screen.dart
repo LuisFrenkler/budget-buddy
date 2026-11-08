@@ -45,7 +45,7 @@ class BuddyScreen extends StatefulWidget {
     ask.value = question ?? '';
   }
 
-  // shared with Beleg-Scan (Schnell erfassen) — same sheet, same consent key
+  // shared with Beleg-Scan (Schnell erfassen), same sheet, same consent key
   static Future<bool> requestAiConsent(BuildContext context, {bool force = false}) async {
     await BuddyService.live();
     final given = Hive.box('settings').get(BuddyService.consentKey);
@@ -283,7 +283,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       setState(() => m.applied[i] = done);
       if (e.type == 'recategorize' || e.type == 'recategorize_all') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('$done — Regeln merkt sich Buddy für künftige Buchungen'),
+          content: Text('$done. Buddy merkt sich die Regel für künftige Buchungen.'),
           behavior: SnackBarBehavior.floating,
         ));
       } else if (e.type == 'vorsorge' && done == 'Gespeichert') {
@@ -395,7 +395,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (live && _photo != null && !PlusService.allowed(PlusFeature.receiptScan)) {
       if (!mounted) return;
       await showPlus(context,
-          reason: 'Gratis-Scans aufgebraucht — mit Plus jeden Beleg in Sekunden erfassen');
+          reason: 'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.');
       if (!PlusService.active.value) return;
     }
     // AI answers cost money: the free tier has a few per month
@@ -404,7 +404,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       await showPlus(
           context,
           reason:
-              'Gratis-Fragen aufgebraucht — mit Plus antwortet Buddy so oft du willst. '
+              'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. '
               'Ohne Plus antwortet Buddy weiter offline aus deinen Daten.');
       // declined Plus → still answer offline (like consent decline)
       if (!PlusService.active.value) live = false;
@@ -598,8 +598,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         Text(
           AccountService.current.value == null
               ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
-              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst — '
-                  'ich nutze deine Ausgaben, Budgets und Verträge.',
+              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. '
+                  'Ich nutze deine Ausgaben, Budgets und Verträge.',
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
         if (PlusService.syncError.value != null) ...[
@@ -666,7 +666,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'KI ist aus — Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.',
+              'KI ist aus. Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.',
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
             ),
           ),
@@ -780,7 +780,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 padding: const EdgeInsets.only(top: 6, left: 4),
                 child: Text(
                     m.degraded
-                        ? 'KI gerade ausgelastet — Antwort offline aus deinen Daten'
+                        ? 'KI gerade ausgelastet. Antwort offline aus deinen Daten'
                         : 'Ohne KI berechnet aus deinen Daten',
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
@@ -1008,7 +1008,8 @@ class RichMarkdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = TextStyle(color: AppColors.text, fontSize: 15, height: 1.45);
-    final lines = text.split('\n');
+    // models like long dashes even when asked not to: a comma reads the same
+    final lines = text.replaceAll(' — ', ', ').replaceAll('—', ', ').split('\n');
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       for (final raw in lines)
         if (raw.trim().isEmpty)

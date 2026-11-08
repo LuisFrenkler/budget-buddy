@@ -164,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 20),
               _plusCard(),
-              // Alltag first: account, lock, banks — each at most one tap from here
+              // Alltag first: account, lock, banks, each at most one tap from here
               const SectionLabel('Konto'),
               SettingsGroup([
                 if (account != null)
@@ -393,7 +393,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(children: [
-                    Text(syncErr != null ? '⚠️' : plus ? '✨' : '🚀', style: const TextStyle(fontSize: 24)),
+                    Icon(syncErr != null ? Icons.sync_problem_rounded : Icons.workspace_premium_outlined,
+                        size: 26, color: syncErr != null ? AppColors.warningText : AppColors.primaryText),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -613,7 +614,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               '4. 1 Sparziel gratis anlegen · Autopilot braucht Plus\n'
               '5. Wochenbericht öffnen und „Mit Buddy weiterreden“\n'
               '6. Geteilte Ausgabe mit Code testen\n\n'
-              'Bank kann noch Demo sein — echte Freigaben kommen mit der öffentlichen Version.',
+              'Bank kann noch Demo sein, echte Freigaben kommen mit der öffentlichen Version.',
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             const SizedBox(height: 12),

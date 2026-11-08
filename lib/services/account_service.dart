@@ -1,6 +1,6 @@
 // The signed-in user. Session token in secure storage; profile cached in
 // settings. Finance data follows the Trade Republic model: the device only
-// caches the current session — logout wipes it, login loads this account's
+// caches the current session, logout wipes it, login loads this account's
 // vault from the server.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -118,14 +118,14 @@ class AccountService {
         'code': code.trim(),
       });
 
-  // new bearer token only — no cache wipe (for vault retry on web)
+  // new bearer token only, no cache wipe (for vault retry on web)
   static Future<void> refreshSession(String password) async {
     final account = current.value;
     if (account == null) throw 'Nicht angemeldet.';
     final map = await _post('/auth/login', {'email': account.email, 'password': password});
     final token = map['token'];
     if (token is! String || token.isEmpty) {
-      throw 'Anmeldung ohne Sitzung — bitte App neu laden und noch einmal anmelden.';
+      throw 'Anmeldung ohne Sitzung, bitte App neu laden und noch einmal anmelden.';
     }
     _token = token;
     await SecureStore.write(_tokenKey, token);
@@ -174,7 +174,7 @@ class AccountService {
     return account;
   }
 
-  // wipe the finance cache — next login loads this account from the server again
+  // wipe the finance cache, next login loads this account from the server again
   static Future<void> logout() async {
     final token = _token;
     // cancel vault debounce / sync watches before clearing, so nothing writes back
@@ -291,7 +291,7 @@ class AccountService {
   }
 
   // Prove current opens the vault and the server accepts it, then re-seal under
-  // next and upload. Never re-seal with next before current is verified — that
+  // next and upload. Never re-seal with next before current is verified, that
   // left a cloud blob only next can open while login still required current.
   static Future<void> changePassword(String current, String next) async {
     final id = AccountService.current.value?.id;
@@ -328,7 +328,7 @@ class AccountService {
       }
     }
     if (res.statusCode != 200) throw 'Löschen fehlgeschlagen (${res.statusCode})';
-    // stop vault watches before wipe — same order as logout
+    // stop vault watches before wipe, same order as logout
     await CloudSync.forget();
     await AccountIsolation.wipeLocalFinance();
     await _forget();

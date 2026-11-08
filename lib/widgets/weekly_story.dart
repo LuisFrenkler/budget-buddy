@@ -9,7 +9,7 @@ import '../utils/dates.dart';
 import '../utils/theme.dart';
 import 'brand.dart';
 
-/// Opens the share sheet from Start — haptic, marks the week seen, one primary action.
+/// Opens the share sheet from Start, haptic, marks the week seen, one primary action.
 Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   HapticFeedback.lightImpact();
   final change = report.change;
@@ -21,7 +21,7 @@ Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   return showWeeklyStoryShare(context, report, fallbackText: fallback);
 }
 
-// Weekly report as a shareable 9:16 story — percentages and counts only, no balances.
+// Weekly report as a shareable 9:16 story, percentages and counts only, no balances.
 class WeeklyStory extends StatelessWidget {
   final WeeklyReport report;
   const WeeklyStory(this.report, {super.key});
@@ -31,14 +31,15 @@ class WeeklyStory extends StatelessWidget {
     final r = report;
     final change = r.change;
     final pct = change == null ? null : (change * 100).round().abs();
-    final facts = <(String, String)>[
+    final facts = <(IconData, String)>[
       if (change != null && !r.roughlyUsual)
-        (change < 0 ? '📉' : '📈', '$pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst'),
-      if (r.roughlyUsual) ('✨', 'Eine ganz normale Woche'),
+        (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+            '$pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst'),
+      if (r.roughlyUsual) (Icons.horizontal_rule_rounded, 'Eine ganz normale Woche'),
       if (r.categories.isNotEmpty)
-        ('📊', 'Am meisten: ${r.categories.first.category}'),
-      ('🌿', '${r.noSpendDays} ${r.noSpendDays == 1 ? 'Tag' : 'Tage'} ohne Ausgaben'),
-      ('🗓️', 'Teuerster Tag: ${WeeklyReportService.weekdays[r.topDay]}'),
+        (Icons.pie_chart_outline_rounded, 'Am meisten: ${r.categories.first.category}'),
+      (Icons.event_available_outlined, '${r.noSpendDays} ${r.noSpendDays == 1 ? 'Tag' : 'Tage'} ohne Ausgaben'),
+      (Icons.calendar_today_outlined, 'Teuerster Tag: ${WeeklyReportService.weekdays[r.topDay]}'),
     ];
     return AspectRatio(
       aspectRatio: 9 / 16,
@@ -73,7 +74,7 @@ class WeeklyStory extends StatelessWidget {
                   Text('${Dates.dayMonth(r.start)} – ${Dates.dayMonth(r.end)}',
                       style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.75))),
                   const SizedBox(height: 28),
-                  for (final (emoji, text) in facts.take(4))
+                  for (final (icon, text) in facts.take(4))
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Container(
@@ -84,7 +85,7 @@ class WeeklyStory extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(children: [
-                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          Icon(icon, color: Colors.white, size: 20),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(text,
@@ -174,7 +175,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
           const Text('Wochen-Story',
               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('Nur Prozente und Counts — kein Kontostand.',
+          Text('Nur Prozente und Anzahlen, kein Kontostand.',
               style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           const SizedBox(height: 16),
           ConstrainedBox(

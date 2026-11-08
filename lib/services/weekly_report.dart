@@ -175,7 +175,7 @@ class WeeklyReportService {
     final headline = change == null
         ? 'Deine erste Woche im Blick'
         : change <= -0.1
-            ? 'Sparsame Woche 💪'
+            ? 'Sparsame Woche'
             : change >= 0.15
                 ? 'Eine teure Woche'
                 : 'Eine ganz normale Woche';

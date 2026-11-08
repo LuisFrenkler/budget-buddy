@@ -122,7 +122,7 @@ class _Report extends StatelessWidget {
                       color: badge.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: Text(usual ? '≈ Schnitt' : '${pct > 0 ? '+' : '−'}${pct.abs()} % zum Schnitt',
+                    child: Text(usual ? 'wie üblich' : '${pct > 0 ? '+' : '−'}${pct.abs()} % zum Schnitt',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: badge)),
                   ),
                 ),
@@ -142,7 +142,7 @@ class _Report extends StatelessWidget {
   Widget _details(BuildContext context) {
     final r = report;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // Buddy's take — free for retention; AI chat CTA can still pitch Plus
+      // Buddy's take, free for retention; AI chat CTA can still pitch Plus
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(

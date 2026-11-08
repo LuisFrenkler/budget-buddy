@@ -73,7 +73,7 @@ class DepotSync {
     try {
     for (final l in links) {
       final data = await BackendService.depotSync(l.state);
-      // account switch / logout while the request was in flight — do not write
+      // account switch / logout while the request was in flight, do not write
       if (!AccountIsolation.sameEpoch(epoch)) return 0;
       if (AccountService.current.value?.id != accountId) return 0;
       if (l.key.isEmpty && Settings.depotState != l.state) return 0;

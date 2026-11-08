@@ -91,10 +91,9 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
   Future<void> _share() async {
     final parts = [
       'Mein $_monthName mit BudgetBuddy:',
-      if (r.savingsRate > 0) '💰 ${r.savingsRate} % gespart',
-      if (r.topCategory != null) '📊 ${r.topCategoryShare} % für ${r.topCategory}',
-      if (r.topMerchant != null && r.topMerchantVisits > 1) '📍 ${r.topMerchantVisits}× bei ${r.topMerchant}',
-      'Und dein Monat? 👉 BudgetBuddy',
+      if (r.savingsRate > 0) '${r.savingsRate} % gespart',
+      if (r.topCategory != null) '${r.topCategoryShare} % für ${r.topCategory}',
+      if (r.topMerchant != null && r.topMerchantVisits > 1) '${r.topMerchantVisits}× bei ${r.topMerchant}',
     ];
     final text = parts.join('\n');
     // the story waits while the share sheet is open
@@ -236,7 +235,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
           : change == 0
               ? 'Genauso viel wie im $_prevName.'
               : change < 0
-              ? '${-change} % weniger als im $_prevName. Stark! 💪'
+              ? '${-change} % weniger als im $_prevName.'
               : '$change % mehr als im $_prevName.',
     );
   }
@@ -249,7 +248,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
       );
 
   Widget _merchant() => _card(
-        top: const Text('📍', style: TextStyle(fontSize: 56)),
+        top: const Icon(Icons.place_outlined, color: Colors.white, size: 56),
         kicker: 'Dein Lieblingsort',
         big: r.topMerchant!,
         small: '${r.topMerchantVisits}-mal warst du da, zusammen ${Money.format(r.topMerchantCents)}.',
@@ -257,20 +256,20 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   Widget _savings() => r.saved >= 0
       ? _card(
-          top: const Text('💰', style: TextStyle(fontSize: 56)),
+          top: const Icon(Icons.savings_outlined, color: Colors.white, size: 56),
           kicker: 'Gespart hast du',
           big: '${r.savingsRate} %',
           small: '${Money.format(r.saved)} sind übrig geblieben. ${r.savingsRate >= 20 ? 'Das ist richtig gut.' : 'Jeder Euro zählt.'}',
         )
       : _card(
-          top: const Text('🫣', style: TextStyle(fontSize: 56)),
+          top: const Icon(Icons.trending_down_rounded, color: Colors.white, size: 56),
           kicker: 'Dieser Monat war teuer',
           big: '−${Money.format(-r.saved)}',
           small: 'Mehr ausgegeben als eingenommen. Buddy hilft dir, das im nächsten Monat zu drehen.',
         );
 
   Widget _priciest() => _card(
-        top: const Text('🔥', style: TextStyle(fontSize: 56)),
+        top: const Icon(Icons.calendar_today_outlined, color: Colors.white, size: 56),
         kicker: 'Dein teuerster Tag',
         big: Dates.long(r.priciestDay!).split(',').first,
         small: 'Am ${Dates.dayMonth(r.priciestDay!)} gingen ${Money.format(r.priciestDayCents)} raus, '

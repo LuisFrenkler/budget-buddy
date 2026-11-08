@@ -4,7 +4,7 @@ import '../services/goals_service.dart';
 import '../services/plus_service.dart';
 import '../utils/theme.dart';
 
-// Honest remaining free-tier counts — used on Plus pitch and Mein Abo empty.
+// Honest remaining free-tier counts, used on Plus pitch and Mein Abo empty.
 class FreeTierUsage extends StatelessWidget {
   const FreeTierUsage({super.key});
 

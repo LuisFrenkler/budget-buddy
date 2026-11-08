@@ -106,7 +106,7 @@ class CloudSync {
     await _settings.delete('vaultBannerDismissed');
   }
 
-  // Use the app without decrypting cloud — but keep pushes blocked so an empty
+  // Use the app without decrypting cloud, but keep pushes blocked so an empty
   // post-login cache cannot overwrite a good vault via „Gerät behalten“.
   static Future<void> skipCloudForNow() async {
     await _settings.put('vaultLoadFailed', true);
@@ -191,7 +191,7 @@ class CloudSync {
         case VaultAction.apply:
           await apply(remote!);
         case VaultAction.conflict:
-          // never silently overwrite dirty local edits — HomeScreen asks Gerät vs Konto
+          // never silently overwrite dirty local edits. HomeScreen asks Gerät vs Konto
           if (remote != null && _stillThisSession(epoch, uid, generation)) conflict.value = remote;
         case VaultAction.noop:
           break;

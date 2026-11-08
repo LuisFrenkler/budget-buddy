@@ -19,13 +19,15 @@ class RecapStory extends StatelessWidget {
     final month = Dates.months[r.month.month - 1];
     final prev = Dates.months[(r.month.month + 10) % 12];
     final change = r.expenseChange;
-    final facts = <(String, String)>[
-      if (r.savingsRate > 0) ('💰', '${r.savingsRate} % meines Einkommens gespart'),
+    final facts = <(IconData, String)>[
+      if (r.savingsRate > 0) (Icons.savings_outlined, '${r.savingsRate} % meines Einkommens gespart'),
       if (change != null && change != 0)
-        (change < 0 ? '📉' : '📈', '${change.abs()} % ${change < 0 ? 'weniger' : 'mehr'} ausgegeben als im $prev'),
-      if (r.topCategory != null) ('📊', '${r.topCategoryShare} % für ${r.topCategory}'),
-      if (r.topMerchant != null && r.topMerchantVisits > 1) ('📍', '${r.topMerchantVisits}× bei ${r.topMerchant}'),
-      ('🧾', '${r.bookings} Buchungen im Blick'),
+        (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+            '${change.abs()} % ${change < 0 ? 'weniger' : 'mehr'} ausgegeben als im $prev'),
+      if (r.topCategory != null) (Icons.pie_chart_outline_rounded, '${r.topCategoryShare} % für ${r.topCategory}'),
+      if (r.topMerchant != null && r.topMerchantVisits > 1)
+        (Icons.place_outlined, '${r.topMerchantVisits}× bei ${r.topMerchant}'),
+      (Icons.receipt_long_outlined, '${r.bookings} Buchungen im Blick'),
     ];
     return AspectRatio(
       aspectRatio: 9 / 16,
@@ -57,7 +59,7 @@ class RecapStory extends StatelessWidget {
                   Text(month,
                       style: const TextStyle(fontSize: 58, fontWeight: FontWeight.w900, letterSpacing: -2, height: 1)),
                   const SizedBox(height: 28),
-                  for (final (emoji, text) in facts)
+                  for (final (icon, text) in facts)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Container(
@@ -68,7 +70,7 @@ class RecapStory extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(children: [
-                          Text(emoji, style: const TextStyle(fontSize: 20)),
+                          Icon(icon, color: Colors.white, size: 20),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(text,

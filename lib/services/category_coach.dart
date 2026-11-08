@@ -24,7 +24,7 @@ class CategoryProposal {
 
 class CategoryGroup {
   final String sample; // display title
-  final String key; // groupKey — apply must use this, not tidy(sample)
+  final String key; // groupKey, apply must use this, not tidy(sample)
   final int count;
   final int cents;
   final bool isIncome;
@@ -109,7 +109,7 @@ class CategoryCoach {
     return out;
   }
 
-  // still unknown after keywords — Buddy asks the user
+  // still unknown after keywords. Buddy asks the user
   static List<CategoryGroup> leftovers({int limit = 8}) {
     final fixed = {for (final p in autoFixes(limit: 40)) Merchant.key(p.sample)};
     return [
@@ -123,7 +123,7 @@ class CategoryCoach {
     return DB.getTx().where((t) => t.isSpending && t.category == 'Sonstiges').length;
   }
 
-  // only Sonstiges of this merchant — never rewrite already sorted bookings
+  // only Sonstiges of this merchant, never rewrite already sorted bookings
   static Future<int> apply(String sample, String category,
       {required bool isIncome, String? key}) async {
     if (category == 'Sonstiges') return 0;

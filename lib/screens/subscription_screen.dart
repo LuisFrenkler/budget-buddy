@@ -66,7 +66,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
             const SizedBox(height: 6),
             Text(
                 'Gratis: ${PlusService.freeAiQuestions} KI-Fragen, ${PlusService.freeReceiptScans} Belege, '
-                '${PlusService.freeGoals} Sparziel — Plus = ohne Limit.',
+                '${PlusService.freeGoals} Sparziel gratis, mit Plus unbegrenzt.',
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             const FreeTierUsage(),
@@ -130,7 +130,7 @@ class _Details extends StatelessWidget {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              const Text('✨', style: TextStyle(fontSize: 22)),
+              Icon(Icons.workspace_premium_outlined, size: 22, color: sub.cancelled ? AppColors.primaryText : Colors.white),
               const SizedBox(width: 8),
               Text('BudgetBuddy Plus',
                   style: TextStyle(
@@ -251,7 +251,7 @@ class _Details extends StatelessWidget {
                 if (store) return StorePurchases.manage();
                 if (!await _attempt(context, PlusService.resume)) return;
                 HapticFeedback.mediumImpact();
-                if (context.mounted) _snack(context, 'Schön, dass du bleibst 💜');
+                if (context.mounted) _snack(context, 'Schön, dass du bleibst.');
               },
             )
           else
@@ -498,7 +498,7 @@ class _Details extends StatelessWidget {
     );
     if (ok == true && context.mounted) {
       HapticFeedback.heavyImpact();
-      _snack(context, '${PlusService.promoDays(ctrl.text)} Tage gratis gutgeschrieben 🎁');
+      _snack(context, '${PlusService.promoDays(ctrl.text)} Tage gratis gutgeschrieben.');
     }
   }
 

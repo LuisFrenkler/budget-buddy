@@ -12,10 +12,10 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 
-// "Geteilt": shared spending (WG, trip, couple). Local until you invite —
+// "Geteilt": shared spending (WG, trip, couple). Local until you invite,
 // then BudgetBuddy accounts sync via a 6-char code. Non-users need an account.
 
-// same rule as backend/lib/accounts.dart — keeps client + server in sync
+// same rule as backend/lib/accounts.dart, keeps client + server in sync
 final _splitEmailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
 bool _validSplitInviteEmail(String raw) => _splitEmailPattern.hasMatch(raw.trim().toLowerCase());
@@ -24,8 +24,8 @@ bool _validSplitInviteEmail(String raw) => _splitEmailPattern.hasMatch(raw.trim(
 String splitError(Object e) {
   final s = '$e';
   if (RegExp(r'Exception|Error|Failed|Socket|Timeout|Offline|handshake', caseSensitive: false).hasMatch(s)) {
-    return 'Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal — '
-        'sobald du wieder online bist, tippe auf Aktualisieren.';
+    return 'Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal. '
+        'Sobald du wieder online bist, tippe auf Aktualisieren.';
   }
   return s;
 }
@@ -63,7 +63,7 @@ class SplitsScreen extends StatelessWidget {
                     Text(total == 0 ? 'Alles ausgeglichen' : (total > 0 ? 'Du bekommst insgesamt' : 'Du schuldest insgesamt'),
                         style: TextStyle(color: AppColors.textDim)),
                     const SizedBox(height: 4),
-                    Text(total == 0 ? '🤝' : Money.format(total.abs()),
+                    Text(total == 0 ? 'Quitt' : Money.format(total.abs()),
                         style: TextStyle(
                             fontSize: 38,
                             fontWeight: FontWeight.w800,
@@ -92,7 +92,7 @@ class SplitsScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim.withValues(alpha: 0.75), fontSize: 14, height: 1.35)),
             const SizedBox(height: 8),
-            Text('Geteilte Gruppen sind gratis — kein Plus nötig.',
+            Text('Geteilte Gruppen sind gratis, kein Plus nötig.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.3)),
             const SizedBox(height: 28),
@@ -690,7 +690,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                           g.shared
                               ? (_syncError == null
                                   ? 'Live mit der Gruppe · Code ${g.code}'
-                                  : 'Offline — letzter Stand. Zum Teilen brauchst du Verbindung.')
+                                  : 'Offline, letzter Stand. Zum Teilen brauchst du Verbindung.')
                               : 'Nur auf diesem Gerät · Einladen synchronisiert mit anderen',
                           style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                     ),
@@ -706,7 +706,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 ),
                 Text(mine == 0 ? 'Ihr seid quitt' : (mine > 0 ? 'Du bekommst' : 'Du schuldest'),
                     style: TextStyle(color: AppColors.textDim)),
-                Text(mine == 0 ? '🤝' : Money.format(mine.abs()),
+                Text(mine == 0 ? 'Quitt' : Money.format(mine.abs()),
                     style: TextStyle(
                         fontSize: 38,
                         fontWeight: FontWeight.w800,
@@ -740,7 +740,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 4),
                   Text(
-                    'Das sind die kürzesten Überweisungen. Markiere sie, sobald Geld geflossen ist — beide Seiten können bestätigen.',
+                    'Das sind die kürzesten Überweisungen. Markiere sie, sobald Geld geflossen ist, beide Seiten können bestätigen.',
                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                   ),
                   const SizedBox(height: 10),
@@ -798,7 +798,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Text('Noch keine Ausgaben', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                         const SizedBox(height: 6),
-                        Text('Supermarkt, Miete, Urlaub — wer was bezahlt hat, trägst du hier ein.',
+                        Text('Supermarkt, Miete, Urlaub: Wer was bezahlt hat, trägst du hier ein.',
                             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
                         const SizedBox(height: 12),
                         FilledButton.tonalIcon(
@@ -964,7 +964,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         ),
       ),
     );
-    // first sheet fully gone before opening lookup — avoids InheritedWidget dependents crash
+    // first sheet fully gone before opening lookup, avoids InheritedWidget dependents crash
     if (next == 'email' && mounted) {
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
@@ -1012,15 +1012,15 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     if (!mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
     final text = 'Hey $found! Komm in unsere Gruppe „${group.name}“ bei BudgetBuddy. '
-        '${link != null ? 'Tipp hier: $link\n' : ''}Code: ${group.code} — und wähl deinen Namen „$found“.';
+        '${link != null ? 'Tipp hier: $link\n' : ''}Code: ${group.code}. Dann wähl deinen Namen „$found“.';
     await showDialog(
       context: this.context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text('$found gefunden'),
         content: Text(
-          'Platz „$found“ ist vorbereitet. Schick den Code ${group.code} — '
-          'beim Beitreten den Namen „$found“ wählen.',
+          'Platz „$found“ ist vorbereitet. Schick den Code ${group.code}. '
+          'Beim Beitreten wählt die Person den Namen „$found“.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Später')),
@@ -1042,8 +1042,8 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
 
   // a friendly message with the amount, through the share sheet
   Future<void> _remind(BuildContext context, SplitGroup g, Transfer t) async {
-    final text = 'Hey ${g.members[t.from]} 👋 kleine Erinnerung: Aus „${g.name}“ bekomme ich noch '
-        '${Money.raw(t.cents)} von dir. Danke dir! (aus BudgetBuddy)';
+    final text = 'Hey ${g.members[t.from]}, kleine Erinnerung: Aus „${g.name}“ bekomme ich noch '
+        '${Money.raw(t.cents)} von dir. Danke dir.';
     try {
       await Share.share(text);
     } catch (_) {
@@ -1055,7 +1055,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
   }
 }
 
-// owns its TextEditingController — never dispose while the sheet is animating out
+// owns its TextEditingController, never dispose while the sheet is animating out
 class _EmailLookupSheet extends StatefulWidget {
   const _EmailLookupSheet();
 
@@ -1083,7 +1083,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
     }
     final me = AccountService.current.value;
     if (me != null && mail.toLowerCase() == me.email.toLowerCase()) {
-      setState(() => _error = 'Das bist du — such jemand anderen aus der Gruppe.');
+      setState(() => _error = 'Das bist du, such jemand anderen aus der Gruppe.');
       return;
     }
     setState(() {

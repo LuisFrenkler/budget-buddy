@@ -187,7 +187,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               SettingsRow(
                 icon: Icons.chat_rounded,
                 title: 'Mitteilungen per WhatsApp',
-                subtitle: _waReady ? (_waOn ? 'An — jederzeit abmeldbar' : 'Aus') : 'Bald / Server einrichten',
+                subtitle: _waReady ? (_waOn ? 'An, jederzeit abmeldbar' : 'Aus') : 'Bald / Server einrichten',
                 trailing: Switch(
                   value: _waReady && _waOn,
                   onChanged: _waReady && !_waBusy ? _toggleWhatsApp : null,

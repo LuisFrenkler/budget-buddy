@@ -229,7 +229,7 @@ class PlusService {
     if (entitlement != null) {
       await _store(Subscription.fromServer(entitlement));
     } else if (AccountService.token != null) {
-      // signed in: server is source of truth — clear local/debug and managed alike
+      // signed in: server is source of truth, clear local/debug and managed alike
       // (store purchases stay via applyStore / plusStore id)
       if (subscription.value?.fromStore != true) await _store(null);
     }

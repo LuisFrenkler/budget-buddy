@@ -1,4 +1,4 @@
-// BudgetBuddy backend — a small local server so the app can link a real bank
+// BudgetBuddy backend: a small local server so the app can link a real bank
 // account (Enable Banking / PSD2) and a depot (Parqet Connect) without ever holding
 // secrets in the client. Run it from this folder:
 //
@@ -90,7 +90,7 @@ late final StoreBilling _stores;
 
 // consent started but not finished yet: state -> (bank name, owner id)
 final _pending = <String, ({String bank, String owner})>{};
-// consent failed: state -> (owner, message) — owner-scoped so others cannot probe
+// consent failed: state -> (owner, message), owner-scoped so others cannot probe
 final _failed = <String, ({String owner, String error})>{};
 // linked banks: state -> session
 final _sessions = <String, Map<String, dynamic>>{};
@@ -263,7 +263,7 @@ Future<void> _saveStripeSeen() async {
   await writeJsonAtomic(_stripeSeenStore, ids);
 }
 
-// Demo Plus only on localhost, or when explicitly allowed — never free Plus on a public host by accident
+// Demo Plus only on localhost, or when explicitly allowed, never free Plus on a public host by accident
 void _requireBilling() {
   if (_billing.mode == 'live') return;
   if (_env('ALLOW_DEMO_BILLING') == '1') return;
@@ -284,7 +284,7 @@ Future<HttpServer?> _bindHttps() async {
 }
 
 // every request runs on its own, so one slow upstream call (a Buddy stream,
-// a bank sync) never makes the others wait — capped so one noisy client cannot
+// a bank sync) never makes the others wait, capped so one noisy client cannot
 // exhaust the process
 Future<void> _serve(HttpServer server) async {
   await for (final req in server) {
@@ -385,7 +385,7 @@ void _securityHeaders(HttpResponse res) {
     ..set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 }
 
-// CORS_ORIGINS=https://app.example.com,http://localhost:8765 — empty keeps *
+// CORS_ORIGINS=https://app.example.com,http://localhost:8765, empty keeps *
 // only on loopback; public hosts without an allowlist send no ACAO (fail closed)
 void _cors(HttpRequest req, HttpResponse res) {
   final origin = req.headers.value('origin');
@@ -601,7 +601,7 @@ Future<void> _handle(HttpRequest req) async {
       final user = _user(req);
       final b = await _body(req);
       return _json(req, 200, {'user': await _accounts.changeName(user['id'] as String, '${b['name'] ?? ''}')});
-    // POST {email} → {found, name?} — never GET (keeps emails out of access logs)
+    // POST {email} → {found, name?}, never GET (keeps emails out of access logs)
     case '/users/lookup':
       if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
       final user = _user(req);
@@ -614,7 +614,7 @@ Future<void> _handle(HttpRequest req) async {
       _lookupUserLimit.hit(uid);
       final email = '${(await _body(req))['email'] ?? ''}';
       final name = _accounts.lookupNameByEmail(email, exceptUserId: uid);
-      // same shape for unknown and self — no enumeration oracle
+      // same shape for unknown and self, no enumeration oracle
       return _json(req, 200, name == null ? {'found': false} : {'found': true, 'name': name});
     case '/auth/email':
       final user = _user(req);
@@ -679,7 +679,7 @@ Future<void> _handle(HttpRequest req) async {
         'booking': await _ai.receipt('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}', _categories(b))
       });
     case '/bank/institutions':
-      _user(req); // auth required — was an open proxy into Enable Banking
+      _user(req); // auth required, was an open proxy into Enable Banking
       final ip = _clientIp(req);
       if (_institutionsLimit.blocked(ip)) throw AuthError.wait(_institutionsLimit.wait(ip));
       _institutionsLimit.hit(ip);
@@ -1303,7 +1303,7 @@ Future<void> _plusWithdraw(HttpRequest req) async {
 // Stripe tells us about renewals, failed payments and cancellations
 Future<void> _stripeWebhook(HttpRequest req) async {
   final secret = _env('STRIPE_WEBHOOK_SECRET');
-  // same size cap as other POSTs — never buffer an unbounded body
+  // same size cap as other POSTs, never buffer an unbounded body
   final bytes = BytesBuilder(copy: false);
   await for (final chunk in req) {
     bytes.add(chunk);

@@ -34,7 +34,7 @@ class CategoryRules {
     final rules = all;
     final hit = rules[_rule(name, isIncome)];
     if (hit != null) return hit;
-    // older rules stored the raw lowercased title — still honour them
+    // older rules stored the raw lowercased title, still honour them
     final legacy = rules['${isIncome ? '+' : '-'}${name.toLowerCase().trim()}'];
     if (legacy != null) return legacy;
     // "AMZN Mktp" and "Amazon" are one merchant

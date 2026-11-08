@@ -49,7 +49,7 @@ class CompanyScreen extends StatelessWidget {
             'Für Nutzer',
             'Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen '
                 'zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, '
-                'die dein Gerät vor dem Hochladen verschlüsselt — wir können sie nicht lesen. '
+                'die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. '
                 'Keine Werbung, kein Tracking, kein Verkauf von Daten.',
             dim,
           ),
@@ -60,7 +60,7 @@ class CompanyScreen extends StatelessWidget {
                 'den Alltag, Buddy nur mit Zustimmung, Verträge aus den eigenen Buchungen, '
                 'Depot und Vorsorge als Orientierung ohne Vermittlung. Wir nennen keine '
                 'Nutzerzahlen, die einen Vergleich tragen würden, und beanspruchen den Markt '
-                'nicht. Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird — '
+                'nicht. Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird, '
                 'mit dem Unterschied, dass die Finanzdaten bei der Person bleiben.',
             dim,
           ),

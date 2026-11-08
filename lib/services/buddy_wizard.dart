@@ -64,7 +64,7 @@ class BuddyWizard {
     r'|(leg|lege).{0,40}\bziel\b.{0,24}\ban\b',
   );
 
-  // "Sparziel Urlaub 800" — name and amount, no extra verb
+  // "Sparziel Urlaub 800", name and amount, no extra verb
   static final _goalBare = RegExp(r'^sparziel\s+[a-zäöüß].*\d');
 
   // null when this is a question or a booking, not a setup command
@@ -131,7 +131,7 @@ class BuddyWizard {
       );
       reset();
       return WizardTurn(
-        text: '„${parsed.merchant}“ wird **${parsed.category}** — Übernehmen speichert für alle Buchungen.',
+        text: '„${parsed.merchant}“ wird **${parsed.category}**. Übernehmen speichert für alle Buchungen.',
         proposal: entry,
       );
     } else if (!_accept(text)) {
@@ -181,14 +181,14 @@ class BuddyWizard {
           reset();
           return WizardTurn(
             text: 'Ich kann **$n** Sonstiges-Buchungen bei ${fixes.length} Händlern zuordnen. '
-                'Übernehmen speichert — du kannst einzelne danach noch ändern.',
+                'Übernehmen speichert, du kannst einzelne danach noch ändern.',
             proposal: entry,
           );
         }
         final left = CategoryCoach.leftovers(limit: 1);
         if (left.isEmpty) {
           reset();
-          return const WizardTurn(text: 'Kein Sonstiges offen — alles zugeordnet.');
+          return const WizardTurn(text: 'Kein Sonstiges offen, alles zugeordnet.');
         }
         pending = 'catAssign';
         merchantPending = left.first.sample;

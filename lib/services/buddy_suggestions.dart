@@ -1,4 +1,4 @@
-// Suggested Buddy questions on Start and in the chat welcome — grounded in
+// Suggested Buddy questions on Start and in the chat welcome, grounded in
 // snapshot domains (depot, splits, vorsorge, wealth) plus stable fallbacks.
 import 'package:flutter/material.dart';
 import 'category_coach.dart';

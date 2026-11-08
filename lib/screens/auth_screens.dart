@@ -36,7 +36,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     (
       icon: Icons.auto_awesome_rounded,
       title: 'Kann ich mir\ndas leisten?',
-      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen — und antwortet klar.',
+      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.',
     ),
     (
       icon: Icons.chat_bubble_outline_rounded,
@@ -311,7 +311,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(height: 10),
         Text(
           'Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. '
-          'Vergisst du es, kann niemand — auch wir nicht — deine Daten wiederherstellen.',
+          'Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.',
           style: TextStyle(fontSize: 12, color: AppColors.warningText, height: 1.35),
         ),
         const SizedBox(height: 18),
@@ -422,7 +422,7 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // device is an empty cache after login — load this account's vault from the server
+  // device is an empty cache after login, load this account's vault from the server
   Future<void> _bringAccountData(String password) async {
     try {
       await CloudSync.loadAccountData(password);
@@ -438,7 +438,7 @@ class _SignInScreenState extends State<SignInScreen> {
             duration: Duration(milliseconds: 4200),
             content: Text(
                 'Deine gesicherten Daten konnten gerade nicht geladen werden. '
-                'Schreibe noch nichts — tipp auf den roten Hinweis zum erneuten Versuch.')));
+                'Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.')));
       }
     }
   }
@@ -518,7 +518,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 }
 
-// Soft launch: no e-mail reset yet — be honest that the vault key is the password.
+// Soft launch: no e-mail reset yet, be honest that the vault key is the password.
 Future<void> showForgotPasswordSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -535,7 +535,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
           const SizedBox(height: 12),
           Text(
             'Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur '
-            'Cloud-Sicherung — niemand außer dir kann ihn ersetzen, auch wir nicht.',
+            'Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.',
             style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
           ),
           const SizedBox(height: 12),
@@ -615,7 +615,7 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             Text(name != null ? 'Hallo $name' : 'Los geht\'s',
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
-            Text('Wähle, wie du starten willst — alles später änderbar.',
+            Text('Wähle, wie du starten willst. Du kannst alles später ändern.',
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
             _ChoiceCard(
@@ -629,14 +629,14 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             _ChoiceCard(
               icon: Icons.edit_note_rounded,
               title: 'Leer starten',
-              text: 'Selbst tippen oder Belege scannen — mit deinen echten Zahlen.',
+              text: 'Selbst tippen oder Belege scannen, mit deinen echten Zahlen.',
               onTap: _busy ? null : () => _finish(),
             ),
             const SizedBox(height: 12),
             _ChoiceCard(
               icon: Icons.science_rounded,
               title: 'Mit Beispieldaten testen',
-              text: 'Buddy ausprobieren — klar als Demo markiert, jederzeit entfernbar.',
+              text: 'Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.',
               onTap: _busy ? null : () => _finish(demo: true, buddy: true),
             ),
             if (_busy)

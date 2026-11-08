@@ -182,7 +182,7 @@ class AccountIsolation {
       return;
     }
     final oldPrimary = Settings.bankState;
-    // drop the old primary's bookings before promoting — else they stay on main
+    // drop the old primary's bookings before promoting, else they stay on main
     if (oldPrimary.isNotEmpty) await deleteBankRowsForLink(oldPrimary, includeMain: true);
     await _clearPrimaryBankKeysOnly();
     final first = survivors.first;
@@ -210,7 +210,7 @@ class AccountIsolation {
   }
 
   static Future<void> _stripAllBankData() async {
-    // last known giro figure — after bank rows go, keep the Kontostand stable
+    // last known giro figure, after bank rows go, keep the Kontostand stable
     final target = Settings.bankBalanceCents;
     for (final t in DB.getTx().where((t) => t.id.startsWith(BankSync.prefix)).toList()) {
       await DB.deleteTx(t.id);

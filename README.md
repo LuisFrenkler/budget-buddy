@@ -1,11 +1,11 @@
 # BudgetBuddy
 
-**Personal finance app built with Flutter** — accounts, budgets, subscriptions, brokerage portfolio, and cash-flow forecasting in one product.
+**Personal finance app built with Flutter**: accounts, budgets, subscriptions, brokerage portfolio, and cash-flow forecasting in one product.
 
 Local-first data on device, optional encrypted cloud backup, and real bank connectivity (PSD2, read-only). Soft-launched end-to-end: client, Dart backend, vault, and integrations.
 
 <p align="center">
-  <img src="docs/images/bb_readme_hero.jpg" alt="BudgetBuddy — net worth overview and monthly forecast" width="720">
+  <img src="docs/images/bb_readme_hero.jpg" alt="BudgetBuddy: net worth overview and monthly forecast" width="720">
 </p>
 
 ## Screenshots
@@ -23,7 +23,7 @@ Local-first data on device, optional encrypted cloud backup, and real bank conne
 
 **Monthly forecast & what-if simulator**
 - Remaining budget for the month from income, fixed costs, savings goals, and spending pace
-- Interactive scenarios (skip subscriptions, one-off purchases, adjust savings) with live delta — nothing is persisted
+- Interactive scenarios (skip subscriptions, one-off purchases, adjust savings) with a live difference; nothing is saved
 
 **Buddy (AI finance coach)**
 - Answers grounded in the user’s real numbers (spending, goals, contracts)
@@ -97,6 +97,6 @@ Inter font is included under the SIL Open Font License (`assets/fonts/Inter-OFL.
 
 ## Author
 
-**Luis Frenkler** — designed and built BudgetBuddy from architecture through soft launch (bank sync, encrypted vault, forecast, Buddy, portfolio).
+**Luis Frenkler** designed and built BudgetBuddy from architecture through soft launch (bank sync, encrypted vault, forecast, Buddy, portfolio).
 
 [github.com/LuisFrenkler/budget-buddy](https://github.com/LuisFrenkler/budget-buddy)

@@ -1,6 +1,6 @@
 // Puts money toward a goal the smart way: Umbuchung onto a savings account
 // (so Konten change) and bump the goal counter. Without a second account the
-// counter still moves — but nothing hits the books.
+// counter still moves, but nothing hits the books.
 import 'package:uuid/uuid.dart';
 import '../models/goal.dart';
 import '../models/money_account.dart';
@@ -87,7 +87,7 @@ class GoalMove {
       }
       booked = true;
       goal.potId ??= pot.id;
-      // inbound pot leg is already in savedCents below — mark so GoalCredit skips it
+      // inbound pot leg is already in savedCents below, mark so GoalCredit skips it
       final inbound = take ? pair.first.id : pair.last.id;
       if (!take) goal.creditedIds = [...goal.creditedIds, inbound];
     }

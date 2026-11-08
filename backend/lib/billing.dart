@@ -327,7 +327,7 @@ class DemoBilling implements Billing {
     required String cancelUrl,
     String? customer,
   }) async {
-    // 128-bit random id — never guessable from wall-clock microseconds
+    // 128-bit random id, never guessable from wall-clock microseconds
     final rnd = Random.secure();
     final id = 'demo_cs_${List.generate(16, (_) => rnd.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
     _sessions[id] =

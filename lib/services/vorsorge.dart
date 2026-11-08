@@ -1,5 +1,5 @@
 // Light Altersvorsorge: Rentenlücke from a few inputs + depot (not the
-// Notgroschen). Not advice — an orientation number so Buddy can talk about it.
+// Notgroschen). Not advice, an orientation number so Buddy can talk about it.
 import 'package:hive/hive.dart';
 import '../models/goal.dart';
 import '../models/holding.dart';

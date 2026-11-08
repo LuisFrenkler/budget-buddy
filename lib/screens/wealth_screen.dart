@@ -12,7 +12,7 @@ import '../widgets/getting_started.dart';
 import 'buddy_screen.dart';
 import 'goals_screen.dart';
 
-// Notgroschen, Schulden, Versicherungen — the wealth bridge next to everyday money.
+// Notgroschen, Schulden, Versicherungen, the wealth bridge next to everyday money.
 class WealthScreen extends StatefulWidget {
   const WealthScreen({super.key});
 
@@ -43,7 +43,7 @@ class _WealthScreenState extends State<WealthScreen> {
           Text('Vom Alltag zum Polster',
               style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text('Hier siehst du, was hinter dem Start-Vermögen steckt — und was noch fehlt.',
+          Text('Hier siehst du, was hinter dem Start-Vermögen steckt und was noch fehlt.',
               style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 13.5)),
           const SizedBox(height: 16),
           _balanceCard(cash, depot, net, runway),
@@ -70,14 +70,14 @@ class _WealthScreenState extends State<WealthScreen> {
           ),
           const SizedBox(height: 22),
           _section('Schulden'),
-          Text('Dispo, Kreditkarte, Ratenkredit — senken dein Nettovermögen auf dem Start.',
+          Text('Dispo, Kreditkarte, Ratenkredit: Sie senken dein Nettovermögen auf dem Start.',
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 10),
           if (debts.isEmpty)
             _emptySection(
               Icons.credit_card_off_rounded,
               'Noch keine Schulden',
-              'Dispo, Kreditkarte oder Ratenkredit — nur der Betrag, den du noch schuldest.',
+              'Dispo, Kreditkarte oder Ratenkredit. Nur der Betrag, den du noch schuldest.',
               onAdd: () => _editDebt(),
             ),
           for (final d in debts) _debtTile(d),
@@ -88,14 +88,14 @@ class _WealthScreenState extends State<WealthScreen> {
           ),
           const SizedBox(height: 22),
           _section('Versicherungen'),
-          Text('Nur Inventar — keine Vermittlung. Damit du und Buddy Fixkosten siehst.',
+          Text('Nur Inventar, keine Vermittlung. Damit du und Buddy Fixkosten siehst.',
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 10),
           if (policies.isEmpty)
             _emptySection(
               Icons.shield_outlined,
               'Noch keine Versicherungen',
-              'Nur dein Inventar — z. B. Haftpflicht, Hausrat, BU. Keine Vermittlung.',
+              'Nur dein Inventar, z. B. Haftpflicht, Hausrat, BU. Keine Vermittlung.',
               onAdd: () => _editPolicy(),
             ),
           for (final p in policies) _policyTile(p),
@@ -222,7 +222,7 @@ class _WealthScreenState extends State<WealthScreen> {
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
         child: Text(
           'Sobald Fixkosten oder Ausgaben erkennbar sind, schlägt Buddy einen Notgroschen vor '
-          '(Richtwert: etwa 3× Monatsausgaben). Spar-Konten zählen mit — das Giro nicht.',
+          '(Richtwert: etwa 3× Monatsausgaben). Spar-Konten zählen mit, das Giro nicht.',
           style: TextStyle(color: AppColors.textDim, height: 1.35),
         ),
       );

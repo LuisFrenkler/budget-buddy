@@ -1,5 +1,5 @@
 // When money actually lands on a goal's pot (bank sync or Umbuchung), count it
-// toward the goal — so the user does the Überweisung once at the bank and the
+// toward the goal, so the user does the Überweisung once at the bank and the
 // app follows. Bookings already applied via GoalMove are skipped via creditedIds.
 import '../models/goal.dart';
 import '../models/transaction.dart';

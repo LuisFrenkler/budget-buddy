@@ -54,7 +54,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
                         fontSize: 20, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text(
-                    '${g.count}× in Sonstiges · ${Money.format(g.cents)} — nur diese Sonstiges-Buchungen.',
+                    '${g.count}× in Sonstiges · ${Money.format(g.cents)}, nur diese Sonstiges-Buchungen.',
                     style: TextStyle(color: AppColors.textDim, height: 1.35)),
                 const SizedBox(height: 14),
                 Wrap(
@@ -85,7 +85,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
       duration: const Duration(milliseconds: 2800),
       content: Text(n <= 0
           ? 'Nichts geändert'
-          : '$n ${n == 1 ? 'Buchung' : 'Buchungen'} → $picked'),
+          : '$n ${n == 1 ? 'Buchung' : 'Buchungen'} nach $picked'),
     ));
     setState(() {});
     if (CategoryCoach.miscCount() == 0 && mounted) Navigator.pop(context);
@@ -131,7 +131,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
           Text(
               n == 0
                   ? 'Sonstiges ist leer.'
-                  : '$n in Sonstiges — Vorschlag antippen oder selbst wählen.',
+                  : '$n in Sonstiges. Vorschlag antippen oder selbst wählen.',
               style: TextStyle(color: AppColors.textDim, height: 1.35)),
           if (fixes.isNotEmpty) ...[
             const SizedBox(height: 14),
@@ -163,7 +163,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
                       LedgerBusy.leave();
                     }
                     if (!mounted) return;
-                    messenger.showSnackBar(SnackBar(content: Text('$moved → ${p.category}')));
+                    messenger.showSnackBar(SnackBar(content: Text('$moved ${moved == 1 ? 'Buchung' : 'Buchungen'} jetzt in ${p.category}')));
                     setState(() {});
                     if (CategoryCoach.miscCount() == 0) navigator.pop();
                   },

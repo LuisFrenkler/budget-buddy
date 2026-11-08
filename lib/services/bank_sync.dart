@@ -168,7 +168,7 @@ class BankSync {
     }
 
     final added = <Transaction>[];
-    // fresh guesses only — a category the user already taught is not "smarter"
+    // fresh guesses only, a category the user already taught is not "smarter"
     final smartIds = <String>{};
     for (final b in incoming) {
       final id = '$prefix${b.id}';
@@ -214,7 +214,7 @@ class BankSync {
     }
 
     // out of one account and into another on the same day: the user moved
-    // their own money — only when notes look like a transfer (not rent+refund)
+    // their own money, only when notes look like a transfer (not rent+refund)
     for (var i = 0; i < added.length; i++) {
       final out = added[i];
       if (out.isIncome || out.category == Categories.transfer) continue;
@@ -299,7 +299,7 @@ class BankSync {
       r'umbuchung|übertrag|uebertrag|eigen[üu]berweisung|transfer|sparen|tagesgeld',
       caseSensitive: false);
 
-  // same counterparty, or an explicit transfer keyword — avoids rent+refund false positives
+  // same counterparty, or an explicit transfer keyword, avoids rent+refund false positives
   static bool _looksLikeTransfer(String? a, String? b) {
     final na = (a ?? '').trim();
     final nb = (b ?? '').trim();
@@ -318,13 +318,13 @@ class BankSync {
       if (t.amountCents != b.amountCents.abs() || t.isIncome != income)
         continue;
       if (!_sameDay(t.date, b.date)) continue;
-      // Merchant.tidy can change casing (REWE → Rewe) — match on stable key
+      // Merchant.tidy can change casing (REWE → Rewe), match on stable key
       if (Merchant.key(t.note ?? '') == Merchant.key(title)) return true;
     }
     return false;
   }
 
-  // rails (PayPal/Karte) hide the real merchant in the purpose — surface that
+  // rails (PayPal/Karte) hide the real merchant in the purpose, surface that
   static String _title(BankTransaction b) =>
       Merchant.display(counterparty: b.counterparty, purpose: b.purpose);
 
@@ -381,7 +381,7 @@ class BankSync {
           final openingDirty = result.touchesMain &&
               (Settings.openingBalanceCents != result.openingBalanceCents ||
                   Settings.bankBalanceCents != shown);
-          // skip no-op Hive writes — they rebuild Start and the Konto jumps
+          // skip no-op Hive writes, they rebuild Start and the Konto jumps
           if (!ledgerDirty && !openingDirty) {
             continue;
           }
@@ -410,7 +410,7 @@ class BankSync {
         if (!AccountIsolation.sameEpoch(epoch)) return (added: 0, smarter: 0);
         if (AccountService.current.value?.id != accountId)
           return (added: 0, smarter: 0);
-        // never rewrite old Sonstiges here — only new imports are categorized
+        // never rewrite old Sonstiges here, only new imports are categorized
         // once in merge()
         offerSmile(added: added, smarter: smarter);
         await Settings.setLastSync(DateTime.now());

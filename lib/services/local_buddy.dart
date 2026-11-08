@@ -59,14 +59,14 @@ class LocalBuddy {
 
   static String _categories(FinanceSnapshot s) {
     final n = CategoryCoach.miscCount();
-    if (n == 0) return 'Alles sauber kategorisiert — kein Sonstiges offen.';
+    if (n == 0) return 'Alles sauber kategorisiert, kein Sonstiges offen.';
     final auto = CategoryCoach.autoFixes(limit: 5);
     final left = CategoryCoach.leftovers(limit: 5);
     final lines = <String>[
       '**$n** Buchungen stecken noch in Sonstiges.',
       if (auto.isNotEmpty) ...[
         '',
-        'Kann ich so zuordnen — sag **„Sonstiges aufräumen“**:',
+        'So würde ich zuordnen. Sag **„Sonstiges aufräumen“**:',
         for (final p in auto) '- ${p.sample}: **${p.category}** (${p.count}×)',
       ],
       if (left.isNotEmpty) ...[
@@ -173,7 +173,7 @@ class LocalBuddy {
     if (cmp != null) {
       final free = cmp.sim.freeCents;
       lines.add(free >= 0
-          ? '- Diesen Monat blieben danach noch **${_eur(free)}** frei (≈ ${_eur(cmp.sim.perDayCents)}/Tag).'
+          ? '- Diesen Monat blieben danach noch **${_eur(free)}** frei, etwa ${_eur(cmp.sim.perDayCents)} am Tag.'
           : '- Diesen Monat wärst du **${_eur(-free)} über** dem Plan.');
     }
     return lines.join('\n');
@@ -289,7 +289,7 @@ class LocalBuddy {
     return 'Konten:\n$accounts$tail';
   }
 
-  // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe" — same formula as the sheet
+  // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe", same formula as the sheet
   static bool _scenarioQuestion(String q, FinanceSnapshot s) {
     if (_has(q, ['was wäre', 'wenn ich'])) return true;
     if (!_has(q, ['kündig', 'ohne'])) return false;
@@ -316,7 +316,7 @@ class LocalBuddy {
       return 'Sag z. B. „Was wäre ohne ${s.contracts.first.name}?“ oder nenn einen Betrag.\n'
           'Erkannte Abos: $tip.';
     } else {
-      return 'Sag z. B. „Was wäre wenn ich 200 € ausgebe?“ — Abos habe ich noch keine erkannt.';
+      return 'Abos habe ich noch keine erkannt. Frag zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“';
     }
 
     final cmp = ScenarioService.compare(
@@ -371,7 +371,7 @@ class LocalBuddy {
   static String _overview(FinanceSnapshot s) {
     final m = s.current;
     if (s.past.isEmpty && m.expenses == 0 && m.income == 0 && s.depotCents == 0) {
-      return 'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben — '
+      return 'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben, '
           'dann kann ich konkret rechnen.\n\n'
           'Du kannst trotzdem fragen, z. B. **„Wo kann ich sparen?“** oder **„Wie lege ich ein Sparziel an?“**';
     }

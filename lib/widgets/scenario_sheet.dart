@@ -1,4 +1,4 @@
-// Monats-Simulator: what-if on ForecastService — not persisted.
+// Monats-Simulator: what-if on ForecastService, not persisted.
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -92,7 +92,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
             const Text('Was wäre wenn…?',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('Nur Rechnung — nichts wird gespeichert.',
+            Text('Nur Rechnung, nichts wird gespeichert.',
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),
             if (cmp != null) ...[
@@ -134,7 +134,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
               if (cmp.sim.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text('≈ ${Money.format(cmp.sim.perDayCents)} pro Tag',
+                  child: Text('etwa ${Money.format(cmp.sim.perDayCents)} pro Tag',
                       style: TextStyle(color: AppColors.textDim)),
                 ),
             ] else

@@ -1,6 +1,6 @@
-# App Store / Play Store — Listing (Deutsch)
+# App Store / Play Store: Listing (Deutsch)
 
-Positionierung: **Alltagsgeld-Coach** (Buddy, Abos, schnelle Erfassung) — nicht Depot-Tracker.
+Positionierung: **Alltagsgeld-Coach** (Buddy, Abos, schnelle Erfassung), kein Depot-Tracker.
 
 ## Untertitel (≤ 30 Zeichen)
 
@@ -10,7 +10,7 @@ Positionierung: **Alltagsgeld-Coach** (Buddy, Abos, schnelle Erfassung) — nich
 
 ## Promo-Text (kurz, oben sichtbar)
 
-Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben wie du sprichst, erkenne Abos, baue ein Polster — und sieh grob, was für die Vorsorge noch fehlt. Klar, privat, auf Deutsch.
+Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben wie du sprichst, erkenne Abos, baue ein Polster und sieh grob, was für die Vorsorge noch fehlt. Klar, privat, auf Deutsch.
 
 ## Beschreibung
 
@@ -20,9 +20,9 @@ Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: �
 
 **Drei Dinge, die sofort helfen**
 
-1. **Buddy fragen** — kurze, ehrliche Antworten mit deinen Zahlen (auch offline auf dem Gerät; mit KI nach Zustimmung).
-2. **Erfassen wie du sprichst** — „Döner 8,50 gestern“ oder Beleg fotografieren. Fertig.
-3. **Abos im Griff** — feste Kosten werden erkannt; Warnung, wenn etwas teurer wird.
+1. **Buddy fragen:** kurze, ehrliche Antworten mit deinen Zahlen (auch offline auf dem Gerät; mit KI nach Zustimmung).
+2. **Erfassen, wie du sprichst:** „Döner 8,50 gestern“ oder Beleg fotografieren. Fertig.
+3. **Abos im Griff:** feste Kosten werden erkannt; Warnung, wenn etwas teurer wird.
 
 **Optional: Bank verbinden**
 
@@ -34,7 +34,7 @@ Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: �
 - Sparziele und Prognose „noch frei“
 - Notgroschen, Sparquote, Schulden & Versicherungs-Inventar
 - Vorsorge: grobe Rentenlücke (Orientierung, keine Beratung)
-- Depot mitführen (Import / Kurse) — Fokus bleibt der Alltag
+- Depot mitführen (Import / Kurse), der Fokus bleibt der Alltag
 - App-Sperre (Face ID / Fingerabdruck), Beträge verbergen
 - Dark Mode, CSV/Backup, geteilte Ausgaben
 
@@ -54,7 +54,7 @@ Nimm die Frames im Simulator / Gerät; Bildunterschriften so setzen:
 | 2 | Buddy-Antwort mit konkreter Zahl / Zeitraum | Antwort mit deinen echten Zahlen |
 | 3 | Schnellerfassung „Döner 8,50 gestern“ | Tippen wie du sprichst |
 | 4 | Verträge / Abos mit Monatssumme | Abos erkannt. Erhöhungen auch. |
-| 5 | Start mit „noch frei“ + Polster/Vorsorge | Noch frei — und was als Nächstes kommt |
+| 5 | Start mit „noch frei“ + Polster/Vorsorge | Noch frei, und was als Nächstes kommt |
 | 6 | (optional) Plus / mehr Buddy | Mehr Buddy-Fragen, gleiche Ehrlichkeit |
 
 Vermeide als erstes Frame: reines Depot-Chart oder leeres Dashboard ohne Buddy.

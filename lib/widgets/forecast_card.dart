@@ -60,7 +60,7 @@ class ForecastCard extends StatelessWidget {
               if (f.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
-                  child: Text('≈ ${Money.format(f.perDayCents)} pro Tag',
+                  child: Text('etwa ${Money.format(f.perDayCents)} pro Tag',
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
                 ),
             ]),
@@ -122,7 +122,7 @@ class ForecastCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary
-                    ? 'Einkommen: dieser Monat — sobald drei volle Monate da sind, rechnen wir mit dem Schnitt.'
+                    ? 'Einkommen aus diesem Monat. Sobald drei volle Monate da sind, rechnen wir mit dem Schnitt.'
                     : 'Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.',
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),

@@ -129,7 +129,7 @@ class EnableBanking implements BankProvider {
     // ITBD/ITAV = interim booked now; safe to add pending card payments
     final interim = ofType('ITBD') ?? ofType('ITAV');
     if (interim != null) return _cents(interim) + await _pendingCents(accountUid);
-    // CLBD is yesterday's close — do not mix with today's pending window
+    // CLBD is yesterday's close, do not mix with today's pending window
     final closed = ofType('CLBD') ?? ofType('CLAV') ?? balances.first;
     return _cents(closed);
   }

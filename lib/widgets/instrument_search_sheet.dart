@@ -161,7 +161,7 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                     ListTile(
                       leading: InstrumentAvatar(i.name),
                       title: Text(i.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('${i.symbol.isEmpty ? '—' : i.symbol} · ${i.type}',
+                      subtitle: Text('${i.symbol.isEmpty ? '–' : i.symbol} · ${i.type}',
                           style: TextStyle(color: AppColors.textDim)),
                       trailing: _priceOf(i) > 0
                           ? Text(Money.format(_priceOf(i)), style: const TextStyle(fontWeight: FontWeight.w700))

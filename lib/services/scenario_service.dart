@@ -1,5 +1,5 @@
 // What-if on the same forecast formula: baseline vs a temporary override.
-// Nothing is persisted — only for the Monats-Simulator sheet and offline Buddy.
+// Nothing is persisted, only for the Monats-Simulator sheet and offline Buddy.
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'forecast_service.dart';

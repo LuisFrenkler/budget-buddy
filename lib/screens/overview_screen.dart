@@ -52,7 +52,7 @@ import 'wealth_screen.dart';
 import '../widgets/weekly_story.dart';
 import '../services/plus_service.dart';
 
-// The start screen: one calm money story, Buddy tip, Polster — deeper topics
+// The start screen: one calm money story, Buddy tip, Polster, deeper topics
 // live under "Für dich" and in Profil.
 class OverviewScreen extends StatefulWidget {
   // switch to another tab (1 = Konto, 2 = Depot), optionally to a section
@@ -224,7 +224,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               DB.balanceOf(tx) + MoneyAccounts.openingTotal);
           final depotNow = DB.portfolioValue();
           final empty = tx.isEmpty && depotNow == 0;
-          // throttle side-effects — Hive can fire often during import/sync
+          // throttle side-effects. Hive can fire often during import/sync
           final now = DateTime.now();
           if (_lastSideEffects == null ||
               now.difference(_lastSideEffects!) > const Duration(seconds: 2)) {
@@ -310,7 +310,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 2),
-                    Text('Einmal eintragen — dann stimmt der Überblick.',
+                    Text('Einmal eintragen, dann stimmt der Überblick.',
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 13,
@@ -426,7 +426,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       chips: BuddySuggestions.pick(BuddyService.snapshot()),
     ));
     out.add(const SizedBox(height: 10));
-    // one calm Polster row — not a second mini-dashboard of 3 chips
+    // one calm Polster row, not a second mini-dashboard of 3 chips
     out.add(_bridgeChip(
       Icons.savings_outlined,
       'Notgroschen',
@@ -559,7 +559,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
-  // only signal tiles — no second dashboard
+  // only signal tiles, no second dashboard
   List<Widget> _forYou(List<Transaction> tx) {
     final tiles = <Widget>[];
 
@@ -1075,7 +1075,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
-  // empty Start: one primary job — get real money in
+  // empty Start: one primary job, get real money in
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

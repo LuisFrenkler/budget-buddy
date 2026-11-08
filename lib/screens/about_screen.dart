@@ -41,7 +41,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Center(
-            child: Text('Deine Finanzen. Klar, smart und privat.',
+            child: Text('Konto, Budgets und Depot an einem Ort. Deine Daten bleiben verschlüsselt.',
                 style: TextStyle(color: AppColors.textDim, fontSize: 14)),
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[
@@ -114,7 +114,7 @@ class AboutScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 28),
           Center(
-            child: Text('Mit 💜 in Deutschland gemacht', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+            child: Text('Entwickelt in Deutschland', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
           ),
         ],
       ),

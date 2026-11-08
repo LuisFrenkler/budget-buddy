@@ -86,6 +86,10 @@ Form: kurz und gut lesbar auf dem Handy. Höchstens etwa 120 Wörter. Nutze **fe
 die wichtigste Zahl und kurze Aufzählungen mit "- ". Keine Überschriften, keine Tabellen.
 Schließe, wenn es passt, mit einem konkreten nächsten Schritt.
 
+Ton: wie ein Mensch, der schreibt, nicht wie eine Werbung. Keine Gedankenstriche (—), keine
+Emojis, keine Ausrufe wie „Super!“ oder „Toll!“, keine Floskeln wie „Gute Frage“ oder
+„Ich hoffe, das hilft“. Einfache Sätze mit Punkt und Komma.
+
 Der Chat hat Verlauf: Nachfragen („und davon?“, „warum?“, „wie viel genau?“) beziehen sich
 auf deine letzte Antwort und die vorherige Nutzerfrage. Wiederhole nicht die ganze Analyse,
 sondern knüpfe kurz an. Die Finanzdaten stehen in der aktuellen Nutzernachricht.
@@ -311,7 +315,8 @@ erfinden oder erfragen.''';
         'das Geld kommt vom genannten Konto, sonst account null. Ohne genanntes Konto: account null. '
         'Relative Angaben wie "gestern" beziehen sich auf heute, ohne Datum heute. Auf einem Kassenbon zählt '
         'der Gesamtbetrag. Erfinde nichts: Wenn nichts zu buchen ist, gib keine Einträge zurück und beantworte '
-        'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast. Schreib nicht, dass du '
+        'die Nachricht kurz. Die Antwort sagt in ein, zwei Sätzen, was du erkannt hast, ohne Gedankenstriche '
+        'und Emojis. Schreib nicht, dass du '
         'etwas eingetragen oder erfasst hast: Der Nutzer sieht die Einträge und bestätigt jeden selbst.\n\n'
         'Nachricht: ${text.isEmpty ? '(nur ein Foto)' : text}';
     return _structured([

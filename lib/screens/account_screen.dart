@@ -380,7 +380,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
-                              'Tippe eine Buchung — oder frag Buddy „Sonstiges aufräumen“.',
+                              'Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.',
                               style: TextStyle(
                                   color: AppColors.textDim,
                                   fontSize: 12.5,
@@ -517,9 +517,9 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 8),
           Text(
               bankLinked
-                  ? 'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren — '
+                  ? 'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren '
                       'oder erfasse etwas von Hand, bis die ersten Buchungen da sind.'
-                  : 'Verbinde deine Bank — oder tippe die erste Ausgabe.',
+                  : 'Verbinde deine Bank oder tippe die erste Ausgabe.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textDim, height: 1.35)),
           const SizedBox(height: 20),

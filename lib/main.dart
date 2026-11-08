@@ -46,14 +46,14 @@ void main() async {
   // apply the saved theme mode
   ThemeController.isDark.value = Settings.darkMode;
   Settings.loadHideAmounts();
-  // guest mode removed — clear any leftover flag from older installs
+  // guest mode removed, clear any leftover flag from older installs
   await Settings.setGuest(false);
   PlusService.load();
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();
   // session + wipe before any finance mutation (recurring / budgets / autosave)
   await AccountService.restore();
-  // vault first — otherwise Recurring/AutoSave mutate local, the UI paints that
+  // vault first, otherwise Recurring/AutoSave mutate local, the UI paints that
   // Kontostand, then cloud restore overwrites it and the number jumps
   await CloudSync.start();
   // generate any recurring transactions that came due while the app was closed
@@ -66,7 +66,7 @@ void main() async {
   await NoteScrub.runOnce();
   PlusService.watchAccount();
   PlusService.syncWithServer();
-  // bank/depot after first frame — LedgerBusy freezes Konto while they write
+  // bank/depot after first frame. LedgerBusy freezes Konto while they write
   unawaited(BankSync.refreshIfStale());
   unawaited(DepotSync.refreshIfStale());
 

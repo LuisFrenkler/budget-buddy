@@ -136,7 +136,7 @@ class ParqetConnect implements DepotProvider {
 
   @override
   Future<void> revoke(DepotTokens tokens) async {
-    // RFC 7009-style revoke; Parqet may ignore — best effort so disconnect is not a no-op at the provider
+    // RFC 7009-style revoke; Parqet may ignore, best effort so disconnect is not a no-op at the provider
     try {
       await net.post(Uri.parse('$_base/oauth2/revoke'), body: {
         'token': tokens.refresh ?? tokens.access,

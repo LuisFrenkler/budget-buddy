@@ -26,7 +26,7 @@ void main() {
     expect(
       Wealth.moment(
           tx: tx, netNowCents: 50000, netMonthAgoCents: 10000, now: now),
-      'Sparquote letzten Monat 60 % — höher als im Monat davor',
+      'Sparquote letzten Monat: 60 %, höher als im Monat davor',
     );
   });
 

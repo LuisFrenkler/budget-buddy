@@ -19,7 +19,7 @@ import 'contracts.dart';
 
 enum ForecastPace { relaxed, tight, over }
 
-// What-if knobs for the same forecast formula — never persisted.
+// What-if knobs for the same forecast formula, never persisted.
 class ForecastOverrides {
   final Set<String> excludedContractKeys; // Merchant.key(contract.name)
   final int oneTimeSpentCents;
@@ -90,7 +90,7 @@ class ForecastService {
   static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
   // [balanceCents]: the real account balance, when the user has told it
-  // [overrides]: what-if knobs (cancel Abo, one-time buy, trim goals) — same formula
+  // [overrides]: what-if knobs (cancel Abo, one-time buy, trim goals), same formula
   static MonthForecast? build(
     List<Transaction> tx, {
     List<Goal> goals = const [],
@@ -128,7 +128,7 @@ class ForecastService {
     if (o.incomeCents != null) {
       income = o.incomeCents!;
     } else if (months == 0 || incomeSum == 0) {
-      // week 1: only Gehalt this month — still show „noch frei“, labelled preliminary
+      // week 1: only Gehalt this month, still show „noch frei“, labelled preliminary
       final monthLast = _day(monthEnd);
       final thisMonth = tx
           .where((t) =>
