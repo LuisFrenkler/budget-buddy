@@ -31,11 +31,7 @@ class UserAvatar extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: brandGradient ? null : AppColors.surfaceAlt,
-            gradient: brandGradient
-                ? const LinearGradient(
-                    colors: AppColors.heroBrand, begin: Alignment.topLeft, end: Alignment.bottomRight)
-                : null,
+            color: brandGradient ? AppColors.primary : AppColors.surfaceAlt,
             image: bytes == null
                 ? null
                 : DecorationImage(image: MemoryImage(bytes), fit: BoxFit.cover),

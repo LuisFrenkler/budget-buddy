@@ -327,7 +327,7 @@ class Accounts {
       throw const AuthError(409, 'Zwei-Faktor ist schon aktiv.');
     }
     final secret = Totp.randomSecret();
-    // shortcut: TOTP secret is plaintext in accounts.json, encrypt at rest when the user store is no longer one file
+    // TODO: TOTP secret is plaintext in accounts.json, encrypt at rest when the user store is no longer one file
     user['totpPending'] = secret;
     await _save();
     final email = Uri.encodeComponent('${user['email']}');

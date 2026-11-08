@@ -557,7 +557,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 tooltip: _aiOn ? 'KI ausschalten' : 'KI einschalten',
                 onPressed: _toggleAi,
                 icon: Icon(
-                  _aiOn ? Icons.auto_awesome_rounded : Icons.auto_awesome_outlined,
+                  _aiOn ? Icons.cloud_rounded : Icons.cloud_off_outlined,
                   color: _aiOn ? AppColors.primaryText : AppColors.textDim,
                 ),
               ),
@@ -662,7 +662,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         child: Row(children: [
-          Icon(Icons.auto_awesome_outlined, size: 18, color: AppColors.textDim),
+          Icon(Icons.cloud_off_outlined, size: 18, color: AppColors.textDim),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -734,7 +734,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           margin: const EdgeInsets.only(left: 48, bottom: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF8B6BFF), AppColors.primaryDeep]),
+            color: AppColors.primary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -910,7 +910,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   height: 46,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: AppColors.heroBrand),
+                    color: AppColors.primary,
                   ),
                   child: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
                 ),
@@ -1076,16 +1076,11 @@ class _BuddyCardState extends State<BuddyCard> {
       if (tip != null) (icon: Icons.lightbulb_rounded, text: tip.question),
       ...base,
     ];
-    // a 1.5 px gradient border around the card
     return Container(
       padding: const EdgeInsets.all(1.25),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(colors: [
-          AppColors.primary.withValues(alpha: 0.9),
-          const Color(0xFF38BDF8).withValues(alpha: 0.75),
-          const Color(0xFFF472B6).withValues(alpha: 0.6),
-        ]),
+        color: AppColors.border,
       ),
       child: Material(
         color: AppColors.surface,

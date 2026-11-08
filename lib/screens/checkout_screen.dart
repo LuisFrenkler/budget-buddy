@@ -1039,21 +1039,6 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
     final fade = CurvedAnimation(parent: _anim, curve: const Interval(0.3, 1, curve: Curves.easeOut));
     return Scaffold(
       body: Stack(children: [
-        Positioned(
-          top: -160,
-          left: -120,
-          right: -120,
-          child: Container(
-            height: 480,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [
-                AppColors.primary.withValues(alpha: 0.5),
-                AppColors.primary.withValues(alpha: 0),
-              ]),
-            ),
-          ),
-        ),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
@@ -1065,8 +1050,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                   height: 110,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                        colors: AppColors.heroBrand, begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    color: AppColors.primary,
                   ),
                   child: const Icon(Icons.check_rounded, color: Colors.white, size: 60),
                 ),
@@ -1089,7 +1073,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                   ),
                   const SizedBox(height: 28),
                   for (final (icon, text) in const [
-                    (Icons.auto_awesome_rounded, 'Buddy beantwortet jetzt jede Frage'),
+                    (Icons.chat_bubble_outline_rounded, 'Buddy beantwortet jetzt jede Frage'),
                     (Icons.document_scanner_rounded, 'Belege scannen ohne Limit'),
                     (Icons.flag_rounded, 'So viele Sparziele, wie du willst'),
                   ])

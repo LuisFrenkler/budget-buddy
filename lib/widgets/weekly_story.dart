@@ -44,13 +44,7 @@ class WeeklyStory extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7C5CFF), Color(0xFF5B3DF5), Color(0xFF38BDF8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColors.primaryDeep,
         child: FittedBox(
           child: SizedBox(
             width: 360,

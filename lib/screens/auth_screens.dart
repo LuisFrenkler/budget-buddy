@@ -34,7 +34,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   static const _slides = [
     (
-      icon: Icons.auto_awesome_rounded,
+      icon: Icons.chat_bubble_outline_rounded,
       title: 'Kann ich mir\ndas leisten?',
       text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.',
     ),
@@ -74,22 +74,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // soft brand glow behind the headline
-          Positioned(
-            top: -160,
-            left: -120,
-            right: -120,
-            child: Container(
-              height: 420,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [
-                  AppColors.primary.withValues(alpha: 0.35),
-                  AppColors.primary.withValues(alpha: 0.0),
-                ]),
-              ),
-            ),
-          ),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

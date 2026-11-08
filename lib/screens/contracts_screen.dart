@@ -340,7 +340,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52), backgroundColor: AppColors.error.withValues(alpha: 0.9)),
               onPressed: () => setState(() => _writing = true),
-              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+              icon: const Icon(Icons.description_outlined, size: 18),
               label: Text('${c.name} kündigen'),
             )
           else ...[

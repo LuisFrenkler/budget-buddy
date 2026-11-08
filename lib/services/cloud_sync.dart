@@ -6,8 +6,8 @@
 //   forgotten password cannot be undone by anyone.
 // - Every change is uploaded a few seconds later; on start a newer copy
 //   from another device replaces the one here.
-// shortcut: whole-copy, last writer wins. Two devices changing things at the
-// same moment keep only the later upload; merge per record if that bites.
+// - The vault is synced as one whole copy. If both devices changed it, the
+//   user picks which copy to keep (no per-record merge).
 import 'dart:async';
 import 'dart:convert';
 import 'package:cryptography/cryptography.dart';

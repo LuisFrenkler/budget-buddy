@@ -224,7 +224,7 @@ class _SmartEntryState extends State<_SmartEntry> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: 'z. B. Döner 8,50 gestern',
-            prefixIcon: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
+            prefixIcon: const Icon(Icons.edit_note_rounded, color: AppColors.primary),
             suffixIcon: IconButton(
               tooltip: 'Beleg scannen',
               icon: Icon(Icons.document_scanner_rounded,

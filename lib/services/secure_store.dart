@@ -1,6 +1,6 @@
 // Session / vault keys. On native and HTTPS web → FlutterSecureStorage.
 // On plain HTTP (LAN phone test) Web Crypto is blocked, so Hive is the fallback.
-// shortcut: Hive is not OS-encrypted; switch to HTTPS before any public web deploy.
+// TODO: Hive is not OS-encrypted; switch to HTTPS before any public web deploy.
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';

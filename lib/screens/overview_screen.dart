@@ -501,11 +501,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         padding: const EdgeInsets.all(1.25),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF7C5CFF), Color(0xFF5B3DF5), Color(0xFF38BDF8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.border,
         ),
         child: Material(
           color: AppColors.surface,
@@ -794,7 +790,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final bankLinked = Settings.bankState.isNotEmpty;
     return Row(children: [
-      chip(Icons.auto_awesome_rounded, 'Buddy', () => BuddyScreen.open(context),
+      chip(Icons.chat_bubble_outline_rounded, 'Buddy', () => BuddyScreen.open(context),
           color: AppColors.primary),
       const SizedBox(width: 10),
       chip(Icons.edit_note_rounded, 'Erfassen', () => showSmartEntry(context),

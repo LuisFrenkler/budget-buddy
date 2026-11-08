@@ -71,7 +71,7 @@ class BudgetView extends StatelessWidget {
                 const SizedBox(height: 16),
                 FilledButton.tonalIcon(
                   onPressed: () => showBudgetSuggestSheet(context, suggestions),
-                  icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                  icon: const Icon(Icons.playlist_add_check_rounded, size: 18),
                   label: const Text('Vorschläge übernehmen'),
                 ),
               ] else ...[
@@ -527,7 +527,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         if (usual != null && usual > 0) ...[
           const SizedBox(height: 8),
           Row(children: [
-            const Icon(Icons.auto_awesome_rounded, size: 16, color: AppColors.primary),
+            const Icon(Icons.history_rounded, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
             Expanded(
               child: Text('Du gibst dafür im Schnitt ${Money.format(usual)} im Monat aus.',

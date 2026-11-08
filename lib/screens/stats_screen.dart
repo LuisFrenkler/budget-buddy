@@ -175,7 +175,7 @@ class _StatsViewState extends State<StatsView> {
         );
     return Row(children: [
       if (recap != null)
-        button(Icons.auto_awesome_rounded, '${_monthNames[recapMonth.month - 1]}-Rückblick', () {
+        button(Icons.calendar_month_rounded, '${_monthNames[recapMonth.month - 1]}-Rückblick', () {
           Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
         }),
       if (recap != null && weekly != null) const SizedBox(width: 10),

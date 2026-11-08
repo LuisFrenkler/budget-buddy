@@ -134,7 +134,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
                     : 'Wie schließe ich eine Rentenlücke von ${Money.format(r.gapMonthlyCents)} im Monat?';
                 BuddyScreen.open(context, q);
               },
-              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
               label: const Text('Mit Buddy besprechen'),
             ),
         ],

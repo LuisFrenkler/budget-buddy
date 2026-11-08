@@ -239,7 +239,7 @@ class ParqetConnect implements DepotProvider {
   // shares held and the average price paid for them, from the bookings:
   // buys and transfers in (staking rewards) add, sells and transfers out take
   // away at the average price so far.
-  // shortcut: average cost, while Parqet itself may use FIFO for the buy price
+  // Note: average cost, while Parqet itself may use FIFO for the buy price
   static ({double shares, double buyPrice}) fromActivities(List<Map> activities) {
     final sorted = [...activities]..sort((a, b) => '${a['datetime']}'.compareTo('${b['datetime']}'));
     var shares = 0.0, cost = 0.0;

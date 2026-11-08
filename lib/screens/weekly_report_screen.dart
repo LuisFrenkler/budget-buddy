@@ -54,7 +54,7 @@ class WeeklyReportScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.auto_awesome_rounded, size: 48, color: AppColors.primaryText),
+                  Icon(Icons.insights_rounded, size: 48, color: AppColors.primaryText),
                   const SizedBox(height: 16),
                   Text(
                       'Für diese Woche gibt es noch keine Alltagsausgaben. '
@@ -147,11 +147,7 @@ class _Report extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
-          gradient: LinearGradient(
-            colors: [AppColors.primary.withValues(alpha: 0.22), AppColors.primary.withValues(alpha: 0.06)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.primary.withValues(alpha: 0.12),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Row(children: [

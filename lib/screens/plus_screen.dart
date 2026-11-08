@@ -55,7 +55,7 @@ class _PlusScreenState extends State<PlusScreen> {
   bool get _hasTrial => _trial == true;
 
   static const _features = [
-    (Icons.auto_awesome_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
+    (Icons.chat_bubble_outline_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
     (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Belege fotografieren und prüfen, ohne Gratis-Limit'),
     (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
@@ -128,22 +128,6 @@ class _PlusScreenState extends State<PlusScreen> {
   Widget _pitch(BuildContext context) {
     return Scaffold(
       body: Stack(children: [
-        // the brand glow behind the orb
-        Positioned(
-          top: -140,
-          left: -100,
-          right: -100,
-          child: Container(
-            height: 420,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [
-                AppColors.primary.withValues(alpha: 0.45),
-                AppColors.primary.withValues(alpha: 0),
-              ]),
-            ),
-          ),
-        ),
         SafeArea(
           child: Column(children: [
             Align(

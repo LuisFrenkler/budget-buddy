@@ -256,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SectionLabel('Privatsphäre & KI'),
               SettingsGroup([
-                _switch(Icons.auto_awesome_rounded, 'Buddy mit KI',
+                _switch(Icons.cloud_outlined, 'Buddy mit KI',
                     'Nur mit deiner Zustimmung', BuddyService.hasConsent, (v) async {
                   await BuddyService.live();
                   await BuddyService.setConsent(v);
@@ -375,8 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             clipBehavior: Clip.antiAlias,
             child: Ink(
               decoration: BoxDecoration(
-                gradient: plus || syncErr != null ? null : const LinearGradient(colors: AppColors.heroBrand),
-                color: plus || syncErr != null ? AppColors.surface : null,
+                color: plus || syncErr != null ? AppColors.surface : AppColors.primary,
               ),
               child: InkWell(
                 onTap: () async {

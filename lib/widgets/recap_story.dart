@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../services/file_saver.dart';
 import '../services/recap_service.dart';
 import '../utils/dates.dart';
+import '../utils/theme.dart';
 import 'brand.dart';
 
 // The month as one picture in story format (9:16), made to be posted.
@@ -32,13 +33,7 @@ class RecapStory extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 9 / 16,
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7C5CFF), Color(0xFFB84DD8), Color(0xFFF472B6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        color: AppColors.primaryDeep,
         // everything scales with the picture, so preview and export match
         child: FittedBox(
           child: SizedBox(

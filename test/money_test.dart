@@ -47,7 +47,7 @@ void main() {
       for (var i = 0; i < 3; i++) {
         total += Money.parseToCents('0,10')!;
       }
-      expect(total, 30); // exactly 0,30 € — never 0.30000000000000004
+      expect(total, 30); // exactly 0,30 €, never 0.30000000000000004
     });
   });
 

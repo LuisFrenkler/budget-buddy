@@ -105,7 +105,7 @@ class GoalsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => BuddyScreen.open(context, 'Wie lege ich ein Sparziel an?'),
-            icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
             label: const Text('Mit Buddy planen'),
           ),
         ],
@@ -788,7 +788,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: () => setState(() => _monthly.text = _suggested),
-              icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+              icon: const Icon(Icons.tips_and_updates_outlined, size: 16),
               label: Text('Buddy schlägt $_suggested € vor'),
             ),
           )

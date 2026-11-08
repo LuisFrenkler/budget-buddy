@@ -29,7 +29,6 @@ class AppColors {
   static Color get primaryText => _d ? const Color(0xFFA48BFF) : primaryDeep;
 
   // brand gradient for hero areas (onboarding, sign-in)
-  static const heroBrand = [Color(0xFFA48BFF), Color(0xFF7C5CFF), Color(0xFF5B3DF5)];
 
   // categorical colors for charts, brand first
   static const chart = [

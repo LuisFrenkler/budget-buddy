@@ -91,7 +91,7 @@ class WhatsApp {
 
   // Logs inbound texts. Echoes „Hilfe“ only for an opted-in number, at most
   // three times an hour. „Stop“ removes the opt-in. Status callbacks are ignored.
-  // shortcut: POST is not signed with the Meta app secret. A forged webhook
+  // TODO: POST is not signed with the Meta app secret. A forged webhook
   // can trigger the static Hilfe reply. Verify X-Hub-Signature-256 before
   // any template send or a wider rollout.
   Future<void> receive(Map<String, dynamic> body) async {
@@ -115,7 +115,7 @@ class WhatsApp {
   }
 
   // Template weekly_summary (de). No-ops without credentials or opt-in.
-  // shortcut: does not POST. Meta must approve the template first; the
+  // TODO: does not POST. Meta must approve the template first; the
   // caller passes the number because we only keep the hash.
   Future<bool> sendWeeklySummary({required String userId, required String phone}) async {
     if (!configured) return false;

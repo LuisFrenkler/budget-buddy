@@ -122,11 +122,7 @@ class _Details extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            gradient: sub.cancelled
-                ? null
-                : const LinearGradient(
-                    colors: AppColors.heroBrand, begin: Alignment.topLeft, end: Alignment.bottomRight),
-            color: sub.cancelled ? AppColors.surface : null,
+            color: sub.cancelled ? AppColors.surface : AppColors.primary,
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [

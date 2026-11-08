@@ -54,14 +54,15 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
     _outro,
   ];
 
-  static const _gradients = [
-    [Color(0xFF7C5CFF), Color(0xFF3B1FB8)],
-    [Color(0xFFF472B6), Color(0xFF7C5CFF)],
-    [Color(0xFF38BDF8), Color(0xFF5B3DF5)],
-    [Color(0xFFFFB020), Color(0xFFF472B6)],
-    [Color(0xFF2BD17E), Color(0xFF0E7490)],
-    [Color(0xFFFF5D73), Color(0xFF7C5CFF)],
-    [Color(0xFF7C5CFF), Color(0xFF16161E)],
+  // one calm, dark tone per page, white text stays readable on all
+  static const _tones = [
+    Color(0xFF3B1FB8),
+    Color(0xFF1E3A5F),
+    Color(0xFF0E5E6F),
+    Color(0xFF6B3A1E),
+    Color(0xFF1F5132),
+    Color(0xFF5A1E3A),
+    Color(0xFF16161E),
   ];
 
   @override
@@ -103,7 +104,6 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final colors = _gradients[_i % _gradients.length];
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -113,9 +113,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
         onLongPressEnd: (_) => _timer.forward(),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 500),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
-          ),
+          color: _tones[_i % _tones.length],
           child: SafeArea(
             child: Column(children: [
               Padding(

@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _navItem(Icons.home_rounded, 'Start', 0),
                     _navItem(Icons.account_balance_wallet_rounded, 'Konto', 1),
                     _navItem(Icons.show_chart_rounded, 'Depot', 2),
-                    _navItem(Icons.auto_awesome_rounded, 'Buddy', 3),
+                    _navItem(Icons.chat_bubble_rounded, 'Buddy', 3),
                   ],
                 ),
               ),
@@ -353,11 +353,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text('Neu', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
               ),
               _sectionLabel('Schnell'),
-              _addOption(sheet, Icons.auto_awesome_rounded, AppColors.primary, 'Schnell erfassen',
+              _addOption(sheet, Icons.edit_note_rounded, 'Schnell erfassen',
                   'Eintippen wie „Döner 8,50 gestern“', () => showSmartEntry(context)),
-              _addOption(sheet, Icons.document_scanner_rounded, const Color(0xFFF472B6), 'Beleg scannen',
+              _addOption(sheet, Icons.document_scanner_rounded, 'Beleg scannen',
                   'Foto vom Kassenbon genügt', () => showSmartEntry(context, scan: true)),
-              _addOption(sheet, Icons.receipt_long_rounded, AppColors.positive, 'Umsatz erfassen',
+              _addOption(sheet, Icons.receipt_long_rounded, 'Umsatz erfassen',
                   'Mit Ziffernblock', () async {
                 if (await TxRow.openEditor(context) && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -365,20 +365,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               }),
               if (MoneyAccounts.several)
-                _addOption(sheet, Icons.swap_horiz_rounded, AppColors.accentBlue, 'Geld verschieben',
+                _addOption(sheet, Icons.swap_horiz_rounded, 'Geld verschieben',
                     'Zwischen deinen Konten', () => showTransferSheet(context)),
               const SizedBox(height: 8),
               _sectionLabel('Einrichten'),
-              _addOption(sheet, Icons.account_balance_rounded, AppColors.primary, 'Konto hinzufügen',
+              _addOption(sheet, Icons.account_balance_rounded, 'Konto hinzufügen',
                   'Bank verbinden oder von Hand', () => showAddAccountChoice(context)),
-              _addOption(sheet, Icons.show_chart_rounded, AppColors.accentBlue, 'Depot hinzufügen',
+              _addOption(sheet, Icons.show_chart_rounded, 'Depot hinzufügen',
                   'Trade Republic & Co. oder Position von Hand',
                   () => showAddAccountChoice(context, depot: true, byHand: () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
                       })),
-              _addOption(sheet, Icons.savings_rounded, AppColors.warning, 'Budget anlegen',
+              _addOption(sheet, Icons.savings_rounded, 'Budget anlegen',
                   'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
-              _addOption(sheet, Icons.call_split_rounded, const Color(0xFF14B8A6), 'Ausgabe teilen',
+              _addOption(sheet, Icons.call_split_rounded, 'Ausgabe teilen',
                   'WG, Paar, Urlaub', () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()));
               }),
@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDim, letterSpacing: 0.4)),
       );
 
-  Widget _addOption(BuildContext sheet, IconData icon, Color color, String title, String subtitle, VoidCallback onTap) {
+  Widget _addOption(BuildContext sheet, IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Material(
@@ -415,10 +415,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.14),
+                  color: AppColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(icon, color: AppColors.text, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -470,16 +470,12 @@ class _AddFabState extends State<_AddFab> {
           height: 64,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: AppColors.heroBrand,
-            ),
+            color: AppColors.primary,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.4),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
             ],
           ),

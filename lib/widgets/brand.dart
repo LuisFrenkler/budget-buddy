@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 
 // The app mark, drawn like the app icon: a geometric "b" (stem and coin
-// ring) in white on the violet brand gradient.
+// ring) in white on the brand colour.
 class BrandMark extends StatelessWidget {
   final double size;
   const BrandMark({super.key, this.size = 56});
@@ -14,21 +14,14 @@ class BrandMark extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(size * 0.28),
-        gradient: const LinearGradient(
-          colors: AppColors.heroBrand,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(color: AppColors.primary.withValues(alpha: 0.35), blurRadius: size * 0.4, offset: Offset(0, size * 0.12)),
-        ],
+        color: AppColors.primary,
       ),
-      child: CustomPaint(painter: _MarkPainter()),
+      child: CustomPaint(painter: MarkPainter()),
     );
   }
 }
 
-class _MarkPainter extends CustomPainter {
+class MarkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // same geometry as assets/icon/icon.png, on a 1024 grid; the glyph's
