@@ -845,7 +845,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 6),
         Text(
-            'CSV-Import und manuelle Buchungen gehen weiter unter Profil → Import.',
+            'Von Hand erfassen und CSV-Import (Profil → Import, Export & Backup) gehen weiterhin.',
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         Align(
@@ -871,7 +871,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     final text = _checking
         ? 'Verbindung wird geprüft …'
         : !ok
-            ? 'Gerade nicht erreichbar · Tippen zum erneut Versuchen'
+            ? 'Gerade nicht erreichbar · Erneut versuchen'
             : _mode == 'demo' && _depotMode == 'demo'
                 ? 'Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten'
                 : _mode == 'demo' || _depotMode == 'demo'

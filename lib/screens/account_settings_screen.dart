@@ -132,11 +132,8 @@ class AccountSettingsScreen extends StatelessWidget {
         ]),
         const SizedBox(height: 16),
         Text(
-          'Zwei-Faktor schützt die Anmeldung: ohne den Code aus deiner Authenticator-App reicht das Passwort nicht. '
-          'Der Schlüssel dafür liegt auf dem Server, damit der Code geprüft werden kann. '
-          'Die App-Sperre bleibt auf diesem Gerät und versteckt nur die Anzeige. '
-          'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt. BudgetBuddy kann sie nicht lesen. '
-          'Das Passwort selbst speichern wir nur als Hash (bcrypt).',
+          'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, BudgetBuddy kann sie nicht lesen. '
+          'Die App-Sperre schützt nur die Anzeige auf diesem Gerät.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 12),
         ),

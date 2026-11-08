@@ -257,13 +257,13 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
           top: const Icon(Icons.savings_outlined, color: Colors.white, size: 56),
           kicker: 'Gespart hast du',
           big: '${r.savingsRate} %',
-          small: '${Money.format(r.saved)} sind übrig geblieben. ${r.savingsRate >= 20 ? 'Das ist richtig gut.' : 'Jeder Euro zählt.'}',
+          small: '${Money.format(r.saved)} sind übrig geblieben.',
         )
       : _card(
           top: const Icon(Icons.trending_down_rounded, color: Colors.white, size: 56),
           kicker: 'Dieser Monat war teuer',
           big: '−${Money.format(-r.saved)}',
-          small: 'Mehr ausgegeben als eingenommen. Buddy hilft dir, das im nächsten Monat zu drehen.',
+          small: 'Mehr ausgegeben als eingenommen.',
         );
 
   Widget _priciest() => _card(

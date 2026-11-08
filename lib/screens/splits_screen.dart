@@ -90,11 +90,7 @@ class SplitsScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Text('Lege eine Gruppe an. Freunde einladen geht danach.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textDim.withValues(alpha: 0.75), fontSize: 14, height: 1.35)),
-            const SizedBox(height: 8),
-            Text('Geteilte Gruppen sind gratis, kein Plus nötig.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.3)),
+                style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.35)),
             const SizedBox(height: 28),
             FilledButton.icon(
               style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
@@ -607,8 +603,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           title: Text(e.title, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(
               '${who(e.paidBy)} ${e.paidBy == g.me ? 'hast' : 'hat'} bezahlt · ${Dates.dayMonth(e.date)}'
-              '${e.shares.containsKey(g.me) ? ' · dein Anteil ${Money.format(e.shares[g.me]!)}' : ''}'
-              ' · tippen zum Bearbeiten',
+              '${e.shares.containsKey(g.me) ? ' · dein Anteil ${Money.format(e.shares[g.me]!)}' : ''}',
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
           trailing: Text(Money.format(e.cents), style: const TextStyle(fontWeight: FontWeight.w700)),
         ),
@@ -736,11 +731,11 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 ],
                 if (transfers.isNotEmpty) ...[
                   const SizedBox(height: 22),
-                  Text('Nächste Schritte zum Ausgleich',
+                  Text('So gleicht ihr aus',
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 4),
                   Text(
-                    'Das sind die kürzesten Überweisungen. Markiere sie, sobald Geld geflossen ist, beide Seiten können bestätigen.',
+                    'Markiere eine Zahlung, sobald das Geld geflossen ist.',
                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                   ),
                   const SizedBox(height: 10),
@@ -1326,7 +1321,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
         content: Text(widget.edit != null
             ? 'Ausgabe aktualisiert'
             : wasFirstLocal
-                ? 'Eingetragen · lade Freunde ein (Button „Jetzt einladen“)'
+                ? 'Eingetragen'
                 : others > 0
                     ? 'In $where · ${Money.format(others)} bekommst du zurück'
                     : 'In $where eingetragen')));

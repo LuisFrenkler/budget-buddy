@@ -63,13 +63,6 @@ class GoalsScreen extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
                   children: [
-                    if (!PlusService.active.value) ...[
-                      Text(
-                        '1 Sparziel gratis · Aufrunden & Monatsbetrag = Plus',
-                        style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                     Text('Schon zurückgelegt', style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(Money.format(saved),
@@ -199,14 +192,6 @@ class GoalCard extends StatelessWidget {
               label: const Text('Geld zurücklegen'),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            MoneyAccounts.several
-                ? 'Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Manuell geht auch.'
-                : 'Stand hier eintragen. Mit einem Sparkonto zählt der Bank-Transfer nach Sync automatisch.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35),
-          ),
           if (goal.automated) ...[
             const SizedBox(height: 8),
             _autoRow(context),
@@ -215,14 +200,8 @@ class GoalCard extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () => _openAutopilot(context),
-                child: Text('Autopilot (Plus)',
-                    style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                child: Text('Automatisch sparen', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               ),
-            ),
-            Text(
-              'Zählt in der App mit, überweist nichts',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textDim, fontSize: 11.5, height: 1.3),
             ),
           ],
         ],
@@ -311,6 +290,11 @@ class GoalCard extends StatelessWidget {
               decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
               onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
             ),
+            if (!MoneyAccounts.several && !take) ...[
+              const SizedBox(height: 10),
+              Text('Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.',
+                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
+            ],
             if (MoneyAccounts.several) ...[
               const SizedBox(height: 12),
               Text(
@@ -425,7 +409,7 @@ void celebrateGoal(BuildContext context, Goal goal) {
             const SizedBox(height: 16),
             const Text('Ziel erreicht', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
-            Text('${Money.format(goal.targetCents)} für ${goal.name}. Stark, dass du drangeblieben bist.',
+            Text('${Money.format(goal.targetCents)} für ${goal.name} sind zusammen.',
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
             FilledButton(
@@ -769,6 +753,10 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('${widget.goal.emoji} ${widget.goal.name} automatisch füllen',
             style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        // the user must not think money moves on its own
+        Text('Die App zählt mit, überwiesen wird nichts.',
+            style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
         const SizedBox(height: 16),
         Text('Jeden Monat', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),

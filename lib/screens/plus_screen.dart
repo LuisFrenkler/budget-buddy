@@ -55,8 +55,8 @@ class _PlusScreenState extends State<PlusScreen> {
   bool get _hasTrial => _trial == true;
 
   static const _features = [
-    (Icons.chat_bubble_outline_rounded, 'Buddy ohne Limit', 'Frag so oft du willst, mit KI'),
-    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Belege fotografieren und prüfen, ohne Gratis-Limit'),
+    (Icons.chat_bubble_outline_rounded, 'Buddy ohne Limit', 'Frag so oft du willst'),
+    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Fotografieren statt abtippen'),
     (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
     (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
   ];

@@ -166,12 +166,6 @@ class _Report extends StatelessWidget {
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
             label: const Text('Mit Buddy weiterreden'),
           ),
-          if (!plus)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text('Offline geht auch ohne Plus · Live-KI mit Gratis-Kontingent',
-                  style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3)),
-            ),
         ]),
       ),
       const SizedBox(height: 14),

@@ -60,8 +60,7 @@ class ContractsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                        'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger. '
-                        'Tippe auf einen Vertrag, um alle Zahlungen zu sehen.',
+                        'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                   ],
@@ -344,7 +343,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               label: Text('${c.name} kündigen'),
             )
           else ...[
-            const Text('Buddy hat deine Kündigung geschrieben',
+            const Text('Dein Kündigungsschreiben',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             TextField(
@@ -362,22 +361,8 @@ class _ContractSheetState extends State<_ContractSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('Tipp: Viele Anbieter haben auf ihrer Website einen Button „Verträge hier kündigen“. '
-                'Dort geht es oft am schnellsten, den Text kannst du dort einfügen.',
+            Text('Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.',
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Checkliste', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDim, fontSize: 12)),
-                const SizedBox(height: 8),
-                _cancelStep('1', 'Brief kopieren oder per E-Mail öffnen'),
-                _cancelStep('2', 'Beim Anbieter absenden (Website oder Mail)'),
-                _cancelStep('3', 'Hier „Habe ich abgeschickt“ tippen'),
-                _cancelStep('4', 'Buddy warnt dich, falls danach noch abgebucht wird'),
-              ]),
-            ),
             const SizedBox(height: 14),
             Row(children: [
               Expanded(
@@ -420,15 +405,4 @@ class _ContractSheetState extends State<_ContractSheet> {
       ),
     );
   }
-
-  Widget _cancelStep(String n, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(
-            width: 18,
-            child: Text(n, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.primaryText)),
-          ),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.3))),
-        ]),
-      );
 }
