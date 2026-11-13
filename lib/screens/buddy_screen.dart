@@ -24,6 +24,7 @@ import 'goals_screen.dart';
 import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
+import '../l10n/l10n.dart';
 
 // Chat with Buddy, the finance coach that knows your numbers.
 class BuddyScreen extends StatefulWidget {
@@ -66,15 +67,10 @@ class BuddyScreen extends StatefulWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
-            const Text('Buddy mit KI nutzen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Text(
-              'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
-              '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
-              'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
-              '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
-              'Keine Kontonummern, keine Zugangsdaten. '
-              '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
+              tr('Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von {x}. Keine Kontonummern, keine Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             Align(
@@ -83,20 +79,20 @@ class BuddyScreen extends StatefulWidget {
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
                 onPressed: () => Navigator.push(
                     context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy))),
-                child: const Text('Datenschutzerklärung lesen'),
+                child: Text(tr('Datenschutzerklärung lesen')),
               ),
             ),
             const SizedBox(height: 8),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('KI einschalten'),
+              child: Text(tr('KI einschalten')),
             ),
             const SizedBox(height: 6),
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text('Nur offline antworten', style: TextStyle(color: AppColors.textDim)),
+                child: Text(tr('Nur offline antworten'), style: TextStyle(color: AppColors.textDim)),
               ),
             ),
           ]),
@@ -212,8 +208,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         _photo = null;
         _messages.add(_Message(true, text, image: photo.bytes));
         _messages.add(_Message(false, AccountService.current.value == null
-            ? 'Fotos lesen kann ich mit einem kostenlosen Konto.'
-            : 'Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.')..error = true);
+            ? tr('Fotos lesen kann ich mit einem kostenlosen Konto.')
+            : tr('Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.'))..error = true);
       });
       return true;
     }
@@ -243,10 +239,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
         PlusService.count(photo != null ? PlusFeature.receiptScan : PlusFeature.aiQuestion);
         answer.text = r.reply.isNotEmpty
             ? r.reply
-            : (r.entries.isEmpty ? 'Auf dem Bild habe ich nichts zum Buchen gefunden.' : 'Das habe ich erkannt:');
+            : (r.entries.isEmpty ? tr('Auf dem Bild habe ich nichts zum Buchen gefunden.') : tr('Das habe ich erkannt:'));
         answer.entries = r.entries;
       } else {
-        answer.text = 'So würde ich das buchen:';
+        answer.text = tr('So würde ich das buchen:');
         answer.entries = [offline!];
       }
     } catch (e) {
@@ -254,7 +250,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       final fallback = '$e'.contains('ausgelastet') ? BuddyEntries.offline(text) : null;
       if (fallback != null) {
         answer
-          ..text = 'Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:'
+          ..text = tr('Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:')
           ..offline = true
           ..entries = [fallback];
       } else {
@@ -273,7 +269,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (e.type == 'goal' &&
         !PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
       await showPlus(context,
-          reason: 'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.');
+          reason: tr('Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.'));
       if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) return;
     }
     HapticFeedback.mediumImpact();
@@ -283,39 +279,39 @@ class _BuddyScreenState extends State<BuddyScreen> {
       setState(() => m.applied[i] = done);
       if (e.type == 'recategorize' || e.type == 'recategorize_all') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('$done. Buddy merkt sich die Regel für künftige Buchungen.'),
+          content: Text(tr('{done}. Buddy merkt sich die Regel für künftige Buchungen.', {'done': done})),
           behavior: SnackBarBehavior.floating,
         ));
       } else if (e.type == 'vorsorge' && done == 'Gespeichert') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Rentenrechner gespeichert'),
+          content: Text(tr('Rentenrechner gespeichert')),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Öffnen',
+            label: tr('Öffnen'),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
           ),
         ));
       } else if (e.type == 'goal' && done == 'Angelegt') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Sparziel angelegt'),
+          content: Text(tr('Sparziel angelegt')),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Öffnen',
+            label: tr('Öffnen'),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
           ),
         ));
       } else if (e.type == 'holding' && done == 'Im Depot') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Im Depot'),
+          content: Text(tr('Im Depot')),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Öffnen',
+            label: tr('Öffnen'),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DepotScreen())),
           ),
         ));
       }
     } catch (err) {
-      if (mounted) setState(() => m.applied[i] = 'Ging nicht. ${friendlyError(err)}');
+      if (mounted) setState(() => m.applied[i] = tr('Ging nicht. {x}', {'x': friendlyError(err)}));
     }
   }
 
@@ -336,7 +332,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         if (!mounted) return;
         turn = _wizard.quoted(instrument: q.instrument, cents: q.cents, live: q.live, options: q.options);
       }
-      answer.text = turn.text.isEmpty ? 'Das habe ich nicht verstanden.' : turn.text;
+      answer.text = turn.text.isEmpty ? tr('Das habe ich nicht verstanden.') : turn.text;
       if (turn.proposal != null) answer.entries = [turn.proposal!];
     } catch (e) {
       _wizard.reset();
@@ -395,7 +391,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (live && _photo != null && !PlusService.allowed(PlusFeature.receiptScan)) {
       if (!mounted) return;
       await showPlus(context,
-          reason: 'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.');
+          reason: tr('Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.'));
       if (!PlusService.active.value) return;
     }
     // AI answers cost money: the free tier has a few per month
@@ -404,8 +400,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       await showPlus(
           context,
           reason:
-              'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. '
-              'Ohne Plus antwortet Buddy weiter offline aus deinen Daten.');
+              tr('Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.'));
       // declined Plus → still answer offline (like consent decline)
       if (!PlusService.active.value) live = false;
     }
@@ -413,7 +408,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     // last free question: soft note, never blocks send
     if (live && _photo == null && PlusService.left(PlusFeature.aiQuestion) == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Noch 1 Gratis-Frage diesen Monat'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(tr('Noch 1 Gratis-Frage diesen Monat')), behavior: SnackBarBehavior.floating),
       );
     }
     if (await _entries(question, live)) return;
@@ -458,7 +453,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               if (!mounted) return;
               setState(() {
                 answer.text = friendlyError(e,
-                    fallback: 'Offline-Antwort fehlgeschlagen. Versuch es gleich noch einmal.');
+                    fallback: tr('Offline-Antwort fehlgeschlagen. Versuch es gleich noch einmal.'));
                 answer.error = true;
                 _thinking = false;
               });
@@ -480,7 +475,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         HapticFeedback.heavyImpact();
         setState(() {
           answer.text = friendlyError(e,
-              fallback: 'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.');
+              fallback: tr('Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'));
           answer.error = true;
           _thinking = false;
         });
@@ -519,7 +514,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           BuddyOrb(size: 30, active: _thinking),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Buddy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(tr('Buddy'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             // tippen schaltet die KI um, wenn der Server sie anbietet
             InkWell(
               onTap: _live == true ? _toggleAi : null,
@@ -554,7 +549,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: IconButton(
-                tooltip: _aiOn ? 'KI ausschalten' : 'KI einschalten',
+                tooltip: _aiOn ? tr('KI ausschalten') : tr('KI einschalten'),
                 onPressed: _toggleAi,
                 icon: Icon(
                   _aiOn ? Icons.cloud_rounded : Icons.cloud_off_outlined,
@@ -574,15 +569,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   String get _statusLabel {
     if (_live == null) return 'verbindet …';
-    if (_live != true) return 'Offline-Modus';
-    return _aiOn ? 'KI an' : 'KI aus · tippen zum Einschalten';
+    if (_live != true) return tr('Offline-Modus');
+    return _aiOn ? tr('KI an') : tr('KI aus · tippen zum Einschalten');
   }
 
   String get _quotaLine {
     final left = PlusService.left(PlusFeature.aiQuestion);
-    if (left == 0) return 'Gratis-KI-Fragen aufgebraucht · Offline-Antworten gehen weiter';
-    if (left == 1) return 'Noch 1 Gratis-KI-Frage diesen Monat';
-    return 'Noch $left von ${PlusService.freeAiQuestions} Gratis-KI-Fragen diesen Monat';
+    if (left == 0) return tr('Gratis-KI-Fragen aufgebraucht · Offline-Antworten gehen weiter');
+    if (left == 1) return tr('Noch 1 Gratis-KI-Frage diesen Monat');
+    return tr('Noch {left} von {x} Gratis-KI-Fragen diesen Monat', {'left': left, 'x': PlusService.freeAiQuestions});
   }
 
   Widget _welcome() {
@@ -592,14 +587,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
       children: [
         const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 56)),
         const SizedBox(height: 32),
-        Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
+        Text(name != null ? tr('Hallo {name}, ich bin Buddy.', {'name': name}) : tr('Hallo, ich bin Buddy.'),
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
         const SizedBox(height: 8),
         Text(
           AccountService.current.value == null
-              ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
-              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. '
-                  'Ich nutze deine Ausgaben, Budgets und Verträge.',
+              ? tr('Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.')
+              : tr('Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. Ich nutze deine Ausgaben, Budgets und Verträge.'),
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
         const SizedBox(height: 24),
@@ -645,13 +639,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'KI ist aus. Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.',
+              tr('KI ist aus. Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
             ),
           ),
           TextButton(
             onPressed: _toggleAi,
-            child: const Text('Einschalten'),
+            child: Text(tr('Einschalten')),
           ),
         ]),
       ),
@@ -667,7 +661,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.',
+            tr('Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
         ),
@@ -684,8 +678,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            'Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. '
-            'Offline-Antworten ohne Limit auch ohne Konto.',
+            tr('Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. Offline-Antworten ohne Limit auch ohne Konto.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
         ),
@@ -759,8 +752,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 padding: const EdgeInsets.only(top: 6, left: 4),
                 child: Text(
                     m.degraded
-                        ? 'KI gerade ausgelastet. Antwort offline aus deinen Daten'
-                        : 'Ohne KI berechnet aus deinen Daten',
+                        ? tr('KI gerade ausgelastet. Antwort offline aus deinen Daten')
+                        : tr('Ohne KI berechnet aus deinen Daten'),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
             for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
@@ -812,7 +805,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ? FilledButton(
                 style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
                 onPressed: () => _apply(m, i),
-                child: const Text('Übernehmen'),
+                child: Text(tr('Übernehmen')),
               )
             : Text('✓ $done', style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w600)),
       ]),
@@ -839,7 +832,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     right: 0,
                     top: 0,
                     child: IconButton(
-                      tooltip: 'Foto entfernen',
+                      tooltip: tr('Foto entfernen'),
                       visualDensity: VisualDensity.compact,
                       style: IconButton.styleFrom(backgroundColor: Colors.black54),
                       onPressed: () => setState(() => _photo = null),
@@ -851,7 +844,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
           Row(children: [
             IconButton(
-              tooltip: 'Foto senden',
+              tooltip: tr('Foto senden'),
               onPressed: _thinking ? null : _pickPhoto,
               icon: Icon(Icons.add_photo_alternate_rounded, color: AppColors.primaryText),
             ),
@@ -864,7 +857,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 onSubmitted: _send,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Frag Buddy oder erzähl, was passiert ist …',
+                  hintText: tr('Frag Buddy oder erzähl, was passiert ist …'),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
@@ -880,7 +873,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               opacity: (_input.text.trim().isEmpty && _photo == null) || _thinking ? 0.4 : 1,
               child: Semantics(
                 button: true,
-                label: 'Senden',
+                label: tr('Senden'),
                 enabled: (_input.text.trim().isNotEmpty || _photo != null) && !_thinking,
                 child: GestureDetector(
                 onTap: () => _send(_input.text),
@@ -900,13 +893,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
           if (PlusService.syncError.value != null)
             GestureDetector(
               onTap: () => PlusService.syncWithServer(fresh: true),
-              child: Text('${PlusService.syncError.value} Erneut versuchen',
+              child: Text(tr('{syncError} Erneut versuchen', {'syncError': PlusService.syncError.value}),
                   style: TextStyle(fontSize: 11, color: AppColors.textDim, decoration: TextDecoration.underline)),
             )
           else if (_live == true && !PlusService.active.value)
             Text(_quotaLine,
                 style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-          Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
+          Text(tr('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.'),
               style: TextStyle(fontSize: 11, color: AppColors.textDim)),
         ]),
       ),
@@ -1078,7 +1071,7 @@ class _BuddyCardState extends State<BuddyCard> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(tip != null ? 'Buddy hat einen Tipp' : 'Frag Buddy',
+                    Text(tip != null ? tr('Buddy hat einen Tipp') : tr('Frag Buddy'),
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
                     const SizedBox(height: 3),
                     if (tip != null)

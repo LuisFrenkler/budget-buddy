@@ -18,6 +18,7 @@ import '../widgets/buddy_orb.dart';
 import '../widgets/confetti.dart';
 import 'plus_screen.dart';
 import 'buddy_screen.dart';
+import '../l10n/l10n.dart';
 
 // usual monthly surplus, the base of every plan
 int _surplus() {
@@ -29,7 +30,7 @@ int _surplus() {
 Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
     return showPlus(context,
-        reason: 'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.');
+        reason: tr('Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.'));
   }
   await showModalBottomSheet(
     context: context,
@@ -52,18 +53,18 @@ class GoalsScreen extends StatelessWidget {
         final goals = GoalsService.all();
         final saved = goals.fold<int>(0, (s, g) => s + g.savedCents);
         return Scaffold(
-          appBar: AppBar(title: const Text('Sparziele')),
+          appBar: AppBar(title: Text(tr('Sparziele'))),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => addGoal(context),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Neues Ziel', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(tr('Neues Ziel'), style: TextStyle(fontWeight: FontWeight.w700)),
           ),
           body: goals.isEmpty
               ? _empty(context)
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
                   children: [
-                    Text('Schon zurückgelegt', style: TextStyle(color: AppColors.textDim, fontSize: 14)),
+                    Text(tr('Schon zurückgelegt'), style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(Money.format(saved),
                         style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w700, letterSpacing: -1.5)),
@@ -81,11 +82,10 @@ class GoalsScreen extends StatelessWidget {
         children: [
           Icon(Icons.flag_rounded, size: 52, color: AppColors.primaryText),
           const SizedBox(height: 20),
-          const Text('Worauf sparst du?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Worauf sparst du?'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
-            'Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. '
-            'Ohne Sparkonto trägst du den Stand manuell ein.',
+            tr('Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Ohne Sparkonto trägst du den Stand manuell ein.'),
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
           ),
           const SizedBox(height: 24),
@@ -93,13 +93,13 @@ class GoalsScreen extends StatelessWidget {
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
             onPressed: () => addGoal(context),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Erstes Ziel anlegen', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(tr('Erstes Ziel anlegen'), style: TextStyle(fontWeight: FontWeight.w700)),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => BuddyScreen.open(context, 'Wie lege ich ein Sparziel an?'),
+            onPressed: () => BuddyScreen.open(context, tr('Wie lege ich ein Sparziel an?')),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: const Text('Mit Buddy planen'),
+            label: Text(tr('Mit Buddy planen')),
           ),
         ],
       );
@@ -127,7 +127,7 @@ class GoalCard extends StatelessWidget {
               Text('${Money.format(goal.savedCents)} von ${Money.format(goal.targetCents)}',
                   style: TextStyle(color: AppColors.textDim, fontSize: 14)),
               if (GoalMove.potOf(goal) case final pot?)
-                Text('liegt auf ${pot.name}', style: TextStyle(color: AppColors.textDim, fontSize: 12.5))
+                Text(tr('liegt auf {name}', {'name': pot.name}), style: TextStyle(color: AppColors.textDim, fontSize: 12.5))
               else if (goal.deadline != null)
                 Text('bis ${Dates.full(goal.deadline!)}', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               if (goal.deadline != null && GoalMove.potOf(goal) != null)
@@ -135,7 +135,7 @@ class GoalCard extends StatelessWidget {
             ]),
           ),
           PopupMenuButton<String>(
-            tooltip: 'Mehr',
+            tooltip: tr('Mehr'),
             icon: Icon(Icons.more_horiz_rounded, color: AppColors.textDim),
             color: AppColors.surfaceAlt,
             onSelected: (choice) async {
@@ -154,16 +154,16 @@ class GoalCard extends StatelessWidget {
                   await GoalsService.delete(goal.id);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5),
-                      content: Text('${goal.name} gelöscht'),
-                      action: SnackBarAction(label: 'Rückgängig', onPressed: () => GoalsService.save(goal)),
+                      content: Text(tr('{name} gelöscht', {'name': goal.name})),
+                      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => GoalsService.save(goal)),
                     ));
                   }
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(value: 'edit', child: Text('Ziel bearbeiten')),
-              if (goal.savedCents > 0) const PopupMenuItem(value: 'take', child: Text('Geld entnehmen')),
-              const PopupMenuItem(value: 'delete', child: Text('Ziel löschen')),
+              PopupMenuItem(value: 'edit', child: Text(tr('Ziel bearbeiten'))),
+              if (goal.savedCents > 0) PopupMenuItem(value: 'take', child: Text(tr('Geld entnehmen'))),
+              PopupMenuItem(value: 'delete', child: Text(tr('Ziel löschen'))),
             ],
           ),
         ]),
@@ -189,7 +189,7 @@ class GoalCard extends StatelessWidget {
                   backgroundColor: AppColors.primary.withValues(alpha: 0.16), foregroundColor: AppColors.primary),
               onPressed: () => _deposit(context, goal),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Geld zurücklegen'),
+              label: Text(tr('Geld zurücklegen')),
             ),
           ),
           if (goal.automated) ...[
@@ -200,7 +200,7 @@ class GoalCard extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () => _openAutopilot(context),
-                child: Text('Automatisch sparen', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                child: Text(tr('Automatisch sparen'), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               ),
             ),
           ],
@@ -211,7 +211,7 @@ class GoalCard extends StatelessWidget {
 
   Future<void> _openAutopilot(BuildContext context) async {
     if (!PlusService.active.value) {
-      await showPlus(context, reason: 'Autopilot: Aufrunden & Monatsbeträge, zählt in der App mit');
+      await showPlus(context, reason: tr('Autopilot: Aufrunden & Monatsbeträge, zählt in der App mit'));
       if (!PlusService.active.value || !context.mounted) return;
     }
     await showModalBottomSheet(
@@ -226,8 +226,8 @@ class GoalCard extends StatelessWidget {
   // "Automatisch sparen": only when already on, tap to change
   Widget _autoRow(BuildContext context) {
     final parts = [
-      if (goal.monthlyCents > 0) '${Money.format(goal.monthlyCents)} im Monat',
-      if (goal.roundUp) 'Aufrunden',
+      if (goal.monthlyCents > 0) tr('{x} im Monat', {'x': Money.format(goal.monthlyCents)}),
+      if (goal.roundUp) tr('Aufrunden'),
     ];
     final plus = PlusService.active.value;
     final paused = !plus;
@@ -245,8 +245,8 @@ class GoalCard extends StatelessWidget {
             Expanded(
               child: Text(
                 paused
-                    ? 'Autopilot pausiert (Plus)'
-                    : 'Automatisch: ${parts.join(' · ')}',
+                    ? tr('Autopilot pausiert (Plus)')
+                    : tr('Automatisch: {x}', {'x': parts.join(' · ')}),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13.5,
@@ -269,44 +269,44 @@ class GoalCard extends StatelessWidget {
     var to = pot ?? MoneyAccounts.main;
     final rate = goal.monthlyCents > 0 ? goal.monthlyCents : goal.monthlyNeeded(DateTime.now());
     final quick = take
-        ? <(String, int)>[('Alles ${Money.format(goal.savedCents)}', goal.savedCents)]
+        ? <(String, int)>[(tr('Alles {x}', {'x': Money.format(goal.savedCents)}), goal.savedCents)]
         : <(String, int)>[
-            if (rate != null && rate > 0 && rate < goal.remainingCents) ('Monatsrate ${Money.format(rate)}', rate),
+            if (rate != null && rate > 0 && rate < goal.remainingCents) (tr('Monatsrate {x}', {'x': Money.format(rate)}), rate),
             for (final c in [5000, 10000])
               if (c < goal.remainingCents) (Money.format(c), c),
-            ('Rest ${Money.format(goal.remainingCents)}', goal.remainingCents),
+            (tr('Rest {x}', {'x': Money.format(goal.remainingCents)}), goal.remainingCents),
           ];
     final cents = await showDialog<int>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setLocal) => AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text(take ? 'Aus ${goal.name} entnehmen' : 'Für ${goal.name} zurücklegen'),
+          title: Text(take ? tr('Aus {name} entnehmen', {'name': goal.name}) : tr('Für {name} zurücklegen', {'name': goal.name})),
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             TextField(
               controller: controller,
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: 'Betrag', suffixText: '€'),
+              decoration: InputDecoration(hintText: tr('Betrag'), suffixText: '€'),
               onSubmitted: (v) => Navigator.pop(context, Money.parseToCents(v)),
             ),
             if (!MoneyAccounts.several && !take) ...[
               const SizedBox(height: 10),
-              Text('Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.',
+              Text(tr('Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
             ],
             if (MoneyAccounts.several) ...[
               const SizedBox(height: 12),
               Text(
                 take
-                    ? 'Von ${to.name} zurück auf ${from.name}'
-                    : 'Von ${from.name} auf ${to.name}',
+                    ? tr('Von {name} zurück auf {name2}', {'name': to.name, 'name2': from.name})
+                    : tr('Von {name} auf {name2}', {'name': from.name, 'name2': to.name}),
                 style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: take ? from.id : to.id,
-                decoration: InputDecoration(labelText: take ? 'Zurück auf' : 'Sparkonto'),
+                decoration: InputDecoration(labelText: take ? tr('Zurück auf') : tr('Sparkonto')),
                 items: [
                   for (final a in MoneyAccounts.all)
                     if (a.id != (take ? to.id : from.id))
@@ -327,13 +327,13 @@ class GoalCard extends StatelessWidget {
               ),
             ] else
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: EdgeInsets.only(top: 10),
                 child: Text(
-                  'Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.',
+                  tr('Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                 ),
               ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final (label, c) in quick)
                 ActionChip(
@@ -344,10 +344,10 @@ class GoalCard extends StatelessWidget {
             ]),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Abbrechen'))),
             TextButton(
                 onPressed: () => Navigator.pop(context, Money.parseToCents(controller.text)),
-                child: Text(take ? 'Entnehmen' : 'Geld zurücklegen')),
+                child: Text(take ? tr('Entnehmen') : tr('Geld zurücklegen'))),
           ],
         ),
       ),
@@ -367,17 +367,17 @@ class GoalCard extends StatelessWidget {
     if (!context.mounted) return;
     final msg = take
         ? (result.booked
-            ? '${Money.raw(result.moved)} von ${result.potName ?? 'Sparkonto'} zurück'
+            ? tr('{x} von {x2} zurück', {'x': Money.raw(result.moved), 'x2': result.potName ?? tr('Sparkonto')})
             : '${Money.raw(result.moved)} aus ${goal.name} entnommen')
         : (result.booked
-            ? '${Money.raw(result.moved)} auf ${result.potName ?? 'Sparkonto'} · Ziel aktualisiert'
-            : '${Money.raw(result.moved)} für ${goal.name} gezählt');
+            ? tr('{x} auf {x2} · Ziel aktualisiert', {'x': Money.raw(result.moved), 'x2': result.potName ?? tr('Sparkonto')})
+            : tr('{x} für {name} gezählt', {'x': Money.raw(result.moved), 'name': goal.name}));
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      duration: const Duration(seconds: 5),
+      duration: Duration(seconds: 5),
       content: Text(msg),
       action: SnackBarAction(
-        label: 'Rückgängig',
+        label: tr('Rückgängig'),
         onPressed: () => GoalMove.undo(goal, before, result.txIds),
       ),
     ));
@@ -392,30 +392,30 @@ void celebrateGoal(BuildContext context, Goal goal) {
     showDialog(
       context: context,
       builder: (context) => Stack(children: [
-        const Positioned.fill(child: ConfettiBurst()),
+        Positioned.fill(child: ConfettiBurst()),
         Center(child: Dialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: EdgeInsets.all(28),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.4, end: 1),
-              duration: const Duration(milliseconds: 700),
+              duration: Duration(milliseconds: 700),
               curve: Curves.elasticOut,
               builder: (_, v, child) => Transform.scale(scale: v, child: child),
-              child: Text(goal.emoji, style: const TextStyle(fontSize: 72)),
+              child: Text(goal.emoji, style: TextStyle(fontSize: 72)),
             ),
-            const SizedBox(height: 16),
-            const Text('Ziel erreicht', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text('${Money.format(goal.targetCents)} für ${goal.name} sind zusammen.',
+            SizedBox(height: 16),
+            Text(tr('Ziel erreicht'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            SizedBox(height: 8),
+            Text(tr('{x} für {name} sind zusammen.', {'x': Money.format(goal.targetCents), 'name': goal.name}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             FilledButton(
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              style: FilledButton.styleFrom(minimumSize: Size.fromHeight(50)),
               onPressed: () => Navigator.pop(context),
-              child: const Text('Feiern'),
+              child: Text(tr('Feiern')),
             ),
           ]),
         ),
@@ -428,14 +428,14 @@ void celebrateGoal(BuildContext context, Goal goal) {
 class GoalRing extends StatelessWidget {
   final Goal goal;
   final double size;
-  const GoalRing(this.goal, {super.key, this.size = 56});
+  GoalRing(this.goal, {super.key, this.size = 56});
 
   @override
   Widget build(BuildContext context) {
     final color = goal.reached ? AppColors.positive : AppColors.primary;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: goal.progress),
-      duration: const Duration(milliseconds: 900),
+      duration: Duration(milliseconds: 900),
       curve: Curves.easeOutCubic,
       builder: (_, p, __) => SizedBox(
         width: size,
@@ -476,7 +476,7 @@ class _NewGoal extends StatefulWidget {
   final String? name;
   final int? cents;
   final Goal? editing;
-  const _NewGoal({this.name, this.cents, this.editing});
+  _NewGoal({this.name, this.cents, this.editing});
 
   @override
   State<_NewGoal> createState() => _NewGoalState();
@@ -505,13 +505,13 @@ class _NewGoalState extends State<_NewGoal> {
   static String _euros(int cents) =>
       (cents / 100).toStringAsFixed(2).replaceAll('.', ',').replaceAll(RegExp(r',00$'), '');
 
-  static const _ideas = [
-    ('🏖️', 'Urlaub', '1200'),
-    ('🛟', 'Notgroschen', '3000'),
-    ('📱', 'Neues Handy', '900'),
-    ('🚗', 'Auto', '8000'),
-    ('🎓', 'Weiterbildung', '1500'),
-    ('🎁', 'Geschenke', '400'),
+  static List<(String, String, String)> get _ideas => [
+    ('🏖️', tr('Urlaub'), '1200'),
+    ('🛟', tr('Notgroschen'), '3000'),
+    ('📱', tr('Neues Handy'), '900'),
+    ('🚗', tr('Auto'), '8000'),
+    ('🎓', tr('Weiterbildung'), '1500'),
+    ('🎁', tr('Geschenke'), '400'),
   ];
 
   int? get _cents => Money.parseToCents(_amount.text);
@@ -563,7 +563,7 @@ class _NewGoalState extends State<_NewGoal> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(widget.editing == null ? 'Neues Sparziel' : 'Ziel bearbeiten',
+        Text(widget.editing == null ? tr('Neues Sparziel') : tr('Ziel bearbeiten'),
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
         if (widget.editing == null)
@@ -587,7 +587,7 @@ class _NewGoalState extends State<_NewGoal> {
             child: TextField(
               controller: _name,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(labelText: 'Wofür?'),
+              decoration: InputDecoration(labelText: tr('Wofür?')),
             ),
           ),
           const SizedBox(width: 10),
@@ -597,7 +597,7 @@ class _NewGoalState extends State<_NewGoal> {
               controller: _amount,
               onChanged: (_) => setState(() {}),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Betrag', suffixText: '€'),
+              decoration: InputDecoration(labelText: tr('Betrag'), suffixText: '€'),
             ),
           ),
         ]),
@@ -616,18 +616,18 @@ class _NewGoalState extends State<_NewGoal> {
             if (d != null) setState(() => _deadline = d);
           },
           icon: const Icon(Icons.event_rounded, size: 18),
-          label: Text(_deadline == null ? 'Bis wann? (optional)' : 'bis ${Dates.full(_deadline!)}'),
+          label: Text(_deadline == null ? tr('Bis wann? (optional)') : 'bis ${Dates.full(_deadline!)}'),
         ),
         if (_deadline != null)
           TextButton(
             onPressed: () => setState(() => _deadline = null),
-            child: Text('Ohne Datum', style: TextStyle(color: AppColors.textDim)),
+            child: Text(tr('Ohne Datum'), style: TextStyle(color: AppColors.textDim)),
           ),
         if (MoneyAccounts.several) ...[
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: _potId != null && MoneyAccounts.byId(_potId) != null ? _potId : MoneyAccounts.others.first.id,
-            decoration: const InputDecoration(labelText: 'Geld landet auf'),
+            decoration: InputDecoration(labelText: tr('Geld landet auf')),
             items: [
               for (final a in MoneyAccounts.all)
                 DropdownMenuItem(value: a.id, child: Text(a.name)),
@@ -651,8 +651,8 @@ class _NewGoalState extends State<_NewGoal> {
           const SizedBox(height: 8),
           Text(
               _name.text.trim().isEmpty
-                  ? 'Gib dem Ziel einen Namen oder wähle eine Idee oben.'
-                  : 'Trag ein, wie viel du ansparen willst.',
+                  ? tr('Gib dem Ziel einen Namen oder wähle eine Idee oben.')
+                  : tr('Trag ein, wie viel du ansparen willst.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
         ],
         const SizedBox(height: 16),
@@ -663,7 +663,7 @@ class _NewGoalState extends State<_NewGoal> {
             disabledForegroundColor: AppColors.textDim,
           ),
           onPressed: (cents ?? 0) > 0 && _name.text.trim().isNotEmpty ? _save : null,
-          child: Text(widget.editing == null ? 'Ziel anlegen' : 'Speichern',
+          child: Text(widget.editing == null ? tr('Ziel anlegen') : tr('Speichern'),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
@@ -742,8 +742,8 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
         content: Text(g.automated
-            ? '${g.name} spart jetzt automatisch${added > 0 ? ' · ${Money.format(added)} schon dazu' : ''}'
-            : 'Automatisches Sparen aus')));
+            ? tr('{name} spart jetzt automatisch{x}', {'name': g.name, 'x': added > 0 ? tr(' · {x} schon dazu', {'x': Money.format(added)}) : ''})
+            : tr('Automatisches Sparen aus'))));
   }
 
   @override
@@ -751,14 +751,14 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('${widget.goal.emoji} ${widget.goal.name} automatisch füllen',
+        Text(tr('{emoji} {name} automatisch füllen', {'emoji': widget.goal.emoji, 'name': widget.goal.name}),
             style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
         // the user must not think money moves on its own
-        Text('Die App zählt mit, überwiesen wird nichts.',
+        Text(tr('Die App zählt mit, überwiesen wird nichts.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
         const SizedBox(height: 16),
-        Text('Jeden Monat', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(tr('Jeden Monat'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         TextField(
           controller: _monthly,
@@ -767,7 +767,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             hintText: _suggested.isEmpty ? '0' : _suggested,
-            suffixText: '€ am Monatsanfang',
+            suffixText: tr('€ am Monatsanfang'),
             suffixStyle: TextStyle(fontSize: 14, color: AppColors.textDim, fontWeight: FontWeight.w600),
           ),
         ),
@@ -777,14 +777,14 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             child: TextButton.icon(
               onPressed: () => setState(() => _monthly.text = _suggested),
               icon: const Icon(Icons.tips_and_updates_outlined, size: 16),
-              label: Text('Buddy schlägt $_suggested € vor'),
+              label: Text(tr('Buddy schlägt {suggested} € vor', {'suggested': _suggested})),
             ),
           )
         else if ((Money.parseToCents(_monthly.text) ?? 0) > 0 &&
             Money.parseToCents(_monthly.text) != widget.goal.monthlyCents)
           Padding(
             padding: const EdgeInsets.only(top: 8, left: 4),
-            child: Text('Zählt ab dem ${Dates.full(_nextMonth)}.',
+            child: Text(tr('Zählt ab dem {x}.', {'x': Dates.full(_nextMonth)}),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
           ),
         const SizedBox(height: 14),
@@ -793,10 +793,9 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           child: SwitchListTile(
             value: _roundUp,
             onChanged: (v) => setState(() => _roundUp = v),
-            title: const Text('Ausgaben aufrunden', style: TextStyle(fontWeight: FontWeight.w700)),
+            title: Text(tr('Ausgaben aufrunden'), style: TextStyle(fontWeight: FontWeight.w700)),
             subtitle: Text(
-                'Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.${_estimate > 0 ? ' Bei dir wären das etwa ${Money.format(_estimate)} im Monat.' : ''}'
-                '${!widget.goal.roundUp && _otherRounding != null ? ' Rundet bisher für „${_otherRounding!.name}“, das hört dann auf.' : ''}',
+                tr('Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.{x}{x2}', {'x': _estimate > 0 ? tr(' Bei dir wären das etwa {x} im Monat.', {'x': Money.format(_estimate)}) : '', 'x2': !widget.goal.roundUp && _otherRounding != null ? tr(' Rundet bisher für „{name}“, das hört dann auf.', {'name': _otherRounding!.name}) : ''}),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
           ),
         ),
@@ -806,8 +805,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-                'BudgetBuddy zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen '
-                'Dauerauftrag auf dein Sparkonto ein.',
+                tr('BudgetBuddy zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
           ),
         ]),
@@ -815,7 +813,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _save,
-          child: const Text('Speichern', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          child: Text(tr('Speichern'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );

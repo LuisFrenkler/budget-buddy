@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'l10n/l10n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,6 +47,7 @@ void main() async {
   // apply the saved theme mode
   ThemeController.isDark.value = Settings.darkMode;
   Settings.loadHideAmounts();
+  L10n.load();
   // guest mode removed, clear any leftover flag from older installs
   await Settings.setGuest(false);
   PlusService.load();
@@ -91,18 +93,18 @@ void main() async {
   NotificationService.sync();
 
   // start the app
-  runApp(const BudgetBuddyApp());
+  runApp(BudgetBuddyApp());
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void _openFromNotification(String payload) {
   final Widget? page = switch (payload) {
-    'weekly' => const WeeklyReportScreen(),
-    'contracts' || 'hint:contracts' => const ContractsScreen(),
-    'subscription' || 'hint:subscription' => const SubscriptionScreen(),
-    'connections' || 'hint:connections' => const ConnectionsScreen(),
-    'goals' || 'hint:goals' => const GoalsScreen(),
+    'weekly' => WeeklyReportScreen(),
+    'contracts' || 'hint:contracts' => ContractsScreen(),
+    'subscription' || 'hint:subscription' => SubscriptionScreen(),
+    'connections' || 'hint:connections' => ConnectionsScreen(),
+    'goals' || 'hint:goals' => GoalsScreen(),
     _ => null, // budgets and bookings: the start screen is the right place
   };
   if (page != null)
@@ -110,7 +112,7 @@ void _openFromNotification(String payload) {
 }
 
 class BudgetBuddyApp extends StatefulWidget {
-  const BudgetBuddyApp({super.key});
+  BudgetBuddyApp({super.key});
 
   @override
   State<BudgetBuddyApp> createState() => _BudgetBuddyAppState();
@@ -122,18 +124,26 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
     super.initState();
     ThemeController.isDark.addListener(_repaintEverything);
     Settings.hideAmounts.addListener(_repaintEverything);
+    L10n.lang.addListener(_languageChanged);
+  }
+
+  // the locale is a MaterialApp parameter, so this widget rebuilds too
+  void _languageChanged() {
+    setState(() {});
+    _repaintEverything();
   }
 
   @override
   void dispose() {
     ThemeController.isDark.removeListener(_repaintEverything);
     Settings.hideAmounts.removeListener(_repaintEverything);
+    L10n.lang.removeListener(_languageChanged);
     super.dispose();
   }
 
   // The colours and the privacy mask are read straight from AppColors and
   // Money, not passed down the tree, so widgets Flutter considers unchanged
-  // (const ones, tabs kept alive, open pages below the current one) would keep
+  // (ones, tabs kept alive, open pages below the current one) would keep
   // the old state. After a switch every element is rebuilt once, so light and
   // dark, hidden and shown amounts apply everywhere at the same moment.
   void _repaintEverything() {
@@ -157,20 +167,21 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false, // hide debug banner
         theme: AppTheme.theme(dark), // reactive light/dark theme
-        // the app is German: date pickers, tooltips and dialogs too, weeks start on Monday
-        locale: const Locale('de', 'DE'),
-        supportedLocales: const [Locale('de', 'DE')],
+        // date pickers, tooltips and dialogs follow the app language; en_IE
+        // keeps euros and weeks starting on Monday
+        locale: L10n.isDe ? Locale('de', 'DE') : Locale('en', 'IE'),
+        supportedLocales: [Locale('de', 'DE'), Locale('en', 'IE')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        home: const RootGate(), // onboarding -> lock -> app
+        home: RootGate(), // onboarding -> lock -> app
         // the lock sits above the Navigator, so it covers every open page;
         // on wide screens (desktop browser, Mac) keep a phone-width column
         // in the middle instead of stretching every screen edge to edge
         builder: (context, child) => ColoredBox(
-          color: dark ? const Color(0xFF05070A) : const Color(0xFFE6EAF0),
+          color: dark ? Color(0xFF05070A) : Color(0xFFE6EAF0),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: AuthGate(child: child ?? const SizedBox.shrink()),
+              constraints: BoxConstraints(maxWidth: 480),
+              child: AuthGate(child: child ?? SizedBox.shrink()),
             ),
           ),
         ),
@@ -181,7 +192,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
 
 // Welcome until signed in, then the app (the lock wraps it all).
 class RootGate extends StatelessWidget {
-  const RootGate({super.key});
+  RootGate({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -189,8 +200,8 @@ class RootGate extends StatelessWidget {
       valueListenable: AccountService.current,
       builder: (context, account, _) {
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 350),
-          child: account != null ? const HomeScreen() : const WelcomeScreen(),
+          duration: Duration(milliseconds: 350),
+          child: account != null ? HomeScreen() : WelcomeScreen(),
         );
       },
     );

@@ -20,13 +20,14 @@ import 'budget_screen.dart';
 import 'buddy_screen.dart';
 import 'depot_screen.dart';
 import 'overview_screen.dart';
+import '../l10n/l10n.dart';
 
-// App shell: four areas (Start, Konto, Depot, Buddy) in a floating navigation
+// App shell: Buddy first, then Überblick, Konto, Depot in a floating navigation
 // bar with a separate add button next to it.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // switch shell tab from anywhere (e.g. Buddy action → Start / Prognose)
+  // switch shell tab from anywhere (e.g. Buddy action → Überblick / Prognose)
   static final goTab = ValueNotifier<int?>(null);
 
   @override
@@ -34,10 +35,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // current tab index (0 = Start, 1 = Konto, 2 = Depot, 3 = Buddy)
-  int _tab = 0;
-  // Start always; others on first visit, avoids mounting Konto/Depot/Buddy at cold start
-  final _visited = <int>{0};
+  // current tab index (0 = Überblick, 1 = Konto, 2 = Depot, 3 = Buddy)
+  // Ahead opens in the chat: Buddy is the start screen
+  int _tab = 3;
+  // Buddy always; others on first visit, avoids mounting Überblick/Konto/Depot at cold start
+  final _visited = <int>{3};
 
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
   final _segment = ValueNotifier<int>(0);
@@ -77,15 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Daten unterscheiden sich'),
-        content: const Text(
-            'Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung '
-            'von einem anderen Gerät.\n\n'
-            'Es gibt kein Zusammenführen: eine komplette Kopie gewinnt '
-            '(Buchungen, Budgets, Depot). Die andere geht verloren.'),
+        title: Text(tr('Daten unterscheiden sich')),
+        content: Text(
+            tr('Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung von einem anderen Gerät.\n\nEs gibt kein Zusammenführen: eine komplette Kopie gewinnt (Buchungen, Budgets, Depot). Die andere geht verloren.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Kontodaten laden')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Gerätedaten behalten')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Kontodaten laden'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Gerätedaten behalten'))),
         ],
       ),
     );
@@ -191,11 +190,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // re-reads the current colors instead of keeping stale ones
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
-      // Android's back button leads from Konto or Depot to Start before it leaves the app
+      // Android's back button leads from the other tabs to Buddy before it leaves the app
       builder: (context, _, __) => PopScope(
-        canPop: _tab == 0,
+        canPop: _tab == 3,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _open(0);
+          if (!didPop) _open(3);
         },
         child: Scaffold(
         // the tabs stay alive (scroll position, loaded charts) and cross-fade
@@ -263,10 +262,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    _navItem(Icons.home_rounded, 'Start', 0),
-                    _navItem(Icons.account_balance_wallet_rounded, 'Konto', 1),
-                    _navItem(Icons.show_chart_rounded, 'Depot', 2),
-                    _navItem(Icons.chat_bubble_rounded, 'Buddy', 3),
+                    _navItem(Icons.dashboard_rounded, tr('Überblick'), 0),
+                    // Buddy sits in the middle of the bar — the product, not a side tab
+                    _navItem(Icons.chat_bubble_rounded, tr('Buddy'), 3, featured: true),
+                    _navItem(Icons.account_balance_wallet_rounded, tr('Konto'), 1),
+                    _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
                   ],
                 ),
               ),
@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 12),
             Semantics(
               button: true,
-              label: 'Schnell erfassen. Lange drücken für mehr.',
+              label: tr('Schnell erfassen. Lange drücken für mehr.'),
               child: _AddFab(
                 onTap: () {
                   HapticFeedback.mediumImpact();
@@ -289,10 +289,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _navItem(IconData icon, String label, int i) {
+  Widget _navItem(IconData icon, String label, int i, {bool featured = false}) {
     final active = _tab == i;
-    final color = active ? AppColors.primaryText : AppColors.textDim;
+    final color = active || featured
+        ? AppColors.primaryText
+        : AppColors.textDim;
     return Expanded(
+      flex: featured ? 6 : 5,
       child: Semantics(
         button: true,
         selected: active,
@@ -306,24 +309,28 @@ class _HomeScreenState extends State<HomeScreen> {
             curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: active ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent,
+              color: active
+                  ? AppColors.primary.withValues(alpha: 0.18)
+                  : featured
+                      ? AppColors.primary.withValues(alpha: 0.08)
+                      : Colors.transparent,
               borderRadius: BorderRadius.circular(26),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedScale(
-                  scale: active ? 1.08 : 1,
+                  scale: active ? 1.1 : featured ? 1.04 : 1,
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutBack,
-                  child: Icon(icon, color: color, size: 22),
+                  child: Icon(icon, color: color, size: featured ? 24 : 22),
                 ),
                 const SizedBox(height: 2),
                 Text(label,
                     style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: featured ? 11 : 10.5,
                         color: color,
-                        fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+                        fontWeight: active || featured ? FontWeight.w800 : FontWeight.w500,
                         letterSpacing: active ? -0.2 : 0)),
               ],
             ),
@@ -350,36 +357,36 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Text('Neu', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+                child: Text(tr('Neu'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
               ),
-              _sectionLabel('Schnell'),
-              _addOption(sheet, Icons.edit_note_rounded, 'Schnell erfassen',
-                  'Eintippen wie „Döner 8,50 gestern“', () => showSmartEntry(context)),
-              _addOption(sheet, Icons.document_scanner_rounded, 'Beleg scannen',
-                  'Foto vom Kassenbon genügt', () => showSmartEntry(context, scan: true)),
-              _addOption(sheet, Icons.receipt_long_rounded, 'Umsatz erfassen',
-                  'Mit Ziffernblock', () async {
+              _sectionLabel(tr('Schnell')),
+              _addOption(sheet, Icons.edit_note_rounded, tr('Schnell erfassen'),
+                  tr('Eintippen wie „Döner 8,50 gestern“'), () => showSmartEntry(context)),
+              _addOption(sheet, Icons.document_scanner_rounded, tr('Beleg scannen'),
+                  tr('Foto vom Kassenbon genügt'), () => showSmartEntry(context, scan: true)),
+              _addOption(sheet, Icons.receipt_long_rounded, tr('Umsatz erfassen'),
+                  tr('Mit Ziffernblock'), () async {
                 if (await TxRow.openEditor(context) && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
+                      SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Hinzugefügt'))));
                 }
               }),
               if (MoneyAccounts.several)
-                _addOption(sheet, Icons.swap_horiz_rounded, 'Geld verschieben',
-                    'Zwischen deinen Konten', () => showTransferSheet(context)),
+                _addOption(sheet, Icons.swap_horiz_rounded, tr('Geld verschieben'),
+                    tr('Zwischen deinen Konten'), () => showTransferSheet(context)),
               const SizedBox(height: 8),
-              _sectionLabel('Einrichten'),
-              _addOption(sheet, Icons.account_balance_rounded, 'Konto hinzufügen',
-                  'Bank verbinden oder von Hand', () => showAddAccountChoice(context)),
-              _addOption(sheet, Icons.show_chart_rounded, 'Depot hinzufügen',
-                  'Trade Republic & Co. oder Position von Hand',
+              _sectionLabel(tr('Einrichten')),
+              _addOption(sheet, Icons.account_balance_rounded, tr('Konto hinzufügen'),
+                  tr('Bank verbinden oder von Hand'), () => showAddAccountChoice(context)),
+              _addOption(sheet, Icons.show_chart_rounded, tr('Depot hinzufügen'),
+                  tr('Trade Republic & Co. oder Position von Hand'),
                   () => showAddAccountChoice(context, depot: true, byHand: () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
                       })),
-              _addOption(sheet, Icons.savings_rounded, 'Budget anlegen',
-                  'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
-              _addOption(sheet, Icons.call_split_rounded, 'Ausgabe teilen',
-                  'WG, Paar, Urlaub', () {
+              _addOption(sheet, Icons.savings_rounded, tr('Budget anlegen'),
+                  tr('Limit für eine Kategorie'), () => showAddBudgetDialog(context)),
+              _addOption(sheet, Icons.call_split_rounded, tr('Ausgabe teilen'),
+                  tr('WG, Paar, Urlaub'), () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()));
               }),
             ],

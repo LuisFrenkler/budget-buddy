@@ -18,6 +18,7 @@ import '../services/history.dart';
 import 'add_holding_screen.dart';
 import 'connections_screen.dart';
 import 'holding_detail_screen.dart';
+import '../l10n/l10n.dart';
 
 class DepotScreen extends StatefulWidget {
   final ScrollController? scroll;
@@ -79,7 +80,7 @@ class _DepotScreenState extends State<DepotScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Depot'),
+            title: Text(tr('Depot')),
             // lines up with "Konto" on the account tab (20 px page margin)
             titleSpacing: 20,
             actions: [
@@ -100,7 +101,7 @@ class _DepotScreenState extends State<DepotScreen> {
                   onPressed: () => showAddAccountChoice(context,
                       depot: true, byHand: () => _add()),
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('Depot'),
+                  label: Text(tr('Depot')),
                 ),
               ),
             ],
@@ -121,7 +122,7 @@ class _DepotScreenState extends State<DepotScreen> {
                         _allocationCard(holdings, value),
                         const SizedBox(height: 28),
                       ],
-                      const Text('Positionen',
+                      Text(tr('Positionen'),
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
@@ -156,7 +157,7 @@ class _DepotScreenState extends State<DepotScreen> {
         for (final g in sections[i].groups) ...[
           if (showDepotBrokers(sections[i].groups))
             _sectionHeader(
-                g.depot ?? 'Weitere Positionen', _groupCents(g.items),
+                g.depot ?? tr('Weitere Positionen'), _groupCents(g.items),
                 sub: true),
           for (final h in g.items) _holdingCard(h, slots[h.id]),
         ],
@@ -200,11 +201,11 @@ class _DepotScreenState extends State<DepotScreen> {
           children: [
             Icon(Icons.trending_up, size: 64, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch kein Depot',
+            Text(tr('Noch kein Depot'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-                'Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.',
+                tr('Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
@@ -215,17 +216,17 @@ class _DepotScreenState extends State<DepotScreen> {
                   MaterialPageRoute(
                       builder: (_) => const ConnectionsScreen(start: 'depot'))),
               icon: const Icon(Icons.link_rounded, size: 18),
-              label: const Text('Depot verbinden'),
+              label: Text(tr('Depot verbinden')),
             ),
             const SizedBox(height: 16),
             Text(
-                'Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.',
+                tr('Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: AppColors.textDim, fontSize: 13, height: 1.4)),
             TextButton(
                 onPressed: () => _add(),
-                child: const Text('Erste Position eintragen')),
+                child: Text(tr('Erste Position eintragen'))),
           ],
         ),
       ),
@@ -240,16 +241,16 @@ class _DepotScreenState extends State<DepotScreen> {
     final live = holdings.where((h) => h.priceAt != null).toList();
     final String text;
     if (live.isEmpty) {
-      text = 'Kurse von Hand eingegeben';
+      text = tr('Kurse von Hand eingegeben');
     } else {
       final oldest =
           live.map((h) => h.priceAt!).reduce((a, b) => a.isBefore(b) ? a : b);
       final typed = holdings.length - live.length;
       text =
-          'Kurse: Stand ${Dates.stand(oldest)}${typed > 0 ? ' · $typed eingegeben' : ''}';
+          tr('Kurse: Stand {x}{x2}', {'x': Dates.stand(oldest), 'x2': typed > 0 ? ' · $typed eingegeben' : ''});
     }
     // the curve shows today's positions through time, not past purchases and sales
-    return Text('$text\nVerlauf mit heutigem Bestand',
+    return Text(tr('{text}\nVerlauf mit heutigem Bestand', {'text': text}),
         style:
             TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
   }
@@ -266,7 +267,7 @@ class _DepotScreenState extends State<DepotScreen> {
     final hasHistory = points.length >= 2;
     return [
       ChartHeader(
-        label: 'Depotwert',
+        label: tr('Depotwert'),
         cents: value,
         // change over the range, or overall when no history is available
         startCents: hasHistory ? points.first.cents : invested,
@@ -274,9 +275,9 @@ class _DepotScreenState extends State<DepotScreen> {
         scrubbing: _scrub,
         startDate: hasHistory ? points.first.date : null,
       ),
-      const SizedBox(height: 6),
+      SizedBox(height: 6),
       _priceStand(),
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
       if (_historyLoading && !hasHistory)
         SizedBox(
             height: 160,
@@ -284,7 +285,7 @@ class _DepotScreenState extends State<DepotScreen> {
                 child: CircularProgressIndicator(color: AppColors.primary)))
       else
         InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
       RangeSelector(
         labels: _ranges.keys.toList(),
         selected: _range,
@@ -293,33 +294,33 @@ class _DepotScreenState extends State<DepotScreen> {
           _loadHistory();
         },
       ),
-      const SizedBox(height: 16),
+      SizedBox(height: 16),
       // overall performance since buying
       Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
             color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
             Expanded(
                 child: _stat(
-                    'Investiert (Ø)', Money.format(invested), AppColors.text)),
+                    tr('Investiert (Ø)'), Money.format(invested), AppColors.text)),
             Expanded(
-              child: _stat('Gewinn/Verlust', Money.signed(gain),
+              child: _stat(tr('Gewinn/Verlust'), Money.signed(gain),
                   gain >= 0 ? AppColors.positiveText : AppColors.errorText),
             ),
             Expanded(
               child: _stat(
-                  'Rendite',
+                  tr('Rendite'),
                   invested == 0 ? '–' : Money.percent(gain / invested * 100),
                   gain >= 0 ? AppColors.positiveText : AppColors.errorText),
             ),
           ],
         ),
       ),
-      const SizedBox(height: 8),
+      SizedBox(height: 8),
       Text(
-          'Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.',
+          tr('Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.'),
           style:
               TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
     ];
@@ -330,7 +331,7 @@ class _DepotScreenState extends State<DepotScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(value,
             style: TextStyle(fontWeight: FontWeight.w600, color: color),
             overflow: TextOverflow.ellipsis),
@@ -344,7 +345,7 @@ class _DepotScreenState extends State<DepotScreen> {
       for (final h in holdings)
         if (h.valueCents > 0) MapEntry(h.name, h.valueCents)
     ];
-    if (entries.isEmpty || totalValue == 0) return const SizedBox.shrink();
+    if (entries.isEmpty || totalValue == 0) return SizedBox.shrink();
     final sel = _slice != null && _slice! < entries.length ? _slice : null;
     final pct = wholePercents([for (final e in entries) e.value]);
 
@@ -369,7 +370,7 @@ class _DepotScreenState extends State<DepotScreen> {
 
     const size = 130.0;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
           color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
       child: Row(
@@ -384,7 +385,7 @@ class _DepotScreenState extends State<DepotScreen> {
                 children: [
                   TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 700),
+                    duration: Duration(milliseconds: 700),
                     curve: Curves.easeOutCubic,
                     builder: (_, t, __) => CustomPaint(
                       size: const Size(size, size),
@@ -393,20 +394,20 @@ class _DepotScreenState extends State<DepotScreen> {
                     ),
                   ),
                   Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(sel == null ? 'Gesamt' : '${pct[sel]} %',
+                    Text(sel == null ? tr('Gesamt') : '${pct[sel]} %',
                         style:
                             TextStyle(fontSize: 11, color: AppColors.textDim)),
                     Text(
                         Money.format(
                             sel == null ? totalValue : entries[sel].value),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700)),
                   ]),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 20),
+          SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,7 +419,7 @@ class _DepotScreenState extends State<DepotScreen> {
                     child: Opacity(
                       opacity: sel == null || sel == i ? 1 : 0.4,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        padding: EdgeInsets.symmetric(vertical: 5),
                         child: Row(children: [
                           Container(
                             width: 10,
@@ -429,10 +430,10 @@ class _DepotScreenState extends State<DepotScreen> {
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Expanded(
                               child: Text(entries[i].key,
-                                  style: const TextStyle(fontSize: 12),
+                                  style: TextStyle(fontSize: 12),
                                   overflow: TextOverflow.ellipsis)),
                           Text('${pct[i]} %',
                               style: TextStyle(
@@ -461,10 +462,10 @@ class _DepotScreenState extends State<DepotScreen> {
           : DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        padding: EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
             color: AppColors.error, borderRadius: BorderRadius.circular(14)),
-        child: const Icon(Icons.delete_rounded, color: Colors.white),
+        child: Icon(Icons.delete_rounded, color: Colors.white),
       ),
       confirmDismiss: (_) => _confirmDelete(h),
       child: InkWell(
@@ -472,39 +473,39 @@ class _DepotScreenState extends State<DepotScreen> {
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => HoldingDetailScreen(holding: h))),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
               InstrumentAvatar(h.name,
                   color: slot == null
                       ? null
                       : AppColors.chart[slot % AppColors.chart.length]),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(h.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w600),
                         overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
-                        '${_trimShares(h.shares)} Stück${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
+                        tr('{x} Stück{x2}', {'x': _trimShares(h.shares), 'x2': h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}),
                         style:
                             TextStyle(fontSize: 13, color: AppColors.textDim),
                         overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(Money.format(h.valueCents),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(Money.percent(h.gainPercent),
                       style: TextStyle(
                           color: color,
@@ -549,28 +550,27 @@ class _DepotScreenState extends State<DepotScreen> {
         // plain words: what is fresh, and that the rest keeps its last price
         bg = AppColors.surfaceAlt;
         if (result.failed == 0) {
-          msg = 'Alle Kurse aktuell';
+          msg = tr('Alle Kurse aktuell');
         } else if (result.live > 0) {
           msg =
-              '${result.live} ${result.live == 1 ? 'Kurs' : 'Kurse'} aktualisiert · '
-              'für ${result.failed} gerade kein Live-Kurs, dort gilt der letzte Stand';
+              tr('{live} {x} aktualisiert · für {failed} gerade kein Live-Kurs, dort gilt der letzte Stand', {'live': result.live, 'x': result.live == 1 ? tr('Kurs') : tr('Kurse'), 'failed': result.failed});
         } else {
           msg =
-              'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.';
+              tr('Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.');
           bg = AppColors.warning;
         }
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            duration: const Duration(milliseconds: 2800),
+            duration: Duration(milliseconds: 2800),
             content: Text(msg),
             backgroundColor: bg));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
               duration: Duration(milliseconds: 2800),
               content: Text(
-                  'Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.'),
+                  tr('Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.')),
               backgroundColor: AppColors.error),
         );
       }
@@ -593,10 +593,10 @@ class _DepotScreenState extends State<DepotScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         duration: Duration(milliseconds: name != null ? 3200 : 2800),
         content: Text(name != null
-            ? 'Deine erste Position steht. $name ist im Depot.'
+            ? tr('Deine erste Position steht. {name} ist im Depot.', {'name': name})
             : holding == null
-                ? 'Hinzugefügt'
-                : 'Aktualisiert'),
+                ? tr('Hinzugefügt')
+                : tr('Aktualisiert')),
       ));
     }
   }
@@ -612,10 +612,10 @@ class _DepotScreenState extends State<DepotScreen> {
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(SnackBar(
         persist: false,
-        duration: const Duration(seconds: 5),
-        content: Text('${h.name} gelöscht'),
+        duration: Duration(seconds: 5),
+        content: Text(tr('{name} gelöscht', {'name': h.name})),
         action: SnackBarAction(
-          label: 'Rückgängig',
+          label: tr('Rückgängig'),
           textColor: AppColors.primary,
           onPressed: () => DB.addHolding(h),
         ),
@@ -666,7 +666,7 @@ class _DonutPainter extends CustomPainter {
 }
 
 /// Stored type → section title. Unknown types keep their own name.
-const _depotTypeOrder = ['Aktie', 'ETF', 'Krypto', 'Sonstiges'];
+const _depotTypeOrder = ['Aktie', 'ETF', 'Krypto', 'Sonstiges']; // l10n: data
 
 const _depotTypeLabel = {
   'Aktie': 'Aktien',
@@ -686,7 +686,7 @@ typedef DepotSection = ({String label, List<DepotGroup> groups});
 List<DepotSection> groupDepotHoldings(List<Holding> holdings) {
   final byType = <String, List<Holding>>{};
   for (final h in holdings) {
-    final type = h.type.trim().isEmpty ? 'Sonstiges' : h.type.trim();
+    final type = h.type.trim().isEmpty ? 'Sonstiges' : h.type.trim(); // l10n: data
     byType.putIfAbsent(type, () => []).add(h);
   }
   final types = <String>[
@@ -700,7 +700,7 @@ List<DepotSection> groupDepotHoldings(List<Holding> holdings) {
   return [
     for (final type in types)
       (
-        label: _depotTypeLabel[type] ?? type,
+        label: tr(_depotTypeLabel[type] ?? type),
         groups: _depotGroups(byType[type]!)
       ),
   ];

@@ -14,6 +14,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/tx_row.dart';
+import '../l10n/l10n.dart';
 
 // Details of one booking: amount, date, category (changeable with one tap),
 // where it came from, and how much went to the same counterparty lately.
@@ -39,14 +40,14 @@ class TransactionScreen extends StatelessWidget {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.receipt_long_rounded, size: 48, color: AppColors.textDim),
                   const SizedBox(height: 12),
-                  const Text('Buchung gelöscht', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  Text(tr('Buchung gelöscht'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  Text('Diese Buchung gibt es hier nicht mehr.',
+                  Text(tr('Diese Buchung gibt es hier nicht mehr.'),
                       textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Zurück'),
+                    child: Text(tr('Zurück')),
                   ),
                 ]),
               ),
@@ -65,7 +66,7 @@ class TransactionScreen extends StatelessWidget {
             actions: [
               if (!fromBank)
               IconButton(
-                tooltip: 'Löschen',
+                tooltip: tr('Löschen'),
                 icon: const Icon(Icons.delete_outline_rounded),
                 onPressed: () => _delete(context, tx),
               ),
@@ -97,21 +98,21 @@ class TransactionScreen extends StatelessWidget {
               const SizedBox(height: 28),
               _group([
                 _row(
-                  'Kategorie',
+                  tr('Kategorie'),
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(Categories.icon(tx.category), size: 18, color: AppColors.textDim),
                     const SizedBox(width: 8),
-                    Text(tx.category, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(tr(tx.category), style: const TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(width: 2),
                     Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
                   ]),
                   onTap: () => _pickCategory(context, tx),
                 ),
-                _row('Art', Text(tx.isRefund ? 'Erstattung' : (tx.isIncome ? 'Einnahme' : 'Ausgabe'),
+                _row(tr('Art'), Text(tx.isRefund ? tr('Erstattung') : (tx.isIncome ? tr('Einnahme') : tr('Ausgabe')),
                     style: const TextStyle(fontWeight: FontWeight.w600))),
                 _row(
-                  'Quelle',
-                  Text(fromBank ? '${Settings.bankName.isEmpty ? 'Bank' : Settings.bankName} · Girokonto' : 'Manuell erfasst',
+                  tr('Quelle'),
+                  Text(fromBank ? tr('{x} · Girokonto', {'x': Settings.bankName.isEmpty ? tr('Bank') : Settings.bankName}) : tr('Manuell erfasst'),
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ]),
@@ -127,7 +128,7 @@ class TransactionScreen extends StatelessWidget {
                   ),
                   onPressed: () => shareTransaction(context, tx),
                   icon: Icon(SplitService.isShared(tx.id) ? Icons.check_rounded : Icons.call_split_rounded, size: 18),
-                  label: Text(SplitService.isShared(tx.id) ? 'Geteilt · noch einmal teilen' : 'Mit anderen teilen'),
+                  label: Text(SplitService.isShared(tx.id) ? tr('Geteilt · noch einmal teilen') : tr('Mit anderen teilen')),
                 ),
               ],
               if (!fromBank) ...[
@@ -143,12 +144,11 @@ class TransactionScreen extends StatelessWidget {
                     // deleted in the editor: this page has nothing left to show
                     if (context.mounted && !DB.getTx().any((t) => t.id == tx.id)) Navigator.pop(context);
                   },
-                  child: const Text('Bearbeiten'),
+                  child: Text(tr('Bearbeiten')),
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                Text('Betrag und Datum kommen von deiner Bank. Die Kategorie kannst du jederzeit ändern, '
-                    'BudgetBuddy merkt sie sich für künftige Buchungen.',
+                Text(tr('Betrag und Datum kommen von deiner Bank. Die Kategorie kannst du jederzeit ändern, BudgetBuddy merkt sie sich für künftige Buchungen.'),
                     textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ],
             ],
@@ -197,16 +197,16 @@ class TransactionScreen extends StatelessWidget {
       const SizedBox(height: 28),
       Padding(
         padding: const EdgeInsets.only(left: 4, bottom: 10),
-        child: Text('Bei ${tx.note!.trim()}',
+        child: Text(tr('Bei {x}', {'x': tx.note!.trim()}),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
       ),
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
         child: Row(children: [
-          _stat('${same.length}', same.length == 1 ? 'Umsatz' : 'Umsätze'),
-          _stat(Money.format(total), 'in 3 Monaten'),
-          _stat(Money.format(total ~/ same.length), 'im Schnitt'),
+          _stat('${same.length}', same.length == 1 ? tr('Umsatz') : tr('Umsätze')),
+          _stat(Money.format(total), tr('in 3 Monaten')),
+          _stat(Money.format(total ~/ same.length), tr('im Schnitt')),
         ]),
       ),
       const SizedBox(height: 8),
@@ -240,7 +240,7 @@ class TransactionScreen extends StatelessWidget {
           side: BorderSide(color: AppColors.border),
           selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
           avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
-          label: Text(c['name']!),
+          label: Text(tr(c['name']!)),
           onSelected: (_) => Navigator.pop(context, c['name']),
         );
     final picked = await showModalBottomSheet<String>(
@@ -252,15 +252,15 @@ class TransactionScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Kategorie', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+            Text(tr('Kategorie'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             Wrap(spacing: 8, runSpacing: 8, children: [for (final c in list) chip(context, c)]),
             if (refunds.isNotEmpty) ...[
               const SizedBox(height: 20),
-              Text('Erstattung, z. B. eine Rücksendung',
+              Text(tr('Erstattung, z. B. eine Rücksendung'),
                   style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 4),
-              Text('Wird mit den Ausgaben dieser Kategorie verrechnet, statt als Einnahme zu zählen.',
+              Text(tr('Wird mit den Ausgaben dieser Kategorie verrechnet, statt als Einnahme zu zählen.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
               const SizedBox(height: 10),
               Wrap(spacing: 8, runSpacing: 8, children: [for (final c in refunds) chip(context, c)]),
@@ -276,7 +276,7 @@ class TransactionScreen extends StatelessWidget {
     if (name.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Kategorie: $picked')));
+            SnackBar(duration: const Duration(milliseconds: 2800), content: Text(tr('Kategorie: {picked}', {'picked': picked}))));
       }
       return;
     }
@@ -286,7 +286,7 @@ class TransactionScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 3200),
-            content: Text('BudgetBuddy merkt sich $name als $picked, auch bei Bank-Sync und Schnellerfassung.')));
+            content: Text(tr('BudgetBuddy merkt sich {name} als {picked}, auch bei Bank-Sync und Schnellerfassung.', {'name': name, 'picked': picked}))));
       }
       return;
     }
@@ -302,19 +302,18 @@ class TransactionScreen extends StatelessWidget {
             Text('$name → $picked merken?', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
             Text(
-                '${others.length} ältere ${others.length == 1 ? 'Buchung steht' : 'Buchungen stehen'} noch auf einer anderen Kategorie. '
-                'Standard: merken und alle anpassen, künftige $name-Buchungen landen automatisch bei $picked.',
+                tr('{others} ältere {x} noch auf einer anderen Kategorie. Standard: merken und alle anpassen, künftige {name}-Buchungen landen automatisch bei {picked}.', {'others': others.length, 'x': others.length == 1 ? tr('Buchung steht') : tr('Buchungen stehen'), 'name': name, 'picked': picked}),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Merken & alle ${others.length + 1} ändern'),
+              child: Text(tr('Merken & alle {x} ändern', {'x': others.length + 1})),
             ),
             const SizedBox(height: 6),
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('Nur diese · künftige trotzdem $picked'),
+              child: Text(tr('Nur diese · künftige trotzdem {picked}', {'picked': picked})),
             ),
           ]),
         ),
@@ -335,8 +334,8 @@ class TransactionScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 3200),
             content: Text(onlyThis
-                ? 'Nur diese Buchung geändert · $name merken wir uns als $picked'
-                : '$name merken als $picked · ältere Buchungen unverändert')));
+                ? tr('Nur diese Buchung geändert · {name} merken wir uns als {picked}', {'name': name, 'picked': picked})
+                : tr('{name} merken als {picked} · ältere Buchungen unverändert', {'name': name, 'picked': picked}))));
       }
     }
   }
@@ -348,8 +347,8 @@ class TransactionScreen extends StatelessWidget {
     await DB.deleteTx(tx.id);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-      content: const Text('Umsatz gelöscht'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.addTx(tx)),
+      content: Text(tr('Umsatz gelöscht')),
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.addTx(tx)),
     ));
   }
 }

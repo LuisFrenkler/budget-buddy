@@ -6,6 +6,7 @@ import '../services/category_coach.dart';
 import '../services/ledger_busy.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 Future<void> showMiscSortSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -54,7 +55,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
                         fontSize: 20, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text(
-                    '${g.count}× in Sonstiges · ${Money.format(g.cents)}, nur diese Sonstiges-Buchungen.',
+                    tr('{count}× in Sonstiges · {x}, nur diese Sonstiges-Buchungen.', {'count': g.count, 'x': Money.format(g.cents)}),
                     style: TextStyle(color: AppColors.textDim, height: 1.35)),
                 const SizedBox(height: 14),
                 Wrap(
@@ -65,7 +66,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
                       ActionChip(
                         avatar: Icon(Categories.icon(c['name']!),
                             size: 18, color: Categories.color(c['name']!)),
-                        label: Text(c['name']!),
+                        label: Text(tr(c['name']!)),
                         onPressed: () => Navigator.pop(context, c['name']),
                       ),
                   ],
@@ -84,7 +85,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(milliseconds: 2800),
       content: Text(n <= 0
-          ? 'Nichts geändert'
+          ? tr('Nichts geändert')
           : '$n ${n == 1 ? 'Buchung' : 'Buchungen'} nach $picked'),
     ));
     setState(() {});
@@ -105,7 +106,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(milliseconds: 2800),
       content: Text(n <= 0
-          ? 'Nichts geändert'
+          ? tr('Nichts geändert')
           : '$n ${n == 1 ? 'Buchung' : 'Buchungen'} zugeordnet'),
     ));
     setState(() {});
@@ -125,13 +126,13 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
         controller: scroll,
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
         children: [
-          const Text('Buchungen einordnen',
+          Text(tr('Buchungen einordnen'),
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(
               n == 0
-                  ? 'Sonstiges ist leer.'
-                  : '$n in Sonstiges. Vorschlag antippen oder selbst wählen.',
+                  ? tr('Sonstiges ist leer.')
+                  : tr('{n} in Sonstiges. Vorschlag antippen oder selbst wählen.', {'n': n}),
               style: TextStyle(color: AppColors.textDim, height: 1.35)),
           if (fixes.isNotEmpty) ...[
             const SizedBox(height: 14),
@@ -139,7 +140,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
               onPressed: _applyAllSuggestions,
               icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
               label: Text(
-                  '${fixes.fold<int>(0, (s, p) => s + p.count)} Vorschläge übernehmen'),
+                  tr('{x} Vorschläge übernehmen', {'x': fixes.fold<int>(0, (s, p) => s + p.count)})),
             ),
             const SizedBox(height: 8),
             for (final p in fixes)
@@ -163,7 +164,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
                       LedgerBusy.leave();
                     }
                     if (!mounted) return;
-                    messenger.showSnackBar(SnackBar(content: Text('$moved ${moved == 1 ? 'Buchung' : 'Buchungen'} jetzt in ${p.category}')));
+                    messenger.showSnackBar(SnackBar(content: Text(tr('{moved} {x} jetzt in {category}', {'moved': moved, 'x': moved == 1 ? tr('Buchung') : tr('Buchungen'), 'category': p.category}))));
                     setState(() {});
                     if (CategoryCoach.miscCount() == 0) navigator.pop();
                   },
@@ -176,7 +177,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
           if (groups.isEmpty && fixes.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 28),
-              child: Text('Nichts offen.',
+              child: Text(tr('Nichts offen.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim)),
             )

@@ -7,6 +7,7 @@ import '../services/history.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
 import 'big_number.dart';
+import '../l10n/l10n.dart';
 
 // A line chart you can touch: drag or long-press to read the value of any
 // day. The line draws itself in, has a soft gradient below and a dotted line
@@ -76,7 +77,7 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
     if (pts.length < 2) {
       return SizedBox(
         height: widget.height,
-        child: Center(child: Text('Noch kein Verlauf', style: TextStyle(color: AppColors.textDim))),
+        child: Center(child: Text(tr('Noch kein Verlauf'), style: TextStyle(color: AppColors.textDim))),
       );
     }
     final up = pts.last.cents >= pts.first.cents;
@@ -93,10 +94,7 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
       return '$day, $hm';
     }
 
-    final summary = 'Verlauf vom ${stamp(pts.first.date)} bis ${stamp(pts.last.date)}: '
-        'von ${Money.format(pts.first.cents)} auf ${Money.format(pts.last.cents)}. '
-        'Tiefster Stand ${Money.format(low.cents)} am ${stamp(low.date)}, '
-        'höchster ${Money.format(high.cents)} am ${stamp(high.date)}.';
+    final summary = tr('Verlauf vom {x} bis {x2}: von {x3} auf {x4}. Tiefster Stand {x5} am {x6}, höchster {x7} am {x8}.', {'x': stamp(pts.first.date), 'x2': stamp(pts.last.date), 'x3': Money.format(pts.first.cents), 'x4': Money.format(pts.last.cents), 'x5': Money.format(low.cents), 'x6': stamp(low.date), 'x7': Money.format(high.cents), 'x8': stamp(high.date)});
 
     return Semantics(
       label: summary,
@@ -358,7 +356,7 @@ class ChartHeader extends StatelessWidget {
     if (!showTime) return Dates.full(d);
     final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final day = Dates.relativeDay(d);
-    final prefix = (day == 'Heute' || day == 'Gestern') ? day.toLowerCase() : day;
+    final prefix = (day == tr('Heute') || day == tr('Gestern')) ? day.toLowerCase() : day;
     return '$prefix, $hm';
   }
 

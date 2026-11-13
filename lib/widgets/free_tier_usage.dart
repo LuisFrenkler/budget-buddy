@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import '../services/goals_service.dart';
 import '../services/plus_service.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // Honest remaining free-tier counts, used on Plus pitch and Mein Abo empty.
 class FreeTierUsage extends StatelessWidget {
@@ -15,15 +16,15 @@ class FreeTierUsage extends StatelessWidget {
         : 0;
     final rows = [
       (
-        'Buddy KI',
-        '${PlusService.left(PlusFeature.aiQuestion)} von ${PlusService.freeAiQuestions} Fragen'
+        tr('Buddy KI'),
+        tr('{x} von {x2} Fragen', {'x': PlusService.left(PlusFeature.aiQuestion), 'x2': PlusService.freeAiQuestions})
       ),
       (
-        'Beleg-Scans',
-        '${PlusService.left(PlusFeature.receiptScan)} von ${PlusService.freeReceiptScans} Scans'
+        tr('Beleg-Scans'),
+        tr('{x} von {x2} Scans', {'x': PlusService.left(PlusFeature.receiptScan), 'x2': PlusService.freeReceiptScans})
       ),
       (
-        'Sparziele',
+        tr('Sparziele'),
         '$goals von ${PlusService.freeGoals} aktiv'
       ),
     ];
@@ -34,7 +35,7 @@ class FreeTierUsage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Dein Gratis-Kontingent diesen Monat',
+        Text(tr('Dein Gratis-Kontingent diesen Monat'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,

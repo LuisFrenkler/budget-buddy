@@ -11,6 +11,7 @@ import '../services/db.dart';
 import '../services/money_accounts.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // the two bookings of one transfer; [from] and [to] are account ids
 List<Transaction> transferBookings({
@@ -24,10 +25,10 @@ List<Transaction> transferBookings({
   return [
     Transaction(
         id: '${id}_out', amountCents: cents, category: Categories.transfer, date: date, isIncome: false,
-        note: 'Umbuchung an ${to.name}', accountId: acc(from)),
+        note: tr('Umbuchung an {name}', {'name': to.name}), accountId: acc(from)),
     Transaction(
         id: '${id}_in', amountCents: cents, category: Categories.transfer, date: date, isIncome: true,
-        note: 'Umbuchung von ${from.name}', accountId: acc(to)),
+        note: tr('Umbuchung von {name}', {'name': from.name}), accountId: acc(to)),
   ];
 }
 
@@ -42,10 +43,10 @@ Future<void> showTransferSheet(BuildContext context) async {
       builder: (ctx) => Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Geld verschieben', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Geld verschieben'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
-            'Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.',
+            tr('Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4),
           ),
           const SizedBox(height: 18),
@@ -55,9 +56,9 @@ Future<void> showTransferSheet(BuildContext context) async {
               Navigator.pop(ctx);
               Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
             },
-            child: const Text('Konto hinzufügen'),
+            child: Text(tr('Konto hinzufügen')),
           ),
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Schließen')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Schließen'))),
         ]),
       ),
     );
@@ -73,7 +74,7 @@ Future<void> showTransferSheet(BuildContext context) async {
   );
   if (ok == true && context.mounted) {
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Umgebucht')));
+        .showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Umgebucht'))));
   }
 }
 
@@ -111,8 +112,8 @@ class _TransferSheetState extends State<_TransferSheet> {
     final to = _to;
     if (from == null || to == null) return;
     final cents = Money.parseToCents(_amount.text);
-    if (cents == null || cents <= 0) return setState(() => _error = 'Bitte einen Betrag eingeben, z. B. 200');
-    if (from.id == to.id) return setState(() => _error = 'Wähle zwei verschiedene Konten');
+    if (cents == null || cents <= 0) return setState(() => _error = tr('Bitte einen Betrag eingeben, z. B. 200'));
+    if (from.id == to.id) return setState(() => _error = tr('Wähle zwei verschiedene Konten'));
     for (final t in transferBookings(from: from, to: to, cents: cents, date: DateTime.now())) {
       await DB.addTx(t);
     }
@@ -135,34 +136,34 @@ class _TransferSheetState extends State<_TransferSheet> {
     final from = _from;
     final to = _to;
     if (from == null || to == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(24),
-        child: Text('Mindestens zwei Konten nötig.'),
+        child: Text(tr('Mindestens zwei Konten nötig.')),
       );
     }
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Geld verschieben', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Geld verschieben'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        Text('Zwischen deinen eigenen Konten. Zählt nicht als Ausgabe.', style: TextStyle(color: AppColors.textDim)),
+        Text(tr('Zwischen deinen eigenen Konten. Zählt nicht als Ausgabe.'), style: TextStyle(color: AppColors.textDim)),
         const SizedBox(height: 16),
-        _picker('Von', from, (a) => setState(() => _from = a)),
+        _picker(tr('Von'), from, (a) => setState(() => _from = a)),
         const SizedBox(height: 12),
-        _picker('Nach', to, (a) => setState(() => _to = a)),
+        _picker(tr('Nach'), to, (a) => setState(() => _to = a)),
         const SizedBox(height: 12),
         TextField(
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           onSubmitted: (_) => _save(),
-          decoration: InputDecoration(labelText: 'Betrag', suffixText: '€', errorText: _error),
+          decoration: InputDecoration(labelText: tr('Betrag'), suffixText: '€', errorText: _error),
         ),
         const SizedBox(height: 18),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _save,
-          child: const Text('Umbuchen'),
+          child: Text(tr('Umbuchen')),
         ),
       ]),
     );

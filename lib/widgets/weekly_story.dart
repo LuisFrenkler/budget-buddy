@@ -8,6 +8,7 @@ import '../services/weekly_report.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
 import 'brand.dart';
+import '../l10n/l10n.dart';
 
 /// Opens the share sheet from Start, haptic, marks the week seen, one primary action.
 Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
@@ -15,8 +16,8 @@ Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   final change = report.change;
   final pct = change == null ? null : (change * 100).round().abs();
   final fallback = change == null || report.roughlyUsual
-      ? 'Meine Woche mit BudgetBuddy: ${report.headline}'
-      : 'Meine Woche: $pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst · BudgetBuddy';
+      ? tr('Meine Woche mit BudgetBuddy: {headline}', {'headline': report.headline})
+      : tr('Meine Woche: {pct} % {x} als sonst · BudgetBuddy', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
   Hive.box('settings').put('weeklySeen', report.start.toIso8601String());
   return showWeeklyStoryShare(context, report, fallbackText: fallback);
 }
@@ -34,12 +35,12 @@ class WeeklyStory extends StatelessWidget {
     final facts = <(IconData, String)>[
       if (change != null && !r.roughlyUsual)
         (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-            '$pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst'),
-      if (r.roughlyUsual) (Icons.horizontal_rule_rounded, 'Eine ganz normale Woche'),
+            tr('{pct} % {x} als sonst', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'})),
+      if (r.roughlyUsual) (Icons.horizontal_rule_rounded, tr('Eine ganz normale Woche')),
       if (r.categories.isNotEmpty)
-        (Icons.pie_chart_outline_rounded, 'Am meisten: ${r.categories.first.category}'),
-      (Icons.event_available_outlined, '${r.noSpendDays} ${r.noSpendDays == 1 ? 'Tag' : 'Tage'} ohne Ausgaben'),
-      (Icons.calendar_today_outlined, 'Teuerster Tag: ${WeeklyReportService.weekdays[r.topDay]}'),
+        (Icons.pie_chart_outline_rounded, tr('Am meisten: {category}', {'category': r.categories.first.category})),
+      (Icons.event_available_outlined, tr('{noSpendDays} {x} ohne Ausgaben', {'noSpendDays': r.noSpendDays, 'x': r.noSpendDays == 1 ? tr('Tag') : tr('Tage')})),
+      (Icons.calendar_today_outlined, tr('Teuerster Tag: {x}', {'x': WeeklyReportService.weekdays[r.topDay]})),
     ];
     return AspectRatio(
       aspectRatio: 9 / 16,
@@ -54,10 +55,10 @@ class WeeklyStory extends StatelessWidget {
               child: DefaultTextStyle(
                 style: const TextStyle(color: Colors.white, fontFamily: 'Inter'),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Row(children: [
+                  Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text('BudgetBuddy', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text(tr('BudgetBuddy'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   ]),
                   const Spacer(),
                   Text('KW ${r.week}',
@@ -89,9 +90,9 @@ class WeeklyStory extends StatelessWidget {
                       ),
                     ),
                   const Spacer(),
-                  Text('Und deine Woche?',
+                  Text(tr('Und deine Woche?'),
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  const Text('Finanzen mit Buddy · BudgetBuddy',
+                  Text(tr('Finanzen mit Buddy · BudgetBuddy'),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),
@@ -151,8 +152,8 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: widget.fallbackText));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            duration: Duration(milliseconds: 2800), content: Text('Bild ging nicht, Text ist kopiert')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            duration: Duration(milliseconds: 2800), content: Text(tr('Bild ging nicht, Text ist kopiert'))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -166,10 +167,10 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Wochen-Story',
+          Text(tr('Wochen-Story'),
               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('Nur Prozente und Anzahlen, kein Kontostand.',
+          Text(tr('Nur Prozente und Anzahlen, kein Kontostand.'),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           const SizedBox(height: 16),
           ConstrainedBox(
@@ -208,7 +209,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
             icon: _busy
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.ios_share_rounded),
-            label: Text(_busy ? 'Wird geteilt…' : 'Story teilen', style: const TextStyle(fontWeight: FontWeight.w800)),
+            label: Text(_busy ? tr('Wird geteilt…') : tr('Story teilen'), style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
         ]),
       ),

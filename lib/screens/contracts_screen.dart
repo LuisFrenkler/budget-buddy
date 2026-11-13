@@ -12,6 +12,7 @@ import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/tx_row.dart';
+import '../l10n/l10n.dart';
 
 // Contracts and subscriptions found in the bookings, what they cost per
 // month and year, when each is due next and which ones got more expensive.
@@ -29,18 +30,17 @@ class ContractsScreen extends StatelessWidget {
         final raised = contracts.where((c) => c.priceChange > 0).toList();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Verträge & Abos')),
+          appBar: AppBar(title: Text(tr('Verträge & Abos'))),
           body: contracts.isEmpty
               ? _empty()
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                   children: [
                     BigNumber(
-                      label: 'Pro Monat',
+                      label: tr('Pro Monat'),
                       cents: monthly,
                       below: Text(
-                          '${contracts.length} ${contracts.length == 1 ? 'Vertrag' : 'Verträge'} · '
-                          '${Settings.hideAmounts.value ? Money.hidden : Money.format(monthly * 12)} im Jahr',
+                          tr('{x} · {x2}', {'x': contracts.length == 1 ? tr('1 Vertrag') : tr('{n} Verträge', {'n': contracts.length}), 'x2': tr('{x} im Jahr', {'x': Settings.hideAmounts.value ? Money.hidden : Money.format(monthly * 12)})}),
                           style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     ),
                     if (raised.isNotEmpty) ...[
@@ -60,7 +60,7 @@ class ContractsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                        'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.',
+                        tr('Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                   ],
@@ -73,8 +73,8 @@ class ContractsScreen extends StatelessWidget {
   Widget _raisedBanner(BuildContext context, List<Contract> raised) {
     final c = raised.first;
     final text = raised.length == 1
-        ? '${c.name} kostet seit der letzten Zahlung ${Money.format(c.priceChange)} mehr.'
-        : '${raised.length} Verträge sind teurer geworden, z. B. ${c.name} (+${Money.format(c.priceChange)}).';
+        ? tr('{name} kostet seit der letzten Zahlung {x} mehr.', {'name': c.name, 'x': Money.format(c.priceChange)})
+        : tr('{raised} Verträge sind teurer geworden, z. B. {name} (+{x}).', {'raised': raised.length, 'name': c.name, 'x': Money.format(c.priceChange)});
     return Material(
       color: AppColors.warning.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(16),
@@ -113,8 +113,8 @@ class ContractsScreen extends StatelessWidget {
                 final sent = CancellationService.sentAt(c.name);
                 return Text(
                     sent != null
-                        ? 'Gekündigt am ${Dates.dayMonth(sent)}'
-                        : 'Monatlich · nächste am ${Dates.dayMonth(c.nextDate)}',
+                        ? tr('Gekündigt am {x}', {'x': Dates.dayMonth(sent)})
+                        : tr('Monatlich · nächste am {x}', {'x': Dates.dayMonth(c.nextDate)}),
                     style: TextStyle(fontSize: 12, color: sent != null ? AppColors.warningText : AppColors.textDim),
                     overflow: TextOverflow.ellipsis);
               }),
@@ -141,10 +141,9 @@ class ContractsScreen extends StatelessWidget {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(Icons.receipt_long_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch keine Verträge erkannt', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('Noch keine Verträge erkannt'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. '
-                'Mit verbundenem Bankkonto geht das automatisch.',
+            Text(tr('Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. Mit verbundenem Bankkonto geht das automatisch.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
           ]),
         ),
@@ -179,7 +178,7 @@ class ContractsCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Verträge & Abos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(tr('Verträge & Abos'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 ValueListenableBuilder<bool>(
                   valueListenable: Settings.hideAmounts,
@@ -241,7 +240,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     return CancellationService.letter(
       provider: widget.contract.name,
       // a visible gap rather than a letter without a name
-      name: account?.name ?? '[Dein Name]',
+      name: account?.name ?? tr('[Dein Name]'),
       email: account?.email ?? '',
       customerNo: _customerNo.text.trim(),
     );
@@ -253,7 +252,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     if (!mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500),
-        content: Text('Vermerkt. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
+        content: Text(tr('Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.', {'name': widget.contract.name}))));
   }
 
   Future<void> _mail() async {
@@ -272,8 +271,8 @@ class _ContractSheetState extends State<_ContractSheet> {
     HapticFeedback.selectionClick();
     if (!mounted) return;
     setState(() => _prepared = true);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        duration: Duration(milliseconds: 2400), content: Text('Kündigung kopiert. Füg sie beim Anbieter ein.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(milliseconds: 2400), content: Text(tr('Kündigung kopiert. Füg sie beim Anbieter ein.'))));
   }
 
   // a regular payment that isn't a contract (pocket money, a rent share)
@@ -286,8 +285,8 @@ class _ContractSheetState extends State<_ContractSheet> {
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
-      content: Text('„$name“ wird nicht mehr als Vertrag gezählt'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () => Contracts.hide(name, hide: false)),
+      content: Text(tr('„{name}“ wird nicht mehr als Vertrag gezählt', {'name': name})),
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => Contracts.hide(name, hide: false)),
     ));
   }
 
@@ -305,7 +304,7 @@ class _ContractSheetState extends State<_ContractSheet> {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(c.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                Text('${Money.format(c.monthlyCents)} im Monat · ${Money.format(c.monthlyCents * 12)} im Jahr',
+                Text(tr('{x} im Monat · {x2} im Jahr', {'x': Money.format(c.monthlyCents), 'x2': Money.format(c.monthlyCents * 12)}),
                     style: TextStyle(color: AppColors.textDim)),
               ]),
             ),
@@ -313,9 +312,9 @@ class _ContractSheetState extends State<_ContractSheet> {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () => showTransactionsSheet(context,
-                title: c.name, subtitle: 'Alle Zahlungen', tx: c.payments.reversed.toList()),
+                title: c.name, subtitle: tr('Alle Zahlungen'), tx: c.payments.reversed.toList()),
             icon: const Icon(Icons.receipt_long_rounded, size: 18),
-            label: Text('Alle ${c.payments.length} Zahlungen'),
+            label: Text(tr('Alle {payments} Zahlungen', {'payments': c.payments.length})),
           ),
           const SizedBox(height: 18),
           if (sent != null) ...[
@@ -324,7 +323,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
               child: Text(
-                  'Gekündigt am ${Dates.full(sent)}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.',
+                  tr('Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.', {'x': Dates.full(sent)}),
                   style: const TextStyle(height: 1.4)),
             ),
             TextButton(
@@ -332,7 +331,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                 await CancellationService.undo(c.name);
                 if (context.mounted) Navigator.pop(context);
               },
-              child: const Text('Kündigung zurücknehmen'),
+              child: Text(tr('Kündigung zurücknehmen')),
             ),
           ] else if (!_writing)
             FilledButton.icon(
@@ -340,16 +339,16 @@ class _ContractSheetState extends State<_ContractSheet> {
                   minimumSize: const Size.fromHeight(52), backgroundColor: AppColors.error.withValues(alpha: 0.9)),
               onPressed: () => setState(() => _writing = true),
               icon: const Icon(Icons.description_outlined, size: 18),
-              label: Text('${c.name} kündigen'),
+              label: Text(tr('{name} kündigen', {'name': c.name})),
             )
           else ...[
-            const Text('Dein Kündigungsschreiben',
+            Text(tr('Dein Kündigungsschreiben'),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             TextField(
               controller: _customerNo,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(labelText: 'Kundennummer (optional)'),
+              decoration: InputDecoration(labelText: tr('Kundennummer (optional)')),
             ),
             const SizedBox(height: 10),
             Container(
@@ -361,7 +360,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.',
+            Text(tr('Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
             const SizedBox(height: 14),
             Row(children: [
@@ -370,7 +369,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
                   onPressed: _copy,
                   icon: const Icon(Icons.copy_rounded, size: 18),
-                  label: const Text('Kopieren'),
+                  label: Text(tr('Kopieren')),
                 ),
               ),
               const SizedBox(width: 10),
@@ -379,7 +378,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
                   onPressed: _mail,
                   icon: const Icon(Icons.send_rounded, size: 18),
-                  label: const Text('Per E-Mail'),
+                  label: Text(tr('Per E-Mail')),
                 ),
               ),
             ]),
@@ -392,14 +391,14 @@ class _ContractSheetState extends State<_ContractSheet> {
                     foregroundColor: AppColors.text),
                 onPressed: _sent,
                 icon: const Icon(Icons.check_rounded, size: 18),
-                label: const Text('Ich habe sie abgeschickt'),
+                label: Text(tr('Ich habe sie abgeschickt')),
               ),
             ],
           ],
           if (sent == null)
             TextButton(
               onPressed: _notAContract,
-              child: Text('Kein Vertrag? Nicht mehr mitzählen', style: TextStyle(color: AppColors.textDim)),
+              child: Text(tr('Kein Vertrag? Nicht mehr mitzählen'), style: TextStyle(color: AppColors.textDim)),
             ),
         ]),
       ),
