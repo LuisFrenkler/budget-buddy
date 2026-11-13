@@ -395,6 +395,21 @@
 (function () {
   'use strict';
   var API = (document.querySelector('meta[name="ahead-api"]').content || '').replace(/\/$/, '');
+  // content="demo": a preview without a server (the waitlist answers locally)
+  if (API === 'demo') {
+    var realFetch = window.fetch.bind(window);
+    window.fetch = function (url, opts) {
+      var u = String(url);
+      function reply(o) { return Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } })); }
+      if (u.indexOf('demo/waitlist/join') === 0) {
+        var code = 'K7Q2M9';
+        return reply({ code: code, position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      }
+      if (u.indexOf('demo/waitlist/status') === 0) return reply({ code: 'K7Q2M9', position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      if (u.indexOf('demo/') === 0) return Promise.reject(new Error('preview'));
+      return realFetch(url, opts);
+    };
+  }
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }

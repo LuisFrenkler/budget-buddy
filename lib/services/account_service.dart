@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
 import 'backend_service.dart';
 import 'invite_service.dart';
+import 'demo_data.dart';
 import 'cloud_sync.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
@@ -108,8 +109,25 @@ class AccountService {
         TargetPlatform.fuchsia => 'Gerät',
       };
 
+  // preview build (--dart-define=DEMO_MODE=true): no server, sign-up and
+  // sign-in make a local account with example numbers
+  static const demoMode = bool.fromEnvironment('DEMO_MODE');
+
+  static Future<Account> _demoSignIn(String name, String email) async {
+    await AccountIsolation.wipeLocalFinance();
+    final clean = name.trim();
+    final account = Account('demo', email.trim().isEmpty ? 'demo@ahead.app' : email.trim(),
+        clean.isEmpty ? (email.contains('@') ? email.split('@').first : 'Du') : clean);
+    await _box.put('account', account.toJson());
+    await AccountIsolation.claimLocalFor(account.id);
+    await DemoData.load();
+    current.value = account;
+    return account;
+  }
+
   // a friend's invite code (?ref=CODE) goes along, so the friend gets the credit
   static Future<Account> register({required String name, required String email, required String password}) async {
+    if (demoMode) return _demoSignIn(name, email);
     final ref = InviteService.pendingRef;
     final account = await _signIn(
         '/auth/register', {'name': name, 'email': email, 'password': password, if (ref != null) 'invite': ref});
@@ -117,8 +135,9 @@ class AccountService {
     return account;
   }
 
-  static Future<Account> login({required String email, required String password}) =>
-      _signIn('/auth/login', {'email': email, 'password': password});
+  static Future<Account> login({required String email, required String password}) => demoMode
+      ? _demoSignIn('', email)
+      : _signIn('/auth/login', {'email': email, 'password': password});
 
   static Future<Account> loginTotp({required String challenge, required String code}) => _signIn('/auth/login/totp', {
         'challenge': challenge,
