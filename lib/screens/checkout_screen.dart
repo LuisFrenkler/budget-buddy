@@ -18,6 +18,7 @@ import 'auth_screens.dart';
 import 'buddy_screen.dart';
 import 'goals_screen.dart';
 import 'smart_entry_sheet.dart';
+import '../l10n/l10n.dart';
 
 // Checkout for Plus: what it costs and when, the payment method, a promo
 // code, then a welcome page. Returns true when Plus was started.
@@ -138,13 +139,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(signedIn ? Icons.cloud_off_rounded : Icons.person_outline_rounded, size: 48, color: AppColors.textDim),
           const SizedBox(height: 16),
-          Text(signedIn ? 'Gerade nicht erreichbar' : 'Erst ein Konto',
+          Text(signedIn ? tr('Gerade nicht erreichbar') : tr('Erst ein Konto'),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
               signedIn
-                  ? 'Die Zahlung läuft über unseren Server, der gerade nicht antwortet. Versuch es gleich noch einmal.'
-                  : 'Plus gehört zu deinem Konto, damit du es auf jedem Gerät behältst und jederzeit kündigen kannst.',
+                  ? tr('Die Zahlung läuft über unseren Server, der gerade nicht antwortet. Versuch es gleich noch einmal.')
+                  : tr('Plus gehört zu deinem Konto, damit du es auf jedem Gerät behältst und jederzeit kündigen kannst.'),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 20),
@@ -155,7 +156,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     _askServer();
                   }
                 : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-            child: Text(signedIn ? 'Erneut versuchen' : 'Konto erstellen'),
+            child: Text(signedIn ? tr('Erneut versuchen') : tr('Konto erstellen')),
           ),
         ]),
       ),
@@ -176,12 +177,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   DateTime get _trialEnd => DateTime.now().add(Duration(days: PlusService.trialDays + _extraDays));
 
   // per field: the error text, or null when the input is fine
-  String? get _cardNumberError => PaymentChecks.cardNumber(_cardNumber.text) ? null : 'Kartennummer prüfen';
+  String? get _cardNumberError => PaymentChecks.cardNumber(_cardNumber.text) ? null : tr('Kartennummer prüfen');
   String? get _expiryError => PaymentChecks.expiry(_expiry.text) ? null : 'MM/JJ';
-  String? get _cvcError => PaymentChecks.cvc(_cvc.text) ? null : '3–4 Ziffern';
-  String? get _holderError => _holder.text.trim().length < 3 ? 'Name des Kontoinhabers' : null;
-  String? get _ibanError => PaymentChecks.iban(_iban.text) ? null : 'Diese IBAN stimmt nicht';
-  String? get _paypalError => PaymentChecks.email(_paypal.text) ? null : 'E-Mail deines PayPal-Kontos';
+  String? get _cvcError => PaymentChecks.cvc(_cvc.text) ? null : tr('3–4 Ziffern');
+  String? get _holderError => _holder.text.trim().length < 3 ? tr('Name des Kontoinhabers') : null;
+  String? get _ibanError => PaymentChecks.iban(_iban.text) ? null : tr('Diese IBAN stimmt nicht');
+  String? get _paypalError => PaymentChecks.email(_paypal.text) ? null : tr('E-Mail deines PayPal-Kontos');
 
   bool get _valid => switch (_method) {
         PayMethod.card => _cardNumberError == null && _expiryError == null && _cvcError == null,
@@ -194,15 +195,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String get _detail => switch (_method) {
         PayMethod.card =>
           '${PaymentChecks.cardBrand(_cardNumber.text)} •••• ${PaymentChecks.digits(_cardNumber.text).substring(PaymentChecks.digits(_cardNumber.text).length - 4)}',
-        PayMethod.sepa => 'Lastschrift ${PaymentChecks.maskIban(_iban.text)}',
-        PayMethod.paypal => 'PayPal · ${_paypal.text.trim()}',
+        PayMethod.sepa => tr('Lastschrift {x}', {'x': PaymentChecks.maskIban(_iban.text)}),
+        PayMethod.paypal => tr('PayPal · {x}', {'x': _paypal.text.trim()}),
         _ => '',
       };
 
   void _applyPromo() {
     final code = _promo.text.trim().toUpperCase();
     if (PlusService.promoDays(code) == null) {
-      setState(() => _promoError = 'Diesen Code kennen wir nicht');
+      setState(() => _promoError = tr('Diesen Code kennen wir nicht'));
       return;
     }
     HapticFeedback.mediumImpact();
@@ -291,9 +292,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         case StoreResult.done:
           return _welcome(PlusService.subscription.value!);
         case StoreResult.pending:
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               duration: Duration(milliseconds: 4500),
-              content: Text('Der Kauf wartet noch auf eine Bestätigung. Plus kommt, sobald sie da ist.')));
+              content: Text(tr('Der Kauf wartet noch auf eine Bestätigung. Plus kommt, sobald sie da ist.'))));
         case StoreResult.cancelled:
           break;
       }
@@ -322,7 +323,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = Text(_checkout ? 'Plus starten' : 'Zahlungsmethode');
+    final title = Text(_checkout ? tr('Plus starten') : tr('Zahlungsmethode'));
     // no test form flashing up while the server is asked
     if (_asking) {
       return Scaffold(appBar: AppBar(title: title), body: const Center(child: CircularProgressIndicator()));
@@ -351,7 +352,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 if (_server)
                   _serverMethods()
                 else ...[
-                  _label(_methods.length == 1 ? 'Bezahlt wird über' : 'Wie möchtest du zahlen?'),
+                  _label(_methods.length == 1 ? tr('Bezahlt wird über') : tr('Wie möchtest du zahlen?')),
                   for (final m in _methods) _methodTile(m),
                   if (_inStore) _storeNote(),
                 ],
@@ -383,7 +384,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Testmodus: Es wird nichts abgebucht und nichts an einen Zahlungsanbieter gesendet.',
+            child: Text(tr('Testmodus: Es wird nichts abgebucht und nichts an einen Zahlungsanbieter gesendet.'),
                 style: TextStyle(fontSize: 12.5, color: AppColors.text)),
           ),
         ]),
@@ -394,9 +395,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
         child: _note(
           Icons.info_outline_rounded,
-          'Den Gratis-Zeitraum gibt es einmal pro '
-          '${StorePurchases.platform == 'apple' ? 'Apple-ID' : 'Google-Konto'}. '
-          'Die genauen Bedingungen zeigt dir der ${StorePurchases.storeName} vor dem Kauf.',
+          tr('Den Gratis-Zeitraum gibt es einmal pro {x}. Die genauen Bedingungen zeigt dir der {storeName} vor dem Kauf.', {'x': StorePurchases.platform == 'apple' ? tr('Apple-ID') : tr('Google-Konto'), 'storeName': StorePurchases.storeName}),
         ),
       );
 
@@ -410,7 +409,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
           const SizedBox(width: 10),
           Expanded(
-            child: Text('Demo-Zahlung über den Server: Es wird nichts abgebucht.',
+            child: Text(tr('Demo-Zahlung über den Server: Es wird nichts abgebucht.'),
                 style: TextStyle(fontSize: 12.5, color: AppColors.text)),
           ),
         ]),
@@ -420,7 +419,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _serverMethods() {
     final shown = availableMethods().where((m) => m != PayMethod.appStore && m != PayMethod.googlePlay).toList();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _label('So kannst du zahlen'),
+      _label(tr('So kannst du zahlen')),
       Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
@@ -434,8 +433,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. '
-                'BudgetBuddy sieht deine Karten- und Kontodaten nie.',
+                tr('Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. BudgetBuddy sieht deine Karten- und Kontodaten nie.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
               ),
             ),
@@ -457,10 +455,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const BuddyOrb(size: 56, active: true),
               const SizedBox(height: 16),
-              const Text('Zahlung im neuen Fenster abschließen',
+              Text(tr('Zahlung im neuen Fenster abschließen'),
                   textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
               const SizedBox(height: 6),
-              Text('Sobald sie bestätigt ist, geht es hier von selbst weiter.',
+              Text(tr('Sobald sie bestätigt ist, geht es hier von selbst weiter.'),
                   textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               const SizedBox(height: 18),
               Row(children: [
@@ -470,13 +468,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       _poll?.cancel();
                       setState(() => _payUrl = null);
                     },
-                    child: const Text('Abbrechen'),
+                    child: Text(tr('Abbrechen')),
                   ),
                 ),
                 Expanded(
                   child: FilledButton(
                     onPressed: () => launchUrl(Uri.parse(_payUrl!), mode: LaunchMode.externalApplication),
-                    child: const Text('Erneut öffnen'),
+                    child: Text(tr('Erneut öffnen')),
                   ),
                 ),
               ]),
@@ -509,7 +507,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(yearly ? 'Jährlich' : 'Monatlich', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(yearly ? tr('Jährlich') : tr('Monatlich'), style: const TextStyle(fontWeight: FontWeight.w700)),
                 const Spacer(),
                 if (yearly)
                   Container(
@@ -522,7 +520,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const SizedBox(height: 4),
               Text(PlusService.price(p),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              Text(yearly ? 'im Jahr · ${PlusService.yearlyPerMonth}/Monat' : 'im Monat',
+              Text(yearly ? tr('im Jahr · {yearlyPerMonth}/Monat', {'yearlyPerMonth': PlusService.yearlyPerMonth}) : tr('im Monat'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12)),
             ]),
           ),
@@ -566,27 +564,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (_inStore && trial == false) {
       body = Column(children: [
         Row(children: [
-          const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(tr('Heute fällig'), style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
           Text(PlusService.price(_plan!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         ]),
         Divider(height: 24, color: AppColors.border),
-        step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
-            'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.'),
-        step(Icons.autorenew_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
+        step(Icons.lock_open_rounded, AppColors.positive, tr('Heute'),
+            tr('Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.')),
+        step(Icons.autorenew_rounded, AppColors.textDim, tr('Danach'), tr('{price}, bis du kündigst', {'price': price}), last: true),
       ]);
     } else if (trial == true || !_inStore) {
       body = Column(children: [
         Row(children: [
-          const Text('Heute fällig', style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(tr('Heute fällig'), style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
           Text(Money.raw(0), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         ]),
         Divider(height: 24, color: AppColors.border),
-        step(Icons.lock_open_rounded, AppColors.positive, 'Heute',
-            'Alles von Plus ist sofort freigeschaltet.'),
-        step(Icons.event_available_rounded, AppColors.primary, 'Bis ${Dates.dayMonth(lastFree)}',
-            'Gratis testen. Kündigst du vorher, zahlst du nichts.'),
+        step(Icons.lock_open_rounded, AppColors.positive, tr('Heute'),
+            tr('Alles von Plus ist sofort freigeschaltet.')),
+        step(Icons.event_available_rounded, AppColors.primary, tr('Bis {x}', {'x': Dates.dayMonth(lastFree)}),
+            tr('Gratis testen. Kündigst du vorher, zahlst du nichts.')),
         step(Icons.payments_rounded, AppColors.textDim, 'Ab ${Dates.full(_trialEnd)}', price, last: true),
         if (_promoApplied != null) ...[
           const SizedBox(height: 12),
@@ -598,7 +596,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               const Icon(Icons.redeem_rounded, color: AppColors.positive, size: 18),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('$_promoApplied: $_extraDays Tage extra gratis',
+                child: Text(tr('{promoApplied}: {extraDays} Tage extra gratis', {'promoApplied': _promoApplied, 'extraDays': _extraDays}),
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               ),
             ]),
@@ -607,10 +605,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ]);
     } else {
       body = Column(children: [
-        Text('Preis und ggf. Testzeitraum siehst du im Store vor dem Kauf.',
+        Text(tr('Preis und ggf. Testzeitraum siehst du im Store vor dem Kauf.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
         Divider(height: 24, color: AppColors.border),
-        step(Icons.payments_rounded, AppColors.textDim, 'Danach', '$price, bis du kündigst', last: true),
+        step(Icons.payments_rounded, AppColors.textDim, tr('Danach'), tr('{price}, bis du kündigst', {'price': price}), last: true),
       ]);
     }
     return Container(
@@ -668,20 +666,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String _hint(PayMethod m) => switch (m) {
-        PayMethod.appStore => 'Mit deiner Apple-ID, kündbar in den Einstellungen',
-        PayMethod.googlePlay => 'Mit deinem Google-Konto, kündbar im Play Store',
-        PayMethod.applePay => 'Mit Face ID oder Touch ID bestätigen',
-        PayMethod.googlePay => 'Mit deinem Google-Konto bestätigen',
-        PayMethod.paypal => 'Schnell und mit Käuferschutz',
-        PayMethod.card => 'Visa, Mastercard, American Express',
-        PayMethod.sepa => 'Bequem vom Girokonto',
-        PayMethod.klarna => 'Später bezahlen, 30 Tage Zahlungsziel',
+        PayMethod.appStore => tr('Mit deiner Apple-ID, kündbar in den Einstellungen'),
+        PayMethod.googlePlay => tr('Mit deinem Google-Konto, kündbar im Play Store'),
+        PayMethod.applePay => tr('Mit Face ID oder Touch ID bestätigen'),
+        PayMethod.googlePay => tr('Mit deinem Google-Konto bestätigen'),
+        PayMethod.paypal => tr('Schnell und mit Käuferschutz'),
+        PayMethod.card => tr('Visa, Mastercard, American Express'),
+        PayMethod.sepa => tr('Bequem vom Girokonto'),
+        PayMethod.klarna => tr('Später bezahlen, 30 Tage Zahlungsziel'),
       };
 
   Widget _form(PayMethod m) {
     final fields = switch (m) {
       PayMethod.card => [
-          _field(_cardNumber, 'Kartennummer', '1234 5678 9012 3456',
+          _field(_cardNumber, tr('Kartennummer'), '1234 5678 9012 3456',
               error: _cardNumberError,
               keyboard: TextInputType.number,
               formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(19), _GroupFormatter(4)],
@@ -695,14 +693,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 10),
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
-              child: _field(_expiry, 'Gültig bis', 'MM/JJ',
+              child: _field(_expiry, tr('Gültig bis'), 'MM/JJ',
                   error: _expiryError,
                   keyboard: TextInputType.number,
                   formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4), _ExpiryFormatter()]),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _field(_cvc, 'Prüfnummer', 'CVC',
+              child: _field(_cvc, tr('Prüfnummer'), 'CVC',
                   error: _cvcError,
                   keyboard: TextInputType.number,
                   obscure: true,
@@ -711,7 +709,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ]),
         ],
       PayMethod.sepa => [
-          _field(_holder, 'Kontoinhaber', 'Vor- und Nachname', error: _holderError, keyboard: TextInputType.name),
+          _field(_holder, tr('Kontoinhaber'), tr('Vor- und Nachname'), error: _holderError, keyboard: TextInputType.name),
           const SizedBox(height: 10),
           _field(_iban, 'IBAN', 'DE00 0000 0000 0000 0000 00',
               error: _ibanError,
@@ -729,8 +727,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    'Ich ermächtige BudgetBuddy, Zahlungen von meinem Konto per Lastschrift einzuziehen '
-                    '(SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.',
+                    tr('Ich ermächtige BudgetBuddy, Zahlungen von meinem Konto per Lastschrift einzuziehen (SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.'),
                     style: TextStyle(
                         fontSize: 12,
                         color: _showErrors && !_mandate ? AppColors.errorText : AppColors.textDim),
@@ -741,18 +738,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ],
       PayMethod.paypal => [
-          _field(_paypal, 'PayPal-E-Mail', 'du@beispiel.de', error: _paypalError, keyboard: TextInputType.emailAddress),
+          _field(_paypal, tr('PayPal-E-Mail'), 'du@beispiel.de', error: _paypalError, keyboard: TextInputType.emailAddress),
           const SizedBox(height: 8),
-          _note(Icons.open_in_new_rounded, 'Zum Bestätigen wirst du kurz zu PayPal weitergeleitet.'),
+          _note(Icons.open_in_new_rounded, tr('Zum Bestätigen wirst du kurz zu PayPal weitergeleitet.')),
         ],
       PayMethod.klarna => [
-          _note(Icons.schedule_rounded, 'Klarna schickt dir nach dem Test eine Rechnung. Du hast 30 Tage Zeit.'),
+          _note(Icons.schedule_rounded, tr('Klarna schickt dir nach dem Test eine Rechnung. Du hast 30 Tage Zeit.')),
         ],
       PayMethod.applePay || PayMethod.googlePay => [
-          _note(Icons.fingerprint_rounded, 'Beim Start fragt dein Gerät nach der Bestätigung. Keine Kartendaten nötig.'),
+          _note(Icons.fingerprint_rounded, tr('Beim Start fragt dein Gerät nach der Bestätigung. Keine Kartendaten nötig.')),
         ],
       PayMethod.appStore || PayMethod.googlePlay => [
-          _note(Icons.verified_user_rounded, 'Abrechnung, Kündigung und Erstattung laufen über den Store.'),
+          _note(Icons.verified_user_rounded, tr('Abrechnung, Kündigung und Erstattung laufen über den Store.')),
         ],
     };
     return Padding(
@@ -798,7 +795,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         child: TextButton.icon(
           onPressed: () => setState(() => _promoOpen = true),
           icon: const Icon(Icons.redeem_rounded, size: 18),
-          label: const Text('Gutscheincode einlösen'),
+          label: Text(tr('Gutscheincode einlösen')),
         ),
       );
     }
@@ -811,7 +808,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
             onSubmitted: (_) => _applyPromo(),
-            decoration: InputDecoration(labelText: 'Gutscheincode', errorText: _promoError),
+            decoration: InputDecoration(labelText: tr('Gutscheincode'), errorText: _promoError),
           ),
         ),
         const SizedBox(width: 10),
@@ -820,7 +817,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: FilledButton.tonal(
             style: FilledButton.styleFrom(minimumSize: const Size(0, 52)),
             onPressed: _applyPromo,
-            child: const Text('Einlösen'),
+            child: Text(tr('Einlösen')),
           ),
         ),
       ]),
@@ -829,16 +826,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _bottomBar() {
     final label = !_checkout
-        ? 'Zahlungsmethode speichern'
+        ? tr('Zahlungsmethode speichern')
         : _inStore
-            ? 'Weiter mit ${StorePurchases.storeName}'
+            ? tr('Weiter mit {storeName}', {'storeName': StorePurchases.storeName})
             : _server
-            ? 'Weiter zur Zahlung'
+            ? tr('Weiter zur Zahlung')
             : switch (_method) {
-            PayMethod.applePay => 'Mit Apple Pay gratis starten',
-            PayMethod.googlePay => 'Mit Google Pay gratis starten',
-            PayMethod.paypal => 'Weiter mit PayPal',
-            _ => '${PlusService.trialDays + _extraDays} Tage gratis starten',
+            PayMethod.applePay => tr('Mit Apple Pay gratis starten'),
+            PayMethod.googlePay => tr('Mit Google Pay gratis starten'),
+            PayMethod.paypal => tr('Weiter mit PayPal'),
+            _ => tr('{x} Tage gratis starten', {'x': PlusService.trialDays + _extraDays}),
           };
     // Apple's rule: a white Apple Pay button on dark backgrounds, black on light
     final wallet = !_server && _method == PayMethod.applePay;
@@ -864,11 +861,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 8),
           Text(
             _inStore
-                ? 'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit in den Abos '
-                    '${StorePurchases.platform == 'apple' ? 'deiner Apple-ID' : 'bei Google Play'}. '
-                    'Mit dem Start akzeptierst du die Nutzungsbedingungen.'
-                : 'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. '
-                    'Mit dem Start akzeptierst du die Nutzungsbedingungen.',
+                ? tr('Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit in den Abos {x}. Mit dem Start akzeptierst du die Nutzungsbedingungen.', {'x': StorePurchases.platform == 'apple' ? tr('deiner Apple-ID') : tr('bei Google Play')})
+                : tr('Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. Mit dem Start akzeptierst du die Nutzungsbedingungen.'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textDim, fontSize: 11),
           ),
@@ -900,13 +894,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const BuddyOrb(size: 56, active: true),
               const SizedBox(height: 16),
-              Text(_server ? 'Zahlungsseite wird geöffnet …' : _checkout ? 'Plus wird freigeschaltet …' : 'Wird gespeichert …',
+              Text(_server ? tr('Zahlungsseite wird geöffnet …') : _checkout ? tr('Plus wird freigeschaltet …') : tr('Wird gespeichert …'),
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.lock_rounded, size: 13, color: AppColors.textDim),
                 const SizedBox(width: 4),
-                Text('Verschlüsselte Verbindung', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                Text(tr('Verschlüsselte Verbindung'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ]),
             ]),
           ),
@@ -927,20 +921,20 @@ class MethodLogo extends StatelessWidget {
           Colors.white,
           Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.apple, color: Colors.white, size: 15),
-            Text(method == PayMethod.applePay ? 'Pay' : 'Store',
+            Text(method == PayMethod.applePay ? tr('Pay') : tr('Store'),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
           ])
         ),
       PayMethod.googlePay || PayMethod.googlePlay => (
           Colors.white,
           Colors.black,
-          Text(method == PayMethod.googlePay ? 'G Pay' : 'G Play',
+          Text(method == PayMethod.googlePay ? tr('G Pay') : tr('G Play'),
               style: const TextStyle(color: Color(0xFF3C4043), fontWeight: FontWeight.w800, fontSize: 12))
         ),
       PayMethod.paypal => (
           const Color(0xFF003087),
           Colors.white,
-          const Text('PayPal',
+          Text(tr('PayPal'),
               style: TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, fontSize: 11.5))
         ),
@@ -957,7 +951,7 @@ class MethodLogo extends StatelessWidget {
       PayMethod.klarna => (
           const Color(0xFFFFB3C7),
           Colors.black,
-          const Text('Klarna.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12))
+          Text(tr('Klarna.'), style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12))
         ),
     };
     return Container(
@@ -1006,11 +1000,11 @@ class _ExpiryFormatter extends TextInputFormatter {
 
 String _welcomeCta(String reason) {
   final r = reason.toLowerCase();
-  if (r.contains('beleg') || r.contains('scan')) return 'Beleg jetzt scannen';
+  if (r.contains('beleg') || r.contains('scan')) return tr('Beleg jetzt scannen');
   if (r.contains('sparziel') || r.contains('autopilot') || r.contains('ziel')) {
-    return 'Sparziele öffnen';
+    return tr('Sparziele öffnen');
   }
-  return 'Buddy öffnen';
+  return tr('Buddy öffnen');
 }
 
 // Shown once after the start: what is unlocked and when the first payment is.
@@ -1059,23 +1053,22 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
               FadeTransition(
                 opacity: fade,
                 child: Column(children: [
-                  const Text('Willkommen bei Plus',
+                  Text(tr('Willkommen bei Plus'),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
                   const SizedBox(height: 10),
                   Text(
                     sub.inTrial(DateTime.now())
-                        ? 'Dein Gratis-Test läuft bis ${Dates.full(sub.trialEnds)}. '
-                            'Bis dahin kostet es nichts, und du kannst jederzeit kündigen.'
-                        : 'Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.',
+                        ? tr('Dein Gratis-Test läuft bis {x}. Bis dahin kostet es nichts, und du kannst jederzeit kündigen.', {'x': Dates.full(sub.trialEnds)})
+                        : tr('Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4),
                   ),
                   const SizedBox(height: 28),
-                  for (final (icon, text) in const [
-                    (Icons.chat_bubble_outline_rounded, 'Buddy beantwortet jetzt jede Frage'),
-                    (Icons.document_scanner_rounded, 'Belege scannen ohne Limit'),
-                    (Icons.flag_rounded, 'So viele Sparziele, wie du willst'),
+                  for (final (icon, text) in [
+                    (Icons.chat_bubble_outline_rounded, tr('Buddy beantwortet jetzt jede Frage')),
+                    (Icons.document_scanner_rounded, tr('Belege scannen ohne Limit')),
+                    (Icons.flag_rounded, tr('So viele Sparziele, wie du willst')),
                   ])
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -1090,7 +1083,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
               ),
               const Spacer(),
               if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
-                Text('Das war der Grund. Probier es gleich aus.',
+                Text(tr('Das war der Grund. Probier es gleich aus.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
                 const SizedBox(height: 10),
@@ -1122,13 +1115,13 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Später', style: TextStyle(color: AppColors.textDim)),
+                  child: Text(tr('Später'), style: TextStyle(color: AppColors.textDim)),
                 ),
               ] else
                 FilledButton(
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Fertig', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                  child: Text(tr('Fertig'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
             ]),
           ),

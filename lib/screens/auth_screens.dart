@@ -17,11 +17,12 @@ import 'buddy_screen.dart';
 import 'connections_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
+import '../l10n/l10n.dart';
 
 // First screen for anyone not signed in: what the app does (a slowly
 // turning carousel) and sign-up / sign-in. Replaces a separate intro.
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+  WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -32,21 +33,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   int _page = 0;
   Timer? _auto;
 
-  static const _slides = [
+  static List<({IconData icon, String title, String text})> get _slides => [
     (
       icon: Icons.chat_bubble_outline_rounded,
-      title: 'Kann ich mir\ndas leisten?',
-      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.',
+      title: tr('Kann ich mir\ndas leisten?'),
+      text: tr('Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.'),
     ),
     (
       icon: Icons.chat_bubble_outline_rounded,
-      title: 'Erfassen, wie\ndu sprichst.',
-      text: 'Tipp „Döner 8,50 gestern“ oder knips den Beleg. Fertig. Kein Formular.',
+      title: tr('Erfassen, wie\ndu sprichst.'),
+      text: tr('Tipp „Döner 8,50 gestern“ oder knips den Beleg. Fertig. Kein Formular.'),
     ),
     (
       icon: Icons.receipt_long_rounded,
-      title: 'Abos im Griff.\nErhöhungen auch.',
-      text: 'BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
+      title: tr('Abos im Griff.\nErhöhungen auch.'),
+      text: tr('BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.'),
     ),
   ];
 
@@ -110,11 +111,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                     ]),
                     const SizedBox(height: 28),
-                    _PrimaryButton('Konto erstellen', onPressed: () => _open(const SignUpScreen())),
+                    _PrimaryButton(tr('Konto erstellen'), onPressed: () => _open(const SignUpScreen())),
                     const SizedBox(height: 10),
-                    _SecondaryButton('Ich habe schon ein Konto', onPressed: () => _open(const SignInScreen())),
+                    _SecondaryButton(tr('Ich habe schon ein Konto'), onPressed: () => _open(const SignInScreen())),
                     const SizedBox(height: 12),
-                    Text('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI',
+                    Text(tr('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
                   ]),
@@ -223,9 +224,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (!mounted) return;
       HapticFeedback.mediumImpact();
       if (!backedUp) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 3200),
-            content: Text('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.')));
+            content: Text(tr('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.'))));
       }
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
     } catch (e) {
@@ -241,16 +242,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final (strength, word) = passwordStrength(_password.text);
     final colors = passwordStrengthScale;
     return _AuthScaffold(
-      title: 'Konto erstellen',
-      subtitle: 'Damit sind deine Bankverbindungen nur für dich sichtbar.',
+      title: tr('Konto erstellen'),
+      subtitle: tr('Damit sind deine Bankverbindungen nur für dich sichtbar.'),
       children: [
         AutofillGroup(
           child: Column(children: [
-            _Field(controller: _name, label: 'Vorname', hints: const [AutofillHints.givenName], onChanged: _refresh),
+            _Field(controller: _name, label: tr('Vorname'), hints: const [AutofillHints.givenName], onChanged: _refresh),
             const SizedBox(height: 12),
             _Field(
               controller: _email,
-              label: 'E-Mail',
+              label: tr('E-Mail'),
               keyboard: TextInputType.emailAddress,
               hints: const [AutofillHints.email],
               onChanged: _refresh,
@@ -258,13 +259,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
             const SizedBox(height: 12),
             _Field(
               controller: _password,
-              label: 'Passwort',
+              label: tr('Passwort'),
               obscure: _hide,
               hints: const [AutofillHints.newPassword],
               onChanged: _refresh,
               onSubmitted: (_) => _valid && !_busy ? _submit() : null,
               suffix: IconButton(
-                tooltip: _hide ? 'Passwort zeigen' : 'Passwort verbergen',
+                tooltip: _hide ? tr('Passwort zeigen') : tr('Passwort verbergen'),
                 icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: AppColors.textDim),
                 onPressed: () => setState(() => _hide = !_hide),
               ),
@@ -288,14 +289,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           const SizedBox(width: 12),
           SizedBox(
             width: 96,
-            child: Text(_password.text.length < 8 ? 'Min. 8 Zeichen' : word,
+            child: Text(_password.text.length < 8 ? tr('Min. 8 Zeichen') : word,
                 style: TextStyle(fontSize: 12, color: AppColors.textDim)),
           ),
         ]),
         const SizedBox(height: 10),
         Text(
-          'Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. '
-          'Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.',
+          tr('Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.'),
           style: TextStyle(fontSize: 12, color: AppColors.warningText, height: 1.35),
         ),
         const SizedBox(height: 18),
@@ -313,10 +313,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text.rich(
                   TextSpan(children: [
-                    const TextSpan(text: 'Ich akzeptiere die '),
-                    _link('Nutzungsbedingungen', LegalTexts.terms),
-                    const TextSpan(text: ' und habe die '),
-                    _link('Datenschutzerklärung', LegalTexts.privacy),
+                    TextSpan(text: tr('Ich akzeptiere die ')),
+                    _link(tr('Nutzungsbedingungen'), LegalTexts.terms),
+                    TextSpan(text: tr(' und habe die ')),
+                    _link(tr('Datenschutzerklärung'), LegalTexts.privacy),
                     const TextSpan(text: ' gelesen.'),
                   ]),
                   style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.4),
@@ -327,13 +327,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         _ErrorText(_error),
         const SizedBox(height: 20),
-        _PrimaryButton('Konto erstellen', busy: _busy, onPressed: _valid ? _submit : null),
+        _PrimaryButton(tr('Konto erstellen'), busy: _busy, onPressed: _valid ? _submit : null),
         const SizedBox(height: 8),
         Center(
           child: TextButton(
             onPressed: () =>
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
-            child: const Text('Ich habe schon ein Konto'),
+            child: Text(tr('Ich habe schon ein Konto')),
           ),
         ),
       ],
@@ -418,11 +418,10 @@ class _SignInScreenState extends State<SignInScreen> {
         await CloudSync.forget();
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 4200),
             content: Text(
-                'Deine gesicherten Daten konnten gerade nicht geladen werden. '
-                'Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.')));
+                tr('Deine gesicherten Daten konnten gerade nicht geladen werden. Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.'))));
       }
     }
   }
@@ -430,17 +429,17 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return _AuthScaffold(
-      title: _challenge == null ? 'Willkommen zurück' : 'Code eingeben',
+      title: _challenge == null ? tr('Willkommen zurück') : tr('Code eingeben'),
       subtitle: _challenge == null
-          ? 'Melde dich mit deiner E-Mail an.'
-          : 'Der Code aus der Authenticator-App schützt nur die Anmeldung. Deine Umsätze bleiben auf dem Gerät.',
+          ? tr('Melde dich mit deiner E-Mail an.')
+          : tr('Der Code aus der Authenticator-App schützt nur die Anmeldung. Deine Umsätze bleiben auf dem Gerät.'),
       children: [
         if (_challenge == null)
           AutofillGroup(
             child: Column(children: [
               _Field(
                 controller: _email,
-                label: 'E-Mail',
+                label: tr('E-Mail'),
                 keyboard: TextInputType.emailAddress,
                 hints: const [AutofillHints.email],
                 onChanged: (_) => setState(() => _error = null),
@@ -448,7 +447,7 @@ class _SignInScreenState extends State<SignInScreen> {
               const SizedBox(height: 12),
               _Field(
                 controller: _password,
-                label: 'Passwort',
+                label: tr('Passwort'),
                 obscure: _hide,
                 hints: const [AutofillHints.password],
                 onChanged: (_) => setState(() => _error = null),
@@ -469,7 +468,7 @@ class _SignInScreenState extends State<SignInScreen> {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
             onChanged: (_) => setState(() => _error = null),
             onSubmitted: (_) => _valid && !_busy ? _submit() : null,
-            decoration: const InputDecoration(labelText: '6-stelliger Code'),
+            decoration: InputDecoration(labelText: tr('6-stelliger Code')),
           ),
         _ErrorText(_error),
         if (_challenge == null) ...[
@@ -477,13 +476,13 @@ class _SignInScreenState extends State<SignInScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () => showForgotPasswordSheet(context),
-              child: const Text('Passwort vergessen?'),
+              child: Text(tr('Passwort vergessen?')),
             ),
           ),
           const SizedBox(height: 8),
         ] else
           const SizedBox(height: 24),
-        _PrimaryButton(_challenge == null ? 'Anmelden' : 'Code prüfen', busy: _busy, onPressed: _valid ? _submit : null),
+        _PrimaryButton(_challenge == null ? tr('Anmelden') : tr('Code prüfen'), busy: _busy, onPressed: _valid ? _submit : null),
         const SizedBox(height: 8),
         Center(
           child: TextButton(
@@ -494,7 +493,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       _code.clear();
                       _error = null;
                     }),
-            child: Text(_challenge == null ? 'Neu hier? Konto erstellen' : 'Zurück zum Passwort'),
+            child: Text(_challenge == null ? tr('Neu hier? Konto erstellen') : tr('Zurück zum Passwort')),
           ),
         ),
       ],
@@ -514,26 +513,22 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Passwort vergessen',
+          Text(tr('Passwort vergessen'),
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
           const SizedBox(height: 12),
           Text(
-            'Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur '
-            'Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.',
+            tr('Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.'),
             style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
           ),
           const SizedBox(height: 12),
           Text(
-            'Was du tun kannst:\n'
-            '• Passwort noch einmal in Ruhe versuchen\n'
-            '• Neues Konto anlegen und lokal neu starten\n'
-            '• Bei Fragen zur Konto-Löschung schreib uns',
+            tr('Was du tun kannst:\n• Passwort noch einmal in Ruhe versuchen\n• Neues Konto anlegen und lokal neu starten\n• Bei Fragen zur Konto-Löschung schreib uns'),
             style: TextStyle(fontSize: 15, color: AppColors.text, height: 1.5),
           ),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Verstanden'),
+            child: Text(tr('Verstanden')),
           ),
           const SizedBox(height: 8),
           TextButton(
@@ -546,11 +541,11 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
               Navigator.pop(ctx);
               if (!await launchUrl(uri) && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Schreib an ${LegalInfo.email}')),
+                  SnackBar(content: Text(tr('Schreib an {email}', {'email': LegalInfo.email}))),
                 );
               }
             },
-            child: const Text('E-Mail an Support'),
+            child: Text(tr('E-Mail an Support')),
           ),
         ],
       ),
@@ -583,7 +578,7 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
         Navigator.push(shell, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
       } else if (buddy) {
         // demo numbers + the one question that sells the coach
-        BuddyScreen.ask.value = 'Kann ich mir 800 € Urlaub leisten?';
+        BuddyScreen.ask.value = tr('Kann ich mir 800 € Urlaub leisten?');
       }
     });
   }
@@ -596,31 +591,31 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           children: [
-            Text(name != null ? 'Hallo $name' : 'Los geht\'s',
+            Text(name != null ? tr('Hallo {name}', {'name': name}) : tr('Los geht\'s'),
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
-            Text('Wähle, wie du starten willst. Du kannst alles später ändern.',
+            Text(tr('Wähle, wie du starten willst. Du kannst alles später ändern.'),
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
             _ChoiceCard(
               icon: Icons.account_balance_rounded,
-              title: 'Bankkonto verbinden',
-              text: 'Login nur bei deiner Bank. Kontostand und Umsätze kommen automatisch.',
-              badge: 'Empfohlen',
+              title: tr('Bankkonto verbinden'),
+              text: tr('Login nur bei deiner Bank. Kontostand und Umsätze kommen automatisch.'),
+              badge: tr('Empfohlen'),
               onTap: _busy ? null : () => _finish(bank: true),
             ),
             const SizedBox(height: 12),
             _ChoiceCard(
               icon: Icons.edit_note_rounded,
-              title: 'Leer starten',
-              text: 'Selbst tippen oder Belege scannen, mit deinen echten Zahlen.',
+              title: tr('Leer starten'),
+              text: tr('Selbst tippen oder Belege scannen, mit deinen echten Zahlen.'),
               onTap: _busy ? null : () => _finish(),
             ),
             const SizedBox(height: 12),
             _ChoiceCard(
               icon: Icons.science_rounded,
-              title: 'Mit Beispieldaten testen',
-              text: 'Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.',
+              title: tr('Mit Beispieldaten testen'),
+              text: tr('Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.'),
               onTap: _busy ? null : () => _finish(demo: true, buddy: true),
             ),
             if (_busy)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // The app mark, drawn like the app icon: a geometric "b" (stem and coin
 // ring) in white on the brand colour.
@@ -56,8 +57,8 @@ class Wordmark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text.rich(
       TextSpan(children: [
-        TextSpan(text: 'Budget', style: TextStyle(color: AppColors.text)),
-        const TextSpan(text: 'Buddy', style: TextStyle(color: AppColors.brand)),
+        TextSpan(text: tr('Budget'), style: TextStyle(color: AppColors.text)),
+        TextSpan(text: tr('Buddy'), style: TextStyle(color: AppColors.brand)),
       ]),
       style: TextStyle(fontSize: size, fontWeight: FontWeight.w800, letterSpacing: -0.5),
     );

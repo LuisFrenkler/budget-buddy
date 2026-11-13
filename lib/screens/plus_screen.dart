@@ -9,6 +9,7 @@ import '../widgets/free_tier_usage.dart';
 import '../legal/legal_texts.dart';
 import 'about_screen.dart';
 import 'subscription_screen.dart';
+import '../l10n/l10n.dart';
 
 // Opens the Plus page; [reason] says what the user just tried to do, so the
 // page starts with that instead of a generic pitch.
@@ -22,7 +23,7 @@ Future<void> showPlus(BuildContext context, {String? reason}) {
 
 class PlusScreen extends StatefulWidget {
   final String? reason;
-  const PlusScreen({super.key, this.reason});
+  PlusScreen({super.key, this.reason});
 
   @override
   State<PlusScreen> createState() => _PlusScreenState();
@@ -54,11 +55,11 @@ class _PlusScreenState extends State<PlusScreen> {
   bool? get _trial => StorePurchases.trial[_yearly ? PlusPlan.yearly : PlusPlan.monthly];
   bool get _hasTrial => _trial == true;
 
-  static const _features = [
-    (Icons.chat_bubble_outline_rounded, 'Buddy ohne Limit', 'Frag so oft du willst'),
-    (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Fotografieren statt abtippen'),
-    (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
-    (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
+  static List<(IconData, String, String)> get _features => [
+    (Icons.chat_bubble_outline_rounded, tr('Buddy ohne Limit'), tr('Frag so oft du willst')),
+    (Icons.document_scanner_rounded, tr('Belege ohne Limit'), tr('Fotografieren statt abtippen')),
+    (Icons.flag_rounded, tr('Unbegrenzte Sparziele'), tr('Beliebig viele, mit Aufrunden und Monatsbetrag')),
+    (Icons.favorite_rounded, tr('Du unterstützt BudgetBuddy'), tr('Ohne Werbung, ohne Datenverkauf')),
   ];
 
   Future<void> _buy() async {
@@ -73,7 +74,7 @@ class _PlusScreenState extends State<PlusScreen> {
     if (!mounted) return;
     setState(() => _restoring = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
-        content: Text(found ? 'Dein Plus-Abo ist wieder aktiv' : 'Kein Abo gefunden, das wiederhergestellt werden kann')));
+        content: Text(found ? tr('Dein Plus-Abo ist wieder aktiv') : tr('Kein Abo gefunden, das wiederhergestellt werden kann'))));
     if (found) Navigator.pop(context);
   }
 
@@ -97,16 +98,16 @@ class _PlusScreenState extends State<PlusScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
-                  tooltip: 'Schließen', icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+                  tooltip: tr('Schließen'), icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
             ),
             const Spacer(),
             const BuddyOrb(size: 88),
             const SizedBox(height: 24),
-            const Text('Plus ist aktiv',
+            Text(tr('Plus ist aktiv'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
             const SizedBox(height: 10),
-            Text('Buddy, Belege und Sparziele laufen ohne Limit.',
+            Text(tr('Buddy, Belege und Sparziele laufen ohne Limit.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4)),
             const Spacer(),
             FilledButton(
@@ -115,10 +116,10 @@ class _PlusScreenState extends State<PlusScreen> {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
               },
-              child: const Text('Mein Abo verwalten'),
+              child: Text(tr('Mein Abo verwalten')),
             ),
             const SizedBox(height: 8),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Schließen')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Schließen'))),
           ]),
         ),
       ),
@@ -133,7 +134,7 @@ class _PlusScreenState extends State<PlusScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: IconButton(
-                  tooltip: 'Schließen', icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+                  tooltip: tr('Schließen'), icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
             ),
             Expanded(
               child: ListView(
@@ -155,14 +156,14 @@ class _PlusScreenState extends State<PlusScreen> {
                     ),
                     const SizedBox(height: 14),
                   ],
-                  const Text('BudgetBuddy Plus',
+                  Text(tr('BudgetBuddy Plus'),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
                   const SizedBox(height: 8),
                   Text(
                       _hasTrial
-                          ? '7 Tage gratis testen · danach jederzeit kündbar'
-                          : 'Jederzeit kündbar · ohne Werbung',
+                          ? tr('7 Tage gratis testen · danach jederzeit kündbar')
+                          : tr('Jederzeit kündbar · ohne Werbung'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim, fontSize: 15)),
                   const SizedBox(height: 26),
@@ -195,8 +196,7 @@ class _PlusScreenState extends State<PlusScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, '
-                          'Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.',
+                          tr('Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.'),
                           style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
                         ),
                       ),
@@ -222,7 +222,7 @@ class _PlusScreenState extends State<PlusScreen> {
                 FilledButton(
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
                   onPressed: _buy,
-                  child: Text(_hasTrial ? '7 Tage gratis testen' : 'Plus starten',
+                  child: Text(_hasTrial ? tr('7 Tage gratis testen') : tr('Plus starten'),
                       style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(height: 8),
@@ -230,12 +230,8 @@ class _PlusScreenState extends State<PlusScreen> {
                 // automatic renewal, where to cancel, and the legal texts
                 Text(
                   _hasTrial
-                      ? 'Danach ${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
-                          '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar '
-                          '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.'
-                      : '${PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly)} '
-                          '${_yearly ? 'im Jahr' : 'im Monat'}, verlängert sich automatisch, jederzeit kündbar '
-                          '${StorePurchases.supported ? 'im ${StorePurchases.storeName}' : 'unter Profil › Mein Abo'}.',
+                      ? tr('Danach {x} {x2}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? 'im ${StorePurchases.storeName}' : tr('unter Profil › Mein Abo')})
+                      : tr('{x} {x2}, verlängert sich automatisch, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? 'im ${StorePurchases.storeName}' : tr('unter Profil › Mein Abo')}),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
                 ),
@@ -248,7 +244,7 @@ class _PlusScreenState extends State<PlusScreen> {
                           textStyle: const TextStyle(fontSize: 12)),
                       onPressed: () =>
                           Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: doc))),
-                      child: Text(doc.title == 'Nutzungsbedingungen' ? 'AGB' : 'Datenschutz'),
+                      child: Text(doc.title == 'Nutzungsbedingungen' ? 'AGB' : tr('Datenschutz')),
                     ),
                   TextButton(
                     onPressed: _restoring ? null : _restore,
@@ -256,7 +252,7 @@ class _PlusScreenState extends State<PlusScreen> {
                         foregroundColor: AppColors.textDim,
                         visualDensity: VisualDensity.compact,
                         textStyle: const TextStyle(fontSize: 12)),
-                    child: Text(_restoring ? 'Wird gesucht …' : 'Käufe wiederherstellen'),
+                    child: Text(_restoring ? tr('Wird gesucht …') : tr('Käufe wiederherstellen')),
                   ),
                 ]),
               ]),
@@ -293,7 +289,7 @@ class _PlusScreenState extends State<PlusScreen> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(yearly ? 'Jährlich' : 'Monatlich', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                Text(yearly ? tr('Jährlich') : tr('Monatlich'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 if (yearly) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -304,7 +300,7 @@ class _PlusScreenState extends State<PlusScreen> {
                   ),
                 ],
               ]),
-              Text(yearly ? 'nur ${PlusService.yearlyPerMonth} im Monat' : 'monatlich kündbar',
+              Text(yearly ? tr('nur {yearlyPerMonth} im Monat', {'yearlyPerMonth': PlusService.yearlyPerMonth}) : tr('monatlich kündbar'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),

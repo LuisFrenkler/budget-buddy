@@ -6,6 +6,7 @@ import '../legal/legal_texts.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import '../widgets/settings_list.dart';
+import '../l10n/l10n.dart';
 
 // "Über BudgetBuddy": version, help and every legal page in one place.
 class AboutScreen extends StatelessWidget {
@@ -19,7 +20,7 @@ class AboutScreen extends StatelessWidget {
     if (LegalInfo.email.startsWith('[') || !await launchUrl(uri)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text('Schreib uns an ${LegalInfo.email}')));
+            .showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(tr('Schreib uns an {email}', {'email': LegalInfo.email}))));
       }
     }
   }
@@ -27,7 +28,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Über BudgetBuddy')),
+      appBar: AppBar(title: Text(tr('Über BudgetBuddy'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
@@ -37,11 +38,11 @@ class AboutScreen extends StatelessWidget {
           const Center(child: Wordmark(size: 24)),
           const SizedBox(height: 4),
           Center(
-            child: Text('Version ${LegalInfo.appVersion}', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+            child: Text(tr('Version {appVersion}', {'appVersion': LegalInfo.appVersion}), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           ),
           const SizedBox(height: 10),
           Center(
-            child: Text('Konto, Budgets und Depot an einem Ort. Deine Daten bleiben verschlüsselt.',
+            child: Text(tr('Konto, Budgets und Depot an einem Ort. Deine Daten bleiben verschlüsselt.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 14)),
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[
@@ -55,58 +56,57 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Vor der Veröffentlichung noch: ${LegalInfo.missing.isEmpty ? 'Anbieter-Angaben' : LegalInfo.missing.join(', ')}. '
-                    'Nur in Test-Versionen sichtbar.',
+                    tr('Vor der Veröffentlichung noch: {x}. Nur in Test-Versionen sichtbar.', {'x': LegalInfo.missing.isEmpty ? tr('Anbieter-Angaben') : LegalInfo.missing.join(', ')}),
                     style: const TextStyle(fontSize: 12.5),
                   ),
                 ),
               ]),
             ),
           ],
-          const SectionLabel('Hilfe'),
+          SectionLabel(tr('Hilfe')),
           SettingsGroup([
             SettingsRow(
               icon: Icons.mail_outline_rounded,
-              title: 'Support kontaktieren',
-              subtitle: 'Wir antworten meist innerhalb eines Tages',
-              onTap: () => _mail(context, 'BudgetBuddy Support'),
+              title: tr('Support kontaktieren'),
+              subtitle: tr('Wir antworten meist innerhalb eines Tages'),
+              onTap: () => _mail(context, tr('BudgetBuddy Support')),
               external: true,
             ),
             SettingsRow(
               icon: Icons.lightbulb_outline_rounded,
-              title: 'Idee vorschlagen',
-              subtitle: 'Was würde BudgetBuddy für dich besser machen?',
-              onTap: () => _mail(context, 'Idee für BudgetBuddy'),
+              title: tr('Idee vorschlagen'),
+              subtitle: tr('Was würde BudgetBuddy für dich besser machen?'),
+              onTap: () => _mail(context, tr('Idee für BudgetBuddy')),
               external: true,
             ),
             SettingsRow(
               icon: Icons.info_outline_rounded,
-              title: 'Wichtige Hinweise',
-              subtitle: 'Keine Anlageberatung, Kurse, KI',
+              title: tr('Wichtige Hinweise'),
+              subtitle: tr('Keine Anlageberatung, Kurse, KI'),
               onTap: () => _open(context, LegalTexts.notes),
             ),
           ]),
-          const SectionLabel('Rechtliches'),
+          SectionLabel(tr('Rechtliches')),
           SettingsGroup([
-            SettingsRow(icon: Icons.business_rounded, title: 'Impressum', onTap: () => _open(context, LegalTexts.imprint)),
+            SettingsRow(icon: Icons.business_rounded, title: tr('Impressum'), onTap: () => _open(context, LegalTexts.imprint)),
             SettingsRow(
                 icon: Icons.privacy_tip_outlined,
-                title: 'Datenschutzerklärung',
+                title: tr('Datenschutzerklärung'),
                 onTap: () => _open(context, LegalTexts.privacy)),
             SettingsRow(
                 icon: Icons.description_outlined,
-                title: 'Nutzungsbedingungen',
+                title: tr('Nutzungsbedingungen'),
                 onTap: () => _open(context, LegalTexts.terms)),
             SettingsRow(
                 icon: Icons.undo_rounded,
-                title: 'Widerrufsbelehrung',
+                title: tr('Widerrufsbelehrung'),
                 onTap: () => _open(context, LegalTexts.withdrawal)),
             SettingsRow(
               icon: Icons.code_rounded,
-              title: 'Open-Source-Lizenzen',
+              title: tr('Open-Source-Lizenzen'),
               onTap: () => showLicensePage(
                 context: context,
-                applicationName: 'BudgetBuddy',
+                applicationName: tr('BudgetBuddy'),
                 applicationVersion: LegalInfo.appVersion,
                 applicationIcon: const Padding(padding: EdgeInsets.all(12), child: BrandMark(size: 48)),
               ),
@@ -114,7 +114,7 @@ class AboutScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 28),
           Center(
-            child: Text('Entwickelt in Deutschland', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+            child: Text(tr('Entwickelt in Deutschland'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
           ),
         ],
       ),

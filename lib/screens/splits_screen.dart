@@ -11,6 +11,7 @@ import 'auth_screens.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // "Geteilt": shared spending (WG, trip, couple). Local until you invite,
 // then BudgetBuddy accounts sync via a 6-char code. Non-users need an account.
@@ -24,8 +25,7 @@ bool _validSplitInviteEmail(String raw) => _splitEmailPattern.hasMatch(raw.trim(
 String splitError(Object e) {
   final s = '$e';
   if (RegExp(r'Exception|Error|Failed|Socket|Timeout|Offline|handshake', caseSensitive: false).hasMatch(s)) {
-    return 'Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal. '
-        'Sobald du wieder online bist, tippe auf Aktualisieren.';
+    return tr('Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal. Sobald du wieder online bist, tippe auf Aktualisieren.');
   }
   return s;
 }
@@ -41,11 +41,11 @@ class SplitsScreen extends StatelessWidget {
         final groups = SplitService.all();
         final total = SplitService.myTotal();
         return Scaffold(
-          appBar: AppBar(title: const Text('Geteilt'), actions: [
+          appBar: AppBar(title: Text(tr('Geteilt')), actions: [
             TextButton.icon(
               onPressed: () => joinSplitGroup(context),
               icon: const Icon(Icons.vpn_key_rounded, size: 18),
-              label: const Text('Mit Code beitreten'),
+              label: Text(tr('Mit Code beitreten')),
             ),
           ]),
           floatingActionButton: groups.isEmpty
@@ -53,17 +53,17 @@ class SplitsScreen extends StatelessWidget {
               : FloatingActionButton.extended(
                   onPressed: () => newSplitGroup(context),
                   icon: const Icon(Icons.group_add_rounded),
-                  label: const Text('Neue Gruppe', style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: Text(tr('Neue Gruppe'), style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
           body: groups.isEmpty
               ? _empty(context)
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
                   children: [
-                    Text(total == 0 ? 'Alles ausgeglichen' : (total > 0 ? 'Du bekommst insgesamt' : 'Du schuldest insgesamt'),
+                    Text(total == 0 ? tr('Alles ausgeglichen') : (total > 0 ? tr('Du bekommst insgesamt') : tr('Du schuldest insgesamt')),
                         style: TextStyle(color: AppColors.textDim)),
                     const SizedBox(height: 4),
-                    Text(total == 0 ? 'Quitt' : Money.format(total.abs()),
+                    Text(total == 0 ? tr('Quitt') : Money.format(total.abs()),
                         style: TextStyle(
                             fontSize: 38,
                             fontWeight: FontWeight.w800,
@@ -84,11 +84,11 @@ class SplitsScreen extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.call_split_rounded, size: 48, color: AppColors.primary.withValues(alpha: 0.85)),
             const SizedBox(height: 18),
-            const Text('Ausgaben teilen,\nohne Rechnerei',
+            Text(tr('Ausgaben teilen,\nohne Rechnerei'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, height: 1.2, letterSpacing: -0.4)),
             const SizedBox(height: 10),
-            Text('Lege eine Gruppe an. Freunde einladen geht danach.',
+            Text(tr('Lege eine Gruppe an. Freunde einladen geht danach.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.35)),
             const SizedBox(height: 28),
@@ -96,12 +96,12 @@ class SplitsScreen extends StatelessWidget {
               style: FilledButton.styleFrom(minimumSize: const Size(200, 50)),
               onPressed: () => newSplitGroup(context),
               icon: const Icon(Icons.group_add_rounded),
-              label: const Text('Erste Gruppe'),
+              label: Text(tr('Erste Gruppe')),
             ),
             const SizedBox(height: 6),
             TextButton(
               onPressed: () => joinSplitGroup(context),
-              child: Text('Ich habe einen Einladungscode',
+              child: Text(tr('Ich habe einen Einladungscode'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ),
           ]),
@@ -138,7 +138,7 @@ class _GroupTile extends StatelessWidget {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(group.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                  Text('${group.members.length} Personen · ${group.expenses.length} Ausgaben${group.shared ? ' · geteilt' : ''}',
+                  Text(tr('{members} Personen · {expenses} Ausgaben{x}', {'members': group.members.length, 'expenses': group.expenses.length, 'x': group.shared ? ' · geteilt' : ''}),
                       style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                 ]),
               ),
@@ -148,7 +148,7 @@ class _GroupTile extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         color: mine > 0 ? AppColors.positiveText : (mine < 0 ? AppColors.errorText : AppColors.textDim))),
                 if (mine != 0)
-                  Text(mine > 0 ? 'bekommst du' : 'schuldest du',
+                  Text(mine > 0 ? tr('bekommst du') : tr('schuldest du'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ]),
             ]),
@@ -163,11 +163,11 @@ class _GroupTile extends StatelessWidget {
 Future<void> joinSplitGroup(BuildContext context, {String? code}) async {
   if (AccountService.current.value == null) {
     // the code waits for the sign-up
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-      content: const Text('Zum Beitreten brauchst du ein kostenloses Konto.'),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(persist: false, duration: Duration(seconds: 5), 
+      content: Text(tr('Zum Beitreten brauchst du ein kostenloses Konto.')),
       action: SnackBarAction(
-        label: 'Konto erstellen',
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+        label: tr('Konto erstellen'),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpScreen())),
       ),
     ));
     return;
@@ -188,7 +188,7 @@ Future<void> joinSplitGroup(BuildContext context, {String? code}) async {
 
 class _JoinSheet extends StatefulWidget {
   final String? code; // from an invite link
-  const _JoinSheet({this.code});
+  _JoinSheet({this.code});
 
   @override
   State<_JoinSheet> createState() => _JoinSheetState();
@@ -246,32 +246,32 @@ class _JoinSheetState extends State<_JoinSheet> {
   @override
   Widget build(BuildContext context) {
     final p = _preview;
-    final taken = ((p?['taken'] as List?) ?? const []).map((e) => (e as num).toInt()).toSet();
-    final members = ((p?['members'] as List?) ?? const []).cast<String>();
+    final taken = ((p?['taken'] as List?) ?? []).map((e) => (e as num).toInt()).toSet();
+    final members = ((p?['members'] as List?) ?? []).cast<String>();
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(p == null ? 'Mit Code beitreten' : '${p['emoji']} ${p['name']}',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 14),
+        Text(p == null ? tr('Mit Code beitreten') : '${p['emoji']} ${p['name']}',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        SizedBox(height: 14),
         if (p == null) ...[
           TextField(
             controller: _code,
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 6),
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 6),
             onSubmitted: (_) => _look(),
             decoration: InputDecoration(hintText: 'CODE', errorText: _error),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           FilledButton(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            style: FilledButton.styleFrom(minimumSize: Size.fromHeight(52)),
             onPressed: _busy ? null : _look,
-            child: const Text('Weiter', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            child: Text(tr('Weiter'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           ),
         ] else ...[
-          Text('Wer bist du in der Gruppe?', style: TextStyle(color: AppColors.textDim)),
-          const SizedBox(height: 8),
+          Text(tr('Wer bist du in der Gruppe?'), style: TextStyle(color: AppColors.textDim)),
+          SizedBox(height: 8),
           for (var i = 0; i < members.length; i++)
             ListTile(
               enabled: !taken.contains(i) && !_busy,
@@ -281,9 +281,9 @@ class _JoinSheetState extends State<_JoinSheet> {
                 child: Text(members[i].isEmpty ? '?' : members[i][0].toUpperCase(),
                     style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800)),
               ),
-              title: Text(members[i], style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: taken.contains(i) ? const Text('schon dabei') : null,
-              trailing: taken.contains(i) ? null : const Icon(Icons.chevron_right_rounded),
+              title: Text(members[i], style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: taken.contains(i) ? Text(tr('schon dabei')) : null,
+              trailing: taken.contains(i) ? null : Icon(Icons.chevron_right_rounded),
               onTap: () => _join(i),
             ),
           if (_error != null) Text(_error!, style: TextStyle(color: AppColors.errorText)),
@@ -299,19 +299,19 @@ Future<SplitGroup?> newSplitGroup(BuildContext context) => showModalBottomSheet<
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       showDragHandle: true,
-      builder: (_) => const _NewGroupSheet(),
+      builder: (_) => _NewGroupSheet(),
     );
 
 class _NewGroupSheet extends StatefulWidget {
-  const _NewGroupSheet();
+  _NewGroupSheet();
 
   @override
   State<_NewGroupSheet> createState() => _NewGroupSheetState();
 }
 
 class _NewGroupSheetState extends State<_NewGroupSheet> {
-  static const _presets = [('🏠', 'WG'), ('💑', 'Wir zwei'), ('✈️', 'Urlaub'), ('🍕', 'Freunde')];
-  final _name = TextEditingController(text: 'WG');
+  static List<(String, String)> get _presets => [('🏠', tr('WG')), ('💑', tr('Wir zwei')), ('✈️', tr('Urlaub')), ('🍕', tr('Freunde'))];
+  final _name = TextEditingController(text: tr('WG'));
   final _person = TextEditingController();
   final _personFocus = FocusNode();
   final _people = <String>[];
@@ -342,9 +342,9 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
     if (_people.isEmpty) return;
     final g = SplitGroup(
       id: const Uuid().v4(),
-      name: _name.text.trim().isEmpty ? 'Gruppe' : _name.text.trim(),
+      name: _name.text.trim().isEmpty ? tr('Gruppe') : _name.text.trim(),
       emoji: _emoji,
-      members: ['Ich', ..._people],
+      members: ['Ich', ..._people], // l10n: data
     );
     await SplitService.save(g);
     if (mounted) Navigator.pop(context, g);
@@ -355,7 +355,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Neue Gruppe', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Neue Gruppe'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
         Wrap(spacing: 8, children: [
           for (final (emoji, name) in _presets)
@@ -371,12 +371,12 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
             ),
         ]),
         const SizedBox(height: 12),
-        TextField(controller: _name, decoration: const InputDecoration(labelText: 'Name der Gruppe')),
+        TextField(controller: _name, decoration: InputDecoration(labelText: tr('Name der Gruppe'))),
         const SizedBox(height: 16),
-        Text('Wer ist dabei?', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(tr('Wer ist dabei?'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 8, children: [
-          const Chip(label: Text('Ich')),
+          Chip(label: Text(tr('Ich'))),
           for (final p in _people) InputChip(label: Text(p), onDeleted: () => setState(() => _people.remove(p))),
         ]),
         const SizedBox(height: 8),
@@ -387,7 +387,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _addPerson(),
           decoration: InputDecoration(
-            labelText: 'Name hinzufügen',
+            labelText: tr('Name hinzufügen'),
             suffixIcon: IconButton(icon: const Icon(Icons.person_add_alt_1_rounded), onPressed: _addPerson),
           ),
         ),
@@ -395,7 +395,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _people.isEmpty && _person.text.trim().isEmpty ? null : _save,
-          child: const Text('Gruppe anlegen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          child: Text(tr('Gruppe anlegen'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );
@@ -446,14 +446,14 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           autofocus: true,
           maxLength: 40,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Name', counterText: ''),
+          decoration: InputDecoration(hintText: tr('Name'), counterText: ''),
           onSubmitted: (v) => Navigator.pop(context, v.trim().isEmpty ? null : v.trim()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, ctrl.text.trim().isEmpty ? null : ctrl.text.trim()),
-            child: const Text('Speichern'),
+            child: Text(tr('Speichern')),
           ),
         ],
       ),
@@ -462,14 +462,14 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
 
   // someone new joins; expenses so far stay with the people who were there
   Future<void> _addMember(BuildContext context, SplitGroup g) async {
-    final name = await _askName(context, 'Wer ist neu dabei?');
+    final name = await _askName(context, tr('Wer ist neu dabei?'));
     if (name == null || !mounted) return;
     final messenger = ScaffoldMessenger.of(this.context);
     try {
       await SplitService.addMember(g, name);
       HapticFeedback.selectionClick();
       messenger.showSnackBar(SnackBar(
-          duration: const Duration(milliseconds: 2800), content: Text('$name ist jetzt dabei, ab der nächsten Ausgabe')));
+          duration: const Duration(milliseconds: 2800), content: Text(tr('{name} ist jetzt dabei, ab der nächsten Ausgabe', {'name': name}))));
     } catch (e) {
       messenger.showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(splitError(e))));
     }
@@ -493,7 +493,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       ),
     );
     if (index == null || !context.mounted) return;
-    final name = await _askName(context, 'Neuer Name', initial: g.members[index]);
+    final name = await _askName(context, tr('Neuer Name'), initial: g.members[index]);
     if (name == null || name == g.members[index] || !mounted) return;
     final messenger = ScaffoldMessenger.of(this.context);
     try {
@@ -509,19 +509,19 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     final open = mine == 0
         ? ''
         : mine > 0
-            ? '\n\nDu bekommst noch ${Money.raw(mine)}.'
-            : '\n\nDu schuldest noch ${Money.raw(-mine)}.';
+            ? tr('\n\nDu bekommst noch {x}.', {'x': Money.raw(mine)})
+            : tr('\n\nDu schuldest noch {x}.', {'x': Money.raw(-mine)});
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(g.shared ? (creator ? 'Gruppe für alle löschen?' : 'Gruppe verlassen?') : 'Gruppe löschen?'),
-        content: Text('${g.shared && creator ? 'Alle Mitglieder verlieren „${g.name}“ mit allen Ausgaben.' : 'Alle Ausgaben in „${g.name}“ sind dann von diesem Gerät weg.'}$open'),
+        title: Text(g.shared ? (creator ? tr('Gruppe für alle löschen?') : tr('Gruppe verlassen?')) : tr('Gruppe löschen?')),
+        content: Text(tr('{x}{open}', {'x': g.shared && creator ? tr('Alle Mitglieder verlieren „{name}“ mit allen Ausgaben.', {'name': g.name}) : tr('Alle Ausgaben in „{name}“ sind dann von diesem Gerät weg.', {'name': g.name}), 'open': open})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(g.shared && !creator ? 'Verlassen' : 'Löschen'),
+            child: Text(g.shared && !creator ? tr('Verlassen') : tr('Löschen')),
           ),
         ],
       ),
@@ -535,12 +535,11 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       final local = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Gerade keine Verbindung'),
-          content: const Text('Die anderen bekommen das erst mit, wenn du wieder online bist. '
-              'Nur von diesem Gerät entfernen?'),
+          title: Text(tr('Gerade keine Verbindung')),
+          content: Text(tr('Die anderen bekommen das erst mit, wenn du wieder online bist. Nur von diesem Gerät entfernen?')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Später')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Nur hier entfernen')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Später'))),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Nur hier entfernen'))),
           ],
         ),
       );
@@ -565,7 +564,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
       content: Text('„${e.title}“ entfernt'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () {
         final now = SplitService.byId(g.id);
         if (now != null) SplitService.addExpense(now, e);
       }),
@@ -633,12 +632,12 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
             title: Text('${g.emoji} ${g.name}'),
             actions: [
               IconButton(
-                tooltip: 'Einladen',
+                tooltip: tr('Einladen'),
                 icon: const Icon(Icons.person_add_alt_1_rounded),
                 onPressed: () => _invite(context, g),
               ),
               PopupMenuButton<String>(
-                tooltip: 'Mehr',
+                tooltip: tr('Mehr'),
                 color: AppColors.surfaceAlt,
                 onSelected: (choice) => switch (choice) {
                   'add' => _addMember(context, g),
@@ -646,13 +645,13 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                   _ => _remove(context, g, mine),
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'add', child: Text('Person hinzufügen')),
-                  const PopupMenuItem(value: 'rename', child: Text('Namen ändern')),
+                  PopupMenuItem(value: 'add', child: Text(tr('Person hinzufügen'))),
+                  PopupMenuItem(value: 'rename', child: Text(tr('Namen ändern'))),
                   PopupMenuItem(
                       value: 'delete',
                       child: Text(g.shared
-                          ? (g.me == 0 ? 'Gruppe für alle löschen' : 'Gruppe verlassen')
-                          : 'Gruppe löschen')),
+                          ? (g.me == 0 ? tr('Gruppe für alle löschen') : tr('Gruppe verlassen'))
+                          : tr('Gruppe löschen'))),
                 ],
               ),
             ],
@@ -660,7 +659,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => addSplitExpense(context, g),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Ausgabe', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(tr('Ausgabe'), style: TextStyle(fontWeight: FontWeight.w700)),
           ),
           body: RefreshIndicator(
             onRefresh: _refresh,
@@ -684,9 +683,9 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                       child: Text(
                           g.shared
                               ? (_syncError == null
-                                  ? 'Live mit der Gruppe · Code ${g.code}'
-                                  : 'Offline, letzter Stand. Zum Teilen brauchst du Verbindung.')
-                              : 'Nur auf diesem Gerät · Einladen synchronisiert mit anderen',
+                                  ? tr('Live mit der Gruppe · Code {code}', {'code': g.code})
+                                  : tr('Offline, letzter Stand. Zum Teilen brauchst du Verbindung.'))
+                              : tr('Nur auf diesem Gerät · Einladen synchronisiert mit anderen'),
                           style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                     ),
                     if (!g.shared && g.expenses.isNotEmpty)
@@ -695,13 +694,13 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                             visualDensity: VisualDensity.compact,
                             foregroundColor: AppColors.primaryText),
                         onPressed: () => _invite(context, g),
-                        child: const Text('Jetzt einladen'),
+                        child: Text(tr('Jetzt einladen')),
                       ),
                   ]),
                 ),
-                Text(mine == 0 ? 'Ihr seid quitt' : (mine > 0 ? 'Du bekommst' : 'Du schuldest'),
+                Text(mine == 0 ? tr('Ihr seid quitt') : (mine > 0 ? tr('Du bekommst') : tr('Du schuldest')),
                     style: TextStyle(color: AppColors.textDim)),
-                Text(mine == 0 ? 'Quitt' : Money.format(mine.abs()),
+                Text(mine == 0 ? tr('Quitt') : Money.format(mine.abs()),
                     style: TextStyle(
                         fontSize: 38,
                         fontWeight: FontWeight.w800,
@@ -709,7 +708,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                         color: mine > 0 ? AppColors.positiveText : (mine < 0 ? AppColors.errorText : AppColors.text))),
                 if (g.members.length > 1) ...[
                   const SizedBox(height: 18),
-                  Text('Stand in der Gruppe',
+                  Text(tr('Stand in der Gruppe'),
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   for (var i = 0; i < g.members.length; i++)
@@ -731,11 +730,11 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 ],
                 if (transfers.isNotEmpty) ...[
                   const SizedBox(height: 22),
-                  Text('So gleicht ihr aus',
+                  Text(tr('So gleicht ihr aus'),
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 4),
                   Text(
-                    'Markiere eine Zahlung, sobald das Geld geflossen ist.',
+                    tr('Markiere eine Zahlung, sobald das Geld geflossen ist.'),
                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                   ),
                   const SizedBox(height: 10),
@@ -753,7 +752,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text.rich(TextSpan(children: [
                               TextSpan(text: who(t.from), style: const TextStyle(fontWeight: FontWeight.w700)),
-                              TextSpan(text: ' zahlt an ', style: TextStyle(color: AppColors.textDim)),
+                              TextSpan(text: tr(' zahlt an '), style: TextStyle(color: AppColors.textDim)),
                               TextSpan(text: who(t.to), style: const TextStyle(fontWeight: FontWeight.w700)),
                             ])),
                             const SizedBox(height: 2),
@@ -762,22 +761,22 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                           ]),
                         ),
                         if (t.to == g.me)
-                          TextButton(onPressed: () => _remind(context, g, t), child: const Text('Erinnern')),
+                          TextButton(onPressed: () => _remind(context, g, t), child: Text(tr('Erinnern'))),
                         // only the people involved confirm a payment
                         if (t.from == g.me || t.to == g.me)
                           TextButton(
                             onPressed: () => _settle(context, g, t, who),
-                            child: Text(t.from == g.me ? 'Überwiesen' : 'Erhalten'),
+                            child: Text(t.from == g.me ? tr('Überwiesen') : tr('Erhalten')),
                           ),
                       ]),
                     ),
                 ] else if (mine != 0 && g.expenses.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Text('Sobald alle Ausgaben eingetragen sind, siehst du hier, wer wem wie viel schuldet.',
+                  Text(tr('Sobald alle Ausgaben eingetragen sind, siehst du hier, wer wem wie viel schuldet.'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
                 ],
                 const SizedBox(height: 18),
-                Text('Ausgaben', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(tr('Ausgaben'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
                 if (g.expenses.isEmpty)
                   Padding(
@@ -791,15 +790,15 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                         border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
                       ),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('Noch keine Ausgaben', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                        Text(tr('Noch keine Ausgaben'), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                         const SizedBox(height: 6),
-                        Text('Supermarkt, Miete, Urlaub: Wer was bezahlt hat, trägst du hier ein.',
+                        Text(tr('Supermarkt, Miete, Urlaub: Wer was bezahlt hat, trägst du hier ein.'),
                             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
                         const SizedBox(height: 12),
                         FilledButton.tonalIcon(
                           onPressed: () => addSplitExpense(context, g),
                           icon: const Icon(Icons.add_rounded, size: 18),
-                          label: const Text('Erste Ausgabe'),
+                          label: Text(tr('Erste Ausgabe')),
                         ),
                       ]),
                     ),
@@ -808,7 +807,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 // money that changed hands, newest first, so a settled debt stays traceable
                 if (g.settlements.isNotEmpty) ...[
                   const SizedBox(height: 18),
-                  Text('Ausgeglichen',
+                  Text(tr('Ausgeglichen'),
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   for (final st in g.settlements.reversed)
@@ -835,15 +834,13 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(paid ? 'Als überwiesen markieren?' : 'Zahlung erhalten?'),
+        title: Text(paid ? tr('Als überwiesen markieren?') : tr('Zahlung erhalten?')),
         content: Text(paid
-            ? 'Du hast ${who(t.to)} ${Money.raw(t.cents)} überwiesen oder bar gegeben? '
-                'Damit wird der offene Betrag in der Gruppe kleiner.'
-            : '${who(t.from)} hat dir ${Money.raw(t.cents)} gegeben? '
-                'Damit wird der offene Betrag in der Gruppe kleiner.'),
+            ? tr('Du hast {x} {x2} überwiesen oder bar gegeben? Damit wird der offene Betrag in der Gruppe kleiner.', {'x': who(t.to), 'x2': Money.raw(t.cents)})
+            : tr('{x} hat dir {x2} gegeben? Damit wird der offene Betrag in der Gruppe kleiner.', {'x': who(t.from), 'x2': Money.raw(t.cents)})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ja, bestätigen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Ja, bestätigen'))),
         ],
       ),
     );
@@ -863,7 +860,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       duration: const Duration(seconds: 5),
       content: Text('${Money.raw(t.cents)} ausgeglichen'),
       // taken back by the same amount the other way, so every device agrees
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () {
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () {
         final now = SplitService.byId(g.id);
         if (now != null) {
           SplitService.settle(
@@ -883,12 +880,11 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: AppColors.surface,
-          title: const Text('Gemeinsam rechnen'),
-          content: const Text('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein '
-              'kostenloses BudgetBuddy-Konto.'),
+          title: Text(tr('Gemeinsam rechnen')),
+          content: Text(tr('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein kostenloses BudgetBuddy-Konto.')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Später')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Konto erstellen')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Später'))),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Konto erstellen'))),
           ],
         ),
       );
@@ -908,8 +904,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!context.mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = 'Komm in unsere Gruppe „${group.name}“ bei BudgetBuddy, dann sehen wir alle, wer wem was schuldet. '
-        '${link != null ? 'Einfach hier tippen: $link\n' : ''}Code: ${group.code}';
+    final text = tr('Komm in unsere Gruppe „{name}“ bei BudgetBuddy, dann sehen wir alle, wer wem was schuldet. {x}Code: {code}', {'name': group.name, 'x': link != null ? tr('Einfach hier tippen: {link}\n', {'link': link}) : '', 'code': group.code});
     final next = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -918,9 +913,9 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Leute einladen', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Leute einladen'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('Andere brauchen ein kostenloses Konto, tippen unter „Geteilt“ auf „Mit Code beitreten“ und wählen ihren Namen.',
+            Text(tr('Andere brauchen ein kostenloses Konto, tippen unter „Geteilt“ auf „Mit Code beitreten“ und wählen ihren Namen.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             Center(
@@ -932,7 +927,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
               onPressed: () => Navigator.pop(context, 'email'),
               icon: const Icon(Icons.person_search_rounded),
-              label: const Text('Per E-Mail suchen'),
+              label: Text(tr('Per E-Mail suchen')),
             ),
             const SizedBox(height: 8),
             FilledButton.icon(
@@ -945,7 +940,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 }
               },
               icon: const Icon(Icons.ios_share_rounded),
-              label: const Text('Einladung senden'),
+              label: Text(tr('Einladung senden')),
             ),
             TextButton.icon(
               onPressed: () async {
@@ -953,7 +948,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 if (context.mounted) Navigator.pop(context);
               },
               icon: const Icon(Icons.copy_rounded, size: 18),
-              label: const Text('Code kopieren'),
+              label: Text(tr('Code kopieren')),
             ),
           ]),
         ),
@@ -1006,19 +1001,17 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = 'Hallo $found, komm in unsere Gruppe „${group.name}“ bei BudgetBuddy. '
-        '${link != null ? 'Tipp hier: $link\n' : ''}Code: ${group.code}. Dann wähl deinen Namen „$found“.';
+    final text = tr('Hallo {found}, komm in unsere Gruppe „{name}“ bei BudgetBuddy. {x}Code: {code}. Dann wähl deinen Namen „{found2}“.', {'found': found, 'name': group.name, 'x': link != null ? tr('Tipp hier: {link}\n', {'link': link}) : '', 'code': group.code, 'found2': found});
     await showDialog(
       context: this.context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text('$found gefunden'),
         content: Text(
-          'Platz „$found“ ist vorbereitet. Schick den Code ${group.code}. '
-          'Beim Beitreten wählt die Person den Namen „$found“.',
+          tr('Platz „{found}“ ist vorbereitet. Schick den Code {code}. Beim Beitreten wählt die Person den Namen „{found2}“.', {'found': found, 'code': group.code, 'found2': found}),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Später')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Später'))),
           FilledButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -1028,7 +1021,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                 await Clipboard.setData(ClipboardData(text: text));
               }
             },
-            child: const Text('Einladung senden'),
+            child: Text(tr('Einladung senden')),
           ),
         ],
       ),
@@ -1037,14 +1030,13 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
 
   // a friendly message with the amount, through the share sheet
   Future<void> _remind(BuildContext context, SplitGroup g, Transfer t) async {
-    final text = 'Hey ${g.members[t.from]}, kleine Erinnerung: Aus „${g.name}“ bekomme ich noch '
-        '${Money.raw(t.cents)} von dir. Danke dir.';
+    final text = tr('Hey {x}, kleine Erinnerung: Aus „{name}“ bekomme ich noch {x2} von dir. Danke dir.', {'x': g.members[t.from], 'name': g.name, 'x2': Money.raw(t.cents)});
     try {
       await Share.share(text);
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: text));
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Nachricht kopiert')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Nachricht kopiert'))));
       }
     }
   }
@@ -1073,12 +1065,12 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
     if (_busy) return;
     final mail = _email.text.trim();
     if (!_validSplitInviteEmail(mail)) {
-      setState(() => _error = 'Bitte gib eine gültige E-Mail-Adresse ein.');
+      setState(() => _error = tr('Bitte gib eine gültige E-Mail-Adresse ein.'));
       return;
     }
     final me = AccountService.current.value;
     if (me != null && mail.toLowerCase() == me.email.toLowerCase()) {
-      setState(() => _error = 'Das bist du, such jemand anderen aus der Gruppe.');
+      setState(() => _error = tr('Das bist du, such jemand anderen aus der Gruppe.'));
       return;
     }
     setState(() {
@@ -1091,7 +1083,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
       if (name == null) {
         setState(() {
           _busy = false;
-          _error = 'Kein BudgetBuddy-Konto mit dieser E-Mail.';
+          _error = tr('Kein BudgetBuddy-Konto mit dieser E-Mail.');
         });
         return;
       }
@@ -1113,9 +1105,9 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
       child: Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Person suchen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(tr('Person suchen'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        Text('Genau die E-Mail ihres BudgetBuddy-Kontos. Keine öffentliche Namenssuche.',
+        Text(tr('Genau die E-Mail ihres BudgetBuddy-Kontos. Keine öffentliche Namenssuche.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35)),
         const SizedBox(height: 14),
         TextField(
@@ -1126,7 +1118,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
           enableSuggestions: false,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            labelText: 'E-Mail',
+            labelText: tr('E-Mail'),
             hintText: 'freund@mail.de',
             errorText: _error,
           ),
@@ -1138,7 +1130,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
         const SizedBox(height: 12),
         FilledButton(
           onPressed: _busy ? null : _run,
-          child: Text(_busy ? 'Suche…' : 'Suchen'),
+          child: Text(_busy ? tr('Suche…') : tr('Suchen')),
         ),
         ]),
       ),
@@ -1256,7 +1248,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     final lo = parts.reduce((a, b) => a < b ? a : b);
     final hi = parts.reduce((a, b) => a > b ? a : b);
     if (lo == hi) return 'Je ${Money.format(lo)}';
-    return 'Je ${Money.format(lo)}–${Money.format(hi)} (Rest verteilt)';
+    return tr('Je {x}–{x2} (Rest verteilt)', {'x': Money.format(lo), 'x2': Money.format(hi)});
   }
 
   Map<int, int>? _shares(int cents) {
@@ -1265,14 +1257,14 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     for (final i in _among) {
       final v = Money.parseToCents(_exactAmt[i]?.text ?? '');
       if (v == null || v < 0) {
-        _error = 'Bitte für jede Person einen Betrag eingeben.';
+        _error = tr('Bitte für jede Person einen Betrag eingeben.');
         return null;
       }
       shares[i] = v;
     }
     final sum = shares.values.fold<int>(0, (a, b) => a + b);
     if (sum != cents) {
-      _error = 'Anteile (${Money.format(sum)}) müssen ${Money.format(cents)} ergeben.';
+      _error = tr('Anteile ({x}) müssen {x2} ergeben.', {'x': Money.format(sum), 'x2': Money.format(cents)});
       return null;
     }
     return shares;
@@ -1290,7 +1282,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     final g = widget.group;
     final expense = SplitExpense(
       id: widget.edit?.id ?? const Uuid().v4(),
-      title: _title.text.trim().isEmpty ? 'Ausgabe' : _title.text.trim(),
+      title: _title.text.trim().isEmpty ? tr('Ausgabe') : _title.text.trim(),
       cents: cents,
       paidBy: _paidBy,
       shares: share,
@@ -1315,15 +1307,15 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
     if (!mounted) return;
     Navigator.pop(context);
     final others = _paidBy == g.me ? cents - (share[g.me] ?? 0) : 0;
-    final where = g.shared ? g.name : '${g.name} (nur hier)';
+    final where = g.shared ? g.name : tr('{name} (nur hier)', {'name': g.name});
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         duration: const Duration(milliseconds: 3200),
         content: Text(widget.edit != null
-            ? 'Ausgabe aktualisiert'
+            ? tr('Ausgabe aktualisiert')
             : wasFirstLocal
-                ? 'Eingetragen'
+                ? tr('Eingetragen')
                 : others > 0
-                    ? 'In $where · ${Money.format(others)} bekommst du zurück'
+                    ? tr('In {where} · {x} bekommst du zurück', {'where': where, 'x': Money.format(others)})
                     : 'In $where eingetragen')));
   }
 
@@ -1335,10 +1327,10 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(widget.edit != null ? 'Ausgabe bearbeiten' : 'Ausgabe in ${widget.group.emoji} ${widget.group.name}',
+          Text(widget.edit != null ? tr('Ausgabe bearbeiten') : tr('Ausgabe in {emoji} {name}', {'emoji': widget.group.emoji, 'name': widget.group.name}),
               style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
           const SizedBox(height: 14),
-          TextField(controller: _title, decoration: const InputDecoration(labelText: 'Wofür?')),
+          TextField(controller: _title, decoration: InputDecoration(labelText: tr('Wofür?'))),
           const SizedBox(height: 10),
           TextField(
             controller: _amount,
@@ -1348,10 +1340,10 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
               setState(() {});
             },
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-            decoration: const InputDecoration(labelText: 'Betrag', suffixText: '€'),
+            decoration: InputDecoration(labelText: tr('Betrag'), suffixText: '€'),
           ),
           const SizedBox(height: 14),
-          Text('Bezahlt hat', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(tr('Bezahlt hat'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: [
             for (var i = 0; i < members.length; i++)
@@ -1360,12 +1352,12 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
                 showCheckmark: false,
                 side: BorderSide(color: _paidBy == i ? AppColors.primary : AppColors.border),
                 selectedColor: AppColors.primary.withValues(alpha: 0.22),
-                label: Text(i == widget.group.me ? 'Ich' : members[i]),
+                label: Text(i == widget.group.me ? tr('Ich') : members[i]),
                 onSelected: (_) => setState(() => _paidBy = i),
               ),
           ]),
           const SizedBox(height: 12),
-          Text('Aufgeteilt auf', style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(tr('Aufgeteilt auf'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: [
             for (var i = 0; i < members.length; i++)
@@ -1373,7 +1365,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
                 selected: _among.contains(i),
                 side: BorderSide(color: _among.contains(i) ? AppColors.primary : AppColors.border),
                 selectedColor: AppColors.primary.withValues(alpha: 0.22),
-                label: Text(i == widget.group.me ? 'Ich' : members[i]),
+                label: Text(i == widget.group.me ? tr('Ich') : members[i]),
                 onSelected: (v) => setState(() {
                   if (v) {
                     _among.add(i);
@@ -1387,9 +1379,9 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
           ]),
           const SizedBox(height: 10),
           SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: false, label: Text('Gleich'), icon: Icon(Icons.balance_rounded, size: 16)),
-              ButtonSegment(value: true, label: Text('Genau'), icon: Icon(Icons.tune_rounded, size: 16)),
+            segments: [
+              ButtonSegment(value: false, label: Text(tr('Gleich')), icon: Icon(Icons.balance_rounded, size: 16)),
+              ButtonSegment(value: true, label: Text(tr('Genau')), icon: Icon(Icons.tune_rounded, size: 16)),
             ],
             selected: {_exact},
             onSelectionChanged: (s) => setState(() {
@@ -1416,7 +1408,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (_) => setState(() => _error = null),
                   decoration: InputDecoration(
-                    labelText: i == widget.group.me ? 'Ich' : members[i],
+                    labelText: i == widget.group.me ? tr('Ich') : members[i],
                     suffixText: '€',
                   ),
                 ),
@@ -1430,7 +1422,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
             onPressed: cents > 0 && _among.isNotEmpty ? _save : null,
-            child: Text(widget.edit != null ? 'Speichern' : 'Eintragen',
+            child: Text(widget.edit != null ? tr('Speichern') : tr('Eintragen'),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           ),
         ]),
@@ -1454,9 +1446,9 @@ Future<void> shareTransaction(BuildContext context, Transaction tx) async {
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(bottom: 8),
-            child: Text('Mit wem teilen?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            child: Text(tr('Mit wem teilen?'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           ),
           for (final g in groups)
             ListTile(

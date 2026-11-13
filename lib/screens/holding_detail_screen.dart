@@ -11,6 +11,7 @@ import '../utils/money.dart';
 import '../services/history.dart';
 import '../widgets/interactive_chart.dart';
 import 'add_holding_screen.dart';
+import '../l10n/l10n.dart';
 
 class HoldingDetailScreen extends StatefulWidget {
   final Holding holding;
@@ -104,15 +105,15 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.pie_chart_outline_rounded, size: 48, color: AppColors.textDim),
                   const SizedBox(height: 12),
-                  const Text('Position gelöscht',
+                  Text(tr('Position gelöscht'),
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
-                  Text('Diese Position gibt es hier nicht mehr.',
+                  Text(tr('Diese Position gibt es hier nicht mehr.'),
                       textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Zurück'),
+                    child: Text(tr('Zurück')),
                   ),
                 ]),
               ),
@@ -130,8 +131,8 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
             actions: h.id.startsWith(DepotSync.prefix)
                 ? null
                 : [
-                    IconButton(tooltip: 'Bearbeiten', icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(h)),
-                    IconButton(tooltip: 'Löschen', icon: const Icon(Icons.delete_outline), onPressed: () => _delete(h)),
+                    IconButton(tooltip: tr('Bearbeiten'), icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(h)),
+                    IconButton(tooltip: tr('Löschen'), icon: const Icon(Icons.delete_outline), onPressed: () => _delete(h)),
                   ],
           ),
           body: ListView(
@@ -142,7 +143,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 label: '${_tiny(h) ? 'Wert' : 'Kurs'}${h.symbol.isNotEmpty ? ' · ${h.symbol}' : ''}',
                 cents: _tiny(h) ? h.valueCents : h.currentPriceCents,
                 startCents: _points.length >= 2 ? _points.first.cents : (_tiny(h) ? h.investedCents : h.buyPriceCents),
-                period: _points.length >= 2 ? RangeSelector.periods[_range]! : 'seit Kauf',
+                period: _points.length >= 2 ? RangeSelector.periods[_range]! : tr('seit Kauf'),
                 scrubbing: _scrub,
                 startDate: _points.isEmpty ? null : _points.first.date,
                 showTime: InteractiveChart.intraday(_points),
@@ -156,10 +157,10 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                   child: Center(
                     child: Text(
                       _range == '1T'
-                          ? 'Für heute liegen noch keine Kurse vor'
+                          ? tr('Für heute liegen noch keine Kurse vor')
                           : h.type == 'Krypto'
-                              ? 'Chart nicht verfügbar'
-                              : 'Aktien-Chart ist auf dem iPhone live',
+                              ? tr('Chart nicht verfügbar')
+                              : tr('Aktien-Chart ist auf dem iPhone live'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim),
                     ),
@@ -185,12 +186,12 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Deine Position', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                    Text(tr('Deine Position'), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                     const SizedBox(height: 2),
                     Text(Money.format(h.valueCents),
                         style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
                     const SizedBox(height: 4),
-                    Text('${Money.signed(h.gainCents)} · ${Money.percent(h.gainPercent, digits: 2)} seit Kauf',
+                    Text(tr('{x} · {x2} seit Kauf', {'x': Money.signed(h.gainCents), 'x2': Money.percent(h.gainPercent, digits: 2)}),
                         style: TextStyle(color: color, fontWeight: FontWeight.w600)),
                   ],
                 ),
@@ -198,15 +199,15 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
               const SizedBox(height: 16),
 
               // details
-              _detailRow('Anzahl', '${_trimShares(h.shares)} Stück'),
-              if (h.symbol.isNotEmpty) _detailRow('Symbol', h.symbol),
-              _detailRow('Typ', h.type),
-              _detailRow('Kaufpreis', Money.format(h.buyPriceCents)),
-              _detailRow('Aktueller Kurs', Money.unit(h.currentPriceCents, euros: h.unitEur)),
+              _detailRow(tr('Anzahl'), tr('{x} Stück', {'x': _trimShares(h.shares)})),
+              if (h.symbol.isNotEmpty) _detailRow(tr('Symbol'), h.symbol),
+              _detailRow(tr('Typ'), h.type),
+              _detailRow(tr('Kaufpreis'), Money.format(h.buyPriceCents)),
+              _detailRow(tr('Aktueller Kurs'), Money.unit(h.currentPriceCents, euros: h.unitEur)),
               // where the price comes from, so an old one never passes for today's
-              _detailRow('Kurs-Stand', h.priceAt == null ? 'eingegeben, nicht live' : 'live, ${Dates.stand(h.priceAt!)}'),
-              _detailRow('Investiert', Money.format(h.investedCents)),
-              _detailRow('Gewinn/Verlust', Money.signed(h.gainCents), color: color),
+              _detailRow(tr('Kurs-Stand'), h.priceAt == null ? tr('eingegeben, nicht live') : 'live, ${Dates.stand(h.priceAt!)}'),
+              _detailRow(tr('Investiert'), Money.format(h.investedCents)),
+              _detailRow(tr('Gewinn/Verlust'), Money.signed(h.gainCents), color: color),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 14, 4, 6),
@@ -214,7 +215,7 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Nachrichten', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                    Text(tr('Nachrichten'), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                     if (_newsLoading)
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 24),
@@ -225,8 +226,8 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
                         padding: const EdgeInsets.fromLTRB(0, 10, 12, 14),
                         child: Text(
                           h.symbol.isEmpty
-                              ? 'Ohne Börsen-Symbol keine Nachrichten.'
-                              : 'Gerade keine Schlagzeilen zu ${h.symbol}.',
+                              ? tr('Ohne Börsen-Symbol keine Nachrichten.')
+                              : tr('Gerade keine Schlagzeilen zu {symbol}.', {'symbol': h.symbol}),
                           style: TextStyle(color: AppColors.textDim, height: 1.35),
                         ),
                       )
@@ -284,12 +285,12 @@ class _HoldingDetailScreenState extends State<HoldingDetailScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Position löschen?'),
+        title: Text(tr('Position löschen?')),
         content: Text(h.name),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(onPressed: () => Navigator.pop(context, true),
-              child: Text('Löschen', style: TextStyle(color: AppColors.errorText))),
+              child: Text(tr('Löschen'), style: TextStyle(color: AppColors.errorText))),
         ],
       ),
     );

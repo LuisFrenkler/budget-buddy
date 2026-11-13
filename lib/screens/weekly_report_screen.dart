@@ -13,6 +13,7 @@ import '../widgets/buddy_orb.dart';
 import '../widgets/weekly_story.dart';
 import 'buddy_screen.dart';
 import 'smart_entry_sheet.dart';
+import '../l10n/l10n.dart';
 
 // Buddy's weekly report. Tip + categories free; Buddy-Chat mit Gratis-Kontingent.
 class WeeklyReportScreen extends StatelessWidget {
@@ -31,18 +32,18 @@ class WeeklyReportScreen extends StatelessWidget {
     if (report != null) WidgetsBinding.instance.addPostFrameCallback((_) => markSeen(report));
     return Scaffold(
       appBar: AppBar(
-        title: Text(report == null ? 'Wochenbericht' : 'KW ${report.week}'),
+        title: Text(report == null ? tr('Wochenbericht') : 'KW ${report.week}'),
         actions: [
           if (report != null)
             IconButton(
-              tooltip: 'Als Story teilen',
+              tooltip: tr('Als Story teilen'),
               onPressed: () {
                 HapticFeedback.selectionClick();
                 final change = report.change;
                 final pct = change == null ? null : (change * 100).round().abs();
                 final text = change == null || report.roughlyUsual
-                    ? 'Meine Woche mit BudgetBuddy: ${report.headline}'
-                    : 'Meine Woche: $pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst · BudgetBuddy';
+                    ? tr('Meine Woche mit BudgetBuddy: {headline}', {'headline': report.headline})
+                    : tr('Meine Woche: {pct} % {x} als sonst · BudgetBuddy', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
                 showWeeklyStoryShare(context, report, fallbackText: text);
               },
               icon: const Icon(Icons.ios_share_rounded),
@@ -57,8 +58,7 @@ class WeeklyReportScreen extends StatelessWidget {
                   Icon(Icons.insights_rounded, size: 48, color: AppColors.primaryText),
                   const SizedBox(height: 16),
                   Text(
-                      'Für diese Woche gibt es noch keine Alltagsausgaben. '
-                      'Sobald welche da sind, wertet Buddy sie aus.',
+                      tr('Für diese Woche gibt es noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim, height: 1.4)),
                   const SizedBox(height: 20),
@@ -68,7 +68,7 @@ class WeeklyReportScreen extends StatelessWidget {
                       showSmartEntry(context);
                     },
                     icon: const Icon(Icons.add_rounded),
-                    label: const Text('Ausgabe erfassen'),
+                    label: Text(tr('Ausgabe erfassen')),
                   ),
                 ]),
               ),
@@ -107,7 +107,7 @@ class _Report extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(22)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Alltagsausgaben · ohne Miete & Abos', style: TextStyle(color: AppColors.textDim)),
+            Text(tr('Alltagsausgaben · ohne Miete & Abos'), style: TextStyle(color: AppColors.textDim)),
             const SizedBox(height: 4),
             Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(Money.format(r.spentCents),
@@ -122,7 +122,7 @@ class _Report extends StatelessWidget {
                       color: badge.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: Text(usual ? 'wie üblich' : '${pct > 0 ? '+' : '−'}${pct.abs()} % zum Schnitt',
+                    child: Text(usual ? tr('wie üblich') : tr('{x}{x2} % zum Schnitt', {'x': pct > 0 ? '+' : '−', 'x2': pct.abs()}),
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: badge)),
                   ),
                 ),
@@ -150,10 +150,10 @@ class _Report extends StatelessWidget {
           color: AppColors.primary.withValues(alpha: 0.12),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Row(children: [
+          Row(children: [
             BuddyOrb(size: 30),
             SizedBox(width: 10),
-            Text('Buddy sagt', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            Text(tr('Buddy sagt'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ]),
           const SizedBox(height: 10),
           Text(r.summary, style: const TextStyle(fontSize: 15, height: 1.4, fontWeight: FontWeight.w600)),
@@ -162,27 +162,27 @@ class _Report extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => BuddyScreen.open(
-                context, 'Wie kann ich nächste Woche weniger ausgeben als diese?'),
+                context, tr('Wie kann ich nächste Woche weniger ausgeben als diese?')),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: const Text('Mit Buddy weiterreden'),
+            label: Text(tr('Mit Buddy weiterreden')),
           ),
         ]),
       ),
       const SizedBox(height: 14),
       Row(children: [
-        Expanded(child: _fact(Icons.calendar_today_rounded, WeeklyReportService.weekdays[r.topDay], 'teuerster Tag')),
+        Expanded(child: _fact(Icons.calendar_today_rounded, WeeklyReportService.weekdays[r.topDay], tr('teuerster Tag'))),
         const SizedBox(width: 10),
         Expanded(
             child: _fact(Icons.eco_rounded, '${r.noSpendDays}',
-                r.noSpendDays == 1 ? 'Tag ohne Ausgaben' : 'Tage ohne Ausgaben')),
+                r.noSpendDays == 1 ? tr('Tag ohne Ausgaben') : tr('Tage ohne Ausgaben'))),
       ]),
       if (r.biggest != null) ...[
         const SizedBox(height: 10),
         _fact(Icons.payments_rounded, Money.format(r.biggest!.amountCents),
-            'größte Ausgabe: ${(r.biggest!.note?.trim().isNotEmpty ?? false) ? r.biggest!.note!.trim() : r.biggest!.category}, ${Dates.weekdays[r.biggest!.date.weekday - 1]}'),
+            tr('größte Ausgabe: {x}, {x2}', {'x': (r.biggest!.note?.trim().isNotEmpty ?? false) ? r.biggest!.note!.trim() : r.biggest!.category, 'x2': Dates.weekdays[r.biggest!.date.weekday - 1]})),
       ],
       const SizedBox(height: 18),
-      const Text('Wohin das Geld ging', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+      Text(tr('Wohin das Geld ging'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
       const SizedBox(height: 10),
       Container(
         padding: const EdgeInsets.symmetric(vertical: 6),
@@ -191,17 +191,17 @@ class _Report extends StatelessWidget {
           for (final c in r.categories.take(5))
             ListTile(
               leading: CategoryAvatar(c.category, isIncome: false, size: 38),
-              title: Text(c.category, style: const TextStyle(fontWeight: FontWeight.w600)),
+              title: Text(tr(c.category), style: const TextStyle(fontWeight: FontWeight.w600)),
               subtitle: c.usualCents > 0
                   ? Text(
                       c.cents > c.usualCents
-                          ? '${Money.format(c.cents - c.usualCents)} über Schnitt'
+                          ? tr('{x} über Schnitt', {'x': Money.format(c.cents - c.usualCents)})
                           : c.cents < c.usualCents
-                              ? '${Money.format(c.usualCents - c.cents)} unter Schnitt'
-                              : 'wie immer',
+                              ? tr('{x} unter Schnitt', {'x': Money.format(c.usualCents - c.cents)})
+                              : tr('wie immer'),
                       style: TextStyle(
                           color: c.cents > c.usualCents * 1.2 ? AppColors.errorText : AppColors.textDim, fontSize: 12.5))
-                  : Text('${c.count}× diese Woche', style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                  : Text(tr('{count}× diese Woche', {'count': c.count}), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
               trailing: Text(Money.format(c.cents), style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
         ]),
@@ -230,7 +230,7 @@ class _Report extends StatelessWidget {
         valueListenable: NotificationService.enabled,
         builder: (context, on, _) => on || !NotificationService.canAsk
             ? Center(
-                child: Text('Nächster Bericht: Sonntag, 18 Uhr',
+                child: Text(tr('Nächster Bericht: Sonntag, 18 Uhr'),
                     style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               )
             : OutlinedButton.icon(
@@ -242,12 +242,12 @@ class _Report extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         duration: const Duration(milliseconds: 2800),
                         content: Text(ok
-                            ? 'Buddy erinnert dich jeden Sonntag um 18 Uhr'
+                            ? tr('Buddy erinnert dich jeden Sonntag um 18 Uhr')
                             : NotificationService.problem)));
                   }
                 },
                 icon: const Icon(Icons.notifications_active_outlined),
-                label: const Text('Jeden Sonntag erinnern'),
+                label: Text(tr('Jeden Sonntag erinnern')),
               ),
       );
 }

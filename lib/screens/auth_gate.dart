@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
+import '../l10n/l10n.dart';
 
 // Wraps the app and enforces the biometric / PIN lock when it is enabled.
 // Re-locks automatically when the app is sent to the background.
@@ -87,7 +88,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   Future<void> _authenticate() async {
     if (_authenticating) return;
     setState(() => _authenticating = true);
-    final ok = await AuthService.authenticate('BudgetBuddy entsperren');
+    final ok = await AuthService.authenticate(tr('BudgetBuddy entsperren'));
     if (mounted) {
       setState(() {
         _unlocked = ok;
@@ -130,15 +131,13 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
               children: [
                 const BrandMark(size: 72),
                 const SizedBox(height: 24),
-                const Text('BudgetBuddy ist gesperrt',
+                Text(tr('BudgetBuddy ist gesperrt'),
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(
                     _bioAvailable
-                        ? 'Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.'
-                        : 'Dieses Gerät kann gerade nicht biometrisch entsperren. '
-                            'Tippe auf Entsperren zum erneuten Versuch oder fahre '
-                            'ohne Sperre fort (Sperre bleibt in den Einstellungen an).',
+                        ? tr('Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.')
+                        : tr('Dieses Gerät kann gerade nicht biometrisch entsperren. Tippe auf Entsperren zum erneuten Versuch oder fahre ohne Sperre fort (Sperre bleibt in den Einstellungen an).'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, height: 1.35)),
                 const SizedBox(height: 32),
@@ -159,13 +158,13 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
                           if (mounted) setState(() => _unlocked = true);
                         },
                   icon: const Icon(Icons.lock_open_rounded),
-                  label: Text(_bioAvailable ? 'Entsperren' : 'Erneut versuchen'),
+                  label: Text(_bioAvailable ? tr('Entsperren') : tr('Erneut versuchen')),
                 ),
                 if (!_bioAvailable) ...[
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => setState(() => _unlocked = true),
-                    child: const Text('Ohne Biometrie fortfahren'),
+                    child: Text(tr('Ohne Biometrie fortfahren')),
                   ),
                 ],
               ],

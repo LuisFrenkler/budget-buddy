@@ -16,6 +16,7 @@ import '../utils/theme.dart';
 import '../utils/money.dart';
 import '../widgets/segmented.dart';
 import 'recurring_screen.dart';
+import '../l10n/l10n.dart';
 
 // Fast entry: a big amount on top, category chips, date/repeat chips and an
 // on-screen number pad. A physical keyboard works too (digits, comma, Enter).
@@ -41,7 +42,7 @@ class _AddScreenState extends State<AddScreen> {
   bool _refund = false;        // money back for a purchase: income under a spending category
   String? _category;
   DateTime _date = DateTime.now();
-  String _repeat = 'Einmalig';  // 'Einmalig' or one of RecurringService.intervals
+  String _repeat = 'Einmalig'; // l10n: data, 'Einmalig' or one of RecurringService.intervals
   bool _isSaving = false;
   // the account it is booked on (null = main): the one open on Konto by default
   String? _account = AccountScreen.selected.value;
@@ -203,10 +204,10 @@ class _AddScreenState extends State<AddScreen> {
       onKeyEvent: _onKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_isEdit ? 'Bearbeiten' : 'Neuer Umsatz'),
+          title: Text(_isEdit ? tr('Bearbeiten') : tr('Neuer Umsatz')),
           actions: [
             if (_isEdit)
-              IconButton(tooltip: 'Löschen', icon: const Icon(Icons.delete_outline_rounded), onPressed: _delete),
+              IconButton(tooltip: tr('Löschen'), icon: const Icon(Icons.delete_outline_rounded), onPressed: _delete),
           ],
         ),
         body: SafeArea(
@@ -215,7 +216,7 @@ class _AddScreenState extends State<AddScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Segmented(
-                  labels: const ['Ausgabe', 'Einnahme', 'Erstattung'],
+                  labels: [tr('Ausgabe'), tr('Einnahme'), tr('Erstattung')],
                   index: _refund ? 2 : (_isIncome ? 1 : 0),
                   onChanged: (i) => setState(() {
                     _isIncome = i != 0;
@@ -262,7 +263,7 @@ class _AddScreenState extends State<AddScreen> {
                         maxLength: 60,
                         style: TextStyle(color: AppColors.text),
                         decoration: InputDecoration(
-                          hintText: 'Beschreibung hinzufügen',
+                          hintText: tr('Beschreibung hinzufügen'),
                           hintStyle: TextStyle(color: AppColors.textDim),
                           counterText: '',
                           filled: false,
@@ -306,8 +307,8 @@ class _AddScreenState extends State<AddScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(_category == null && AmountInput.cents(_amount) > 0
-                            ? 'Kategorie wählen'
-                            : (_isEdit ? 'Aktualisieren' : 'Speichern')),
+                            ? tr('Kategorie wählen')
+                            : (_isEdit ? tr('Aktualisieren') : tr('Speichern'))),
                   ),
                 ),
               ),
@@ -376,10 +377,10 @@ class _AddScreenState extends State<AddScreen> {
         spacing: 8,
         runSpacing: 8,
         children: [
-          _chip(Icons.calendar_today_rounded, isToday ? 'Heute' : Dates.relativeDay(_date), _openDatePicker),
+          _chip(Icons.calendar_today_rounded, isToday ? tr('Heute') : Dates.relativeDay(_date), _openDatePicker),
           if (accounts.length > 1)
             PopupMenuButton<String>(
-              tooltip: 'Konto',
+              tooltip: tr('Konto'),
               color: AppColors.surface,
               initialValue: _account ?? MoneyAccount.main,
               onSelected: (v) => setState(() => _account = v == MoneyAccount.main ? null : v),
@@ -389,7 +390,7 @@ class _AddScreenState extends State<AddScreen> {
             ),
           if (!_isEdit) ...[
             PopupMenuButton<String>(
-              tooltip: 'Wiederholen',
+              tooltip: tr('Wiederholen'),
               color: AppColors.surface,
               initialValue: _repeat,
               onSelected: (v) {
@@ -404,12 +405,12 @@ class _AddScreenState extends State<AddScreen> {
                 });
               },
               itemBuilder: (_) => [
-                for (final o in ['Einmalig', ...RecurringService.intervals])
-                  PopupMenuItem(value: o, child: Text(o)),
+                for (final o in ['Einmalig', ...RecurringService.intervals]) // l10n: data
+                  PopupMenuItem(value: o, child: Text(tr(o))),
                 if (DB.getRules().isNotEmpty)
-                  const PopupMenuItem(value: '_manage', child: Text('Wiederholungen verwalten…')),
+                  PopupMenuItem(value: '_manage', child: Text(tr('Wiederholungen verwalten…'))),
               ],
-              child: _chip(Icons.repeat_rounded, _repeat, null),
+              child: _chip(Icons.repeat_rounded, tr(_repeat), null),
             ),
           ],
         ],
@@ -453,7 +454,7 @@ class _AddScreenState extends State<AddScreen> {
                   : null,
               child: Center(
                 child: k == 'del'
-                    ? Icon(Icons.backspace_outlined, color: AppColors.text, semanticLabel: 'Löschen, lang drücken leert')
+                    ? Icon(Icons.backspace_outlined, color: AppColors.text, semanticLabel: tr('Löschen, lang drücken leert'))
                     : Text(k, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w500)),
               ),
             ),
@@ -475,7 +476,7 @@ class _AddScreenState extends State<AddScreen> {
       initialDate: _date.isAfter(last) ? last : _date,
       firstDate: first,
       lastDate: last,
-      helpText: _repeat == 'Einmalig' ? 'Wann war das?' : 'Ab wann?',
+      helpText: _repeat == 'Einmalig' ? tr('Wann war das?') : tr('Ab wann?'),
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -490,8 +491,8 @@ class _AddScreenState extends State<AddScreen> {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
-      content: const Text('Umsatz gelöscht'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.addTx(tx)),
+      content: Text(tr('Umsatz gelöscht')),
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.addTx(tx)),
     ));
   }
 
@@ -502,12 +503,11 @@ class _AddScreenState extends State<AddScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('$count Umsätze nachtragen?'),
-        content: Text('Der Beginn liegt in der Vergangenheit. BudgetBuddy trägt jeden ${rule.interval}en Termin '
-            'bis heute nach, also $count Umsätze über zusammen ${Money.raw(rule.amountCents * count)}.'),
+        title: Text(tr('{count} Umsätze nachtragen?', {'count': count})),
+        content: Text(tr('Der Beginn liegt in der Vergangenheit. BudgetBuddy trägt jeden {interval}en Termin bis heute nach, also {count} Umsätze über zusammen {x}.', {'interval': rule.interval, 'count': count, 'x': Money.raw(rule.amountCents * count)})),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Datum ändern')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Nachtragen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Datum ändern'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Nachtragen'))),
         ],
       ),
     );
@@ -555,9 +555,9 @@ class _AddScreenState extends State<AddScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 2800),
-            content: Text('Speichern hat nicht geklappt. Bitte versuch es noch einmal.')));
+            content: Text(tr('Speichern hat nicht geklappt. Bitte versuch es noch einmal.'))));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

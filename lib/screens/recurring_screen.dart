@@ -8,6 +8,7 @@ import '../utils/dates.dart';
 import '../utils/theme.dart';
 import '../utils/money.dart';
 import '../widgets/big_number.dart';
+import '../l10n/l10n.dart';
 
 // Standing orders: what comes in and goes out regularly, normalized to a month.
 class RecurringScreen extends StatefulWidget {
@@ -33,17 +34,17 @@ class _RecurringScreenState extends State<RecurringScreen> {
         final expenses = rules.where((r) => !r.isIncome).toList();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Wiederkehrend')),
+          appBar: AppBar(title: Text(tr('Wiederkehrend'))),
           body: rules.isEmpty
               ? _emptyState()
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                   children: [
                     _summary(income, expenses),
-                    if (income.isNotEmpty) ...[_label('Einnahmen'), _group(income)],
-                    if (expenses.isNotEmpty) ...[_label('Ausgaben'), _group(expenses)],
+                    if (income.isNotEmpty) ...[_label(tr('Einnahmen')), _group(income)],
+                    if (expenses.isNotEmpty) ...[_label(tr('Ausgaben')), _group(expenses)],
                     const SizedBox(height: 16),
-                    Text('Wische nach links zum Löschen. Bereits gebuchte Umsätze bleiben erhalten.',
+                    Text(tr('Wische nach links zum Löschen. Bereits gebuchte Umsätze bleiben erhalten.'),
                         textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                   ],
                 ),
@@ -67,12 +68,12 @@ class _RecurringScreenState extends State<RecurringScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: BigNumber(
-        label: 'Fixkosten pro Monat',
+        label: tr('Fixkosten pro Monat'),
         cents: fixed,
         below: Text(
           fixedIncome > 0
-              ? 'Feste Einnahmen ${Money.format(fixedIncome)} · frei verfügbar ${Money.format(fixedIncome - fixed)}'
-              : 'Noch keine festen Einnahmen',
+              ? tr('Feste Einnahmen {x} · frei verfügbar {x2}', {'x': Money.format(fixedIncome), 'x2': Money.format(fixedIncome - fixed)})
+              : tr('Noch keine festen Einnahmen'),
           style: TextStyle(color: AppColors.textDim, fontSize: 14),
         ),
       ),
@@ -108,9 +109,9 @@ class _RecurringScreenState extends State<RecurringScreen> {
           children: [
             Icon(Icons.repeat_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch nichts Wiederkehrendes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('Noch nichts Wiederkehrendes'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Wähle beim Erfassen eines Umsatzes eine Wiederholung, z. B. „monatlich“.',
+            Text(tr('Wähle beim Erfassen eines Umsatzes eine Wiederholung, z. B. „monatlich“.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
           ],
         ),
@@ -185,22 +186,22 @@ class _RecurringScreenState extends State<RecurringScreen> {
           return Padding(
             padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Text('Dauerauftrag ändern', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              Text(tr('Dauerauftrag ändern'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              Text('Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.',
+              Text(tr('Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.'),
                   style: TextStyle(color: AppColors.textDim)),
               const SizedBox(height: 16),
               TextField(
                 controller: note,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(labelText: 'Bezeichnung'),
+                decoration: InputDecoration(labelText: tr('Bezeichnung')),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: amount,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setSheet(() {}),
-                decoration: const InputDecoration(labelText: 'Betrag', suffixText: '€'),
+                decoration: InputDecoration(labelText: tr('Betrag'), suffixText: '€'),
               ),
               const SizedBox(height: 12),
               Wrap(spacing: 8, children: [
@@ -216,7 +217,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
               FilledButton(
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                 onPressed: cents > 0 ? () => Navigator.pop(context, true) : null,
-                child: const Text('Speichern'),
+                child: Text(tr('Speichern')),
               ),
             ]),
           );
@@ -261,8 +262,8 @@ class _RecurringScreenState extends State<RecurringScreen> {
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-        content: Text('${r.note ?? r.category} gelöscht'),
-        action: SnackBarAction(label: 'Rückgängig', textColor: AppColors.primary, onPressed: () => DB.addRule(r)),
+        content: Text(tr('{x} gelöscht', {'x': r.note ?? r.category})),
+        action: SnackBarAction(label: tr('Rückgängig'), textColor: AppColors.primary, onPressed: () => DB.addRule(r)),
       ));
     }
     return false;

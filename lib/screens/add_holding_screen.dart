@@ -9,6 +9,7 @@ import '../utils/instruments.dart';
 import '../widgets/instrument_search_sheet.dart';
 import '../widgets/segmented.dart';
 import '../widgets/instrument_avatar.dart';
+import '../l10n/l10n.dart';
 
 class AddHoldingScreen extends StatefulWidget {
   // holding == null -> create new, otherwise edit existing
@@ -51,7 +52,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   final _sharesCtrl = TextEditingController();
   final _buyCtrl = TextEditingController();
   final _currentCtrl = TextEditingController();
-  String _type = 'Aktie';
+  String _type = 'Aktie'; // l10n: data
   // the symbol field stays while the user types into it
   bool _customSymbol = false;
   // buy price follows the quote until the user types their own
@@ -100,7 +101,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
   Widget build(BuildContext context) {
     final types = [for (final t in AssetTypes.list) t['name']!];
     return Scaffold(
-      appBar: AppBar(title: Text(_isEdit ? 'Position bearbeiten' : 'Neue Position')),
+      appBar: AppBar(title: Text(_isEdit ? tr('Position bearbeiten') : tr('Neue Position'))),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -130,7 +131,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                       const SizedBox(width: 14),
                       Expanded(
                         child: _nameCtrl.text.isEmpty
-                            ? Text('Aktie, ETF oder Krypto suchen', style: TextStyle(color: AppColors.textDim))
+                            ? Text(tr('Aktie, ETF oder Krypto suchen'), style: TextStyle(color: AppColors.textDim))
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -139,7 +140,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                                       overflow: TextOverflow.ellipsis),
                                   if (_symbolCtrl.text.isNotEmpty)
                                     Text(
-                                      _typeLocked ? '${_symbolCtrl.text} · $_type' : _symbolCtrl.text,
+                                      _typeLocked ? '${_symbolCtrl.text} · ${tr(_type)}' : _symbolCtrl.text,
                                       style: TextStyle(color: AppColors.textDim, fontSize: 13),
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -155,7 +156,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
             if (!_typeLocked) ...[
               const SizedBox(height: 16),
               Segmented(
-                labels: types,
+                labels: [for (final t in types) tr(t)],
                 index: types.indexOf(_type).clamp(0, types.length - 1),
                 onChanged: (i) => setState(() => _type = types[i]),
               ),
@@ -167,22 +168,22 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
               decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
               child: Column(
                 children: [
-                  _field('Anzahl', _sharesCtrl, 'z.B. 10', suffix: 'Stück', validator: (v) {
+                  _field(tr('Anzahl'), _sharesCtrl, 'z.B. 10', suffix: tr('Stück'), validator: (v) {
                     final n = _parseShares(v ?? '');
-                    return n == null || n <= 0 ? 'Ungültig' : null;
+                    return n == null || n <= 0 ? tr('Ungültig') : null;
                   }),
                   Divider(height: 1, indent: 16, color: AppColors.border),
-                  _field('Kaufpreis', _buyCtrl, '0,00',
-                      suffix: '€ / Stück', validator: _priceValidator, onUserEdit: () => _buyEdited = true),
+                  _field(tr('Kaufpreis'), _buyCtrl, '0,00',
+                      suffix: tr('€ / Stück'), validator: _priceValidator, onUserEdit: () => _buyEdited = true),
                   Divider(height: 1, indent: 16, color: AppColors.border),
-                  _field('Aktueller Kurs', _currentCtrl, '0,00', suffix: '€ / Stück', validator: _priceValidator),
+                  _field(tr('Aktueller Kurs'), _currentCtrl, '0,00', suffix: tr('€ / Stück'), validator: _priceValidator),
                 ],
               ),
             ),
             if (_quoted) ...[
               const SizedBox(height: 8),
               Text(
-                'Kaufpreis ist mit dem aktuellen Kurs vorausgefüllt. Passe ihn an, wenn du einen anderen Preis gezahlt hast.',
+                tr('Kaufpreis ist mit dem aktuellen Kurs vorausgefüllt. Passe ihn an, wenn du einen anderen Preis gezahlt hast.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
               ),
             ],
@@ -193,10 +194,10 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                 controller: _symbolCtrl,
                 textCapitalization: TextCapitalization.characters,
                 onChanged: (_) => setState(() => _customSymbol = true),
-                decoration: const InputDecoration(
-                  labelText: 'Symbol (optional)',
-                  hintText: 'z. B. SAP.DE, AAPL oder BTC',
-                  helperText: 'Damit holt BudgetBuddy den Kurs automatisch.',
+                decoration: InputDecoration(
+                  labelText: tr('Symbol (optional)'),
+                  hintText: tr('z. B. SAP.DE, AAPL oder BTC'),
+                  helperText: tr('Damit holt BudgetBuddy den Kurs automatisch.'),
                 ),
               ),
             ],
@@ -206,12 +207,12 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
               controller: _depotCtrl,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: 'Depot (optional)',
-                hintText: 'z. B. Trade Republic, Scalable',
+                labelText: tr('Depot (optional)'),
+                hintText: tr('z. B. Trade Republic, Scalable'),
                 suffixIcon: _depotNames.isEmpty
                     ? null
                     : PopupMenuButton<String>(
-                        tooltip: 'Depot wählen',
+                        tooltip: tr('Depot wählen'),
                         icon: const Icon(Icons.arrow_drop_down_rounded),
                         onSelected: (v) => setState(() => _depotCtrl.text = v),
                         itemBuilder: (_) => [for (final d in _depotNames) PopupMenuItem(value: d, child: Text(d))],
@@ -229,7 +230,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                   ? const SizedBox(
                       height: 20, width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text(_isEdit ? 'Aktualisieren' : 'Zum Depot hinzufügen'),
+                  : Text(_isEdit ? tr('Aktualisieren') : tr('Zum Depot hinzufügen')),
             ),
           ],
         ),
@@ -243,7 +244,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
 
   String? _priceValidator(String? v) {
     final cents = Money.parseToCents(v ?? '');
-    return cents == null || cents <= 0 ? 'Ungültig' : null;
+    return cents == null || cents <= 0 ? tr('Ungültig') : null;
   }
 
   // label on the left, right-aligned input with a unit on the right
@@ -312,9 +313,9 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
         border: Border.all(color: AppColors.border),
       ),
       child: Row(children: [
-        cell('Investiert', Money.format(invested), AppColors.text),
-        cell('Wert', Money.format(value), AppColors.text),
-        cell('Gewinn', invested == 0 ? '–' : Money.percent(gain / invested * 100), invested == 0 ? AppColors.textDim : color),
+        cell(tr('Investiert'), Money.format(invested), AppColors.text),
+        cell(tr('Wert'), Money.format(value), AppColors.text),
+        cell(tr('Gewinn'), invested == 0 ? '–' : Money.percent(gain / invested * 100), invested == 0 ? AppColors.textDim : color),
       ]),
     );
   }
@@ -385,7 +386,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Bitte ein Wertpapier wählen')),
+        SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Bitte ein Wertpapier wählen'))),
       );
       return;
     }
@@ -406,9 +407,9 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 2800),
-            content: Text('Speichern hat nicht geklappt. Bitte prüf die Eingaben.')));
+            content: Text(tr('Speichern hat nicht geklappt. Bitte prüf die Eingaben.'))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
