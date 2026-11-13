@@ -504,7 +504,7 @@ class _AddScreenState extends State<AddScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(tr('{count} Umsätze nachtragen?', {'count': count})),
-        content: Text(tr('Der Beginn liegt in der Vergangenheit. BudgetBuddy trägt jeden {interval}en Termin bis heute nach, also {count} Umsätze über zusammen {x}.', {'interval': rule.interval, 'count': count, 'x': Money.raw(rule.amountCents * count)})),
+        content: Text(tr('Der Beginn liegt in der Vergangenheit. Ahead trägt jeden {interval}en Termin bis heute nach, also {count} Umsätze über zusammen {x}.', {'interval': rule.interval, 'count': count, 'x': Money.raw(rule.amountCents * count)})),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Datum ändern'))),
           TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Nachtragen'))),

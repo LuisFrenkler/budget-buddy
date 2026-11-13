@@ -1,4 +1,4 @@
-// Who runs BudgetBuddy: the details the imprint, privacy policy and terms
+// Who runs Ahead: the details the imprint, privacy policy and terms
 // refer to. Name and support mail are set; street, city and the state data-
 // protection authority must still match the real business address before a
 // store release (see [LegalInfo.complete]).

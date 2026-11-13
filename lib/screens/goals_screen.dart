@@ -805,7 +805,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-                tr('BudgetBuddy zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.'),
+                tr('Ahead zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
           ),
         ]),

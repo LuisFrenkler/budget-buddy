@@ -1,4 +1,4 @@
-// BudgetBuddy backend: a small local server so the app can link a real bank
+// Ahead backend: a small local server so the app can link a real bank
 // account (Enable Banking / PSD2) and a depot (Parqet Connect) without ever holding
 // secrets in the client. Run it from this folder:
 //
@@ -33,6 +33,8 @@
 //                                    optional WhatsApp Cloud API (lib/whatsapp.dart).
 //                                    Without them the routes answer but send nothing.
 //                                    Numbers are stored as a hash; opt-in required.
+//   LANDING_URL                      where invite links point (default PUBLIC_URL); the
+//                                    landing page reads ?ref=CODE for the waitlist
 //   PORT (default 8090), PUBLIC_URL (default http://localhost:<PORT>)
 //   BIND (default 127.0.0.1)         set to 0.0.0.0 behind a reverse proxy
 //   HTTPS_PORT (default 8443)        with a certificate in .data/tls (see README), the
@@ -60,6 +62,7 @@ import 'lib/demo_bank.dart';
 import 'lib/depot.dart';
 import 'lib/market.dart';
 import 'lib/enable_banking.dart';
+import 'lib/growth.dart';
 import 'lib/json_store.dart';
 import 'lib/rate_limit.dart';
 import 'lib/vault.dart';
@@ -112,6 +115,8 @@ final _aiIpLimit = RateLimit(40, const Duration(minutes: 1));
 final _institutionsLimit = RateLimit(30, const Duration(minutes: 1));
 final _waLimit = RateLimit(120, const Duration(minutes: 1));
 final _waLinkLimit = RateLimit(10, const Duration(hours: 1));
+final _waitlistLimit = RateLimit(10, const Duration(hours: 1));
+final _waitlistStatusLimit = RateLimit(60, const Duration(minutes: 1));
 
 // production hardening
 var _inflight = 0;
@@ -166,6 +171,8 @@ final _whatsapp = WhatsApp(
   verifyToken: _env('WHATSAPP_VERIFY_TOKEN'),
   store: File('$_dataDir/whatsapp.json'),
 );
+final _growth = Growth(File('$_dataDir/growth.json'));
+final _guestQuota = GuestQuota();
 final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
 
 // AI calls cost money: at most this many per user and day
@@ -200,6 +207,7 @@ Future<void> main() async {
   await _accounts.load();
   await _splits.load();
   await _whatsapp.load();
+  await _growth.load();
 
   // 127.0.0.1 for local; BIND=0.0.0.0 when a reverse proxy terminates TLS
   final bindHost = _env('BIND').isNotEmpty ? _env('BIND') : InternetAddress.loopbackIPv4.address;
@@ -210,7 +218,7 @@ Future<void> main() async {
   await _loadStripeSeen();
   final server = await HttpServer.bind(bindHost, port);
   _httpServer = server;
-  stdout.writeln('BudgetBuddy backend on $_publicUrl (bind $bindHost:$port)');
+  stdout.writeln('Ahead backend on $_publicUrl (bind $bindHost:$port)');
   final secure = await _bindHttps();
   if (secure != null) {
     _httpsServer = secure;
@@ -317,6 +325,9 @@ Future<void> _handleSafe(HttpRequest req) async {
       await _handle(req);
       status = req.response.statusCode;
     } on AuthError catch (e) {
+      status = e.status;
+      await _json(req, e.status, {'error': e.message});
+    } on GrowthError catch (e) {
       status = e.status;
       await _json(req, e.status, {'error': e.message});
     } on BillingError catch (e) {
@@ -490,6 +501,8 @@ Future<void> _handle(HttpRequest req) async {
         'ok': true,
         'bank': _bank.mode,
         'ai': _ai.enabled,
+        // Buddy answers before sign-up (a few questions per device and day)
+        'guest': _ai.enabled,
         'aiProvider': _ai.enabled ? _ai.provider : null,
         'depot': _depot.mode,
         'billing': _billing.mode,
@@ -513,14 +526,18 @@ Future<void> _handle(HttpRequest req) async {
       }
       _registerLimit.hit(ip);
       final b = await _body(req);
-      return _json(
-          req,
-          200,
-          await _accounts.register(
-              email: '${b['email'] ?? ''}',
-              password: '${b['password'] ?? ''}',
-              name: '${b['name'] ?? ''}',
-              device: '${b['device'] ?? ''}'));
+      final created = await _accounts.register(
+          email: '${b['email'] ?? ''}',
+          password: '${b['password'] ?? ''}',
+          name: '${b['name'] ?? ''}',
+          device: '${b['device'] ?? ''}');
+      // came with a friend's code: the friend moves up / gets bonus questions
+      final invite = '${b['invite'] ?? ''}'.trim();
+      if (invite.isNotEmpty) {
+        final newId = (created['user'] as Map)['id'];
+        if (newId != null) await _growth.credit(invite, '$newId');
+      }
+      return _json(req, 200, created);
     case '/auth/login':
       // the per-email lockout stops guessing one password; this stops one
       // address from trying many accounts. A correct password on a 2FA
@@ -647,6 +664,32 @@ Future<void> _handle(HttpRequest req) async {
     case '/ai/chat':
       _guardAi(req);
       return _aiChat(req);
+    // POST {device, history} -> the same event stream as /ai/chat, without an account
+    case '/ai/guest':
+      _guardAi(req);
+      return _aiGuest(req);
+    // GET ?device= -> {left}
+    case '/ai/guest/left':
+      return _json(req, 200, {'left': _ai.enabled ? _guestQuota.left(q['device'] ?? '') : 0});
+    // POST {email, ref?} -> {code, position, total, friends}
+    case '/waitlist/join':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final ip = _clientIp(req);
+      if (_waitlistLimit.blocked(ip)) throw AuthError.wait(_waitlistLimit.wait(ip));
+      _waitlistLimit.hit(ip);
+      final b = await _body(req);
+      return _json(req, 200, await _growth.join('${b['email'] ?? ''}', ref: b['ref'] as String?));
+    // GET ?code= -> {code, position, total, friends}
+    case '/waitlist/status':
+      final ip = _clientIp(req);
+      if (_waitlistStatusLimit.blocked(ip)) throw AuthError.wait(_waitlistStatusLimit.wait(ip));
+      _waitlistStatusLimit.hit(ip);
+      return _json(req, 200, _growth.status(q['code'] ?? ''));
+    // GET -> {code, link, friends, rewarded, bonusPerFriend, bonusQuestions}
+    case '/invite':
+      final id = _user(req)['id'] as String;
+      final code = await _growth.codeFor(id);
+      return _json(req, 200, _growth.invites(id, code, _inviteLink(code)));
     case '/ai/parse':
       _guardAi(req);
       final user = _aiUser(req);
@@ -838,7 +881,7 @@ Future<void> _demoConsent(HttpRequest req) {
   return _html(req, '''
 <div class="tag">DEMO · keine echten Daten</div>
 <h1>$bank</h1>
-<p>BudgetBuddy möchte <b>lesend</b> auf dein Girokonto zugreifen:</p>
+<p>Ahead möchte <b>lesend</b> auf dein Girokonto zugreifen:</p>
 <ul><li>Kontostand</li><li>Umsätze der letzten 90 Tage</li></ul>
 $forWhom
 <p class="dim">Bei einer echten Bank meldest du dich hier mit deinen Zugangsdaten an und bestätigst per App oder TAN.</p>
@@ -852,7 +895,7 @@ Future<void> _callback(HttpRequest req) async {
   final state = q['state'] ?? '';
   final pending = _pending[state];
   if (pending == null) {
-    return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in BudgetBuddy erneut.</p>');
+    return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in Ahead erneut.</p>');
   }
   if (q['code'] == null) {
     _pending.remove(state);
@@ -861,7 +904,7 @@ Future<void> _callback(HttpRequest req) async {
   }
   try {
     final session = await _bank.createSession(q['code']!);
-    // refuse if any IBAN is already linked to another BudgetBuddy account
+    // refuse if any IBAN is already linked to another Ahead account
     for (final a in session.accounts) {
       final taken = _ibanOwner(a.iban);
       if (taken != null && taken != pending.owner) {
@@ -871,7 +914,7 @@ Future<void> _callback(HttpRequest req) async {
         _pending.remove(state);
         _failed[state] = (
           owner: pending.owner,
-          error: 'Dieses Bankkonto ist schon mit einem anderen BudgetBuddy-Konto verbunden.',
+          error: 'Dieses Bankkonto ist schon mit einem anderen Ahead-Konto verbunden.',
         );
         return _html(req, '<h1>Nicht verbunden</h1><p>Dieses Bankkonto gehört schon zu einem anderen Konto. '
             'Du kannst dieses Fenster schließen.</p>');
@@ -890,7 +933,7 @@ Future<void> _callback(HttpRequest req) async {
     return _html(req, '''
 <div class="check">✓</div>
 <h1>Verbunden</h1>
-<p>${_escape(bankName)} ist jetzt mit BudgetBuddy verbunden. Du kannst dieses Fenster schließen.</p>
+<p>${_escape(bankName)} ist jetzt mit Ahead verbunden. Du kannst dieses Fenster schließen.</p>
 <script>setTimeout(() => window.close(), 1500)</script>''');
   } catch (e) {
     _pending.remove(state);
@@ -978,6 +1021,7 @@ Future<void> _deleteAccount(HttpRequest req) async {
   final user = _user(req);
   final body = await _body(req);
   _accounts.confirmPassword(user['id'] as String, '${body['password'] ?? ''}');
+  await _growth.forgetUser(user['id'] as String);
   final own = _sessions.entries.where((e) => e.value['owner'] == user['id']).toList();
   for (final e in own) {
     _sessions.remove(e.key);
@@ -1085,7 +1129,27 @@ Future<void> _aiChat(HttpRequest req) async {
   _countAi(user);
   final history = [for (final m in (body['history'] as List? ?? [])) (m as Map).cast<String, dynamic>()];
   if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
+  return _stream(req, _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history));
+}
 
+// the chat before sign-up: general answers, nothing about the person's money
+Future<void> _aiGuest(HttpRequest req) async {
+  if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+  if (!_ai.enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
+  final body = await _body(req);
+  final device = '${body['device'] ?? ''}';
+  final history = [
+    for (final m in (body['history'] as List? ?? []))
+      if (m is Map) m.cast<String, dynamic>()
+  ];
+  if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
+  _guestQuota.take(device, _clientIp(req));
+  return _stream(req, _ai.chat(finances: const {}, history: history, guest: true),
+      first: {'left': _guestQuota.left(device)});
+}
+
+// the shared event stream: {"t": piece}…, then {"done": true} or {"error": …}
+Future<void> _stream(HttpRequest req, Stream<String> pieces, {Map<String, dynamic>? first}) async {
   final res = req.response;
   _cors(req, res);
   _securityHeaders(res);
@@ -1094,17 +1158,24 @@ Future<void> _aiChat(HttpRequest req) async {
     ..set('Cache-Control', 'no-cache');
   res.bufferOutput = false;
   void send(Map<String, dynamic> event) => res.write('data: ${jsonEncode(event)}\n\n');
+  if (first != null) send(first);
   try {
-    await for (final piece in _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history)) {
+    await for (final piece in pieces) {
       send({'t': piece});
       await res.flush();
     }
     send({'done': true});
   } catch (e) {
-    stderr.writeln('/ai/chat: $e');
+    stderr.writeln('${req.uri.path}: $e');
     send({'error': e is AiError ? e.message : 'Buddy ist gerade nicht erreichbar. Bitte gleich noch einmal.'});
   }
   await res.close();
+}
+
+// where a friend lands: the landing page (waitlist) or the web app
+String _inviteLink(String code) {
+  final base = _env('LANDING_URL').isNotEmpty ? _env('LANDING_URL') : _publicUrl;
+  return '${base.endsWith('/') ? base.substring(0, base.length - 1) : base}/?ref=$code';
 }
 
 // --- Plus (payments) ---
@@ -1158,14 +1229,14 @@ Future<void> _plusDemoCheckout(HttpRequest req) {
   if (_billing is! DemoBilling) throw const AuthError(404, 'Nicht gefunden.');
   final id = req.uri.queryParameters['session'] ?? '';
   final s = (_billing as DemoBilling).session(id);
-  if (s == null) return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte den Kauf in BudgetBuddy erneut.</p>');
+  if (s == null) return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte den Kauf in Ahead erneut.</p>');
   final price = s.plan == 'yearly' ? '39,99 € im Jahr' : '4,99 € im Monat';
   final enc = Uri.encodeQueryComponent(id);
   return _html(req, '''
 <div class="tag">DEMO · es wird nichts abgebucht</div>
-<h1>BudgetBuddy Plus</h1>
+<h1>Ahead Plus</h1>
 <p>${s.trialDays > 0 ? '<b>${s.trialDays} Tage gratis</b>, danach $price.' : price}</p>
-<p class="dim">Im echten Betrieb ist das die Zahlungsseite von Stripe. Dort wählst du Karte, PayPal, SEPA-Lastschrift, Apple Pay, Google Pay oder Klarna. BudgetBuddy sieht deine Zahlungsdaten nie.</p>
+<p class="dim">Im echten Betrieb ist das die Zahlungsseite von Stripe. Dort wählst du Karte, PayPal, SEPA-Lastschrift, Apple Pay, Google Pay oder Klarna. Ahead sieht deine Zahlungsdaten nie.</p>
 <a class="btn" href="/plus/demo-pay?session=$enc">Test-Zahlung bestätigen</a>
 <a class="link" href="/plus/return?cancelled=1">Abbrechen</a>''');
 }
@@ -1197,7 +1268,7 @@ Future<void> _plusReturn(HttpRequest req) async {
   return _html(req, '''
 <div class="check">✓</div>
 <h1>Willkommen bei Plus</h1>
-<p>Alles ist freigeschaltet. Du kannst dieses Fenster schließen und zu BudgetBuddy zurückkehren.</p>
+<p>Alles ist freigeschaltet. Du kannst dieses Fenster schließen und zu Ahead zurückkehren.</p>
 <script>setTimeout(() => window.close(), 1800)</script>''');
 }
 
@@ -1232,7 +1303,7 @@ Future<void> _plusFromStore(HttpRequest req) async {
     final id = user['id'] as String;
     // one store subscription unlocks one account
     final taken = _plus.entries.any((p) => p.key != id && p.value.active && p.value.subscription == e.subscription);
-    if (taken) return _json(req, 409, {'error': 'Dieses Abo gehört schon zu einem anderen BudgetBuddy-Konto.'});
+    if (taken) return _json(req, 409, {'error': 'Dieses Abo gehört schon zu einem anderen Ahead-Konto.'});
     final current = _plus[id];
     // a running Stripe subscription is not replaced by an expired store purchase
     if (e.active || current == null || !current.active || StoreBilling.owns(current)) {
@@ -1357,7 +1428,7 @@ Future<void> _stripeWebhook(HttpRequest req) async {
 
 // --- depot (Parqet Connect) ---
 
-// POST -> {state, link}: the page where the user allows BudgetBuddy to read their depot
+// POST -> {state, link}: the page where the user allows Ahead to read their depot
 Future<void> _depotConnect(HttpRequest req) async {
   final user = _user(req);
   final state = _newState();
@@ -1382,10 +1453,10 @@ Future<void> _depotDemoConsent(HttpRequest req) {
   return _html(req, '''
 <div class="tag">DEMO · keine echten Daten</div>
 <h1>Parqet</h1>
-<p>BudgetBuddy möchte <b>lesend</b> auf deine Depots zugreifen:</p>
+<p>Ahead möchte <b>lesend</b> auf deine Depots zugreifen:</p>
 <ul><li>Positionen und Stückzahlen</li><li>Kaufkurse und aktuelle Kurse</li></ul>
 $forWhom
-<p class="dim">Bei Parqet meldest du dich hier an. Dein Trade-Republic-Login bleibt bei Parqet, BudgetBuddy sieht ihn nie.</p>
+<p class="dim">Bei Parqet meldest du dich hier an. Dein Trade-Republic-Login bleibt bei Parqet, Ahead sieht ihn nie.</p>
 <a class="btn" href="/depot/callback?state=$state&code=$state">Zugriff erlauben</a>
 <a class="link" href="/depot/callback?state=$state&error=access_denied">Abbrechen</a>''');
 }
@@ -1395,7 +1466,7 @@ Future<void> _depotCallback(HttpRequest req) async {
   final state = q['state'] ?? '';
   final pending = _depotPending.remove(state);
   if (pending == null) {
-    return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in BudgetBuddy erneut.</p>');
+    return _html(req, '<h1>Link abgelaufen</h1><p>Bitte starte die Verbindung in Ahead erneut.</p>');
   }
   if (q['code'] == null) {
     _depotFailed[state] = (owner: pending.owner, error: q['error_description'] ?? q['error'] ?? 'abgebrochen');
@@ -1403,7 +1474,7 @@ Future<void> _depotCallback(HttpRequest req) async {
   }
   try {
     final tokens = await _depot.exchange(code: q['code']!, verifier: pending.verifier, redirectUrl: _depotRedirect);
-    // refuse Parqet portfolios already linked to another BudgetBuddy account
+    // refuse Parqet portfolios already linked to another Ahead account
     final snap = await _depot.snapshot(tokens);
     final portfolios = _portfolioIdsFrom(snap);
     for (final id in portfolios) {
@@ -1414,7 +1485,7 @@ Future<void> _depotCallback(HttpRequest req) async {
         } catch (_) {}
         _depotFailed[state] = (
           owner: pending.owner,
-          error: 'Dieses Depot ist schon mit einem anderen BudgetBuddy-Konto verbunden.',
+          error: 'Dieses Depot ist schon mit einem anderen Ahead-Konto verbunden.',
         );
         return _html(req, '<h1>Nicht verbunden</h1><p>Dieses Depot gehört schon zu einem anderen Konto. '
             'Du kannst dieses Fenster schließen.</p>');
@@ -1430,7 +1501,7 @@ Future<void> _depotCallback(HttpRequest req) async {
     return _html(req, '''
 <div class="check">✓</div>
 <h1>Verbunden</h1>
-<p>Dein Depot ist jetzt mit BudgetBuddy verbunden. Du kannst dieses Fenster schließen.</p>
+<p>Dein Depot ist jetzt mit Ahead verbunden. Du kannst dieses Fenster schließen.</p>
 <script>setTimeout(() => window.close(), 1500)</script>''');
   } catch (e) {
     _depotFailed[state] = (owner: pending.owner, error: '$e');
@@ -1533,7 +1604,7 @@ Future<void> _marketChart(HttpRequest req) async {
   final res = await net.get(
     Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/${Uri.encodeComponent(symbol)}'
         '?interval=$interval&range=$range'),
-    headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
+    headers: {'User-Agent': 'Mozilla/5.0 Ahead'},
   );
   if (res.statusCode != 200) return _json(req, 502, {'error': 'Kursdaten gerade nicht verfügbar'});
   if (_chartCache.length > 500) _chartCache.clear();
@@ -1593,7 +1664,7 @@ Future<void> _marketCached(
   if (hit != null && DateTime.now().difference(hit.$1) < const Duration(minutes: 5)) {
     return _raw(req, hit.$2);
   }
-  final res = await net.get(uri, headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'});
+  final res = await net.get(uri, headers: {'User-Agent': 'Mozilla/5.0 Ahead'});
   if (res.statusCode != 200) return _json(req, 502, {'error': 'Marktdaten gerade nicht verfügbar'});
   if (cache.length > 500) cache.clear();
   final body = shape(res.body);
@@ -1631,7 +1702,7 @@ String _escape(String s) =>
 
 String _page(String body) => '''<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BudgetBuddy</title>
+<title>Ahead</title>
 <style>
   body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
        background:#0b0b10;color:#f2f4f7;font:16px/1.5 -apple-system,BlinkMacSystemFont,Inter,sans-serif}

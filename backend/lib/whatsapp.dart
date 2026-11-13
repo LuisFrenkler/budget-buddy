@@ -35,14 +35,14 @@ class WhatsApp {
   bool get configured => token.isNotEmpty && phoneId.isNotEmpty && verifyToken.isNotEmpty;
 
   static const helpReply =
-      'BudgetBuddy: Freigabe ist aktiv. Du bekommst nur Wochenbericht, Budget-Warnung oder Split-Erinnerung. Kein Spam. Abmelden: schreib Stop, oder schalte es in der App unter Mitteilungen aus.';
+      'Ahead: Freigabe ist aktiv. Du bekommst nur Wochenbericht, Budget-Warnung oder Split-Erinnerung. Kein Spam. Abmelden: schreib Stop, oder schalte es in der App unter Mitteilungen aus.';
 
   static const stopReply =
-      'BudgetBuddy: WhatsApp ist aus. Es kommen keine weiteren Nachrichten. Einschalten kannst du es wieder in der App unter Mitteilungen.';
+      'Ahead: WhatsApp ist aus. Es kommen keine weiteren Nachrichten. Einschalten kannst du es wieder in der App unter Mitteilungen.';
 
   static const linkInstructions =
       'Deine Freigabe ist gespeichert. Die Nummer liegt nur als Hash auf dem Server, nicht im Klartext. '
-      'Schreib in WhatsApp „Hilfe“ an die BudgetBuddy-Nummer aus der Meta Business Suite. Du bekommst eine kurze Bestätigung, sonst nichts. '
+      'Schreib in WhatsApp „Hilfe“ an die Ahead-Nummer aus der Meta Business Suite. Du bekommst eine kurze Bestätigung, sonst nichts. '
       'Solange der Schalter an ist, sind nur diese Nachrichten möglich: Wochenbericht, Budget-Warnung, Split-Erinnerung. '
       'Kein Spam, keine Werbung. Abmelden: Schalter aus, oder in WhatsApp „Stop“ schreiben.';
 

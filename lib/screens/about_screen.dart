@@ -8,7 +8,7 @@ import '../widgets/brand.dart';
 import '../widgets/settings_list.dart';
 import '../l10n/l10n.dart';
 
-// "Über BudgetBuddy": version, help and every legal page in one place.
+// "Über Ahead": version, help and every legal page in one place.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -28,7 +28,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Über BudgetBuddy'))),
+      appBar: AppBar(title: Text(tr('Über Ahead'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
@@ -42,7 +42,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Center(
-            child: Text(tr('Konto, Budgets und Depot an einem Ort. Deine Daten bleiben verschlüsselt.'),
+            child: Text(tr('Dein Buddy für Geld und Zukunft. Die Kopie in der Cloud ist mit deinem Passwort verschlüsselt.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 14)),
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[
@@ -69,14 +69,14 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.mail_outline_rounded,
               title: tr('Support kontaktieren'),
               subtitle: tr('Wir antworten meist innerhalb eines Tages'),
-              onTap: () => _mail(context, tr('BudgetBuddy Support')),
+              onTap: () => _mail(context, tr('Ahead Support')),
               external: true,
             ),
             SettingsRow(
               icon: Icons.lightbulb_outline_rounded,
               title: tr('Idee vorschlagen'),
-              subtitle: tr('Was würde BudgetBuddy für dich besser machen?'),
-              onTap: () => _mail(context, tr('Idee für BudgetBuddy')),
+              subtitle: tr('Was würde Ahead für dich besser machen?'),
+              onTap: () => _mail(context, tr('Idee für Ahead')),
               external: true,
             ),
             SettingsRow(
@@ -106,7 +106,7 @@ class AboutScreen extends StatelessWidget {
               title: tr('Open-Source-Lizenzen'),
               onTap: () => showLicensePage(
                 context: context,
-                applicationName: tr('BudgetBuddy'),
+                applicationName: tr('Ahead'),
                 applicationVersion: LegalInfo.appVersion,
                 applicationIcon: const Padding(padding: EdgeInsets.all(12), child: BrandMark(size: 48)),
               ),

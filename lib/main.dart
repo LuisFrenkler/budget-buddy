@@ -27,6 +27,7 @@ import 'services/recurring_service.dart';
 import 'services/settings_service.dart';
 import 'services/note_scrub.dart';
 import 'utils/theme.dart';
+import 'services/invite_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +86,8 @@ void main() async {
   // a reload of the same link after joining asks nothing
   if (code.isNotEmpty && !SplitService.all().any((g) => g.code == code))
     await SplitService.setPendingJoin(code);
+  // a friend's invite link (…/?ref=CODE): sent along when this person signs up
+  await InviteService.rememberRef(Uri.base.queryParameters['ref']);
   // what the others added in shared groups since last time
   SplitService.refreshAll();
 
@@ -93,7 +96,7 @@ void main() async {
   NotificationService.sync();
 
   // start the app
-  runApp(BudgetBuddyApp());
+  runApp(AheadApp());
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -111,14 +114,14 @@ void _openFromNotification(String payload) {
     navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => page));
 }
 
-class BudgetBuddyApp extends StatefulWidget {
-  BudgetBuddyApp({super.key});
+class AheadApp extends StatefulWidget {
+  AheadApp({super.key});
 
   @override
-  State<BudgetBuddyApp> createState() => _BudgetBuddyAppState();
+  State<AheadApp> createState() => _AheadAppState();
 }
 
-class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
+class _AheadAppState extends State<AheadApp> {
   @override
   void initState() {
     super.initState();
@@ -163,7 +166,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
       builder: (_, dark, __) => MaterialApp(
-        title: 'BudgetBuddy',
+        title: 'Ahead',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false, // hide debug banner
         theme: AppTheme.theme(dark), // reactive light/dark theme

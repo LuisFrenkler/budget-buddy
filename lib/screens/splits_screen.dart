@@ -8,13 +8,16 @@ import '../models/transaction.dart';
 import '../services/account_service.dart';
 import '../services/split_service.dart';
 import 'auth_screens.dart';
+import 'buddy_screen.dart';
+import '../widgets/buddy_orb.dart';
+import '../widgets/group_buddy_sheet.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 
 // "Geteilt": shared spending (WG, trip, couple). Local until you invite,
-// then BudgetBuddy accounts sync via a 6-char code. Non-users need an account.
+// then Ahead accounts sync via a 6-char code. Non-users need an account.
 
 // same rule as backend/lib/accounts.dart, keeps client + server in sync
 final _splitEmailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -631,6 +634,12 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           appBar: AppBar(
             title: Text('${g.emoji} ${g.name}'),
             actions: [
+              // Buddy for the group: who owes whom and a message for the group chat
+              IconButton(
+                tooltip: tr('Buddy für die Gruppe'),
+                onPressed: () => showGroupBuddy(context, g, onAsk: (q) => BuddyScreen.open(context, q)),
+                icon: const BuddyOrb(size: 26),
+              ),
               IconButton(
                 tooltip: tr('Einladen'),
                 icon: const Icon(Icons.person_add_alt_1_rounded),
@@ -881,7 +890,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         builder: (context) => AlertDialog(
           backgroundColor: AppColors.surface,
           title: Text(tr('Gemeinsam rechnen')),
-          content: Text(tr('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein kostenloses BudgetBuddy-Konto.')),
+          content: Text(tr('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein kostenloses Ahead-Konto.')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Später'))),
             TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Konto erstellen'))),
@@ -904,7 +913,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!context.mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = tr('Komm in unsere Gruppe „{name}“ bei BudgetBuddy, dann sehen wir alle, wer wem was schuldet. {x}Code: {code}', {'name': group.name, 'x': link != null ? tr('Einfach hier tippen: {link}\n', {'link': link}) : '', 'code': group.code});
+    final text = tr('Komm in unsere Gruppe „{name}“ bei Ahead, dann sehen wir alle, wer wem was schuldet. {x}Code: {code}', {'name': group.name, 'x': link != null ? tr('Einfach hier tippen: {link}\n', {'link': link}) : '', 'code': group.code});
     final next = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -962,7 +971,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
   }
 
-  // find an existing BudgetBuddy user by exact email, add their name as a
+  // find an existing Ahead user by exact email, add their name as a
   // member slot, then share the invite code so they can join as themselves
   Future<void> _inviteByEmail(BuildContext context, SplitGroup g) async {
     final found = await showModalBottomSheet<String>(
@@ -1001,7 +1010,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = tr('Hallo {found}, komm in unsere Gruppe „{name}“ bei BudgetBuddy. {x}Code: {code}. Dann wähl deinen Namen „{found2}“.', {'found': found, 'name': group.name, 'x': link != null ? tr('Tipp hier: {link}\n', {'link': link}) : '', 'code': group.code, 'found2': found});
+    final text = tr('Hallo {found}, komm in unsere Gruppe „{name}“ bei Ahead. {x}Code: {code}. Dann wähl deinen Namen „{found2}“.', {'found': found, 'name': group.name, 'x': link != null ? tr('Tipp hier: {link}\n', {'link': link}) : '', 'code': group.code, 'found2': found});
     await showDialog(
       context: this.context,
       builder: (context) => AlertDialog(
@@ -1083,7 +1092,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
       if (name == null) {
         setState(() {
           _busy = false;
-          _error = tr('Kein BudgetBuddy-Konto mit dieser E-Mail.');
+          _error = tr('Kein Ahead-Konto mit dieser E-Mail.');
         });
         return;
       }
@@ -1107,7 +1116,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(tr('Person suchen'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        Text(tr('Genau die E-Mail ihres BudgetBuddy-Kontos. Keine öffentliche Namenssuche.'),
+        Text(tr('Genau die E-Mail ihres Ahead-Kontos. Keine öffentliche Namenssuche.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35)),
         const SizedBox(height: 14),
         TextField(

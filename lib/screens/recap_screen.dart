@@ -92,7 +92,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   Future<void> _share() async {
     final parts = [
-      tr('Mein {monthName} mit BudgetBuddy:', {'monthName': _monthName}),
+      tr('Mein {monthName} mit Ahead:', {'monthName': _monthName}),
       if (r.savingsRate > 0) '${r.savingsRate} % gespart',
       if (r.topCategory != null) tr('{x} % für {topCategory}', {'x': r.topCategoryShare, 'topCategory': r.topCategory}),
       if (r.topMerchant != null && r.topMerchantVisits > 1) '${r.topMerchantVisits}× bei ${r.topMerchant}',

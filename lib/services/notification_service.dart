@@ -146,7 +146,7 @@ class NotificationService {
     }
     if (granted != true) {
       problem = 'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen '
-          '${kIsWeb ? 'deines Browsers' : 'deines Geräts'} für BudgetBuddy erlauben.';
+          '${kIsWeb ? 'deines Browsers' : 'deines Geräts'} für Ahead erlauben.';
       return false;
     }
     await _box.put('notifyOn', true);
@@ -230,13 +230,18 @@ class NotificationService {
     if (!_ready || !enabled.value) return;
     final today = now ?? DateTime.now();
 
-    // 1. urgent hints, each only once, at most three at a time
+    // 1. urgent hints, each only once. A finance buddy that spams loses
+    // trust: at most one a day and three a week, the most urgent first
     final seen = _shown;
-    final fresh = _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(3).toList();
+    final log = _sentLog(today);
+    final room = quietRoom(log, today);
+    final fresh =
+        _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(room).toList();
     for (final h in fresh) {
       await _show(_idFor(h.id), h.title, h.text, 'hint:${h.target.name}');
     }
     await _markShown(fresh.map((h) => h.id));
+    if (fresh.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in fresh) today.toIso8601String()]);
 
     // 2. the browser cannot schedule: show this week's report once when it is ready
     if (kIsWeb) {
@@ -275,6 +280,46 @@ class NotificationService {
         );
       }
     } catch (_) {}
+  }
+
+  static const maxPerWeek = 3;
+
+  // when hints went out in the last week
+  static List<String> _sentLog(DateTime now) => [
+        for (final t in (_box.get('notifyLog') as List? ?? const []).cast<String>())
+          if (now.difference(DateTime.tryParse(t) ?? DateTime(2000)).inDays < 7) t
+      ];
+
+  // how many hints may go out now: none if one went out today, and never
+  // more than three in seven days
+  static int quietRoom(List<String> log, DateTime now) {
+    final times = [for (final t in log) DateTime.tryParse(t)].whereType<DateTime>();
+    if (times.any((t) => t.year == now.year && t.month == now.month && t.day == now.day)) return 0;
+    final week = times.where((t) => now.difference(t).inDays < 7).length;
+    return (maxPerWeek - week).clamp(0, 1);
+  }
+
+  // planned nudges, calm: account things (trial ending, bank link expiring)
+  // always; everything else at most once a day and three times a week
+  static List<Reminder> calm(List<Reminder> planned) {
+    final sorted = [...planned]..sort((a, b) => a.when.compareTo(b.when));
+    final days = <String>{};
+    final weeks = <String, int>{};
+    final out = <Reminder>[];
+    for (final r in sorted) {
+      if (r.topic == NotifyTopic.account) {
+        out.add(r);
+        continue;
+      }
+      final day = '${r.when.year}-${r.when.month}-${r.when.day}';
+      final monday = DateTime(r.when.year, r.when.month, r.when.day - (r.when.weekday - 1));
+      final week = '${monday.year}-${monday.month}-${monday.day}';
+      if (days.contains(day) || (weeks[week] ?? 0) >= maxPerWeek) continue;
+      days.add(day);
+      weeks[week] = (weeks[week] ?? 0) + 1;
+      out.add(r);
+    }
+    return out;
   }
 
   // what to remind of, and when (pure, so it can be tested)
@@ -338,7 +383,6 @@ class NotificationService {
     // keep well below the systems' limits (iOS: 64 pending)
     final limit = at(now, 0).add(const Duration(days: 60));
     out.removeWhere((r) => r.when.isBefore(now) || r.when.isAfter(limit));
-    out.sort((a, b) => a.when.compareTo(b.when));
-    return out.take(40).toList();
+    return calm(out).take(40).toList();
   }
 }

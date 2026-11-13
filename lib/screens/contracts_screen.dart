@@ -11,6 +11,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
+import '../widgets/share_card.dart';
 import '../widgets/tx_row.dart';
 import '../l10n/l10n.dart';
 
@@ -30,7 +31,15 @@ class ContractsScreen extends StatelessWidget {
         final raised = contracts.where((c) => c.priceChange > 0).toList();
 
         return Scaffold(
-          appBar: AppBar(title: Text(tr('Verträge & Abos'))),
+          appBar: AppBar(title: Text(tr('Verträge & Abos')), actions: [
+            if (contracts.isNotEmpty)
+              IconButton(
+                tooltip: tr('Als Karte teilen'),
+                onPressed: () => _share(context, contracts, monthly),
+                icon: const Icon(Icons.ios_share_rounded),
+              ),
+            const SizedBox(width: 8),
+          ]),
           body: contracts.isEmpty
               ? _empty()
               : ListView(
@@ -404,4 +413,25 @@ class _ContractSheetState extends State<_ContractSheet> {
       ),
     );
   }
+}
+
+// "Buddy hat 7 Abos gefunden": a card for the story, amounts hidden by default
+void _share(BuildContext context, List<Contract> contracts, int monthly) {
+  final top = [...contracts]..sort((a, b) => b.monthlyCents.compareTo(a.monthlyCents));
+  final n = contracts.length;
+  showShareCard(
+    context,
+    ShareCardData(
+      kicker: tr('Abo-Check'),
+      headline: tr('Buddy hat {n} {x} gefunden: {y} im Jahr.',
+          {'n': n, 'x': n == 1 ? tr('Abo') : tr('Abos und Verträge'), 'y': Money.raw(monthly * 12)}),
+      body: [
+        for (final c in top.take(4)) '- **${c.name}**: ${Money.raw(c.monthlyCents)} im Monat',
+        if (n > 4) tr('- und {n} weitere', {'n': n - 4}),
+        '',
+        tr('Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.'),
+      ].join('\n'),
+      text: tr('Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?', {'n': n}),
+    ),
+  );
 }

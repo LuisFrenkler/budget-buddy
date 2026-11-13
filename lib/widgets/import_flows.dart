@@ -1,5 +1,5 @@
 // Importing files into a chosen account or depot: a bank's CSV export or
-// BudgetBuddy's own CSV into an account, a positions CSV or a Trade Republic
+// Ahead's own CSV into an account, a positions CSV or a Trade Republic
 // export into a depot. Shared by Profil, "+ Konto" and the Depot's +.
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';

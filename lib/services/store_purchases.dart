@@ -1,4 +1,4 @@
-// BudgetBuddy Plus in the iPhone and Android app: bought through the App
+// Ahead Plus in the iPhone and Android app: bought through the App
 // Store or Google Play (in_app_purchase), as both stores require for digital
 // subscriptions.
 //

@@ -133,7 +133,7 @@ class AccountSettingsScreen extends StatelessWidget {
         ]),
         SizedBox(height: 16),
         Text(
-          tr('Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, BudgetBuddy kann sie nicht lesen. Die App-Sperre schützt nur die Anzeige auf diesem Gerät.'),
+          tr('Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, Ahead kann sie nicht lesen. Die App-Sperre schützt nur die Anzeige auf diesem Gerät.'),
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 12),
         ),

@@ -269,7 +269,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           _point(Icons.visibility_rounded,
               tr('Nur Lesezugriff, Überweisungen sind nicht möglich')),
           _point(Icons.lock_rounded,
-              tr('Login direkt bei deiner Bank, BudgetBuddy sieht keine Zugangsdaten')),
+              tr('Login direkt bei deiner Bank, Ahead sieht keine Zugangsdaten')),
           _point(Icons.link_off_rounded,
               tr('Jederzeit trennbar, Freigabe gilt bis zu 180 Tage')),
           _point(Icons.account_balance_wallet_outlined,
@@ -355,7 +355,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ]),
           const SizedBox(height: 14),
           Text(
-              tr('Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht BudgetBuddy ab.'),
+              tr('Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 14),
@@ -566,7 +566,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text('$name trennen?'),
         content: Text(
-            tr('BudgetBuddy liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, bis du sie löschst.')),
+            tr('Ahead liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, bis du sie löschst.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -625,8 +625,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           // and passes the depot on with the user's consent
           _step(1, tr('Verbinde dein Depot einmal mit Parqet'),
               tr('Kostenlos, Parqet hält es dann automatisch aktuell')),
-          _step(2, tr('Gib es hier für BudgetBuddy frei'),
-              tr('Nur Lesezugriff, deine Broker-Zugangsdaten sieht BudgetBuddy nie')),
+          _step(2, tr('Gib es hier für Ahead frei'),
+              tr('Nur Lesezugriff, deine Broker-Zugangsdaten sieht Ahead nie')),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
@@ -709,7 +709,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 14),
         Text(
-            tr('Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht BudgetBuddy ab.'),
+            tr('Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         const SizedBox(height: 14),
@@ -911,7 +911,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                 borderRadius: BorderRadius.circular(14)),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(tr('Starte den BudgetBuddy-Server auf deinem Rechner:'),
+              Text(tr('Starte den Ahead-Server auf deinem Rechner:'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               const SizedBox(height: 8),
               const SelectableText('cd backend && dart run server.dart',
@@ -1294,7 +1294,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text(tr('Depot trennen?')),
         content: Text(
-            tr('BudgetBuddy liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.')),
+            tr('Ahead liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),

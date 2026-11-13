@@ -12,156 +12,20 @@ import '../services/settings_service.dart';
 import '../utils/errors.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
-import '../widgets/brand.dart';
 import 'buddy_screen.dart';
 import 'connections_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 import '../l10n/l10n.dart';
 
-// First screen for anyone not signed in: what the app does (a slowly
-// turning carousel) and sign-up / sign-in. Replaces a separate intro.
-class WelcomeScreen extends StatefulWidget {
+// First screen for anyone not signed in: Buddy himself. The first message is
+// useful without an account or a bank link; sign-up and sign-in sit in the
+// header and come up in the chat once Buddy could do more with real numbers.
+class WelcomeScreen extends StatelessWidget {
   WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  final _pages = PageController();
-  int _page = 0;
-  Timer? _auto;
-
-  static List<({IconData icon, String title, String text})> get _slides => [
-    (
-      icon: Icons.chat_bubble_outline_rounded,
-      title: tr('Kann ich mir\ndas leisten?'),
-      text: tr('Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.'),
-    ),
-    (
-      icon: Icons.chat_bubble_outline_rounded,
-      title: tr('Erfassen, wie\ndu sprichst.'),
-      text: tr('Tipp „Döner 8,50 gestern“ oder knips den Beleg. Fertig. Kein Formular.'),
-    ),
-    (
-      icon: Icons.receipt_long_rounded,
-      title: tr('Abos im Griff.\nErhöhungen auch.'),
-      text: tr('BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.'),
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _auto = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!_pages.hasClients) return;
-      _pages.animateToPage((_page + 1) % _slides.length,
-          duration: const Duration(milliseconds: 600), curve: Curves.easeInOutCubic);
-    });
-  }
-
-  @override
-  void dispose() {
-    _auto?.cancel();
-    _pages.dispose();
-    super.dispose();
-  }
-
-  void _open(Widget screen) => Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  child: Row(children: [BrandMark(size: 40), SizedBox(width: 12), Wordmark(size: 22)]),
-                ),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pages,
-                    itemCount: _slides.length,
-                    onPageChanged: (i) => setState(() => _page = i),
-                    itemBuilder: (_, i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: _slide(_slides[i]),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      for (int i = 0; i < _slides.length; i++)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.only(right: 6),
-                          width: i == _page ? 22 : 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: i == _page ? AppColors.primary : AppColors.border,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                    ]),
-                    const SizedBox(height: 28),
-                    _PrimaryButton(tr('Konto erstellen'), onPressed: () => _open(const SignUpScreen())),
-                    const SizedBox(height: 10),
-                    _SecondaryButton(tr('Ich habe schon ein Konto'), onPressed: () => _open(const SignInScreen())),
-                    const SizedBox(height: 12),
-                    Text(tr('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
-                  ]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // sits at the bottom like a title card; with large system text it scrolls
-  // instead of overflowing
-  Widget _slide(({IconData icon, String title, String text}) s) {
-    return LayoutBuilder(
-      builder: (context, box) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: box.maxHeight),
-          child: _slideBody(s),
-        ),
-      ),
-    );
-  }
-
-  Widget _slideBody(({IconData icon, String title, String text}) s) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration:
-              BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(18)),
-          child: Icon(s.icon, color: AppColors.primary, size: 28),
-        ),
-        const SizedBox(height: 24),
-        Text(s.title,
-            style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1.2, height: 1.08)),
-        const SizedBox(height: 14),
-        Text(s.text, style: TextStyle(fontSize: 17, color: AppColors.textDim, height: 1.45)),
-        const SizedBox(height: 28),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const BuddyScreen(guest: true);
 }
 
 // --- sign up ---
@@ -536,7 +400,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
               final uri = Uri(
                 scheme: 'mailto',
                 path: LegalInfo.email,
-                query: 'subject=${Uri.encodeComponent('BudgetBuddy: Passwort / Konto')}',
+                query: 'subject=${Uri.encodeComponent('Ahead: Passwort / Konto')}',
               );
               Navigator.pop(ctx);
               if (!await launchUrl(uri) && context.mounted) {
@@ -594,22 +458,22 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             Text(name != null ? tr('Hallo {name}', {'name': name}) : tr('Los geht\'s'),
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
-            Text(tr('Wähle, wie du starten willst. Du kannst alles später ändern.'),
+            Text(tr('Wie willst du starten? Du kannst alles später ändern.'),
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
             const SizedBox(height: 28),
             _ChoiceCard(
-              icon: Icons.account_balance_rounded,
-              title: tr('Bankkonto verbinden'),
-              text: tr('Login nur bei deiner Bank. Kontostand und Umsätze kommen automatisch.'),
+              icon: Icons.chat_bubble_outline_rounded,
+              title: tr('Mit Buddy loslegen'),
+              text: tr('Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.'),
               badge: tr('Empfohlen'),
-              onTap: _busy ? null : () => _finish(bank: true),
+              onTap: _busy ? null : () => _finish(),
             ),
             const SizedBox(height: 12),
             _ChoiceCard(
-              icon: Icons.edit_note_rounded,
-              title: tr('Leer starten'),
-              text: tr('Selbst tippen oder Belege scannen, mit deinen echten Zahlen.'),
-              onTap: _busy ? null : () => _finish(),
+              icon: Icons.account_balance_rounded,
+              title: tr('Bankkonto verbinden'),
+              text: tr('Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.'),
+              onTap: _busy ? null : () => _finish(bank: true),
             ),
             const SizedBox(height: 12),
             _ChoiceCard(
@@ -735,25 +599,6 @@ class _PrimaryButton extends StatelessWidget {
       child: busy
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class _SecondaryButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  const _SecondaryButton(this.label, {this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(54),
-        backgroundColor: AppColors.surfaceAlt,
-        foregroundColor: AppColors.text,
-      ),
-      onPressed: onPressed,
-      child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
     );
   }
 }

@@ -1,4 +1,4 @@
-// Talks to the BudgetBuddy backend (backend/server.dart) which links real
+// Talks to the Ahead backend (backend/server.dart) which links real
 // banks through Enable Banking (PSD2), depots through Parqet Connect and takes
 // Plus payments through Stripe and checks App Store / Google Play purchases. The base
 // URL can be overridden with --dart-define=BACKEND_URL=... ; it defaults to

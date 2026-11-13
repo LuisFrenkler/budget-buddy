@@ -16,8 +16,8 @@ Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   final change = report.change;
   final pct = change == null ? null : (change * 100).round().abs();
   final fallback = change == null || report.roughlyUsual
-      ? tr('Meine Woche mit BudgetBuddy: {headline}', {'headline': report.headline})
-      : tr('Meine Woche: {pct} % {x} als sonst · BudgetBuddy', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
+      ? tr('Meine Woche mit Ahead: {headline}', {'headline': report.headline})
+      : tr('Meine Woche: {pct} % {x} als sonst · Ahead', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
   Hive.box('settings').put('weeklySeen', report.start.toIso8601String());
   return showWeeklyStoryShare(context, report, fallbackText: fallback);
 }
@@ -58,7 +58,7 @@ class WeeklyStory extends StatelessWidget {
                   Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text(tr('BudgetBuddy'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text(tr('Ahead'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   ]),
                   const Spacer(),
                   Text('KW ${r.week}',
@@ -92,7 +92,7 @@ class WeeklyStory extends StatelessWidget {
                   const Spacer(),
                   Text(tr('Und deine Woche?'),
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  Text(tr('Finanzen mit Buddy · BudgetBuddy'),
+                  Text(tr('Finanzen mit Buddy · Ahead'),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),
@@ -142,7 +142,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
     return png!.buffer.asUint8List();
   }
 
-  String get _filename => 'budgetbuddy-kw${widget.report.week}.png';
+  String get _filename => 'ahead-kw${widget.report.week}.png';
 
   Future<void> _share() async {
     setState(() => _busy = true);

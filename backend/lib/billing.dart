@@ -1,4 +1,4 @@
-// BudgetBuddy Plus payments on the web through Stripe (https://stripe.com).
+// Ahead Plus payments on the web through Stripe (https://stripe.com).
 //
 // The app never sees card or bank details: it asks this server for a Stripe
 // Checkout page, the user pays there (card, PayPal, SEPA, Apple Pay, Google

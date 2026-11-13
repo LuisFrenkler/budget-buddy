@@ -40,6 +40,8 @@ class BackupService {
     'moneyAccounts', 'mainAccount',
     // wealth bridge + vorsorge + profile picture (vault / JSON backup)
     'wealthDebts', 'wealthPolicies', 'emergencyExtraCents', 'vorsorge', 'avatarBytes',
+    // what Buddy may remember and the life stage follow the person to a new phone
+    'buddyMemory', 'lifeStage', 'lifeStageDone',
   ];
 
   // serializes every box into a single pretty-printed JSON document
@@ -67,11 +69,11 @@ class BackupService {
   }
 
   // restores a backup, REPLACING all current data. Throws on anything that
-  // is not a BudgetBuddy backup, before a single record is touched.
+  // is not a Ahead backup, before a single record is touched.
   static Future<void> restoreFromJson(String json) async {
     final data = jsonDecode(json);
     if (data is! Map || data['version'] != 1 || data['transactions'] is! List) {
-      throw const FormatException('Keine BudgetBuddy-Sicherung');
+      throw const FormatException('Keine Ahead-Sicherung');
     }
     // build everything first, then replace box by box
     final boxes = {

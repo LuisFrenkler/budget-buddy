@@ -8,6 +8,7 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
 import 'backend_service.dart';
+import 'invite_service.dart';
 import 'cloud_sync.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
@@ -107,8 +108,14 @@ class AccountService {
         TargetPlatform.fuchsia => 'Gerät',
       };
 
-  static Future<Account> register({required String name, required String email, required String password}) =>
-      _signIn('/auth/register', {'name': name, 'email': email, 'password': password});
+  // a friend's invite code (?ref=CODE) goes along, so the friend gets the credit
+  static Future<Account> register({required String name, required String email, required String password}) async {
+    final ref = InviteService.pendingRef;
+    final account = await _signIn(
+        '/auth/register', {'name': name, 'email': email, 'password': password, if (ref != null) 'invite': ref});
+    if (ref != null) await InviteService.clearRef();
+    return account;
+  }
 
   static Future<Account> login({required String email, required String password}) =>
       _signIn('/auth/login', {'email': email, 'password': password});

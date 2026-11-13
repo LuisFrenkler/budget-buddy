@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'splits_screen.dart';
 import 'goals_screen.dart';
 import '../services/auto_save.dart';
+import '../services/buddy_history.dart';
+import '../services/invite_service.dart';
 import '../services/account_service.dart';
 import '../services/cloud_sync.dart';
 import '../services/split_service.dart';
@@ -50,6 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // the chat from before sign-up continues here (before the Buddy tab loads it)
+    BuddyHistory.adoptGuest();
+    // friends who joined through the invite link: bonus questions for Buddy
+    InviteService.refresh();
     // a goal filled by the autopilot gets its celebration, too
     AutoSave.reached.addListener(_goalReached);
     // an invite link opened the app: straight to joining, also right after signing in

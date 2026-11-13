@@ -123,6 +123,24 @@ void main() {
     });
   });
 
+  test('proactive, but calm: one nudge a day, three a week, account things always', () {
+    Reminder r(String id, DateTime when, NotifyTopic t) => Reminder(id.hashCode, when, id, '', t, id);
+    final week = [
+      r('a', DateTime(2026, 11, 16, 9), NotifyTopic.contracts),
+      r('b', DateTime(2026, 11, 16, 18), NotifyTopic.weekly), // same day: dropped
+      r('c', DateTime(2026, 11, 17, 9), NotifyTopic.spending),
+      r('d', DateTime(2026, 11, 18, 9), NotifyTopic.contracts),
+      r('e', DateTime(2026, 11, 19, 9), NotifyTopic.contracts), // fourth in the week: dropped
+      r('f', DateTime(2026, 11, 19, 10), NotifyTopic.account), // account: always
+      r('g', DateTime(2026, 11, 23, 9), NotifyTopic.weekly), // next week
+    ];
+    expect(NotificationService.calm(week).map((x) => x.payload), ['a', 'c', 'd', 'f', 'g']);
+    final now = DateTime(2026, 11, 20, 12);
+    expect(NotificationService.quietRoom(['2026-11-20T08:00:00.000'], now), 0);
+    expect(NotificationService.quietRoom(['2026-11-15T08:00:00.000', '2026-11-17T08:00:00.000', '2026-11-18T08:00:00.000'], now), 0);
+    expect(NotificationService.quietRoom(['2026-11-18T08:00:00.000'], now), 1);
+  });
+
   test('password strength', () {
     expect(passwordStrength('kurz').$1, 0);
     expect(passwordStrength('abcdefgh').$1, 1);
