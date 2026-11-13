@@ -1,3 +1,5 @@
+import 'buddy_memory_screen.dart';
+import 'invite_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -247,6 +249,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   if (mounted) setState(() {});
                 }),
                 SettingsRow(
+                  icon: Icons.bookmark_outline_rounded,
+                  title: tr('Was Buddy weiß'),
+                  subtitle: tr('Nur was du bestätigt hast, jederzeit löschbar'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen())),
+                ),
+                SettingsRow(
                   icon: Icons.privacy_tip_outlined,
                   title: tr('Was das Gerät verlässt'),
                   subtitle: tr('Bank, Kopie, KI, Kurse'),
@@ -254,8 +262,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
 
-              SectionLabel(tr('BudgetBuddy')),
+              SectionLabel(tr('Ahead')),
               SettingsGroup([
+                SettingsRow(
+                  icon: Icons.card_giftcard_rounded,
+                  title: tr('Freunde einladen'),
+                  subtitle: tr('Mehr Buddy-Fragen für jede Person, die mitmacht'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InviteScreen())),
+                ),
                 SettingsRow(
                   icon: Icons.chat_bubble_outline_rounded,
                   title: tr('Feedback zur Testversion'),
@@ -322,7 +336,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ]),
               const SizedBox(height: 24),
               Center(
-                child: Text(tr('BudgetBuddy {appVersion}', {'appVersion': LegalInfo.appVersion}), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                child: Text(tr('Ahead {appVersion}', {'appVersion': LegalInfo.appVersion}), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ),
             ],
           ),
@@ -385,7 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ? tr('Plus-Status unklar')
                                 : plus
                                     ? tr('Mein Abo · Plus')
-                                    : tr('BudgetBuddy Plus'),
+                                    : tr('Ahead Plus'),
                             style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 16,
@@ -567,7 +581,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final uri = Uri(
       scheme: 'mailto',
       path: LegalInfo.email,
-      query: 'subject=${Uri.encodeComponent('BudgetBuddy Feedback (Test)')}'
+      query: 'subject=${Uri.encodeComponent('Ahead Feedback (Test)')}'
           '&body=${Uri.encodeComponent('Gerät / OS:\nWas ich getestet habe:\nWas gut lief:\nWas hakt:\n')}',
     );
     if (!await launchUrl(uri) && mounted) {
@@ -618,7 +632,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(tr('Was das Gerät verlässt'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Text(
-              tr('Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy schickt nur mit dem Schalter oben eine Zusammenfassung ohne Kontonummern an den KI-Anbieter. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.'),
+              tr('Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.'),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             const SizedBox(height: 8),
@@ -782,7 +796,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     try {
       final csv = BackupService.transactionsToCsv(txs);
-      await saveTextFile('budgetbuddy_export.csv', csv, text: tr('BudgetBuddy Export'));
+      await saveTextFile('ahead_export.csv', csv, text: tr('Ahead Export'));
     } catch (e) {
       _snack(friendlyError(e), error: true);
     }
@@ -792,7 +806,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _backupJson() async {
     try {
       final json = BackupService.toBackupJson();
-      await saveTextFile('budgetbuddy_backup.json', json, text: tr('BudgetBuddy Backup'));
+      await saveTextFile('ahead_backup.json', json, text: tr('Ahead Backup'));
     } catch (e) {
       _snack(friendlyError(e), error: true);
     }

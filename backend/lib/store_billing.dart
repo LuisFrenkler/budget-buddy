@@ -1,4 +1,4 @@
-// BudgetBuddy Plus bought in the apps through the App Store or Google Play.
+// Ahead Plus bought in the apps through the App Store or Google Play.
 //
 // The app never decides on its own that someone has Plus: after a purchase it
 // sends the store's id for it (Apple: the transaction id, Google: the purchase

@@ -118,7 +118,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         builder: (context, on, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
-            Text(tr('Buddy meldet sich nur, wenn es wirklich zählt. Kein Spam, keine Werbung.'),
+            Text(tr('Buddy meldet sich nur, wenn es wirklich zählt: höchstens einmal am Tag und dreimal pro Woche. Kein Spam, keine Werbung.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             SettingsGroup([
@@ -137,8 +137,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
                 child: Text(
                   kIsWeb
-                      ? tr('Dein Browser lässt BudgetBuddy keine Mitteilungen schicken. Du kannst das in den Website-Einstellungen ändern (Schloss-Symbol neben der Adresse). Die Hinweise in der App bekommst du trotzdem.')
-                      : tr('Erlaube Mitteilungen für BudgetBuddy in den Einstellungen deines Geräts. Die Hinweise in der App bekommst du trotzdem.'),
+                      ? tr('Dein Browser lässt Ahead keine Mitteilungen schicken. Du kannst das in den Website-Einstellungen ändern (Schloss-Symbol neben der Adresse). Die Hinweise in der App bekommst du trotzdem.')
+                      : tr('Erlaube Mitteilungen für Ahead in den Einstellungen deines Geräts. Die Hinweise in der App bekommst du trotzdem.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
                 ),
               ),
@@ -168,7 +168,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             const SizedBox(height: 16),
             Text(
               kIsWeb
-                  ? tr('Im Browser: Hinweise nur, während BudgetBuddy offen ist. Geplante Erinnerungen (z. B. Sonntag Wochenbericht, ablaufende Bank-Freigabe) gibt es in der iPhone- und Android-App.')
+                  ? tr('Im Browser: Hinweise nur, während Ahead offen ist. Geplante Erinnerungen (z. B. Sonntag Wochenbericht, ablaufende Bank-Freigabe) gibt es in der iPhone- und Android-App.')
                   : tr('Erinnerungen werden auf deinem Gerät geplant. Deine Daten gehen dafür an keinen Server.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),

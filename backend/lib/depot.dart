@@ -3,8 +3,8 @@
 // Trade Republic, Scalable and most other brokers have no open interface for
 // depots. Parqet syncs them (Autosync) and lets other apps read the result
 // with the user's consent: OAuth 2.0 with PKCE, scope portfolio:read. So a
-// user links Trade Republic -> Parqet once, then Parqet -> BudgetBuddy here,
-// and never gives BudgetBuddy their broker login.
+// user links Trade Republic -> Parqet once, then Parqet -> Ahead here,
+// and never gives Ahead their broker login.
 //
 // Without PARQET_CLIENT_ID the server runs a demo depot with the same steps
 // (consent page, polling, sync) and generated positions.
@@ -313,7 +313,7 @@ class SymbolLookup {
     try {
       final res = await net.get(
         Uri.parse('https://query2.finance.yahoo.com/v1/finance/search?q=$isin&quotesCount=10&newsCount=0'),
-        headers: {'User-Agent': 'Mozilla/5.0 BudgetBuddy'},
+        headers: {'User-Agent': 'Mozilla/5.0 Ahead'},
       );
       if (res.statusCode != 200) return '';
       final quotes = ((jsonDecode(res.body) as Map)['quotes'] as List? ?? const [])

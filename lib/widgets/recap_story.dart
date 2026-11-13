@@ -48,7 +48,7 @@ class RecapStory extends StatelessWidget {
                   Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text(tr('BudgetBuddy'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text(tr('Ahead'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   ]),
                   const Spacer(),
                   Text(tr('Mein'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
@@ -78,7 +78,7 @@ class RecapStory extends StatelessWidget {
                   const Spacer(),
                   Text(tr('Und dein Monat?'),
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  Text(tr('Finanzen mit Buddy · BudgetBuddy'),
+                  Text(tr('Finanzen mit Buddy · Ahead'),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),
@@ -122,7 +122,7 @@ class _StorySheetState extends State<_StorySheet> {
     return png!.buffer.asUint8List();
   }
 
-  String get _filename => 'budgetbuddy-${Dates.months[widget.recap.month.month - 1].toLowerCase()}.png';
+  String get _filename => 'ahead-${Dates.months[widget.recap.month.month - 1].toLowerCase()}.png';
 
   Future<void> _save() async {
     await saveImage(_filename, await _png());

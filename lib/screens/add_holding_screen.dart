@@ -197,7 +197,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
                 decoration: InputDecoration(
                   labelText: tr('Symbol (optional)'),
                   hintText: tr('z. B. SAP.DE, AAPL oder BTC'),
-                  helperText: tr('Damit holt BudgetBuddy den Kurs automatisch.'),
+                  helperText: tr('Damit holt Ahead den Kurs automatisch.'),
                 ),
               ),
             ],

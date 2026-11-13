@@ -1,4 +1,4 @@
-// "Erste Schritte": the few things that make BudgetBuddy useful from day one.
+// "Erste Schritte": the few things that make Ahead useful from day one.
 // Every step ticks itself off when it is done, wherever the user did it.
 import '../models/money_account.dart';
 import 'money_accounts.dart';

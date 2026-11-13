@@ -88,7 +88,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
   Future<void> _authenticate() async {
     if (_authenticating) return;
     setState(() => _authenticating = true);
-    final ok = await AuthService.authenticate(tr('BudgetBuddy entsperren'));
+    final ok = await AuthService.authenticate(tr('Ahead entsperren'));
     if (mounted) {
       setState(() {
         _unlocked = ok;
@@ -131,7 +131,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
               children: [
                 const BrandMark(size: 72),
                 const SizedBox(height: 24),
-                Text(tr('BudgetBuddy ist gesperrt'),
+                Text(tr('Ahead ist gesperrt'),
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text(

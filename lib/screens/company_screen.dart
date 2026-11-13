@@ -20,7 +20,7 @@ class CompanyScreen extends StatelessWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: LegalInfo.email,
-      query: 'subject=${Uri.encodeComponent('Mitarbeit bei BudgetBuddy')}',
+      query: 'subject=${Uri.encodeComponent('Mitarbeit bei Ahead')}',
     );
     if (LegalInfo.email.startsWith('[') || !await launchUrl(uri)) {
       if (context.mounted) {
@@ -40,8 +40,8 @@ class CompanyScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
           _block(
-            tr('Über BudgetBuddy'),
-            tr('BudgetBuddy hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.'),
+            tr('Über Ahead'),
+            tr('Ahead hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.'),
             dim,
           ),
           _block(
@@ -51,7 +51,7 @@ class CompanyScreen extends StatelessWidget {
           ),
           _block(
             tr('Für Investoren'),
-            tr('Finanzguru ist der etablierte Kontenüberblick für ein großes Publikum. BudgetBuddy setzt daneben an und ist früher dran: ein privater Coach für den Alltag, Buddy nur mit Zustimmung, Verträge aus den eigenen Buchungen, Depot und Vorsorge als Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden, und beanspruchen den Markt nicht. Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird, mit dem Unterschied, dass die Finanzdaten bei der Person bleiben.'),
+            tr('Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Buddy bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Buddy holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.'),
             dim,
           ),
           _block(

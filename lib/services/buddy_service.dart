@@ -1,4 +1,4 @@
-// Buddy, the AI finance coach. Uses Claude through the BudgetBuddy server
+// Buddy, the AI finance coach. Uses Claude through the Ahead server
 // when the user is signed in and the server has AI configured; otherwise the
 // offline answers of LocalBuddy and the offline QuickParser.
 import 'money_accounts.dart';
@@ -15,6 +15,8 @@ import '../models/transaction.dart';
 import '../utils/theme.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'buddy_memory.dart';
+import 'life_stages.dart';
 import 'db.dart';
 import 'finance_snapshot.dart';
 import 'goals_service.dart';
@@ -232,7 +234,12 @@ class BuddyService {
     final req = http.Request('POST', Uri.parse('${BackendService.base}/ai/chat'))
       ..headers.addAll({'Content-Type': 'application/json', ...BackendService.authHeaders})
       ..body = jsonEncode({
-        'finances': snapshot().toJson(),
+        'finances': {
+          ...snapshot().toJson(),
+          // facts the person let Buddy remember, and their life stage
+          'erinnerungen': BuddyMemory.texts(),
+          if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
+        },
         'history': [
           for (final m in history) {'role': m.fromUser ? 'user' : 'assistant', 'text': m.text}
         ],

@@ -65,7 +65,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
         Text(MoneyAccounts.several ? tr('Wie viel ist gerade auf {x}?', {'x': (widget.account ?? MoneyAccounts.main).name}) : tr('Wie viel ist gerade auf deinem Konto?'),
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
         SizedBox(height: 6),
-        Text(tr('Schau kurz in deine Banking-App. Ab dann rechnet BudgetBuddy mit jeder Buchung weiter.'),
+        Text(tr('Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         SizedBox(height: 18),
         TextField(

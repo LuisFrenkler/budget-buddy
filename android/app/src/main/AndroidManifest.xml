@@ -8,7 +8,7 @@
     <!-- Android 13+: ask before showing local reminders -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="BudgetBuddy"
+        android:label="Ahead"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- show and restore scheduled reminders (flutter_local_notifications) -->

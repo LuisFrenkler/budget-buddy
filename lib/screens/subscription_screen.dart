@@ -62,7 +62,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primaryText),
             const SizedBox(height: 12),
-            Text(tr('Du nutzt BudgetBuddy gratis'),
+            Text(tr('Du nutzt Ahead gratis'),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(
@@ -127,7 +127,7 @@ class _Details extends StatelessWidget {
             Row(children: [
               Icon(Icons.workspace_premium_outlined, size: 22, color: sub.cancelled ? AppColors.primaryText : Colors.white),
               const SizedBox(width: 8),
-              Text(tr('BudgetBuddy Plus'),
+              Text(tr('Ahead Plus'),
                   style: TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w800, color: sub.cancelled ? AppColors.text : Colors.white)),
             ]),

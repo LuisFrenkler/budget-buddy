@@ -1,4 +1,4 @@
-// Money handling for BudgetBuddy.
+// Money handling for Ahead.
 //
 // All amounts in the app are stored and calculated as integer cents (int),
 // never as double. Floating point math is not exact (0.1 + 0.2 != 0.3), which

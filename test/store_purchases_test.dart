@@ -21,7 +21,7 @@ List<GooglePlayProductDetails> yearlyOffers() => GooglePlayProductDetails.fromPr
       name: 'Plus',
       productId: 'budgetbuddy_plus_yearly',
       productType: ProductType.subs,
-      title: 'BudgetBuddy Plus',
+      title: 'Ahead Plus',
       subscriptionOfferDetails: [
         SubscriptionOfferDetailsWrapper(
           basePlanId: 'yearly',

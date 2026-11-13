@@ -118,7 +118,7 @@ class AppTheme {
         foregroundColor: AppColors.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
 
@@ -128,14 +128,14 @@ class AppTheme {
         foregroundColor: AppColors.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primaryText,
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 

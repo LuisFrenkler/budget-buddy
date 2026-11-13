@@ -93,7 +93,7 @@ Future<void> _furtherDepot(BuildContext context) async {
             label: Text(tr('Broker in Parqet hinzufügen')),
           ),
           const SizedBox(height: 6),
-          Text(tr('Danach in BudgetBuddy auf Aktualisieren tippen, dann erscheint das neue Depot für sich.'),
+          Text(tr('Danach in Ahead auf Aktualisieren tippen, dann erscheint das neue Depot für sich.'),
               textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
           const SizedBox(height: 14),
           OutlinedButton(

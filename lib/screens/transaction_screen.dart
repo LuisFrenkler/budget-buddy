@@ -148,7 +148,7 @@ class TransactionScreen extends StatelessWidget {
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                Text(tr('Betrag und Datum kommen von deiner Bank. Die Kategorie kannst du jederzeit ändern, BudgetBuddy merkt sie sich für künftige Buchungen.'),
+                Text(tr('Betrag und Datum kommen von deiner Bank. Die Kategorie kannst du jederzeit ändern, Ahead merkt sie sich für künftige Buchungen.'),
                     textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ],
             ],
@@ -286,7 +286,7 @@ class TransactionScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 3200),
-            content: Text(tr('BudgetBuddy merkt sich {name} als {picked}, auch bei Bank-Sync und Schnellerfassung.', {'name': name, 'picked': picked}))));
+            content: Text(tr('Ahead merkt sich {name} als {picked}, auch bei Bank-Sync und Schnellerfassung.', {'name': name, 'picked': picked}))));
       }
       return;
     }

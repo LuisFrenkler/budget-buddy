@@ -86,6 +86,9 @@ flutter_launcher_icons:
     generate: true
     background_color: "#0B0B10"
     theme_color: "#B06030"
+  macos:
+    generate: true
+    image_path: "assets/icon/icon.png"
   adaptive_icon_background: "#B06030"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 

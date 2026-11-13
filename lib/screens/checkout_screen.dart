@@ -433,7 +433,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                tr('Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. BudgetBuddy sieht deine Karten- und Kontodaten nie.'),
+                tr('Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. Ahead sieht deine Karten- und Kontodaten nie.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
               ),
             ),
@@ -727,7 +727,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    tr('Ich ermächtige BudgetBuddy, Zahlungen von meinem Konto per Lastschrift einzuziehen (SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.'),
+                    tr('Ich ermächtige Ahead, Zahlungen von meinem Konto per Lastschrift einzuziehen (SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.'),
                     style: TextStyle(
                         fontSize: 12,
                         color: _showErrors && !_mandate ? AppColors.errorText : AppColors.textDim),

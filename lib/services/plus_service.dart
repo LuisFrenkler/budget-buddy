@@ -1,4 +1,4 @@
-// BudgetBuddy Plus: who has it and how much of the free tier is used.
+// Ahead Plus: who has it and how much of the free tier is used.
 //
 // Free: 5 AI questions and 3 receipt scans per month, 1 savings goal.
 // Plus: everything without limits, 7 days free, then monthly or yearly.
@@ -383,8 +383,17 @@ class PlusService {
     return (raw['count'] as num).toInt();
   }
 
+  // friends who came through your invite add a few questions each (InviteService)
+  static int get inviteBonus {
+    try {
+      return Hive.isBoxOpen('settings') ? (Hive.box('settings').get('inviteBonus') as int? ?? 0) : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   static int limit(PlusFeature f) => switch (f) {
-        PlusFeature.aiQuestion => freeAiQuestions,
+        PlusFeature.aiQuestion => freeAiQuestions + inviteBonus,
         PlusFeature.receiptScan => freeReceiptScans,
         PlusFeature.goal => freeGoals,
       };
