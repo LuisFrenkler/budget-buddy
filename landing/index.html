@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ahead · Dein Buddy für Geld und Zukunft</title>
+<meta name="description" content="Finanz-Apps zeigen dir dein Geld. Ahead sagt dir, was du jetzt tun solltest. Buddy rechnet mit deinen echten Zahlen, erklärt jeden Begriff und bereitet vor. Du entscheidest.">
+<meta property="og:title" content="Ahead · Dein Buddy für Geld und Zukunft">
+<meta property="og:description" content="Erster Job, erster Plan. Frag Buddy, sichere dir deinen Platz und rück mit jeder Einladung vor.">
+<meta property="og:image" content="hero.png">
+<meta name="theme-color" content="#0B0B10">
+<!-- where the Ahead server runs (waitlist and the Buddy demo); empty = same origin -->
+<meta name="ahead-api" content="demo">
+<link rel="icon" href="appicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B10; --surface:#16161E; --surface-2:#1F1F2A; --border:#26263A;
+    --text:#F7F7FA; --dim:#8C8CA1;
+    --brand:#B06030; --brand-2:#D99A6C; --brand-deep:#8A4520;
+    --ok:#2BD17E;
+    --r:22px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font:16px/1.55 Inter,system-ui,-apple-system,sans-serif;
+       -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  button,input{font:inherit;color:inherit}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+  /* the mark: Ahead's "a" (and Buddy's "b") in a copper coin */
+  .mk{display:inline-grid;place-items:center;flex:none;background:var(--brand);color:#fff}
+  .mk svg{width:62%;height:62%}
+  .mk.sq{border-radius:28%}.mk.round{border-radius:50%}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      background:rgba(11,11,16,.74);border-bottom:1px solid rgba(38,38,58,.6)}
+  nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.6px}
+  .logo .dot{color:var(--brand)}
+  nav .links{display:flex;gap:24px;margin-left:auto;color:var(--dim);font-weight:500;font-size:15px}
+  nav .links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 22px;border:0;cursor:pointer;
+       border-radius:14px;font-weight:700;font-size:15px;transition:transform .15s ease,background .2s ease,opacity .2s ease;white-space:nowrap}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:disabled{opacity:.6;cursor:default;transform:none}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.light{background:var(--text);color:var(--bg)}
+  .btn.ghost{background:var(--surface-2);color:var(--text)}
+  .btn.small{height:40px;padding:0 16px;font-size:14px;border-radius:12px}
+
+  /* hero */
+  .hero{position:relative;padding:64px 0 36px}
+  .hero::before{content:"";position:absolute;inset:-200px 0 auto;height:620px;pointer-events:none;
+    background:radial-gradient(600px 300px at 72% 30%,rgba(176,96,48,.20),transparent 70%)}
+  .hero .wrap{position:relative;display:grid;grid-template-columns:1.02fr .98fr;gap:48px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;
+        background:var(--surface);border:1px solid var(--border);font-size:13px;font-weight:600}
+  h1{font-size:clamp(46px,6.6vw,82px);line-height:1;letter-spacing:-3px;font-weight:900;margin:22px 0 20px}
+  h1 em{font-style:normal;color:var(--brand-2)}
+  .lead{font-size:19px;color:var(--dim);max-width:520px}
+  .lead b{color:var(--text);font-weight:600}
+  .note{margin-top:14px;font-size:13px;color:var(--dim)}
+
+  /* waitlist */
+  .wl{margin-top:30px;max-width:520px}
+  .wl form{display:flex;gap:8px;padding:6px;border-radius:18px;background:var(--surface);border:1px solid var(--border)}
+  .wl input{flex:1;min-width:0;background:transparent;border:0;outline:0;padding:0 12px;font-size:16px}
+  .wl input::placeholder{color:var(--dim)}
+  .wl .err{color:#FF8A9A;font-size:14px;margin-top:10px;min-height:1px}
+  .spot{display:none;margin-top:30px;max-width:520px;padding:22px;border-radius:22px;background:var(--surface);border:1px solid var(--border)}
+  .spot.on{display:block}
+  .spot .pos{display:flex;align-items:baseline;gap:12px}
+  .spot .pos b{font-size:46px;letter-spacing:-1.5px;font-weight:900;line-height:1}
+  .spot .pos span{color:var(--dim)}
+  .spot p{color:var(--dim);font-size:15px;margin-top:8px}
+  .spot p strong{color:var(--text)}
+  .link{display:flex;gap:8px;margin-top:16px}
+  .link code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px 14px;border-radius:12px;
+             background:var(--surface-2);font:600 14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--brand-2)}
+  .share{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .friends{display:flex;gap:6px;margin-top:16px}
+  .friends i{flex:1;height:6px;border-radius:3px;background:var(--surface-2)}
+  .friends i.on{background:var(--brand)}
+
+  /* the live Buddy */
+  .chat{position:relative;border-radius:30px;background:var(--surface);border:1px solid var(--border);
+        box-shadow:0 40px 90px -40px rgba(0,0,0,.9);display:flex;flex-direction:column;height:600px;overflow:hidden}
+  .chat header{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
+  .chat header b{display:block;font-size:17px;letter-spacing:-.2px}
+  .chat header small{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:12.5px}
+  .chat header small::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .chat header small.off::before{background:var(--dim)}
+  .log{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+  .m{max-width:88%;font-size:15px;line-height:1.5}
+  .m.u{align-self:flex-end;background:var(--text);color:var(--bg);padding:10px 15px;border-radius:20px 20px 6px 20px}
+  .m.b{display:flex;gap:10px}
+  .m.b .mk{width:26px;height:26px;margin-top:2px}
+  .m.b .t p+p,.m.b .t ul,.m.b .t p+ul,.m.b .t ul+p{margin-top:8px}
+  .m.b .t ul{list-style:none;display:grid;gap:4px}
+  .m.b .t li{position:relative;padding-left:15px}
+  .m.b .t li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--brand)}
+  .next{margin-top:10px;padding:9px 12px;border-radius:12px;background:rgba(176,96,48,.12);border-left:3px solid var(--brand)}
+  .next small{display:block;font-size:10.5px;letter-spacing:.8px;font-weight:800;color:var(--brand-2);text-transform:uppercase}
+  .dots{display:inline-flex;gap:5px;padding:8px 0}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--dim);animation:bob 1.1s infinite ease-in-out}
+  .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+  @keyframes bob{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1;background:var(--brand)}}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 12px}
+  .chips button{border:1px solid var(--border);background:transparent;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .chips button:hover{background:var(--surface-2)}
+  .ask{display:flex;gap:8px;margin:0 14px 10px;padding:5px 5px 5px 16px;border-radius:26px;background:var(--bg);border:1px solid var(--border)}
+  .ask input{flex:1;min-width:0;background:transparent;border:0;outline:0;font-size:15px}
+  .ask button{width:40px;height:40px;border-radius:50%;border:0;background:var(--brand);color:#fff;cursor:pointer;display:grid;place-items:center}
+  .ask button:disabled{background:var(--surface-2);color:var(--dim);cursor:default}
+  .fine{text-align:center;color:var(--dim);font-size:11.5px;padding:0 16px 14px}
+
+  /* sections */
+  section{padding:110px 0}
+  .kicker{color:var(--brand-2);font-weight:700;font-size:14px;letter-spacing:.6px;text-transform:uppercase}
+  h2{font-size:clamp(34px,4.6vw,54px);line-height:1.06;letter-spacing:-1.8px;font-weight:800;margin:12px 0 16px}
+  .sub{color:var(--dim);font-size:18px;max-width:640px}
+  .center{text-align:center}.center .sub{margin:0 auto}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px}
+  .card h3{font-size:21px;letter-spacing:-.4px;margin:18px 0 8px}
+  .card p{color:var(--dim);font-size:15px}
+  .card .ex{margin-top:18px;padding:12px 14px;border-radius:14px;background:var(--surface-2);font-size:14px;font-weight:600}
+  .card .ex span{color:var(--dim);font-weight:500}
+  .icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:rgba(176,96,48,.14);color:var(--brand-2)}
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:48px;counter-reset:s}
+  .step{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;counter-increment:s}
+  .step::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:10px;
+               background:rgba(176,96,48,.16);color:var(--brand-2);font-weight:800;margin-bottom:14px}
+  .step b{display:block;letter-spacing:-.2px}
+  .step span{display:block;color:var(--dim);font-size:14px;margin-top:4px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .list{list-style:none;margin-top:26px;display:grid;gap:14px}
+  .list li{display:flex;gap:12px;align-items:flex-start;color:#D6D6E2}
+  .list li::before{content:"";flex:none;width:22px;height:22px;margin-top:1px;border-radius:7px;
+       background:rgba(176,96,48,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D99A6C' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/14px no-repeat}
+  .confirm{background:var(--surface);border:1px solid var(--border);border-radius:28px;padding:26px}
+  .confirm .row{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;border:1px solid rgba(176,96,48,.55);background:var(--bg)}
+  .confirm .row div{flex:1}
+  .confirm .row small{display:block;color:var(--dim);font-size:12px;font-weight:600}
+  .confirm .row b{font-weight:600}
+  .confirm .lock{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:12.5px;margin:4px 2px 10px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:26px}
+  .stat b{display:block;font-size:30px;letter-spacing:-1px}
+  .stat span{color:var(--dim);font-size:14px}
+  .faq{max-width:760px;margin:48px auto 0;display:grid;gap:12px}
+  details{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px 22px}
+  summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:16px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--brand-2);font-size:22px;line-height:1}
+  details[open] summary::after{content:"–"}
+  details p{color:var(--dim);margin-top:12px;font-size:15px}
+  .final{position:relative;border-radius:32px;padding:72px 32px;text-align:center;overflow:hidden;background:var(--surface);border:1px solid var(--border)}
+  .final .mk{width:78px;height:78px;margin:0 auto 26px}
+  .final .wl{margin:0 auto}
+  footer{padding:40px 0 56px;color:var(--dim);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+
+  .js .rv{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+  .js .rv.on{opacity:1;transform:none}
+
+  @media (max-width:980px){.steps{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:900px){
+    nav .links{display:none}
+    .hero .wrap,.split{grid-template-columns:1fr}
+    .grid3{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    section{padding:80px 0}
+    .chat{height:540px}
+  }
+  @media (max-width:480px){
+    .wrap{padding:0 16px}
+    h1{letter-spacing:-2px}
+    .wl form{flex-direction:column}
+    .wl input{height:48px}
+    .steps{grid-template-columns:1fr}
+    .stat{padding:20px}.stat b{font-size:22px}
+    .final{padding:56px 18px}
+  }
+  @media (prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none}.dots i{animation:none}}
+</style>
+</head>
+<body id="top">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- 1024 grid, the same geometry as in the app -->
+  <symbol id="a" viewBox="0 0 1024 1024"><path fill="currentColor" fill-rule="evenodd" d="M497 294a218 218 0 1 1 0 436a218 218 0 1 1 0-436zm0 114a104 104 0 1 0 0 208a104 104 0 1 0 0-208z"/><rect fill="currentColor" x="597" y="294" width="118" height="436" rx="59"/></symbol>
+  <symbol id="b" viewBox="0 0 1024 1024"><rect fill="currentColor" x="277" y="210" width="118" height="602" rx="59"/><path fill="currentColor" fill-rule="evenodd" d="M529 376a218 218 0 1 1 0 436a218 218 0 1 1 0-436zm0 114a104 104 0 1 0 0 208a104 104 0 1 0 0-208z"/></symbol>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="mk sq" style="width:32px;height:32px"><svg><use href="#a"/></svg></span><span>Ahead<span class="dot">.</span></span></a>
+    <div class="links">
+      <a href="#buddy">Buddy</a>
+      <a href="#erster-job">Erster Job</a>
+      <a href="#vertrauen">Vertrauen</a>
+      <a href="#faq">Fragen</a>
+    </div>
+    <a class="btn small light" href="#platz">Platz sichern</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="rv">
+      <span class="pill"><span class="mk round" style="width:22px;height:22px"><svg><use href="#b"/></svg></span>Dein Buddy für Geld und Zukunft</span>
+      <h1>Erster Job.<br><em>Erster Plan.</em></h1>
+      <p class="lead">Finanz-Apps zeigen dir dein Geld. <b>Ahead sagt dir, was du jetzt tun solltest.</b> Buddy rechnet mit deinen echten Zahlen, erklärt jeden Begriff und bereitet vor. Du entscheidest.</p>
+      <div id="platz">
+        <div class="wl" data-wl>
+          <form novalidate>
+            <input type="email" name="email" placeholder="Deine E-Mail" autocomplete="email" required aria-label="E-Mail">
+            <button class="btn primary" type="submit">Platz sichern</button>
+          </form>
+          <div class="err" role="alert"></div>
+        </div>
+        <div class="spot" data-spot>
+          <div class="pos"><b data-pos>#–</b><span>auf der Warteliste</span></div>
+          <p>Jede Person, die über deinen Link kommt, bringt dich <strong>5 Plätze nach vorn</strong>.</p>
+          <div class="friends" data-friends><i></i><i></i><i></i></div>
+          <div class="link"><code data-link>…</code><button class="btn small ghost" data-copy type="button">Kopieren</button></div>
+          <div class="share">
+            <a class="btn small primary" data-wa target="_blank" rel="noopener">Per WhatsApp teilen</a>
+            <button class="btn small ghost" data-native type="button">Teilen</button>
+          </div>
+        </div>
+      </div>
+      <p class="note">Kostenlos · Nur Lesezugriff auf die Bank · Keine Kontonummern an die KI</p>
+    </div>
+
+    <div class="chat rv" id="buddy-demo" aria-label="Buddy ausprobieren">
+      <header>
+        <span class="mk round" style="width:36px;height:36px"><svg><use href="#b"/></svg></span>
+        <div><b>Buddy</b><small data-state>Frag mich was, ohne Anmeldung</small></div>
+      </header>
+      <div class="log" data-log aria-live="polite">
+        <div class="m b"><span class="mk round"><svg><use href="#b"/></svg></span><div class="t"><p><b>Hi, ich bin Buddy.</b> Frag mich alles rund um Geld im ersten Job. Ich sag dir, was du als Nächstes tun kannst.</p></div></div>
+      </div>
+      <div class="chips" data-chips>
+        <button type="button">Wie viel Notgroschen brauche ich?</button>
+        <button type="button">Lohnt sich die Betriebsrente?</button>
+        <button type="button">Was ist ein ETF-Sparplan?</button>
+      </div>
+      <form class="ask" data-ask>
+        <input name="q" placeholder="Frag Buddy etwas …" autocomplete="off" aria-label="Frage an Buddy" maxlength="400">
+        <button type="submit" aria-label="Senden" disabled><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </form>
+      <div class="fine">Nur deine Frage geht an die KI, keine Finanzdaten. Buddy kann sich irren, keine Anlageberatung.</div>
+    </div>
+  </div>
+</header>
+
+<section id="buddy">
+  <div class="wrap">
+    <div class="center rv">
+      <div class="kicker">Chat zuerst</div>
+      <h2>Kein Dashboard.<br>Ein Buddy.</h2>
+      <p class="sub">Du schreibst, wie du sprichst. Buddy antwortet mit der einen Zahl, die zählt, dem Warum und dem nächsten Schritt.</p>
+    </div>
+    <div class="grid3">
+      <div class="card rv">
+        <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></span>
+        <h3>Mit deinen echten Zahlen</h3>
+        <p>„Kann ich mir das leisten?“ Buddy kennt Ausgaben, Budgets, Abos und Sparziele und rechnet nach, bevor er antwortet.</p>
+        <div class="ex">„Bis Monatsende bleiben dir <span>ca.</span> 420 €.“</div>
+      </div>
+      <div class="card rv">
+        <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H8l-4 4z"/><path d="M8 9h8"/></svg></span>
+        <h3>Erklärt, wenn's auftaucht</h3>
+        <p>Steuerklasse, TER, Entgeltumwandlung: Jeder Begriff in Buddys Antworten ist antippbar und in zwei Sätzen erklärt.</p>
+        <div class="ex">Betriebsrente <span>· Zuschuss vom Arbeitgeber mitnehmen</span></div>
+      </div>
+      <div class="card rv">
+        <span class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg></span>
+        <h3>Merkt sich, was du erlaubst</h3>
+        <p>Erster Job seit Oktober, Sparziel Wohnung: Buddy fragt, ob er sich das merken darf. Alles sichtbar, alles löschbar.</p>
+        <div class="ex">„Soll Buddy sich das merken?“ <span>Merken · Nein</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="erster-job" style="padding-top:0">
+  <div class="wrap">
+    <div class="center rv">
+      <div class="kicker">Lebenslagen statt Menüs</div>
+      <h2>Dein erster Job,<br>Schritt für Schritt.</h2>
+      <p class="sub">Fünf Dinge, die im ersten Jahr wirklich zählen. Buddy geht jeden Schritt mit dir durch, mit deinen Zahlen.</p>
+    </div>
+    <div class="steps">
+      <div class="step rv"><b>Gehaltsabrechnung prüfen</b><span>Steuerklasse, Kasse, Abzüge</span></div>
+      <div class="step rv"><b>Betriebsrente klären</b><span>Zuschuss vom Arbeitgeber</span></div>
+      <div class="step rv"><b>Notgroschen aufbauen</b><span>Drei Monatsausgaben</span></div>
+      <div class="step rv"><b>Sparrate festlegen</b><span>Direkt nach dem Gehalt</span></div>
+      <div class="step rv"><b>Steuererklärung</b><span>Im ersten Jahr oft Geld zurück</span></div>
+    </div>
+    <p class="note center rv" style="margin-top:22px">Dazu: Umzug, Zusammenziehen und das Altersvorsorgedepot, das nach aktuellem Plan am 1.1.2027 startet.</p>
+  </div>
+</section>
+
+<section id="vertrauen" style="padding-top:0">
+  <div class="wrap split">
+    <div class="rv">
+      <div class="kicker">Vorbereiten statt ausführen</div>
+      <h2>Buddy bereitet vor.<br>Du entscheidest.</h2>
+      <p class="sub">Sparziel, Budget, Buchung: Buddy legt dir eine Karte hin. Gespeichert wird erst, wenn du tippst. Geld bewegt Ahead nie.</p>
+      <ul class="list">
+        <li>Nur Lesezugriff auf dein Konto über die offizielle PSD2-Schnittstelle</li>
+        <li>Buddy holt sich nur die Daten, die er für deine Frage braucht, ohne Kontonummern</li>
+        <li>Was Buddy sich merkt, siehst und löschst du mit einem Tipp</li>
+        <li>Höchstens eine Mitteilung am Tag, kein Spam, keine Werbung</li>
+      </ul>
+    </div>
+    <div class="rv">
+      <div class="confirm">
+        <div style="display:flex;gap:10px;margin-bottom:12px"><span class="mk round" style="width:28px;height:28px"><svg><use href="#b"/></svg></span>
+          <p style="font-size:15px">Mit <b>150 € im Monat</b> hast du deinen Notgroschen in 2 Jahren voll.</p></div>
+        <div class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Passiert erst, wenn du bestätigst</div>
+        <div class="row"><div><small>Sparziel</small><b>Notgroschen · 3.600 €</b></div><span class="btn small primary" style="pointer-events:none">Übernehmen</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat rv"><b>0 Setup</b><span>Die erste Frage geht ohne Konto und ohne Bank</span></div>
+      <div class="stat rv"><b>Nur lesen</b><span>Überweisungen sind über Ahead unmöglich</span></div>
+      <div class="stat rv"><b>Dein OK</b><span>KI nur mit Zustimmung, ohne Kontonummern</span></div>
+      <div class="stat rv"><b>Löschbar</b><span>Chat, Gedächtnis, Konto: alles mit einem Tipp</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="padding-top:0">
+  <div class="wrap">
+    <div class="center rv"><h2>Kurz &amp; ehrlich.</h2></div>
+    <div class="faq">
+      <details class="rv"><summary>Was kostet Ahead?</summary>
+        <p>Die App ist kostenlos, mit ein paar KI-Fragen im Monat. Ahead Plus kostet 4,99 € im Monat und hebt die Grenzen auf. Für jede Person, die du einlädst, bekommst du Fragen dazu.</p></details>
+      <details class="rv"><summary>Ist Buddy eine Anlageberatung?</summary>
+        <p>Nein. Buddy erklärt Prinzipien, rechnet mit deinen Zahlen und bereitet Schritte vor. Er empfiehlt keine einzelnen Wertpapiere, Fonds oder Versicherungen und ersetzt keine Steuer- oder Rechtsberatung.</p></details>
+      <details class="rv"><summary>Was sieht die KI von meinen Daten?</summary>
+        <p>Buddy holt sich nur die Daten, die er für deine Frage braucht: eine Zusammenfassung mit Summen, Budgets, Verträgen und dem, was du ihn merken lässt. Keine IBAN, keine Zugangsdaten, und nur mit deiner Zustimmung. Ohne Konto geht nur deine Frage an die KI.</p></details>
+      <details class="rv"><summary>Kann Ahead Geld bewegen?</summary>
+        <p>Nein. Die Bankverbindung ist ein reiner Lesezugriff über die PSD2-Schnittstelle. Du meldest dich bei deiner Bank an, nicht bei uns, und kannst die Freigabe jederzeit widerrufen.</p></details>
+      <details class="rv"><summary>Wie funktioniert die Warteliste?</summary>
+        <p>Du bekommst einen Platz und einen persönlichen Link. Jede Person, die über deinen Link dazukommt, bringt dich fünf Plätze nach vorn. Deine E-Mail nutzen wir nur, um dir deinen Platz zu zeigen und dich zum Start zu informieren.</p></details>
+      <details class="rv"><summary>Gibt es Buddy auch in WhatsApp?</summary>
+        <p>Das prüfen wir. Meta schränkt allgemeine KI-Chatbots in WhatsApp seit Januar 2026 ein, und Finanzdaten gehören nicht in fremde Kanäle. Buddy lebt deshalb erst einmal in der App.</p></details>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="final rv">
+      <span class="mk sq"><svg><use href="#a"/></svg></span>
+      <h2>Sei früh dabei.</h2>
+      <p class="sub" style="margin:0 auto 30px">Sichere dir deinen Platz. Jede Einladung bringt dich nach vorn.</p>
+      <div class="wl" data-wl>
+        <form novalidate>
+          <input type="email" name="email" placeholder="Deine E-Mail" autocomplete="email" required aria-label="E-Mail">
+          <button class="btn primary" type="submit">Platz sichern</button>
+        </form>
+        <div class="err" role="alert"></div>
+      </div>
+      <p class="note">Mit dem Eintrag stimmst du zu, dass wir dich zum Start per E-Mail informieren. Abmelden jederzeit.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="logo" href="#top" style="font-size:16px"><span class="mk sq" style="width:26px;height:26px"><svg><use href="#a"/></svg></span><span>Ahead<span class="dot">.</span></span></a>
+    <span>Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
+    <span>© 2026 Luis Frenkler</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var API = (document.querySelector('meta[name="ahead-api"]').content || '').replace(/\/$/, '');
+  // content="demo": a preview without a server (the waitlist answers locally)
+  if (API === 'demo') {
+    var realFetch = window.fetch.bind(window);
+    window.fetch = function (url, opts) {
+      var u = String(url);
+      function reply(o) { return Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } })); }
+      if (u.indexOf('demo/waitlist/join') === 0) {
+        var code = 'K7Q2M9';
+        return reply({ code: code, position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      }
+      if (u.indexOf('demo/waitlist/status') === 0) return reply({ code: 'K7Q2M9', position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      if (u.indexOf('demo/') === 0) return Promise.reject(new Error('preview'));
+      return realFetch(url, opts);
+    };
+  }
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var ref = new URLSearchParams(location.search).get('ref');
+  if (ref && /^[A-Za-z0-9]{6}$/.test(ref)) store.set('ahead-ref', ref.toUpperCase());
+
+  // ---------------------------------------------------------- waitlist
+  var spot = document.querySelector('[data-spot]');
+  function myLink(code) { return location.origin + location.pathname + '?ref=' + code; }
+  function showSpot(d) {
+    store.set('ahead-code', d.code);
+    document.querySelectorAll('[data-wl]').forEach(function (el) { el.style.display = 'none'; });
+    spot.classList.add('on');
+    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString('de-DE');
+    var link = myLink(d.code);
+    spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
+    var bars = spot.querySelectorAll('[data-friends] i');
+    for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
+    var text = 'Ich bin auf der Warteliste für Ahead, einen Finanz-Buddy, der sagt, was du mit deinem Geld als Nächstes tun kannst. Komm mit: ' + link;
+    spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+    spot.querySelector('[data-copy]').onclick = function (e) {
+      navigator.clipboard && navigator.clipboard.writeText(link);
+      e.target.textContent = 'Kopiert'; setTimeout(function () { e.target.textContent = 'Kopieren'; }, 1600);
+    };
+    var native = spot.querySelector('[data-native]');
+    if (navigator.share) native.onclick = function () { navigator.share({ title: 'Ahead', text: text, url: link }).catch(function () {}); };
+    else native.style.display = 'none';
+    if (location.hash !== '#platz' && document.activeElement && document.activeElement.form) {
+      document.getElementById('platz').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  document.querySelectorAll('[data-wl] form').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = form.parentNode.querySelector('.err');
+      var btn = form.querySelector('button');
+      var email = form.email.value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; return; }
+      err.textContent = ''; btn.disabled = true; btn.textContent = 'Einen Moment …';
+      fetch(API + '/waitlist/join', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, ref: store.get('ahead-ref') })
+      }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Fehler'); return j; }); })
+        .then(showSpot)
+        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' ? x.message : 'Gerade nicht erreichbar. Versuch es gleich noch einmal.'; })
+        .finally(function () { btn.disabled = false; btn.textContent = 'Platz sichern'; });
+    });
+  });
+  var mine = store.get('ahead-code');
+  if (mine) {
+    fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine))
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+  }
+
+  // ------------------------------------------------------- Buddy demo
+  var log = document.querySelector('[data-log]');
+  var ask = document.querySelector('[data-ask]');
+  var input = ask.q, send = ask.querySelector('button');
+  var state = document.querySelector('[data-state]');
+  var chips = document.querySelector('[data-chips]');
+  var history = [], busy = false;
+  var device = store.get('ahead-device');
+  if (!device) { device = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, ''); store.set('ahead-device', device); }
+
+  // offline answers when the server is out of reach or the day's questions are used up
+  var basics = [
+    [/notgroschen|rücklage|reserve/i, '**Drei Monatsausgaben** auf einem Tagesgeldkonto sind eine gute Faustregel.\n\n- Bei 1.500 € Ausgaben im Monat sind das 4.500 €.\n- Erst den Notgroschen füllen, dann investieren.\n\nNächster Schritt: Ein Dauerauftrag direkt nach dem Gehalt macht es automatisch.'],
+    [/betriebsrente|bav|entgeltumwandlung/i, 'Oft ja, wegen des Zuschusses: Spart dein Arbeitgeber Sozialabgaben, muss er in der Regel **15 Prozent** dazugeben.\n\n- Frag nach dem Zuschuss\n- nach den Kosten des Vertrags\n- und was beim Jobwechsel passiert\n\nNächster Schritt: Mit diesen drei Antworten rechnet Buddy in der App mit dir nach.'],
+    [/etf|sparplan|aktie|fonds/i, 'Ein **ETF** bildet einen Index nach, also viele Unternehmen auf einmal. Mit einem Sparplan kaufst du jeden Monat automatisch für einen festen Betrag.\n\n- Meist günstig und breit gestreut\n- Schwankungen gehören dazu, Zeit hilft\n\nNächster Schritt: Erst den Notgroschen, dann einen Betrag wählen, den du jeden Monat sicher schaffst.'],
+    [/gehalt|abrechnung|steuerklasse|netto|brutto/i, 'So prüfst du deine Gehaltsabrechnung:\n\n- **Steuerklasse**: Ledig ist Klasse I\n- Steuer-ID und Krankenkasse richtig?\n- Sozialabgaben: zusammen grob ein Fünftel deines Bruttos\n- Kommt genau das Netto auf deinem Konto an?\n\nNächster Schritt: In der App kannst du Buddy ein Foto der Abrechnung schicken.']
+  ];
+  function offline(q) {
+    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return basics[i][1];
+    return 'Dafür brauche ich die KI, und die ist gerade nicht erreichbar oder für heute aufgebraucht.\n\nNächster Schritt: Sichere dir deinen Platz, dann rechnet Buddy in der App mit deinen echten Zahlen.';
+  }
+
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function inline(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+  // Buddy's little markdown, without the machine lines ([weiter: …], [merken: …])
+  function render(text) {
+    var lines = text.replace(/ — /g, ', ').split('\n'), html = '', list = false, follow = [];
+    lines.forEach(function (raw, idx) {
+      var l = raw.trim();
+      var m = /^\[(weiter|merken)\s*:\s*(.*?)\]?$/i.exec(l);
+      if (m) { if (m[1].toLowerCase() === 'weiter' && /\]$/.test(l)) follow = m[2].split('|').map(function (s) { return s.trim(); }).filter(Boolean); return; }
+      if (/^\[[a-z]{0,7}$/i.test(l) && idx === lines.length - 1) return;
+      var bullet = /^(-|•|\*|\d+[.)])\s+/.exec(l);
+      if (bullet) { if (!list) { html += '<ul>'; list = true; } html += '<li>' + inline(l.slice(bullet[0].length)) + '</li>'; return; }
+      if (list) { html += '</ul>'; list = false; }
+      if (!l) return;
+      if (/^(\*\*)?Nächster Schritt:/.test(l)) { html += '<div class="next"><small>Nächster Schritt</small>' + inline(l.replace(/^(\*\*)?Nächster Schritt:(\*\*)?\s*/, '')) + '</div>'; return; }
+      html += '<p>' + inline(l) + '</p>';
+    });
+    if (list) html += '</ul>';
+    return { html: html, follow: follow };
+  }
+  function bubble(cls, html) {
+    var d = document.createElement('div');
+    d.className = 'm ' + cls;
+    if (cls === 'b') d.innerHTML = '<span class="mk round"><svg><use href="#b"/></svg></span><div class="t">' + html + '</div>';
+    else d.textContent = html;
+    log.appendChild(d); log.scrollTop = log.scrollHeight;
+    return d;
+  }
+  function setChips(list) {
+    chips.innerHTML = '';
+    list.slice(0, 3).forEach(function (q) { var b = document.createElement('button'); b.type = 'button'; b.textContent = q; chips.appendChild(b); });
+  }
+  chips.addEventListener('click', function (e) { if (e.target.tagName === 'BUTTON') go(e.target.textContent); });
+  input.addEventListener('input', function () { send.disabled = busy || !input.value.trim(); });
+  ask.addEventListener('submit', function (e) { e.preventDefault(); go(input.value); });
+
+  function typeOut(el, text, done) {
+    var words = text.match(/\S+\s*/g) || [], i = 0, acc = '';
+    (function next() {
+      if (i >= words.length) return done(text);
+      acc += words[i++]; el.innerHTML = render(acc).html; log.scrollTop = log.scrollHeight;
+      setTimeout(next, 18);
+    })();
+  }
+
+  function go(q) {
+    q = (q || '').trim();
+    if (!q || busy) return;
+    busy = true; send.disabled = true; input.value = ''; chips.innerHTML = '';
+    bubble('u', q);
+    history.push({ role: 'user', text: q });
+    var b = bubble('b', '<span class="dots"><i></i><i></i><i></i></span>');
+    var t = b.querySelector('.t');
+    var acc = '';
+    function finish(text) {
+      var r = render(text);
+      t.innerHTML = r.html;
+      history.push({ role: 'assistant', text: text });
+      setChips(r.follow.length ? r.follow : ['Wie viel sollte ich sparen?', 'Lohnt sich eine Steuererklärung?']);
+      busy = false; send.disabled = !input.value.trim(); log.scrollTop = log.scrollHeight;
+    }
+    function fallback() { state.textContent = 'Grundwissen ohne KI'; state.classList.add('off'); typeOut(t, offline(q), finish); }
+    fetch(API + '/ai/guest', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device: device, history: history.slice(-9) })
+    }).then(function (res) {
+      if (!res.ok || !res.body) throw 0;
+      var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', failed = false;
+      return (function pump() {
+        return reader.read().then(function (p) {
+          if (p.done) { if (failed || !acc) fallback(); else finish(acc); return; }
+          buf += dec.decode(p.value, { stream: true });
+          var parts = buf.split('\n'); buf = parts.pop();
+          parts.forEach(function (line) {
+            if (line.indexOf('data: ') !== 0) return;
+            var ev = JSON.parse(line.slice(6));
+            if (typeof ev.left === 'number') state.textContent = ev.left === 1 ? 'Noch 1 KI-Antwort heute' : 'Noch ' + ev.left + ' KI-Antworten heute';
+            if (ev.t) { acc += ev.t; t.innerHTML = render(acc).html; log.scrollTop = log.scrollHeight; }
+            if (ev.error) failed = true;
+          });
+          return pump();
+        });
+      })();
+    }).catch(fallback);
+  }
+
+  // ------------------------------------------------------------ reveal
+  if ('IntersectionObserver' in window) {
+    document.documentElement.classList.add('js');
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+    }, { threshold: .12 });
+    document.querySelectorAll('.rv').forEach(function (el) { io.observe(el); });
+    setTimeout(function () { document.querySelectorAll('.rv:not(.on)').forEach(function (el) { el.classList.add('on'); }); }, 2500);
+  }
+})();
+</script>
+</body>
+</html>
