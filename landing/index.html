@@ -7,174 +7,234 @@
 <meta name="description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
 <meta property="og:title" content="Ahead">
 <meta property="og:description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
-<meta property="og:image" content="hero.png">
-<meta name="theme-color" content="#B06030">
+<meta property="og:image" content="og.png">
+<meta name="theme-color" content="#8E4620">
 <!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server -->
 <meta name="ahead-api" content="">
 <link rel="icon" href="appicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Ahead's own world: a copper coin, a path with steps, and Buddy's
-     "Nächster Schritt". Copper is the ground of the opening, not a glow.
-     Below it, plain paper and a conversation set in large type. */
+  /* Ahead: copper light instead of a colour block. Big, quiet type,
+     the real app in the middle, and Buddy's "Nächster Schritt" stamp. */
   :root{
-    --copper:#B06030; --copper-ink:#7A3A16; --on-copper:#FFF6EF;
-    --paper:#FFFFFF; --ink:#16120F; --soft:#6E655F; --line:#E7E1DC; --tint:#F5EEE8;
+    --copper:#B06030; --ember:#8E4620; --peach:#F4C7A1; --sand:#FBEFE4;
+    --paper:#FFFFFF; --ink:#17120E; --soft:#6E655F; --line:#ECE6E1; --tint:#F7F2EE;
+    --glass:rgba(255,255,255,.16); --glass-line:rgba(255,255,255,.28);
     --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
     --text:"Inter",ui-sans-serif,system-ui,-apple-system,sans-serif;
   }
-  @media (prefers-color-scheme:dark){:root{--paper:#14110F;--ink:#F2ECE7;--soft:#A39A93;--line:#2E2824;--tint:#201A16;color-scheme:dark}}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;--tint:#1C1815;color-scheme:dark}}
+  :root[data-theme="dark"]{--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;--tint:#1C1815;color-scheme:dark}
   *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
   body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  .w{max-width:1080px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+  .w{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   a{color:inherit}
-  h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:.98;text-wrap:balance}
-  :focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:4px}
+  h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:-.035em;line-height:1;text-wrap:balance}
+  :focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:6px}
 
-  /* the coin: Buddy's "b" stamped into copper */
   .coin{display:inline-grid;place-items:center;border-radius:50%;background:var(--copper);color:#fff;flex:none}
   .coin svg{width:60%;height:60%}
-  .hero .coin{background:#fff;color:var(--copper)}
 
-  /* ---------------- opening: copper ground */
-  .hero{background:var(--copper);color:var(--on-copper);position:relative;overflow:hidden;padding-bottom:clamp(56px,9vw,104px)}
-  .hero nav{display:flex;align-items:center;gap:20px;padding-top:max(22px,env(safe-area-inset-top));padding-bottom:22px}
-  .brand{display:flex;align-items:center;gap:10px;font:800 23px/1 var(--display);letter-spacing:-.04em;text-decoration:none}
-  .hero nav .links{margin-left:auto;display:flex;gap:22px;font-weight:600;font-size:15px}
-  .hero nav .links a{text-decoration:none;opacity:.88}
-  .hero nav .links a:hover{opacity:1;text-decoration:underline;text-underline-offset:4px}
-  .hero h1{font-size:clamp(50px,10.4vw,128px);margin-top:clamp(44px,8vw,96px);max-width:10.5em}
-  .hero h1 span{color:#2A140A}
-  .hero .lead{font-size:clamp(18px,2vw,21px);max-width:31em;margin-top:22px;color:rgba(255,246,239,.92)}
-  /* the big coin rolling off the right edge */
-  .roll{position:absolute;right:-9vw;top:clamp(120px,15vw,170px);width:clamp(180px,34vw,420px);aspect-ratio:1;border-radius:50%;
-        background:radial-gradient(circle at 34% 30%,#C77847,#9C5226 70%);box-shadow:inset 0 0 0 clamp(8px,1.4vw,16px) rgba(255,255,255,.08);
-        display:grid;place-items:center;color:rgba(255,246,239,.95);pointer-events:none}
-  .roll svg{width:52%;height:52%}
-  @media (max-width:760px){.roll{top:auto;bottom:-14vw;right:-18vw;width:58vw;opacity:.55}}
+  /* ---------------- copper light: the atmosphere behind hero and finale */
+  .atmo{position:relative;overflow:hidden;color:#FFF7F0;isolation:isolate;
+        background:radial-gradient(120% 80% at 50% 115%,#F6B98A 0%,#D9813F 28%,#A4542A 52%,#5E2C14 78%,#2B140A 100%)}
+  .atmo::before,.atmo::after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(70px);pointer-events:none}
+  .atmo::before{width:62vmax;height:62vmax;left:-18vmax;top:-26vmax;background:radial-gradient(circle,#C7703A 0%,transparent 65%);opacity:.75;animation:drift 22s ease-in-out infinite alternate}
+  .atmo::after{width:54vmax;height:54vmax;right:-20vmax;bottom:-22vmax;background:radial-gradient(circle,#FFD6B0 0%,transparent 62%);opacity:.55;animation:drift 28s ease-in-out infinite alternate-reverse}
+  .grain{position:absolute;inset:0;z-index:-1;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+         background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  @keyframes drift{to{transform:translate(6vmax,4vmax) scale(1.08)}}
 
-  /* waitlist: one field, one button */
-  .join{margin-top:34px;display:flex;gap:8px;max-width:520px;padding:6px;border-radius:999px;background:#fff;position:relative;z-index:1}
-  .join input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#16120F;font:500 16px var(--text);padding:0 16px}
-  .join input::placeholder{color:#8B827C}
-  .btn{font:700 15px/1 var(--text);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-  .btn.ink{background:#16120F;color:#fff}
-  .btn.line{background:transparent;border:1.5px solid currentColor}
+  /* ---------------- glass pills */
+  .top{position:fixed;inset:0 0 auto;z-index:20;padding-top:max(14px,env(safe-area-inset-top));pointer-events:none}
+  .top .w{display:flex;align-items:center;gap:10px}
+  .pill{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:999px;
+        background:var(--glass);border:1px solid var(--glass-line);color:#fff;text-decoration:none;
+        -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);font:600 15px/1 var(--text)}
+  .pill.brand{padding:0 16px 0 6px;font:700 19px/1 var(--display);letter-spacing:-.03em}
+  .pill.brand .coin{width:32px;height:32px;background:#fff;color:var(--copper)}
+  .menu{margin-left:auto;display:flex;gap:2px;pointer-events:auto}
+  .menu a{text-decoration:none;padding:12px 14px;border-radius:999px;font:600 15px/1 var(--text);color:#fff;opacity:.9}
+  .menu a:hover{opacity:1;text-decoration:underline;text-underline-offset:5px}
+  .top.on-paper .menu a{color:var(--ink)}
+  .pill.cta{background:#fff;color:var(--ink);border-color:#fff}
+  /* past the hero the pills sit on paper: switch to ink glass */
+  .top.on-paper .pill{--glass:rgba(23,18,14,.06);--glass-line:rgba(23,18,14,.10);color:var(--ink)}
+  .top.on-paper .pill.cta{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .top.on-paper .pill{--glass:rgba(255,255,255,.08);--glass-line:rgba(255,255,255,.12)}}
+  @media (max-width:720px){.menu{display:none}.top .pill.cta{margin-left:auto}}
+
+  /* ---------------- hero */
+  .hero{min-height:100svh;display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,64px);align-items:center;padding-top:112px;padding-bottom:0}
+  .hero-text{padding-bottom:64px}
+  .hero h1{font-size:clamp(48px,7.2vw,104px);font-weight:600;letter-spacing:-.045em;line-height:.95;max-width:9.5em}
+  .hero h1 span{color:var(--peach)}
+  .hero .lead{font-size:clamp(17px,1.8vw,20px);max-width:28em;margin-top:24px;color:rgba(255,247,240,.86)}
+  .join{margin:34px 0 0;display:flex;gap:6px;max-width:500px;padding:6px;border-radius:999px;
+        background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+  .join input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:500 16px var(--text);padding:0 16px}
+  .join input::placeholder{color:rgba(255,247,240,.7)}
+  .btn{font:600 15px/1 var(--text);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn.white{background:#fff;color:var(--ink)}
+  .btn.ink{background:var(--ink);color:var(--paper)}
+  .btn.copper{background:var(--copper);color:#fff}
+  .btn.ghost{background:transparent;border:1px solid currentColor}
   .btn:disabled{opacity:.6;cursor:default}
-  .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px;color:#2A140A;position:relative;z-index:1}
-  .fine{font-size:13px;color:rgba(255,246,239,.8);position:relative;z-index:1}
-  .spot{display:none;margin-top:30px;max-width:540px;position:relative;z-index:1}
+  .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px}
+  .fine{font-size:13px;color:rgba(255,247,240,.72)}
+  .scroll{display:inline-block;margin-top:clamp(28px,5vh,56px);font:500 14px/1 var(--text);color:rgba(255,247,240,.75);text-decoration:none}
+  .spot{display:none;margin-top:28px;max-width:520px}
   .spot.on{display:block}
-  .spot .n{font:800 clamp(64px,10vw,108px)/.9 var(--display);letter-spacing:-.05em}
-  .spot p{margin-top:10px;font-size:17px}
-  .spot code{display:block;margin-top:14px;font:600 15px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
-  .spot .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-  .spot .btn.line{color:var(--on-copper)}
-  .bars{display:flex;gap:6px;margin-top:16px;max-width:260px}
-  .bars i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.28)}
+  .spot .n{font:300 clamp(72px,12vw,128px)/.9 var(--display);letter-spacing:-.05em}
+  .spot p{margin-top:12px}
+  .spot code{display:block;margin-top:14px;font:600 14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;opacity:.9}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .bars{display:flex;gap:6px;margin:16px 0 0;max-width:220px}
+  .bars i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.28)}
   .bars i.on{background:#fff}
 
-  /* ---------------- sections */
-  section{padding:clamp(72px,10vw,128px) 0}
-  .label{font:700 13px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;color:var(--copper)}
-  h2{font-size:clamp(38px,6vw,72px);margin-top:14px;max-width:12em}
+  /* ---------------- the phone with Buddy's remarks around it */
+  .stage{position:relative;align-self:end;display:grid;justify-items:center}
+  .stage .phone{border-radius:clamp(38px,4vw,48px) clamp(38px,4vw,48px) 0 0;padding-bottom:0;aspect-ratio:780/1500}
+  .stage .phone img{border-radius:clamp(30px,3.3vw,40px) clamp(30px,3.3vw,40px) 0 0}
+  .phone{width:clamp(250px,26vw,320px);aspect-ratio:780/1688;border-radius:clamp(38px,4vw,48px);padding:9px;background:#0D0B0A;
+         box-shadow:0 0 0 1.5px #3A332E inset,0 40px 80px -20px rgba(40,15,0,.6),0 12px 30px rgba(40,15,0,.3)}
+  .phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:clamp(30px,3.3vw,40px)}
+  .remark{position:absolute;max-width:260px;padding:14px 16px;border-radius:20px;font:500 15px/1.4 var(--text);color:#fff;text-align:left;
+          background:#24130A;border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 40px -12px rgba(30,10,0,.55)}
+  .remark b{font-weight:700}
+  .remark small{display:flex;align-items:center;gap:6px;font:600 12px/1 var(--text);opacity:.8;margin-bottom:8px}
+  .remark small .coin{width:18px;height:18px;background:#fff;color:var(--copper)}
+  .r1{left:-6%;top:14%}.r2{right:-4%;top:46%}
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr;padding-top:104px}
+    .scroll{display:none}
+    .hero-text{padding-bottom:8px}
+    .r1{left:0;top:10%}.r2{right:0;top:44%}
+    .remark{max-width:200px;font-size:14px;padding:12px 14px}
+  }
 
-  /* the conversation, in large type, no bubbles */
-  .topics{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
-  .topics button{font:600 15px/1 var(--text);color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:11px 16px;cursor:pointer}
-  .topics button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-  .talk{margin-top:44px;display:grid;gap:26px;max-width:820px;min-height:420px}
-  .you{justify-self:end;text-align:right;max-width:16em;font:700 clamp(26px,3.6vw,40px)/1.12 var(--display);letter-spacing:-.03em}
-  .you small{display:block;font:600 13px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:8px}
-  .buddy{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
-  .buddy .coin{width:44px;height:44px;margin-top:4px}
-  .buddy .say{font:500 clamp(21px,2.6vw,28px)/1.35 var(--display);letter-spacing:-.015em;max-width:24em}
-  .buddy .say b{font-weight:800;background:linear-gradient(transparent 62%,rgba(176,96,48,.28) 62%)}
-  .buddy ul{list-style:none;margin-top:12px;display:grid;gap:6px;font:500 18px/1.45 var(--text)}
+  /* ---------------- paper sections */
+  section{padding:clamp(80px,11vw,150px) 0}
+  .say-big{font-size:clamp(40px,6.4vw,84px);font-weight:500;letter-spacing:-.04em;max-width:13em}
+  .say-big span{color:var(--copper)}
+  .sub{margin-top:22px;max-width:34em;color:var(--soft);font-size:clamp(17px,1.6vw,19px)}
+  .center{text-align:center}.center .say-big,.center .sub{margin-left:auto;margin-right:auto}
+
+  /* examples: pick a topic, read the answer in large type */
+  .ex{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:clamp(28px,5vw,72px);margin-top:clamp(48px,6vw,72px);align-items:start}
+  .topics{display:grid;gap:2px}
+  .topics button{all:unset;cursor:pointer;font:400 clamp(22px,2.4vw,28px)/1.2 var(--display);letter-spacing:-.02em;color:var(--soft);padding:10px 0;transition:color .2s}
+  .topics button:hover{color:var(--ink)}
+  .topics button[aria-pressed="true"]{color:var(--ink)}
+  .topics button[aria-pressed="true"]::after{content:" →";color:var(--copper)}
+  .topics button:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+  .talk{display:grid;gap:22px;min-height:400px;align-content:start}
+  .you{justify-self:end;max-width:22em;background:var(--ink);color:var(--paper);border-radius:22px 22px 6px 22px;padding:14px 18px;font:500 17px/1.4 var(--text)}
+  .buddy{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+  .buddy .coin{width:40px;height:40px;margin-top:2px}
+  .buddy .say{font:400 clamp(22px,2.4vw,28px)/1.3 var(--display);letter-spacing:-.015em;max-width:24em}
+  .buddy .say b{font-weight:600;background:linear-gradient(transparent 64%,rgba(176,96,48,.26) 64%)}
+  .buddy ul{list-style:none;margin-top:14px;display:grid;gap:6px;font:400 17px/1.45 var(--text)}
   .buddy li{display:flex;gap:10px}
-  .buddy li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--copper);margin-top:.62em}
-  /* Buddy's signature: the next step, like a stamp */
-  .step{display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:12px 16px 12px 12px;border:2px solid var(--copper);border-radius:14px;
-        font:600 16px/1.35 var(--text);max-width:100%}
-  .step em{font-style:normal;flex:none;font:800 11px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--copper);border-radius:7px;padding:7px 8px}
+  .buddy li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--copper);margin-top:.66em}
+  .step{display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:12px 16px 12px 12px;border:2px solid var(--copper);border-radius:16px;font:600 16px/1.35 var(--text);max-width:100%}
+  .step em{font-style:normal;flex:none;font:700 11px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--copper);border-radius:7px;padding:7px 8px}
   .note{margin-top:14px;font-size:13px;color:var(--soft)}
   .fade{animation:in .35s ease both}
   @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (max-width:760px){
+    .ex{grid-template-columns:1fr}
+    .topics{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+    .topics button{font:600 15px/1 var(--text);letter-spacing:0;border:1px solid var(--line);border-radius:999px;padding:11px 15px;white-space:nowrap}
+    .topics button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+    .topics button[aria-pressed="true"]::after{content:""}
+    .step{flex-direction:column;align-items:flex-start;gap:8px}
+  }
 
-  /* the path: life stages as steps forward */
-  .path{margin-top:48px;display:grid;gap:0;max-width:860px}
-  .stop{display:grid;grid-template-columns:64px 1fr;gap:20px;position:relative;padding-bottom:40px}
-  .stop:last-child{padding-bottom:0}
-  .stop::before{content:"";position:absolute;left:31px;top:64px;bottom:0;width:2px;background:var(--line)}
-  .stop:last-child::before{display:none}
-  .dot{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font:800 22px var(--display);border:2px solid var(--line);background:var(--paper)}
-  .stop.now .dot{background:var(--copper);border-color:var(--copper);color:#fff}
-  .stop h3{font-size:clamp(26px,3.4vw,36px);margin-top:12px}
-  .stop p{color:var(--soft);margin-top:8px;max-width:34em}
-  .segs{display:flex;gap:5px;margin-top:14px;max-width:320px}
-  .segs i{flex:1;height:6px;border-radius:3px;background:var(--line)}
-  .segs i.on{background:var(--copper)}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-  .chips span{font:600 13px/1 var(--text);background:var(--tint);border-radius:999px;padding:8px 11px}
-  .when{display:inline-block;font:700 12px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--copper);margin-top:12px}
+  /* two tiles: life stages and memory, each with the real screen */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1.2vw,16px);margin:0 clamp(8px,1.2vw,16px)}
+  .tile{border-radius:clamp(24px,3vw,36px);overflow:hidden;position:relative;min-height:clamp(560px,52vw,700px);display:flex;flex-direction:column;padding:clamp(28px,3.4vw,44px)}
+  .tile h3{font-size:clamp(30px,3.4vw,44px);max-width:11em}
+  .tile p{margin-top:14px;max-width:26em;font-size:17px}
+  .tile .shot{margin-top:auto;align-self:center;width:min(300px,78%);aspect-ratio:780/1100;border-radius:34px 34px 0 0;overflow:hidden;margin-bottom:calc(-1 * clamp(28px,3.4vw,44px));
+              box-shadow:0 0 0 8px #0D0B0A,0 30px 60px -20px rgba(0,0,0,.45);transform:translateY(8px)}
+  .tile .shot img{width:100%;display:block}
+  .t1{background:linear-gradient(170deg,#FBEFE4 0%,#F2D3B8 100%);color:#2A140A}
+  .t1 p{color:#6B4A36}
+  .t2{background:linear-gradient(170deg,#2B1E17 0%,#120D0A 100%);color:#F7EDE5}
+  .t2 p{color:#C8B6A8}
+  .t1 .shot{margin-top:36px}
+  .t2 .shot{margin-top:36px}
+  @media (max-width:820px){.tiles{grid-template-columns:1fr}}
 
-  /* what Buddy does not do */
-  .nots{margin-top:36px;display:grid;gap:4px}
-  .nots div{font:800 clamp(30px,5.2vw,62px)/1.08 var(--display);letter-spacing:-.035em;text-decoration:line-through;text-decoration-thickness:.08em;text-decoration-color:var(--copper);color:var(--soft)}
-  .punch{margin-top:28px;font:700 clamp(22px,2.8vw,30px)/1.3 var(--display);letter-spacing:-.02em;max-width:22em}
-  .trust{margin-top:44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px 32px;max-width:900px}
-  .trust div{border-top:2px solid var(--ink);padding-top:14px}
-  .trust b{display:block;font:800 19px/1.2 var(--display);letter-spacing:-.02em}
-  .trust span{display:block;color:var(--soft);font-size:15px;margin-top:6px}
+  /* what Buddy leaves alone */
+  .nots{margin-top:12px;display:grid;gap:2px}
+  .nots div{font:400 clamp(34px,6vw,76px)/1.06 var(--display);letter-spacing:-.035em;text-decoration:line-through;text-decoration-thickness:.06em;text-decoration-color:var(--copper);color:var(--soft)}
+  .punch{margin-top:30px;font:400 clamp(22px,2.6vw,30px)/1.3 var(--display);letter-spacing:-.02em;max-width:22em}
+  .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:40px}
+  .facts span{font:500 14px/1 var(--text);padding:11px 14px;border-radius:999px;background:var(--tint)}
 
-  /* ask now + last call */
-  .last{background:var(--tint)}
-  .ask{display:flex;gap:8px;margin-top:30px;max-width:620px;padding:6px;border-radius:999px;background:var(--paper);border:1.5px solid var(--line)}
-  .ask input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:500 16px var(--text);padding:0 16px}
-  .ask .btn{background:var(--copper);color:#fff}
-  .answer{margin-top:28px;max-width:820px}
+  /* finale on copper light again */
+  .finale{margin:0 clamp(8px,1.2vw,16px) clamp(8px,1.2vw,16px);border-radius:clamp(24px,3vw,40px);padding:clamp(80px,10vw,140px) 0;text-align:center}
+  .finale h2{font-size:clamp(40px,6.4vw,84px);font-weight:500;letter-spacing:-.04em;max-width:12em;margin:0 auto}
+  .finale h2 span{color:var(--peach)}
+  .ask{display:flex;gap:6px;margin:34px auto 0;max-width:600px;padding:6px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+  .ask input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:500 16px var(--text);padding:0 16px}
+  .ask input::placeholder{color:rgba(255,247,240,.72)}
+  .answer{margin:28px auto 0;max-width:760px;text-align:left;background:var(--paper);color:var(--ink);border-radius:28px;padding:clamp(20px,3vw,32px)}
   .answer:empty{display:none}
-  .again{margin-top:56px}
-  .again .join{background:var(--paper);border:1.5px solid var(--line)}
-  .again .join input{color:var(--ink)}
-  .again .err{color:#B3261E}
-  footer{padding:36px 0 max(40px,env(safe-area-inset-bottom));font-size:13px;color:var(--soft)}
+  .answer .talk{min-height:0}
+  .again{margin-top:72px}
+  .again h3{font-size:clamp(28px,3.4vw,40px);font-weight:500}
+  .again .join{margin-top:22px}
+  footer{padding:28px 0 max(36px,env(safe-area-inset-bottom));font-size:13px;color:var(--soft)}
   footer .w{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
   footer a{text-decoration:underline;text-underline-offset:3px}
 
   @media (max-width:560px){
-    .step{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 14px}
-    .hero nav .links a:not(:last-child){display:none}
-    .join{flex-direction:column;border-radius:22px}
-    .join input{height:48px}
-    .ask{border-radius:22px}
-    .stop{grid-template-columns:48px 1fr;gap:16px}
-    .dot{width:48px;height:48px;font-size:18px}
-    .stop::before{left:23px;top:48px}
-    .stop h3{margin-top:6px}
+    .join,.ask{flex-direction:column;border-radius:24px}
+    .join input,.ask input{height:48px}
   }
-  @media (prefers-reduced-motion:reduce){.fade{animation:none}}
+
+  /* scroll reveals, only once JS is running */
+  .js .rise{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+  .js .rise.seen{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){
+    .fade{animation:none}.atmo::before,.atmo::after{animation:none}
+    .js .rise{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
 </style>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="b" viewBox="0 0 1024 1024"><rect fill="currentColor" x="277" y="210" width="118" height="602" rx="59"/><path fill="currentColor" fill-rule="evenodd" d="M529 376a218 218 0 1 1 0 436a218 218 0 1 1 0-436zm0 114a104 104 0 1 0 0 208a104 104 0 1 0 0-208z"/></symbol>
 </svg>
 
-<header class="hero">
+<div class="top" data-top>
   <div class="w">
-    <nav>
-      <a class="brand" href="#"><span class="coin" style="width:34px;height:34px"><svg><use href="#b"/></svg></span>Ahead.</a>
-      <div class="links"><a href="#buddy">Buddy</a><a href="#weg">Lebenslagen</a><a href="#platz">Warteliste</a></div>
-    </nav>
+    <a class="pill brand" href="#"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</a>
+    <nav class="menu" aria-label="Seiten"><a href="#buddy">Buddy</a><a href="#lebenslagen">Lebenslagen</a><a href="#fragen">Ausprobieren</a></nav>
+    <a class="pill cta" href="#platz">Warteliste</a>
+  </div>
+</div>
+
+<header class="atmo">
+  <div class="grain"></div>
+  <div class="w hero">
+   <div class="hero-text">
     <h1>Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
     <p class="lead">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
     <div id="platz">
       <form class="join" novalidate>
         <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
-        <button class="btn ink" type="submit">Auf die Warteliste</button>
+        <button class="btn white" type="submit">Auf die Warteliste</button>
       </form>
       <div class="err" role="alert"></div>
       <div class="spot">
@@ -183,109 +243,96 @@
         <div class="bars" data-bars><i></i><i></i><i></i></div>
         <code data-link></code>
         <div class="row">
-          <a class="btn ink" data-wa target="_blank" rel="noopener">Per WhatsApp schicken</a>
-          <button class="btn line" type="button" data-copy>Link kopieren</button>
+          <a class="btn white" data-wa target="_blank" rel="noopener">Per WhatsApp schicken</a>
+          <button class="btn ghost" type="button" data-copy>Link kopieren</button>
         </div>
       </div>
       <p class="fine">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
     </div>
+    <a class="scroll" href="#buddy">Runter ↓</a>
+   </div>
+   <div class="stage">
+      <div class="phone"><img src="app_chat.jpg" alt="Buddy erklärt die Betriebsrente und schlägt als nächsten Schritt vor, bei der Personalabteilung nach Zuschuss und Kosten zu fragen." width="780" height="1688"></div>
+      <div class="remark r1"><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem <b>29,90 €</b> ab.</div>
+      <div class="remark r2"><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Bis Monatsende sind noch <b>340 €</b> frei. Der Lieferdienst weiß das leider auch.</div>
+   </div>
   </div>
-  <div class="roll" aria-hidden="true"><svg><use href="#b"/></svg></div>
 </header>
 
 <main>
   <section id="buddy">
-    <div class="w">
-      <div class="label">So redet Buddy</div>
-      <h2>Eine Zahl. Ein Warum. Ein nächster Schritt.</h2>
-      <div class="topics" role="group" aria-label="Beispiele">
-        <button type="button" aria-pressed="true" data-t="urlaub">Urlaub im Juli</button>
-        <button type="button" aria-pressed="false" data-t="gehalt">Erste Abrechnung</button>
-        <button type="button" aria-pressed="false" data-t="abos">Vergessene Abos</button>
-        <button type="button" aria-pressed="false" data-t="wg">WG-Kasse</button>
-        <button type="button" aria-pressed="false" data-t="bav">Betriebsrente</button>
-      </div>
-      <div class="talk" data-talk aria-live="polite"></div>
+    <div class="w rise">
+      <h2 class="say-big">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
+      <p class="sub">Buddy ist dein Coach fürs Geld. Er sieht, was reinkommt und rausgeht, sagt es dir ohne Fachchinesisch und schlägt genau einen nächsten Schritt vor.</p>
     </div>
   </section>
 
-  <section id="weg" style="padding-top:0">
+  <section>
     <div class="w">
-      <div class="label">Lebenslagen statt Menüs</div>
-      <h2>Dein Weg nach vorn, Schritt für Schritt.</h2>
-      <div class="path">
-        <div class="stop now">
-          <div class="dot">1</div>
-          <div>
-            <h3>Erster Job</h3>
-            <p>Die fünf Dinge, die im ersten Jahr wirklich zählen. Buddy geht jeden mit dir durch und hakt ab, was erledigt ist.</p>
-            <div class="segs" aria-label="2 von 5 erledigt"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
-            <div class="chips"><span>Gehaltsabrechnung</span><span>Betriebsrente</span><span>Notgroschen</span><span>Sparrate</span><span>Steuererklärung</span></div>
-          </div>
+      <h2 class="say-big rise">Frag, was du dich <span>sonst nicht traust.</span></h2>
+      <div class="ex rise">
+        <div class="topics" role="group" aria-label="Beispiele">
+          <button type="button" aria-pressed="true" data-t="urlaub">Urlaub im Juli</button>
+          <button type="button" aria-pressed="false" data-t="gehalt">Erste Abrechnung</button>
+          <button type="button" aria-pressed="false" data-t="abos">Vergessene Abos</button>
+          <button type="button" aria-pressed="false" data-t="wg">WG-Kasse</button>
+          <button type="button" aria-pressed="false" data-t="bav">Betriebsrente</button>
         </div>
-        <div class="stop">
-          <div class="dot">2</div>
-          <div>
-            <h3>Erste eigene Wohnung</h3>
-            <p>Kaution, doppelte Miete, Verträge ummelden. Buddy legt das Umzugsbudget an, bevor der Notgroschen dran glauben muss.</p>
-          </div>
-        </div>
-        <div class="stop">
-          <div class="dot">3</div>
-          <div>
-            <h3>Zusammenziehen</h3>
-            <p>Halbe-halbe oder nach Einkommen? Buddy rechnet beides und schreibt, wer wem was schuldet.</p>
-          </div>
-        </div>
-        <div class="stop">
-          <div class="dot">4</div>
-          <div>
-            <h3>Altersvorsorgedepot</h3>
-            <p>Neu und staatlich gefördert. Buddy rechnet deine grobe Rentenlücke aus, damit du zum Start weißt, wie viel du brauchst.</p>
-            <span class="when">Start nach aktuellem Plan: 1. Januar 2027</span>
-          </div>
-        </div>
+        <div class="talk" data-talk aria-live="polite"></div>
       </div>
     </div>
   </section>
 
-  <section style="padding-top:0">
-    <div class="w">
-      <div class="label">Was Buddy nicht macht</div>
+  <div class="tiles" id="lebenslagen">
+    <div class="tile t1 rise">
+      <h3>Lebenslagen statt Menüs.</h3>
+      <p>Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt mit dir ab, was erledigt ist.</p>
+      <div class="shot"><img src="app_welcome.jpg" alt="Buddy begrüßt dich und zeigt die Lebenslage Erster Job mit dem nächsten Schritt: Notgroschen aufbauen." loading="lazy"></div>
+    </div>
+    <div class="tile t2 rise">
+      <h3>Er merkt sich, was du ihm sagst.</h3>
+      <p>Gehalt kommt am 28.? Notiert. Gespeichert wird aber erst, wenn du auf Merken tippst. Gilt auch für jede Buchung.</p>
+      <div class="shot"><img src="app_coach.jpg" alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="w rise">
+      <h2 class="say-big" style="font-size:clamp(28px,3.6vw,44px)">Was Buddy nicht macht:</h2>
       <div class="nots">
         <div>Geld bewegen</div>
         <div>Dir Fonds verkaufen</div>
-        <div>Den Kaffee to go zählen</div>
+        <div>Deinen Kaffee zählen</div>
       </div>
-      <p class="punch">Meistens ist es eh das Fitnessstudio, in das du seit März nicht mehr gehst.</p>
-      <div class="trust">
-        <div><b>Nur lesen</b><span>Dein Konto ist über die offizielle PSD2-Schnittstelle verbunden. Überweisen kann Ahead nicht.</span></div>
-        <div><b>Du bestätigst</b><span>Buddy bereitet Sparziele und Buchungen vor. Gespeichert wird erst, wenn du tippst.</span></div>
-        <div><b>Nur was er braucht</b><span>Für eine Frage bekommt die KI eine Zusammenfassung, nie Kontonummern oder Zugangsdaten.</span></div>
-        <div><b>Wenig Mitteilungen</b><span>Höchstens eine am Tag, und nur wenn es wirklich zählt.</span></div>
+      <p class="punch">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
+      <div class="facts">
+        <span>Nur Lesezugriff aufs Konto</span>
+        <span>Du bestätigst jede Buchung</span>
+        <span>Keine Kontonummern an die KI</span>
+        <span>Höchstens eine Mitteilung am Tag</span>
       </div>
     </div>
   </section>
 
-  <section class="last">
+  <div class="finale atmo" id="fragen">
+    <div class="grain"></div>
     <div class="w">
-      <div class="label">Probier ihn aus</div>
-      <h2>Frag Buddy. Jetzt, ohne Anmeldung.</h2>
+      <h2 class="rise">Frag Buddy. <span>Jetzt, ohne Anmeldung.</span></h2>
       <form class="ask">
         <input id="q" name="q" placeholder="Wie viel Notgroschen brauche ich?" autocomplete="off" maxlength="400" aria-label="Frage an Buddy">
-        <button class="btn" type="submit">Fragen</button>
+        <button class="btn white" type="submit">Fragen</button>
       </form>
       <div class="answer" aria-live="polite"></div>
       <div class="again">
-        <h2 style="font-size:clamp(30px,4.4vw,48px)">Sei früh dabei.</h2>
-        <form class="join" novalidate style="margin-top:22px">
+        <h3>Sei früh dabei.</h3>
+        <form class="join" novalidate>
           <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
-          <button class="btn ink" type="submit">Auf die Warteliste</button>
+          <button class="btn white" type="submit">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
       </div>
     </div>
-  </section>
+  </div>
 </main>
 
 <footer>
@@ -319,6 +366,19 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var coin = '<span class="coin"><svg><use href="#b"/></svg></span>';
 
+  // ------------------------------------------- nav colour and scroll reveals
+  var top = document.querySelector('[data-top]'), hero = document.querySelector('header.atmo');
+  var atmos = Array.prototype.slice.call(document.querySelectorAll('.atmo'));
+  function navTone() {
+    var y = 34, onAtmo = atmos.some(function (el) { var r = el.getBoundingClientRect(); return r.top <= y && r.bottom >= y; });
+    top.classList.toggle('on-paper', !onAtmo);
+  }
+  addEventListener('scroll', navTone, { passive: true }); navTone();
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.rise').forEach(function (el) { io.observe(el); });
+  } else document.querySelectorAll('.rise').forEach(function (el) { el.classList.add('seen'); });
+
   // ------------------------------------------------ the conversation
   var talks = {
     urlaub: { q: 'Kann ich mir im Juli 800 € Urlaub leisten?', a: 'Ja, mit <b>100 € im Monat</b> ab jetzt. Dein Notgroschen bleibt unangetastet, und bis Monatsende sind trotzdem noch 340 € frei.', next: 'Sparziel „Urlaub Juli“ anlegen. Ich rechne jeden Monat mit.' },
@@ -328,7 +388,7 @@
     bav: { q: 'Lohnt sich die Betriebsrente?', a: 'Oft ja, wegen des Zuschusses: Spart dein Arbeitgeber Sozialabgaben, gibt er in der Regel <b>15 Prozent</b> dazu. Frag in der Personalabteilung:', list: ['Wie viel gibt der Arbeitgeber dazu?', 'Welche Kosten hat der Vertrag?', 'Was passiert beim Jobwechsel?'], next: 'Mit den drei Antworten rechnen wir gemeinsam nach.' }
   };
   function block(q, a, list, next, note) {
-    return '<div class="you fade"><small>Du</small>' + esc(q) + '</div>' +
+    return '<div class="you fade">' + esc(q) + '</div>' +
       '<div class="buddy fade">' + coin + '<div><div class="say">' + a + '</div>' +
       (list ? '<ul>' + list.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
       (next ? '<div class="step"><em>Nächster Schritt</em><span>' + next + '</span></div>' : '') +
@@ -405,7 +465,7 @@
     return { a: body.join(' '), list: list, next: esc(next).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') };
   }
   function show(q, a, next, list, note) {
-    out.innerHTML = '<div class="talk" style="margin-top:0;min-height:0">' + block(q, a, null, next, note) + '</div>';
+    out.innerHTML = '<div class="talk">' + block(q, a, null, next, note) + '</div>';
     if (list && list.length) out.querySelector('.say').insertAdjacentHTML('afterend', '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>');
   }
   function offline(q) {
