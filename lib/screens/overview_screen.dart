@@ -234,7 +234,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
             AutoSave.runSoon();
           }
 
-          return SafeArea(
+          return AmbientGlow(
+            align: const Alignment(1.3, -1.2),
+            size: 1.3,
+            child: SafeArea(
             bottom: false,
             child: RefreshIndicator(
               color: AppColors.primary,
@@ -286,6 +289,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   ],
                 ],
               ),
+            ),
             ),
           );
         },
@@ -1149,7 +1153,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(name == null || name.isEmpty ? tr('Dein Überblick') : tr('Hallo {name}', {'name': name}),
           style: const TextStyle(fontFamily: AppFonts.display, 
-              fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+              fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
       const SizedBox(height: 8),
       Text(
         tr('Bank verbinden oder erste Ausgabe erfassen.'),

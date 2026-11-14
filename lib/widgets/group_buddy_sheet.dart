@@ -71,7 +71,7 @@ Future<void> showGroupBuddy(BuildContext context, SplitGroup g, {required void F
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(tr('Buddy für {name}', {'name': g.name}),
-                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                   Text(tr('Nur aus den Ausgaben dieser Gruppe'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                 ]),
@@ -84,7 +84,7 @@ Future<void> showGroupBuddy(BuildContext context, SplitGroup g, {required void F
                   : mine > 0
                       ? tr('Du bekommst noch {x}.', {'x': Money.raw(mine)})
                       : tr('Du schuldest noch {x}.', {'x': Money.raw(-mine)}),
-              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6),
+              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: -0.6),
             ),
             const SizedBox(height: 16),
             if (transfers.isEmpty)

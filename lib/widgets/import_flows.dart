@@ -42,7 +42,7 @@ Future<MoneyAccount?> pickAccount(BuildContext context, {String? title, bool all
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Text(heading, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+          child: Text(heading, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
         ),
         for (final a in accounts)
           ListTile(
@@ -161,7 +161,7 @@ Future<String?> _pickDepotName(BuildContext context) {
     builder: (sheet) => Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(sheet).viewInsets.bottom + 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(tr('In welches Depot?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(tr('In welches Depot?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         for (final n in names)
           ListTile(

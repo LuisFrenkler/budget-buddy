@@ -82,7 +82,7 @@ class GoalsScreen extends StatelessWidget {
         children: [
           Icon(Icons.flag_rounded, size: 52, color: AppColors.primaryText),
           const SizedBox(height: 20),
-          Text(tr('Worauf sparst du?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Worauf sparst du?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
             tr('Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Ohne Sparkonto trägst du den Stand manuell ein.'),
@@ -407,7 +407,7 @@ void celebrateGoal(BuildContext context, Goal goal) {
               child: Text(goal.emoji, style: TextStyle(fontSize: 72)),
             ),
             SizedBox(height: 16),
-            Text(tr('Ziel erreicht'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800)),
+            Text(tr('Ziel erreicht'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
             Text(tr('{x} für {name} sind zusammen.', {'x': Money.format(goal.targetCents), 'name': goal.name}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
@@ -564,7 +564,7 @@ class _NewGoalState extends State<_NewGoal> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(widget.editing == null ? tr('Neues Sparziel') : tr('Ziel bearbeiten'),
-            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 14),
         if (widget.editing == null)
         Wrap(spacing: 8, runSpacing: 8, children: [
@@ -752,7 +752,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(tr('{emoji} {name} automatisch füllen', {'emoji': widget.goal.emoji, 'name': widget.goal.name}),
-            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 21, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 21, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         // the user must not think money moves on its own
         Text(tr('Die App zählt mit, überwiesen wird nichts.'),
@@ -763,7 +763,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
         TextField(
           controller: _monthly,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800),
+          style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600),
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             hintText: _suggested.isEmpty ? '0' : _suggested,

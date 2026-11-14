@@ -41,6 +41,11 @@ import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 import '../l10n/l10n.dart';
+import '../services/money_accounts.dart';
+import '../services/ledger_busy.dart';
+import '../services/onboarding_service.dart';
+import '../services/forecast_service.dart';
+import '../utils/money.dart';
 
 export '../widgets/buddy_text.dart' show RichMarkdown;
 
@@ -91,7 +96,7 @@ class BuddyScreen extends StatefulWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
-            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Text(
               tr('Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
@@ -261,6 +266,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (q == null || _live == null) return;
     // cleared after this round, so the shell sees the question too
     WidgetsBinding.instance.addPostFrameCallback((_) => BuddyScreen.ask.value = null);
+    // a still screen draws no new frame by itself
+    WidgetsBinding.instance.scheduleFrame();
     if (q.isNotEmpty) _send(q);
   }
 
@@ -826,7 +833,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // the glow sits behind the whole screen, the bar included
+    return ColoredBox(
+      color: AppColors.bg,
+      child: AmbientGlow(
+        child: _scaffold(),
+      ),
+    );
+  }
+
+  Widget _scaffold() {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: _guest ? _guestBar() : _bar(),
       body: Column(children: [
         if (!_guest && _live == true && !BuddyService.hasConsent) _aiOffBanner(),
@@ -859,6 +877,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   PreferredSizeWidget _bar() => AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         // without a back button the tab's title keeps the page margin
         titleSpacing: widget.tab ? 20 : 0,
         title: Row(children: [
@@ -937,7 +957,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final copper = _messages.isEmpty;
     return AppBar(
       titleSpacing: 20,
-      backgroundColor: copper ? CopperLight.top : null,
+      backgroundColor: copper ? CopperLight.top : Colors.transparent,
       surfaceTintColor: copper ? Colors.transparent : null,
       foregroundColor: copper ? Colors.white : null,
       systemOverlayStyle: copper ? SystemUiOverlayStyle.light : null,
@@ -1082,29 +1102,61 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       ]);
     }
+    final brief = _brief();
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
       children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          const _HeroOrb(),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              _guest
-                  ? tr('Hi, ich bin Buddy.')
-                  : (name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?')),
-              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.1),
-            ),
+        // Buddy in the middle, the one number that matters right under him
+        Center(child: BuddyOrb(size: 92, mood: _mood)),
+        const SizedBox(height: 20),
+        if (brief.free != null) ...[
+          Text(
+            name != null ? tr('Hey {name}. Bis Monatsende sind noch', {'name': name}) : tr('Bis Monatsende sind noch'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 26,
+                fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
+                letterSpacing: -0.8,
+                height: 1.12,
+                color: AppColors.text),
           ),
-        ]),
-        const SizedBox(height: 12),
-        Text(
-          _guest
-              ? tr('Frag mich alles rund um Geld im ersten Job, ohne Anmeldung. Ich sag dir, was du als Nächstes tun kannst.')
-              : tr('Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.'),
-          style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
-        ),
-        const SizedBox(height: 18),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(brief.free!,
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 62,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -3,
+                    height: 1.02,
+                    color: AppColors.glow)),
+          ),
+          const SizedBox(height: 6),
+          Text(tr('frei. Das sind etwa {x} pro Tag.', {'x': brief.perDay!}),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textDim)),
+        ] else ...[
+          Text(
+            name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 32,
+                fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
+                letterSpacing: -1.2,
+                height: 1.1,
+                color: AppColors.text),
+          ),
+          const SizedBox(height: 10),
+          Text(tr('Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.'),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45)),
+        ],
+        const SizedBox(height: 24),
+        if (brief.tip != null) ...[
+          _remark(brief.tip!),
+          const SizedBox(height: 18),
+        ],
         if (stage != null) ...[
           _stageProgress(stage),
           const SizedBox(height: 18),
@@ -1121,6 +1173,55 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ],
     );
   }
+
+  // what Buddy says on top of his start: the money left this month and,
+  // when something stands out, one remark
+  ({String? free, String? perDay, BuddyTip? tip}) _brief() {
+    try {
+      final tx = DB.getTx();
+      final cash = LedgerBusy.cashOr(DB.balanceOf(tx) + MoneyAccounts.openingTotal);
+      final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash);
+      if (tx.isEmpty || !OnboardingService.balanceKnown) return (free: null, perDay: null, tip: tip);
+      final f = ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash);
+      if (f == null || f.freeCents < 0) return (free: null, perDay: null, tip: tip);
+      final hidden = Settings.hideAmounts.value;
+      return (
+        free: hidden ? Money.hidden : Money.format(f.freeCents),
+        perDay: hidden ? Money.hidden : Money.format(f.perDayCents),
+        tip: tip,
+      );
+    } catch (_) {
+      return (free: null, perDay: null, tip: null);
+    }
+  }
+
+  // one remark in Buddy's voice with the step that goes with it
+  Widget _remark(BuddyTip tip) => Container(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        decoration: BoxDecoration(
+          color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
+          boxShadow: ThemeController.isDark.value
+              ? null
+              : const [BoxShadow(color: Color(0x14783C14), blurRadius: 30, offset: Offset(0, 12))],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tip.text,
+              style: TextStyle(
+                  fontFamily: AppFonts.display,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  height: 1.35,
+                  letterSpacing: -0.2,
+                  color: AppColors.text)),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(onPressed: () => _send(tip.question), child: Text(tip.question)),
+          ),
+        ]),
+      );
 
   Widget _stageChip(LifeStage s) => Material(
         color: AppColors.surface,
@@ -1317,7 +1418,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: ThemeController.isDark.value ? const Color(0x1AFFFFFF) : AppColors.primary,
+                border: ThemeController.isDark.value ? Border.all(color: const Color(0x24FFFFFF)) : null,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(22),
                   topRight: Radius.circular(22),
@@ -1333,7 +1435,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ),
                 if (m.image != null && m.text.isNotEmpty) const SizedBox(height: 8),
                 if (m.text.isNotEmpty)
-                  Text(m.text, style: TextStyle(color: AppColors.onPrimary, fontSize: 15.5, height: 1.4)),
+                  Text(m.text,
+                      style: TextStyle(
+                          color: ThemeController.isDark.value ? AppColors.text : AppColors.onPrimary,
+                          fontSize: 15.5,
+                          height: 1.4)),
               ]),
             ),
           ),
@@ -1384,7 +1490,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 3),
-                      child: waiting ? const TypingDots() : RichMarkdown(text, streaming: m.streaming, onAsk: _send),
+                      child: waiting ? const TypingDots() : RichMarkdown(text, streaming: m.streaming, onAsk: _send, lead: true),
                     ),
             ),
             if (m.offline && text.isNotEmpty && !m.error && !m.streaming)
@@ -1649,9 +1755,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.fromLTRB(4, 4, 5, 4),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              // a white pill on paper in Glow, a glass pill in Night
+              color: ThemeController.isDark.value ? const Color(0x12FFFFFF) : Colors.white,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: _focus.hasFocus ? AppColors.textDim.withValues(alpha: 0.6) : AppColors.border),
+              border: Border.all(
+                  color: _focus.hasFocus
+                      ? AppColors.textDim.withValues(alpha: 0.6)
+                      : (ThemeController.isDark.value ? const Color(0x21FFFFFF) : AppColors.border)),
+              boxShadow: ThemeController.isDark.value
+                  ? null
+                  : const [BoxShadow(color: Color(0x1A783C14), blurRadius: 30, offset: Offset(0, 10))],
             ),
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               if (!_guest)
@@ -1727,7 +1840,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: canSend ? AppColors.brand : AppColors.surfaceAlt,
+                        color: canSend ? null : AppColors.surfaceAlt,
+                        gradient: canSend
+                            ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFF4B98A), Color(0xFFB06030)])
+                            : null,
+                        boxShadow: canSend && ThemeController.isDark.value
+                            ? const [BoxShadow(color: Color(0x80D9813F), blurRadius: 18)]
+                            : null,
                       ),
                       child:
                           Icon(Icons.arrow_upward_rounded, size: 21, color: canSend ? Colors.white : AppColors.textDim),

@@ -91,7 +91,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(tr('Was wäre wenn…?'),
-                style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(tr('Nur Rechnung, nichts wird gespeichert.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
@@ -100,7 +100,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
               Text(Money.format(cmp.sim.freeCents),
                   style: TextStyle(fontFamily: AppFonts.display, 
                       fontSize: 28,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: cmp.sim.freeCents < 0
                           ? AppColors.errorText
                           : AppColors.text)),

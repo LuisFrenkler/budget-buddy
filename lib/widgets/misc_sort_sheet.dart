@@ -52,7 +52,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
               children: [
                 Text('„${g.sample}“',
                     style: const TextStyle(fontFamily: AppFonts.display, 
-                        fontSize: 20, fontWeight: FontWeight.w800)),
+                        fontSize: 20, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text(
                     tr('{count}× in Sonstiges · {x}, nur diese Sonstiges-Buchungen.', {'count': g.count, 'x': Money.format(g.cents)}),
@@ -127,7 +127,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
         children: [
           Text(tr('Buchungen einordnen'),
-              style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+              style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(
               n == 0

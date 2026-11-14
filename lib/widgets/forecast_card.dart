@@ -55,7 +55,7 @@ class ForecastCard extends StatelessWidget {
               Text(Money.format(f.freeCents),
                   style: TextStyle(fontFamily: AppFonts.display, 
                       fontSize: 28,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: -0.8,
                       color: f.freeCents < 0 ? AppColors.errorText : AppColors.text)),
               if (f.freeCents > 0)
@@ -118,7 +118,7 @@ class ForecastCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary

@@ -240,7 +240,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(i.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+                    Text(i.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
                     Text('${i.symbol.isEmpty ? 'ohne Symbol' : i.symbol} · ${i.type}',
                         style: TextStyle(color: AppColors.textDim)),
                   ]),
@@ -258,7 +258,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                   else
                     Text(
                       (_cents != null && _cents! > 0) ? Money.format(_cents!) : tr('Kurs gerade nicht verfügbar'),
-                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6),
                     ),
                 ]),
               ),

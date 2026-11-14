@@ -381,7 +381,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
         children: [
           Text(tr('Passwort vergessen'),
               style: TextStyle(
-                  fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+                  fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.4)),
           const SizedBox(height: 12),
           Text(
             tr('Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.'),

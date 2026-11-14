@@ -105,7 +105,7 @@ class _PlusScreenState extends State<PlusScreen> {
             const SizedBox(height: 24),
             Text(tr('Plus ist aktiv'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
             const SizedBox(height: 10),
             Text(tr('Buddy, Belege und Sparziele laufen ohne Limit.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4)),
@@ -158,7 +158,7 @@ class _PlusScreenState extends State<PlusScreen> {
                   ],
                   Text(tr('Ahead Plus'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
+                      style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.8, height: 1.15)),
                   const SizedBox(height: 8),
                   Text(
                       _hasTrial
