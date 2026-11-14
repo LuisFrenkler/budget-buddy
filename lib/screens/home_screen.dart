@@ -428,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
         child: Text(text,
             style: TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDim, letterSpacing: 0.4)),
+                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDim)),
       );
 
   Widget _addOption(BuildContext sheet, IconData icon, String title, String subtitle, VoidCallback onTap) {

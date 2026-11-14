@@ -108,7 +108,7 @@ Future<void> showWeeklyStoryShare(BuildContext context, WeeklyReport report, {re
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF16161E),
+    backgroundColor: const Color(0xFF1C1815),
     showDragHandle: true,
     builder: (_) => _WeeklyStorySheet(report, fallbackText),
   );
@@ -203,7 +203,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _busy ? null : _share,
             icon: _busy

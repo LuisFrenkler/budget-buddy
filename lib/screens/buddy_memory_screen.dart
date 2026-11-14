@@ -118,8 +118,9 @@ class BuddyMemoryScreen extends StatelessWidget {
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 8, left: 2),
-        child: Text(text.toUpperCase(),
-            style: TextStyle(fontSize: 11.5, letterSpacing: 0.8, fontWeight: FontWeight.w700, color: AppColors.textDim)),
+        child: Text(text,
+            style: TextStyle(
+                fontFamily: AppFonts.display, fontSize: 18, letterSpacing: -0.4, fontWeight: FontWeight.w700, color: AppColors.text)),
       );
 
   Widget _tile({required IconData icon, required String title, required String subtitle, required VoidCallback onDelete}) =>

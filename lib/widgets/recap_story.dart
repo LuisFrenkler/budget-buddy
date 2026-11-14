@@ -95,7 +95,7 @@ Future<void> showStoryShare(BuildContext context, MonthRecap recap, {required St
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF16161E),
+    backgroundColor: const Color(0xFF1C1815),
     showDragHandle: true,
     builder: (_) => _StorySheet(recap, fallbackText),
   );
@@ -169,7 +169,7 @@ class _StorySheetState extends State<_StorySheet> {
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(54),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _busy ? null : _share,
             icon: const Icon(Icons.ios_share_rounded),
