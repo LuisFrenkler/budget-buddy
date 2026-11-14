@@ -1495,7 +1495,22 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 3),
-                      child: waiting ? const TypingDots() : RichMarkdown(text, streaming: m.streaming, onAsk: _send, lead: true),
+                      child: waiting
+                          // while his tools run, Buddy says where he is looking
+                          ? ValueListenableBuilder<String?>(
+                              valueListenable: BuddyService.activity,
+                              builder: (_, looking, __) => looking == null
+                                  ? const TypingDots()
+                                  : Row(mainAxisSize: MainAxisSize.min, children: [
+                                      const TypingDots(),
+                                      const SizedBox(width: 10),
+                                      Flexible(
+                                        child: Text(tr('schaut in {x} …', {'x': looking}),
+                                            style: TextStyle(fontSize: 13.5, color: AppColors.textDim)),
+                                      ),
+                                    ]),
+                            )
+                          : RichMarkdown(text, streaming: m.streaming, onAsk: _send, lead: true),
                     ),
             ),
             if (m.offline && text.isNotEmpty && !m.error && !m.streaming)

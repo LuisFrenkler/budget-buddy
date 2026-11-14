@@ -538,6 +538,10 @@ nicht drängeln.''';
     }
   }
 
+  // shared with the agent (agent.dart)
+  static String apiErrorText(int status, String body) => _apiError(status, body);
+  static String get persona => _persona;
+
   static String _apiError(int status, String body) {
     if (status == 401) return 'Der KI-Schlüssel des Servers ist ungültig.';
     if (status == 429 || status == 503) return 'Die KI ist gerade ausgelastet. Bitte gleich noch einmal.';

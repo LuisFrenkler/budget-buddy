@@ -57,6 +57,9 @@ class AccountService {
   static final current = ValueNotifier<Account?>(null);
   static String? _token;
   static String? get token => _token;
+  // the test catalog signs in with a token from the environment
+  @visibleForTesting
+  static set debugToken(String? t) => _token = t;
 
   static Box get _box => Hive.box('settings');
 
