@@ -4,11 +4,18 @@
 //
 // Facts here are general and for Germany. Numbers that change by law are
 // either left out or named with the year they hold for.
+import '../l10n/l10n.dart';
+
+// term and text are German keys, shown in the app language
 class GlossaryTerm {
-  final String term;
-  final String text;
+  final String _term;
+  final String _text;
   final List<String> also; // other spellings that mean the same
-  const GlossaryTerm(this.term, this.text, {this.also = const []});
+  const GlossaryTerm(this._term, this._text, {this.also = const []});
+  String get term => tr(_term);
+  String get text => tr(_text);
+  // German and app-language spellings, for finding the term in a text
+  List<String> get words => {_term, term, ...also}.toList();
 }
 
 class Glossary {
@@ -83,20 +90,31 @@ class Glossary {
         'Die Steuer auf Zinsen, Dividenden und Kursgewinne: 25 Prozent plus Soli und gegebenenfalls Kirchensteuer, nach dem Sparerpauschbetrag.'),
   ];
 
-  static final Map<String, GlossaryTerm> _byWord = {
-    for (final t in terms) ...{
-      t.term.toLowerCase(): t,
-      for (final a in t.also) a.toLowerCase(): t,
+  // rebuilt when the app language changes, so English terms are found too
+  static String? _lang;
+  static Map<String, GlossaryTerm> _words = {};
+  static RegExp _regex = RegExp(r'(?!)');
+
+  static Map<String, GlossaryTerm> get _byWord {
+    if (_lang != L10n.lang.value) {
+      _lang = L10n.lang.value;
+      _words = {
+        for (final t in terms)
+          for (final w in t.words) w.toLowerCase(): t,
+      };
+      // longest first, so "ETF-Sparplan" wins over "ETF"
+      final words = _words.keys.toList()..sort((a, b) => b.length.compareTo(a.length));
+      _regex = RegExp('(?<![\\wÄÖÜäöüß-])(${words.map(RegExp.escape).join('|')})(?![\\wÄÖÜäöüß])', caseSensitive: false);
     }
-  };
+    return _words;
+  }
 
   static GlossaryTerm? lookup(String word) => _byWord[word.toLowerCase().trim()];
 
-  // longest first, so "ETF-Sparplan" wins over "ETF"
-  static final RegExp _pattern = () {
-    final words = _byWord.keys.toList()..sort((a, b) => b.length.compareTo(a.length));
-    return RegExp('(?<![\\wÄÖÜäöüß-])(${words.map(RegExp.escape).join('|')})(?![\\wÄÖÜäöüß])', caseSensitive: false);
-  }();
+  static RegExp get _pattern {
+    _byWord;
+    return _regex;
+  }
 
   // where terms start in [text]: each term once, at most [max] per answer
   static List<({int start, int end, GlossaryTerm term})> find(String text, {int max = 3}) {

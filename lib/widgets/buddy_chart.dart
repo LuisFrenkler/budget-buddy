@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/buddy_proposals.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 class BuddyChartCard extends StatelessWidget {
   final BuddyChart chart;
@@ -44,7 +45,7 @@ class BuddyChartCard extends StatelessWidget {
           for (final r in chart.rows)
             Expanded(
               child: Semantics(
-                label: '${r.label}: Einnahmen ${Money.format(r.a)}, Ausgaben ${Money.format(r.b)}',
+                label: tr('{x}: Einnahmen {y}, Ausgaben {z}', {'x': r.label, 'y': Money.format(r.a), 'z': Money.format(r.b)}),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.center, children: [
                   _bar(r.a / max, AppColors.textDim.withValues(alpha: 0.35), 9),
                   const SizedBox(width: 3),
@@ -63,9 +64,9 @@ class BuddyChartCard extends StatelessWidget {
       ]),
       const SizedBox(height: 8),
       Row(children: [
-        _key(AppColors.textDim.withValues(alpha: 0.35), 'Einnahmen'),
+        _key(AppColors.textDim.withValues(alpha: 0.35), tr('Einnahmen')),
         const SizedBox(width: 14),
-        _key(_copper, 'Ausgaben'),
+        _key(_copper, tr('Ausgaben')),
       ]),
     ]);
   }

@@ -25,7 +25,7 @@ class FreeTierUsage extends StatelessWidget {
       ),
       (
         tr('Sparziele'),
-        '$goals von ${PlusService.freeGoals} aktiv'
+        tr('{goals} von {x} aktiv', {'goals': goals, 'x': PlusService.freeGoals})
       ),
     ];
     return Container(

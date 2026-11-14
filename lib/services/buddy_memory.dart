@@ -8,6 +8,7 @@
 // after the person agreed to "Buddy mit KI".
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import '../l10n/l10n.dart';
 
 class MemoryFact {
   final String id;
@@ -111,7 +112,8 @@ class BuddyMemory {
   // (said straight to Buddy; still confirmed with a tap)
   static String? fromCommand(String message) {
     final m = RegExp(r'^\s*(?:bitte\s+)?merk(?:e)?\s+dir\s*(?:bitte\s*)?[,:]?\s*(.+)$', caseSensitive: false)
-        .firstMatch(message);
+            .firstMatch(message) ??
+        RegExp(r'^\s*(?:please\s+)?remember(?:\s+that)?\s*[,:]?\s*(.+)$', caseSensitive: false).firstMatch(message);
     final what = m?.group(1)?.trim();
     if (what == null || what.length < 3) return null;
     return clean(what[0].toUpperCase() + what.substring(1));
@@ -122,10 +124,10 @@ enum MemoryKind { money, goal, life, preference, other }
 
 extension MemoryKindLabel on MemoryKind {
   String get label => switch (this) {
-        MemoryKind.money => 'Geld und Termine',
-        MemoryKind.goal => 'Ziele',
-        MemoryKind.life => 'Leben',
-        MemoryKind.preference => 'Vorlieben',
-        MemoryKind.other => 'Sonstiges',
+        MemoryKind.money => tr('Geld und Termine'),
+        MemoryKind.goal => tr('Ziele'),
+        MemoryKind.life => tr('Leben'),
+        MemoryKind.preference => tr('Vorlieben'),
+        MemoryKind.other => tr('Sonstiges'),
       };
 }

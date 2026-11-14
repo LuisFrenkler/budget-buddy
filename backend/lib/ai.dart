@@ -154,7 +154,8 @@ nicht drängeln.''';
   Stream<String> chat(
       {required Map<String, dynamic> finances,
       required List<Map<String, dynamic>> history,
-      bool guest = false}) async* {
+      bool guest = false,
+      String lang = 'de'}) async* {
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
     // the snapshot goes into the first user turn, so the system prompt stays cacheable
     final messages = <Map<String, dynamic>>[];
@@ -183,6 +184,10 @@ nicht drängeln.''';
       if (text.length > 4000) text = text.substring(0, 4000);
       if (!guest && role == 'user' && (i == lastUser || (i == 0 && lastUser == 0))) {
         text = 'Meine Finanzen (Stand heute):\n$snapshot\n\nMeine Frage: $text';
+      }
+      // the app language; the prompt itself stays German so it caches
+      if (lang == 'en' && role == 'user' && i == lastUser) {
+        text = '$text\n\n(Antworte auf Englisch. Schreib „Next step:“ statt „Nächster Schritt:“.)';
       }
       messages.add({'role': role, 'content': text});
     }

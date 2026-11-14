@@ -7,6 +7,7 @@ import 'contracts.dart';
 import 'history.dart';
 import 'money_accounts.dart';
 import 'savings_rate.dart';
+import '../l10n/l10n.dart';
 
 class Debt {
   final String id;
@@ -119,10 +120,10 @@ class Wealth {
     final netDelta = netThen != null ? netNow - netThen : null;
 
     if (netDelta != null && netDelta > 0) {
-      return 'Nettovermögen +${Money.format(netDelta)} seit letzter Woche';
+      return tr('Nettovermögen +{x} seit letzter Woche', {'x': Money.format(netDelta)});
     }
     if (cashDelta > 0) {
-      return 'Konto +${Money.format(cashDelta)} seit letzter Woche';
+      return tr('Konto +{x} seit letzter Woche', {'x': Money.format(cashDelta)});
     }
     return null;
   }
@@ -165,7 +166,7 @@ class Wealth {
       final last = months[1].rate;
       final prev = months[2].rate;
       if (last != null && prev != null && last > prev && last > 0) {
-        return 'Sparquote letzten Monat: $last %, höher als im Monat davor';
+        return tr('Sparquote letzten Monat: {last} %, höher als im Monat davor', {'last': last});
       }
     }
     return null;

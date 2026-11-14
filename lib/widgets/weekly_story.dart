@@ -17,7 +17,7 @@ Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   final pct = change == null ? null : (change * 100).round().abs();
   final fallback = change == null || report.roughlyUsual
       ? tr('Meine Woche mit Ahead: {headline}', {'headline': report.headline})
-      : tr('Meine Woche: {pct} % {x} als sonst · Ahead', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
+      : tr('Meine Woche: {pct} % {x} als sonst · Ahead', {'pct': pct, 'x': change < 0 ? tr('weniger') : tr('mehr')});
   Hive.box('settings').put('weeklySeen', report.start.toIso8601String());
   return showWeeklyStoryShare(context, report, fallbackText: fallback);
 }
@@ -35,7 +35,7 @@ class WeeklyStory extends StatelessWidget {
     final facts = <(IconData, String)>[
       if (change != null && !r.roughlyUsual)
         (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-            tr('{pct} % {x} als sonst', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'})),
+            tr('{pct} % {x} als sonst', {'pct': pct, 'x': change < 0 ? tr('weniger') : tr('mehr')})),
       if (r.roughlyUsual) (Icons.horizontal_rule_rounded, tr('Eine ganz normale Woche')),
       if (r.categories.isNotEmpty)
         (Icons.pie_chart_outline_rounded, tr('Am meisten: {category}', {'category': r.categories.first.category})),

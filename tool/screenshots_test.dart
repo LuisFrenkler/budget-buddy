@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/screens/buddy_memory_screen.dart';
 import 'package:budget_buddy/screens/buddy_screen.dart';
 import 'package:budget_buddy/screens/home_screen.dart';
@@ -28,11 +29,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
 final _key = GlobalKey();
+// flutter test tool/screenshots_test.dart --dart-define=LANG_CODE=en for English shots
+const _lang = String.fromEnvironment('LANG_CODE', defaultValue: 'de');
 
 Future<void> _shot(WidgetTester tester, String name) async {
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pump(const Duration(milliseconds: 600));
-  await expectLater(find.byKey(_key), matchesGoldenFile('../build/screens/$name.png'));
+  await expectLater(find.byKey(_key), matchesGoldenFile('../build/screens${_lang == 'de' ? '' : '/$_lang'}/$name.png'));
   // a sharp 3x copy for the landing page and the stores
   final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(_key));
   await tester.runAsync(() async {
@@ -45,6 +48,8 @@ Future<void> _shot(WidgetTester tester, String name) async {
 
 Future<void> _pump(WidgetTester tester, Widget home, {bool dark = true}) async {
   ThemeController.isDark.value = dark;
+  L10n.lang.value = _lang;
+  BuddyScreen.debugStatus = tr('KI an');
   tester.view.physicalSize = const Size(1170, 2532); // 390 x 844
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -53,8 +58,8 @@ Future<void> _pump(WidgetTester tester, Widget home, {bool dark = true}) async {
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme(dark),
-      locale: const Locale('de', 'DE'),
-      supportedLocales: const [Locale('de', 'DE')],
+      locale: _lang == 'de' ? const Locale('de', 'DE') : const Locale('en', 'IE'),
+      supportedLocales: const [Locale('de', 'DE'), Locale('en', 'IE')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: home,
     ),
@@ -65,7 +70,7 @@ Future<void> _pump(WidgetTester tester, Widget home, {bool dark = true}) async {
 Future<void> _ask(WidgetTester tester, String q) async {
   await tester.enterText(find.byType(TextField), q);
   await tester.pump();
-  await tester.tap(find.bySemanticsLabel('Senden'));
+  await tester.tap(find.bySemanticsLabel(tr('Senden')));
   for (var i = 0; i < 80; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
@@ -76,7 +81,6 @@ Future<void> _ask(WidgetTester tester, String q) async {
 
 void main() {
   setUpAll(() async {
-    BuddyScreen.debugStatus = 'KI an';
     final inter = FontLoader('Inter');
     for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
       inter.addFont(rootBundle.load('assets/fonts/Inter-$w.ttf'));
@@ -112,8 +116,8 @@ void main() {
 
   testWidgets('02 guest chat', (tester) async {
     await _pump(tester, const BuddyScreen(guest: true));
-    await _ask(tester, 'Wie viel Notgroschen brauche ich?');
-    await _ask(tester, 'Lohnt sich die Betriebsrente?');
+    await _ask(tester, tr('Wie viel Notgroschen brauche ich?'));
+    await _ask(tester, tr('Lohnt sich die Betriebsrente?'));
     await _shot(tester, '02_guest_chat');
     await tester.runAsync(() => BuddyHistory.clear(guest: true));
   });
@@ -146,8 +150,8 @@ void main() {
           DateTime.now().subtract(const Duration(minutes: 3))),
     ]));
     await _pump(tester, const BuddyScreen(tab: true));
-    await _ask(tester, 'Merk dir, dass mein Gehalt am 28. kommt');
-    await _ask(tester, 'Sparziel Notgroschen 4500');
+    await _ask(tester, _lang == 'de' ? 'Merk dir, dass mein Gehalt am 28. kommt' : 'Remember that my salary arrives on the 28th');
+    await _ask(tester, _lang == 'de' ? 'Sparziel Notgroschen 4500' : 'Savings goal emergency fund 4500');
     await _shot(tester, '04_coach_chat');
     await tester.runAsync(() => BuddyHistory.clear());
   });

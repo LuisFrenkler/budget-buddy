@@ -14,6 +14,7 @@ import 'cancellation_service.dart';
 import 'contracts.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
+import '../l10n/l10n.dart';
 
 enum HintKind {
   budgetOver,
@@ -90,7 +91,7 @@ class HintsService {
   static int _daysBetween(DateTime a, DateTime b) =>
       DateTime(b.year, b.month, b.day).difference(DateTime(a.year, a.month, a.day)).inDays;
 
-  static String _inDays(int d) => d <= 0 ? 'heute' : d == 1 ? 'morgen' : 'in $d Tagen';
+  static String _inDays(int d) => d <= 0 ? tr('heute') : d == 1 ? tr('morgen') : tr('in {d} Tagen', {'d': d});
 
   // all hints for the data, most urgent first
   static List<Hint> build({
@@ -116,18 +117,17 @@ class HintsService {
       final share = b.spentCents / b.limitCents;
       final daysLeft = _daysBetween(today, b.endDate);
       if (share >= 1) {
-        out.add(Hint('budget-over-${b.category}-$month', HintKind.budgetOver, '${b.category}: Budget überschritten',
-            '${Money.format(b.spentCents - b.limitCents)} drüber. Vielleicht das Limit anpassen?', HintTarget.budgets,
+        out.add(Hint('budget-over-${b.category}-$month', HintKind.budgetOver, tr('{x}: Budget überschritten', {'x': b.category}),
+            tr('{x} drüber. Vielleicht das Limit anpassen?', {'x': Money.format(b.spentCents - b.limitCents)}), HintTarget.budgets,
             urgent: true));
       } else if (share >= 0.8 && daysLeft >= 3) {
         out.add(Hint(
             'budget-close-${b.category}-$month',
             HintKind.budgetClose,
             '${b.category}: ${(share * 100).round()} % weg',
-            'Noch ${Money.format(b.limitCents - b.spentCents)} für $daysLeft Tage, also etwa '
-                '${Money.format((b.limitCents - b.spentCents) ~/ daysLeft)} am Tag.',
+            tr('Noch {x} für {daysLeft} Tage, also etwa {y} am Tag.', {'x': Money.format(b.limitCents - b.spentCents), 'daysLeft': daysLeft, 'y': Money.format((b.limitCents - b.spentCents) ~/ daysLeft)}),
             HintTarget.budgets,
-            question: 'Wie komme ich mit ${b.category} bis Monatsende hin?'));
+            question: tr('Wie komme ich mit {x} bis Monatsende hin?', {'x': b.category})));
       }
     }
 
@@ -136,18 +136,18 @@ class HintsService {
       if (!t.isEarning || t.category != 'Gehalt' || t.amountCents < 50000) continue;
       final d = _daysBetween(t.date, today);
       if (d < 0 || d > 2) continue;
-      out.add(Hint('salary-${t.id}', HintKind.salaryIn, 'Dein Gehalt ist da',
-          '${Money.format(t.amountCents)} sind angekommen. Leg gleich einen Teil zur Seite, bevor der Monat ihn verteilt.',
+      out.add(Hint('salary-${t.id}', HintKind.salaryIn, tr('Dein Gehalt ist da'),
+          tr('{x} sind angekommen. Leg gleich einen Teil zur Seite, bevor der Monat ihn verteilt.', {'x': Money.format(t.amountCents)}),
           HintTarget.buddy,
-          question: 'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?'));
+          question: tr('Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?')));
     }
 
     // the forecast says the month will not work out
     if (freeCents != null && freeCents < 0 && today.day <= 25) {
-      out.add(Hint('low-$month-${today.day ~/ 7}', HintKind.lowMonth, 'Der Monat wird knapp',
-          'Nach den festen Kosten fehlen bis Monatsende etwa ${Money.format(-freeCents)}. Buddy hat einen Plan.',
+      out.add(Hint('low-$month-${today.day ~/ 7}', HintKind.lowMonth, tr('Der Monat wird knapp'),
+          tr('Nach den festen Kosten fehlen bis Monatsende etwa {x}. Buddy hat einen Plan.', {'x': Money.format(-freeCents)}),
           HintTarget.buddy,
-          urgent: true, question: 'Mein Monat wird knapp. Was kann ich jetzt tun?'));
+          urgent: true, question: tr('Mein Monat wird knapp. Was kann ich jetzt tun?')));
     }
 
     final contracts = Contracts.detect(tx, now: today);
@@ -158,10 +158,8 @@ class HintsService {
         out.add(Hint(
             'still-${c.name}-${c.last.date.toIso8601String().substring(0, 10)}',
             HintKind.stillCharging,
-            '${c.name} bucht trotz Kündigung ab',
-            'Du hast am ${Dates.dayMonth(sent)} gekündigt, am ${Dates.dayMonth(c.last.date)} kamen trotzdem '
-                '${Money.format(c.monthlyCents)}. Fordere das Geld zurück; eine Lastschrift kannst du 8 Wochen '
-                'lang bei deiner Bank zurückgeben.',
+            tr('{x} bucht trotz Kündigung ab', {'x': c.name}),
+            tr('Du hast am {x} gekündigt, am {y} kamen trotzdem {z}. Fordere das Geld zurück; eine Lastschrift kannst du 8 Wochen lang bei deiner Bank zurückgeben.', {'x': Dates.dayMonth(sent), 'y': Dates.dayMonth(c.last.date), 'z': Money.format(c.monthlyCents)}),
             HintTarget.contracts,
             urgent: true));
       }
@@ -170,9 +168,8 @@ class HintsService {
         out.add(Hint(
             'price-${c.name}-${c.last.date.toIso8601String().substring(0, 10)}',
             HintKind.priceUp,
-            '${c.name} ist teurer geworden',
-            '+${Money.format(c.priceChange)} im Monat, jetzt ${Money.format(c.monthlyCents)}. '
-                'Aufs Jahr sind das ${Money.format(c.priceChange * 12)} mehr.',
+            tr('{x} ist teurer geworden', {'x': c.name}),
+            tr('+{x} im Monat, jetzt {y}. Aufs Jahr sind das {z} mehr.', {'x': Money.format(c.priceChange), 'y': Money.format(c.monthlyCents), 'z': Money.format(c.priceChange * 12)}),
             HintTarget.contracts,
             urgent: true));
       }
@@ -183,7 +180,7 @@ class HintsService {
             'upcoming-${c.name}-${c.nextDate.toIso8601String().substring(0, 10)}',
             HintKind.upcoming,
             '${c.name} kommt ${_inDays(until)}',
-            '${Money.format(c.monthlyCents)} werden voraussichtlich am ${Dates.dayMonth(c.nextDate)} abgebucht.',
+            tr('{x} werden voraussichtlich am {y} abgebucht.', {'x': Money.format(c.monthlyCents), 'y': Dates.dayMonth(c.nextDate)}),
             HintTarget.contracts));
       }
     }
@@ -202,7 +199,7 @@ class HintsService {
         out.add(Hint(
             'big-${t.id}',
             HintKind.bigExpense,
-            'Ungewöhnlich hohe Ausgabe',
+            tr('Ungewöhnlich hohe Ausgabe'),
             '${t.note ?? t.category}: ${Money.format(t.amountCents)}, sonst meist ${Money.format(median)}. '
                 'Alles richtig so?',
             HintTarget.transactions));
@@ -218,8 +215,7 @@ class HintsService {
             'trial-${sub.trialEnds.toIso8601String().substring(0, 10)}',
             HintKind.trialEnds,
             'Dein Gratis-Test endet ${_inDays(d)}',
-            'Danach ${Money.format(sub.priceCents)} ${sub.plan == PlusPlan.yearly ? 'im Jahr' : 'im Monat'}. '
-                'Wenn du nicht weitermachen willst, kündige vorher.',
+            tr('Danach {x} {y}. Wenn du nicht weitermachen willst, kündige vorher.', {'x': Money.format(sub.priceCents), 'y': sub.plan == PlusPlan.yearly ? tr('im Jahr') : tr('im Monat')}),
             HintTarget.subscription,
             urgent: true));
       }
@@ -232,8 +228,8 @@ class HintsService {
         out.add(Hint(
             'bank-${bankValidUntil.toIso8601String().substring(0, 10)}',
             HintKind.bankExpires,
-            d < 0 ? 'Bankverbindung abgelaufen' : 'Bankverbindung läuft ${_inDays(d)} ab',
-            'Einmal kurz bestätigen, dann kommen deine Umsätze weiter automatisch.',
+            d < 0 ? tr('Bankverbindung abgelaufen') : tr('Bankverbindung läuft {x} ab', {'x': _inDays(d)}),
+            tr('Einmal kurz bestätigen, dann kommen deine Umsätze weiter automatisch.'),
             HintTarget.connections,
             urgent: d < 0));
       }
@@ -242,9 +238,9 @@ class HintsService {
     // a goal that is reached: worth a moment, and the question what comes next
     for (final g in goals) {
       if (!g.reached) continue;
-      out.add(Hint('goal-done-${g.id}', HintKind.goalReached, '${g.emoji} ${g.name} ist erreicht',
-          '${Money.format(g.targetCents)} zusammen. Stark. Was wird das nächste Ziel?', HintTarget.buddy,
-          question: 'Ich habe mein Sparziel ${g.name} erreicht. Was wäre ein gutes nächstes Ziel?'));
+      out.add(Hint('goal-done-${g.id}', HintKind.goalReached, tr('{x} {y} ist erreicht', {'x': g.emoji, 'y': g.name}),
+          tr('{x} zusammen. Stark. Was wird das nächste Ziel?', {'x': Money.format(g.targetCents)}), HintTarget.buddy,
+          question: tr('Ich habe mein Sparziel {x} erreicht. Was wäre ein gutes nächstes Ziel?', {'x': g.name})));
     }
 
     // goals with a date in the next 30 days that are not reached
@@ -256,7 +252,7 @@ class HintsService {
         out.add(Hint(
             'goal-${g.id}-$month',
             HintKind.goalDue,
-            '${g.emoji} ${g.name}: noch ${_inDays(left)}',
+            tr('{x} {y}: noch {z}', {'x': g.emoji, 'y': g.name, 'z': _inDays(left)}),
             'Es fehlen ${Money.format(g.remainingCents)}. Ein kleiner Endspurt?',
             HintTarget.goals));
       }
@@ -272,10 +268,10 @@ class HintsService {
       out.add(Hint(
           'split-${first.groupId}-${list.length}-${first.title}',
           HintKind.splitNew,
-          'Neu in ${first.group}',
+          tr('Neu in {x}', {'x': first.group}),
           list.length == 1
-              ? '${first.title}, ${Money.format(first.cents)} von ${first.by}'
-              : '${list.length} neue Ausgaben, zuletzt ${list.last.title} von ${list.last.by}',
+              ? tr('{x}, {y} von {z}', {'x': first.title, 'y': Money.format(first.cents), 'z': first.by})
+              : tr('{x} neue Ausgaben, zuletzt {y} von {z}', {'x': list.length, 'y': list.last.title, 'z': list.last.by}),
           HintTarget.splits));
     }
 

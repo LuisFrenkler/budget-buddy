@@ -1146,7 +1146,7 @@ Future<void> _aiChat(HttpRequest req) async {
   _countAi(user);
   final history = [for (final m in (body['history'] as List? ?? [])) (m as Map).cast<String, dynamic>()];
   if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
-  return _stream(req, _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history));
+  return _stream(req, _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history, lang: '${body['lang'] ?? 'de'}'));
 }
 
 // One step of Buddy's agent loop. The app sends the turns so far (its own
@@ -1220,7 +1220,7 @@ Future<void> _aiGuest(HttpRequest req) async {
   ];
   if (history.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
   _guestQuota.take(device, _clientIp(req));
-  return _stream(req, _ai.chat(finances: const {}, history: history, guest: true),
+  return _stream(req, _ai.chat(finances: const {}, history: history, guest: true, lang: '${body['lang'] ?? 'de'}'),
       first: {'left': _guestQuota.left(device)});
 }
 

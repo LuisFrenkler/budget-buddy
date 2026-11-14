@@ -142,7 +142,7 @@ Future<void> importDepot(BuildContext context, {String? depot}) async {
     if (context.mounted) {
       _snack(
           context,
-          tr('{holdings} {x}{x2} importiert{x3}', {'holdings': imported.holdings.length, 'x': imported.holdings.length == 1 ? tr('Position') : tr('Positionen'), 'x2': name.isEmpty ? '' : ' in $name', 'x3': imported.skipped > 0 ? tr(' · {skipped} übersprungen', {'skipped': imported.skipped}) : ''}));
+          tr('{holdings} {x}{x2} importiert{x3}', {'holdings': imported.holdings.length, 'x': imported.holdings.length == 1 ? tr('Position') : tr('Positionen'), 'x2': name.isEmpty ? '' : tr(' in {name}', {'name': name}), 'x3': imported.skipped > 0 ? tr(' · {skipped} übersprungen', {'skipped': imported.skipped}) : ''}));
     }
   } catch (e) {
     if (context.mounted) _snack(context, friendlyError(e, fallback: tr('Import hat nicht geklappt.')), error: true);

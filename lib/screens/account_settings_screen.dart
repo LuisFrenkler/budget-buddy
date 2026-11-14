@@ -77,7 +77,7 @@ class AccountSettingsScreen extends StatelessWidget {
             child: Text(tr('Profilbild ändern')),
           ),
         ),
-        Center(child: Text(account.name, style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600))),
+        Center(child: Text(tr(account.name), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600))),
         Center(child: Text(account.email, style: TextStyle(color: AppColors.textDim))),
         SectionLabel(tr('Persönliche Daten')),
         SettingsGroup([

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'account_service.dart';
 import 'backend_service.dart';
+import '../l10n/l10n.dart';
 
 class InviteInfo {
   final String code;
@@ -31,8 +32,7 @@ class InviteInfo {
       );
 
   String shareText(String? name) =>
-      'Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. '
-      '${name != null && name.isNotEmpty ? 'Hier ist meine Einladung: ' : 'Einladung: '}$link';
+      tr('Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. {x}{link}', {'x': name != null && name.isNotEmpty ? tr('Hier ist meine Einladung: ') : 'Einladung: ', 'link': link});
 }
 
 class InviteService {

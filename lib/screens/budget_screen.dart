@@ -147,7 +147,7 @@ Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? 
               value: selected[s.category] ?? false,
               onChanged: (v) => setLocal(() => selected[s.category] = v ?? false),
               title: Text(tr(s.category), style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text('${Money.format(s.limitCents)} / Monat'),
+              subtitle: Text(tr('{x} / Monat', {'x': Money.format(s.limitCents)})),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
@@ -277,7 +277,7 @@ class _BudgetCardState extends State<_BudgetCard> {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Text('von ${Money.format(budget.limitCents)}',
+                                Text(tr('von {x}', {'x': Money.format(budget.limitCents)}),
                                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                                 const SizedBox(width: 4),
                                 Icon(Icons.edit_rounded, size: 13, color: AppColors.textDim),
@@ -363,7 +363,7 @@ class _BudgetCardState extends State<_BudgetCard> {
         .where((t) =>
             !t.isIncome && t.category == budget.category && !t.date.isBefore(start) && t.date.isBefore(end))
         .toList();
-    showTransactionsSheet(context, title: budget.category, subtitle: budget.dateRange, tx: tx);
+    showTransactionsSheet(context, title: tr(budget.category), subtitle: budget.dateRange, tx: tx);
   }
 
   // deletes right away and offers an undo

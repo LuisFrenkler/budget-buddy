@@ -246,23 +246,23 @@ class RangeSelector extends StatelessWidget {
   const RangeSelector({super.key, required this.labels, required this.selected, required this.onChanged});
 
   // suffix under the chart number, for each range button
-  static const periods = {
-    '1T': 'heute',
-    '1W': 'in 7 Tagen',
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '1J': 'in 12 Monaten',
-    'Max': 'seit Beginn',
+  static Map<String, String> get periods => {
+    '1T': tr('heute'),
+    '1W': tr('in 7 Tagen'),
+    '1M': tr('in 30 Tagen'),
+    '3M': tr('in 3 Monaten'),
+    '1J': tr('in 12 Monaten'),
+    'Max': tr('seit Beginn'),
   };
 
   // "1M" read aloud means nothing
-  static const _spoken = {
-    '1T': '1 Tag',
-    '1W': '7 Tage',
-    '1M': '30 Tage',
-    '3M': '3 Monate',
-    '1J': '12 Monate',
-    'Max': 'Gesamter Zeitraum',
+  static Map<String, String> get _spoken => {
+    '1T': tr('1 Tag'),
+    '1W': tr('7 Tage'),
+    '1M': tr('30 Tage'),
+    '3M': tr('3 Monate'),
+    '1J': tr('12 Monate'),
+    'Max': tr('Gesamter Zeitraum'),
   };
 
   @override
@@ -294,7 +294,7 @@ class RangeSelector extends StatelessWidget {
                 color: l == selected ? AppColors.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: Text(l,
+              child: Text(tr(l),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

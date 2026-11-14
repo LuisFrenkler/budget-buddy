@@ -3,22 +3,23 @@
 import 'package:flutter/material.dart';
 import 'category_coach.dart';
 import 'finance_snapshot.dart';
+import '../l10n/l10n.dart';
 
 typedef BuddyChip = ({IconData icon, String text});
 
 class BuddySuggestions {
   /// Always surfaced on Start and in the empty Buddy welcome.
-  static const anchors = <BuddyChip>[
-    (icon: Icons.elderly_rounded, text: 'Richte meine Vorsorge ein'),
-    (icon: Icons.account_balance_rounded, text: 'Zeig mein Nettovermögen'),
-    (icon: Icons.group_rounded, text: 'Was schuldet mir die WG?'),
+  static List<BuddyChip> get anchors => [
+    (icon: Icons.elderly_rounded, text: tr('Richte meine Vorsorge ein')),
+    (icon: Icons.account_balance_rounded, text: tr('Zeig mein Nettovermögen')),
+    (icon: Icons.group_rounded, text: tr('Was schuldet mir die WG?')),
   ];
 
-  static const fallback = <BuddyChip>[
-    (icon: Icons.flight_takeoff_rounded, text: 'Kann ich mir 800 € Urlaub leisten?'),
-    (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
-    (icon: Icons.receipt_long_rounded, text: 'Welche Abos und Verträge habe ich?'),
-    (icon: Icons.account_balance_wallet_rounded, text: 'Wie viel ist diesen Monat noch frei?'),
+  static List<BuddyChip> get fallback => [
+    (icon: Icons.flight_takeoff_rounded, text: tr('Kann ich mir 800 € Urlaub leisten?')),
+    (icon: Icons.savings_rounded, text: tr('Wo kann ich sparen?')),
+    (icon: Icons.receipt_long_rounded, text: tr('Welche Abos und Verträge habe ich?')),
+    (icon: Icons.account_balance_wallet_rounded, text: tr('Wie viel ist diesen Monat noch frei?')),
   ];
 
   /// Up to [max] chips: anchors, then context-specific, then fallbacks without duplicates.
@@ -36,7 +37,7 @@ class BuddySuggestions {
 
     final misc = CategoryCoach.miscCount();
     if (misc >= 1) {
-      add((icon: Icons.category_rounded, text: 'Sonstiges aufräumen'));
+      add((icon: Icons.category_rounded, text: tr('Sonstiges aufräumen')));
     }
 
     for (final sp in s.splits) {
@@ -44,12 +45,12 @@ class BuddySuggestions {
       if (sp.myCents > 0) {
         add((
           icon: Icons.group_rounded,
-          text: 'Wer schuldet mir noch Geld in ${sp.name}?',
+          text: tr('Wer schuldet mir noch Geld in {x}?', {'x': sp.name}),
         ));
       } else {
         add((
           icon: Icons.group_rounded,
-          text: 'Wen muss ich in ${sp.name} noch ausgleichen?',
+          text: tr('Wen muss ich in {x} noch ausgleichen?', {'x': sp.name}),
         ));
       }
     }
@@ -66,7 +67,7 @@ class BuddySuggestions {
       if (!v.gapClosed && v.gapMonthlyCents > 0) {
         add((
           icon: Icons.elderly_rounded,
-          text: 'Wie schließe ich meine Rentenlücke?',
+          text: tr('Wie schließe ich meine Rentenlücke?'),
         ));
       } else {
         add((
@@ -87,7 +88,7 @@ class BuddySuggestions {
     } else if (s.depotCents > 0 || s.balanceCents > 50000) {
       add((
         icon: Icons.pie_chart_outline_rounded,
-        text: 'Wie ist mein Vermögen verteilt?',
+        text: tr('Wie ist mein Vermögen verteilt?'),
       ));
     }
 

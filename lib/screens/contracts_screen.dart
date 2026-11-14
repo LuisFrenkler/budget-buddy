@@ -194,7 +194,7 @@ class ContractsCard extends StatelessWidget {
                   builder: (_, hidden, __) => Text(
                     [
                       '${contracts.length} erkannt',
-                      hidden ? '${Money.hidden} / Monat' : '${Money.format(monthly)} / Monat',
+                      hidden ? tr('{x} / Monat', {'x': Money.hidden}) : tr('{x} / Monat', {'x': Money.format(monthly)}),
                       if (raised > 0) '$raised teurer',
                     ].join(' · '),
                     style: TextStyle(fontSize: 13, color: raised > 0 ? AppColors.warningText : AppColors.textDim),
@@ -426,7 +426,7 @@ void _share(BuildContext context, List<Contract> contracts, int monthly) {
       headline: tr('Buddy hat {n} {x} gefunden: {y} im Jahr.',
           {'n': n, 'x': n == 1 ? tr('Abo') : tr('Abos und Verträge'), 'y': Money.raw(monthly * 12)}),
       body: [
-        for (final c in top.take(4)) '- **${c.name}**: ${Money.raw(c.monthlyCents)} im Monat',
+        for (final c in top.take(4)) tr('- **{x}**: {y} im Monat', {'x': c.name, 'y': Money.raw(c.monthlyCents)}),
         if (n > 4) tr('- und {n} weitere', {'n': n - 4}),
         '',
         tr('Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.'),

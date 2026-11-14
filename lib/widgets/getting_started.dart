@@ -167,7 +167,7 @@ class GettingStartedCard extends StatelessWidget {
               Text(
                   complete
                       ? tr('Buchung, Kontostand und Budget stehen. Als Nächstes: Polster und Vorsorge.')
-                      : '$done von $total erledigt',
+                      : tr('{done} von {total} erledigt', {'done': done, 'total': total}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),

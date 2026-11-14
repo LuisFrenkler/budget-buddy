@@ -21,6 +21,7 @@ import 'money_accounts.dart';
 import 'price_service.dart';
 import 'quick_parser.dart';
 import 'vorsorge.dart';
+import '../l10n/l10n.dart';
 
 class BuddyEntry {
   final String type; // booking, transfer, buy, sell, goal, vorsorge, holding
@@ -117,28 +118,27 @@ class BuddyEntry {
 
   String _accountName(String? id) => (MoneyAccounts.byId(id) ?? MoneyAccounts.main).name;
 
-  String _pillar(String label, int cents) => cents > 0 ? '$label ${Money.raw(cents)}' : '$label keine';
+  String _pillar(String label, int cents) => cents > 0 ? '$label ${Money.raw(cents)}' : tr('{label} keine', {'label': label});
 
   // one line for the card
   String get summary => switch (type) {
         'booking' => '${isIncome ? '+' : '−'}${Money.raw(cents)} · ${note.isEmpty ? category : note} · ${_accountName(account)}',
-        'transfer' => '${Money.raw(cents)} von ${_accountName(account)} nach ${_accountName(toAccount)}',
+        'transfer' => tr('{x} von {y} nach {z}', {'x': Money.raw(cents), 'y': _accountName(account), 'z': _accountName(toAccount)}),
         'buy' => '${_shares()} ${name.isEmpty ? symbol : name} gekauft${price > 0 ? ' zu ${Money.raw((price * 100).round())}' : ''}'
             '${account != null ? ' · von ${_accountName(account)}' : ''}',
         'sell' => '${_shares()} ${name.isEmpty ? symbol : name} verkauft${price > 0 ? ' zu ${Money.raw((price * 100).round())}' : ''}',
         'goal' => '${emoji.isEmpty ? '🎯' : emoji} ${note.trim()} · ${Money.raw(cents)}',
-        'vorsorge' => '$age J. · Rente mit $retireAge · ${Money.raw(cents)} netto'
-            ' · ${_pillar('gesetzlich', statutoryCents)} · ${_pillar('bAV', bavCents)} · ${_pillar('Riester', riesterCents)}',
+        'vorsorge' => tr('{age} J. · Rente mit {retireAge} · {x} netto · {y} · {z} · {a}', {'age': age, 'retireAge': retireAge, 'x': Money.raw(cents), 'y': _pillar('gesetzlich', statutoryCents), 'z': _pillar('bAV', bavCents), 'a': _pillar('Riester', riesterCents)}),
         'holding' => '${_shares()} ${name.isEmpty ? symbol : name}${symbol.isEmpty ? '' : ' ($symbol)'}'
             '${price > 0 ? ' · ${Money.raw((price * 100).round())} je Stück' : ''}'
             '${note.isEmpty ? '' : ' · $note'}',
         'recategorize' => '„$note“ → $category',
         'recategorize_all' => () {
           final fixes = CategoryCoach.autoFixes(limit: 4);
-          final head = '$cents Buchungen in ${fixes.isEmpty ? note : '${fixes.length} Händlern'}';
+          final head = tr('{cents} Buchungen in {x}', {'cents': cents, 'x': fixes.isEmpty ? note : tr('{x} Händlern', {'x': fixes.length})});
           if (fixes.isEmpty) return head;
           final lines = [
-            for (final p in fixes) '„${p.sample}“ → ${p.category} (${p.count}×)',
+            for (final p in fixes) tr('„{x}“ → {y} ({n}×)', {'x': p.sample, 'y': tr(p.category), 'n': p.count}),
           ];
           return '$head\n${lines.join('\n')}';
         }(),
@@ -146,15 +146,15 @@ class BuddyEntry {
       };
 
   String get title => switch (type) {
-        'booking' => isIncome ? 'Einnahme' : 'Ausgabe',
-        'transfer' => 'Umbuchung',
-        'buy' => 'Kauf im Depot${depot != null ? ' $depot' : ''}',
-        'sell' => 'Verkauf im Depot${depot != null ? ' $depot' : ''}',
-        'goal' => 'Sparziel',
-        'vorsorge' => 'Rentenrechner',
-        'holding' => 'Ins Depot',
-        'recategorize' || 'recategorize_all' => 'Kategorie',
-        _ => 'Eintrag',
+        'booking' => isIncome ? tr('Einnahme') : tr('Ausgabe'),
+        'transfer' => tr('Umbuchung'),
+        'buy' => tr('Kauf im Depot{x}', {'x': depot != null ? ' $depot' : ''}),
+        'sell' => tr('Verkauf im Depot{x}', {'x': depot != null ? ' $depot' : ''}),
+        'goal' => tr('Sparziel'),
+        'vorsorge' => tr('Rentenrechner'),
+        'holding' => tr('Ins Depot'),
+        'recategorize' || 'recategorize_all' => tr('Kategorie'),
+        _ => tr('Eintrag'),
       };
 
   String _shares() => shares == shares.roundToDouble() ? '${shares.round()}' : shares.toString().replaceAll('.', ',');
@@ -196,7 +196,7 @@ class BuddyEntries {
             }))
         .timeout(const Duration(seconds: 70));
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
-    if (res.statusCode != 200) throw body['error'] ?? 'Buddy konnte das gerade nicht lesen.';
+    if (res.statusCode != 200) throw body['error'] ?? tr('Buddy konnte das gerade nicht lesen.');
     return (
       reply: '${body['reply'] ?? ''}',
       entries: [
@@ -262,7 +262,7 @@ class BuddyEntries {
         return 'Gespeichert';
       case 'recategorize':
         final n = await CategoryCoach.apply(e.note, e.category, isIncome: e.isIncome);
-        return n == 0 ? 'Nichts geändert' : (n == 1 ? '1 Buchung sortiert' : '$n Buchungen sortiert');
+        return n == 0 ? tr('Nichts geändert') : (n == 1 ? tr('1 Buchung sortiert') : tr('{n} Buchungen sortiert', {'n': n}));
       case 'recategorize_all':
         var n = 0;
         for (final p in CategoryCoach.autoFixes(limit: 40)) {
@@ -322,10 +322,10 @@ class BuddyEntries {
         }
         if (synced) {
           return e.type != 'holding' && e.account != null && cents > 0
-              ? 'Konto gebucht · das Depot kommt über Parqet'
-              : 'Das Depot kommt über Parqet';
+              ? tr('Konto gebucht · das Depot kommt über Parqet')
+              : tr('Das Depot kommt über Parqet');
         }
-        return buy ? 'Im Depot' : (existing == null ? 'Position nicht gefunden' : 'Aus dem Depot');
+        return buy ? tr('Im Depot') : (existing == null ? tr('Position nicht gefunden') : tr('Aus dem Depot'));
     }
   }
 }

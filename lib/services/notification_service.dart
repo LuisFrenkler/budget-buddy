@@ -30,24 +30,25 @@ import 'hints_service.dart';
 import 'plus_service.dart';
 import 'settings_service.dart';
 import 'weekly_report.dart';
+import '../l10n/l10n.dart';
 
 enum NotifyTopic { spending, contracts, weekly, account, buddy }
 
 extension NotifyTopicLabel on NotifyTopic {
   String get label => switch (this) {
-        NotifyTopic.spending => 'Budgets & Ausgaben',
-        NotifyTopic.contracts => 'Verträge & Abbuchungen',
+        NotifyTopic.spending => tr('Budgets & Ausgaben'),
+        NotifyTopic.contracts => tr('Verträge & Abbuchungen'),
         NotifyTopic.weekly => 'Wochenbericht',
         NotifyTopic.account => 'Abo & Bankverbindung',
         NotifyTopic.buddy => 'Buddy-Momente',
       };
 
   String get description => switch (this) {
-        NotifyTopic.spending => 'Budget überschritten, ungewöhnliche Ausgaben, Sparziele',
-        NotifyTopic.contracts => 'Preiserhöhungen und große Abbuchungen am Tag vorher',
-        NotifyTopic.weekly => 'Jeden Sonntag um 18 Uhr',
+        NotifyTopic.spending => tr('Budget überschritten, ungewöhnliche Ausgaben, Sparziele'),
+        NotifyTopic.contracts => tr('Preiserhöhungen und große Abbuchungen am Tag vorher'),
+        NotifyTopic.weekly => tr('Jeden Sonntag um 18 Uhr'),
         NotifyTopic.account => 'Ende des Gratis-Tests, ablaufende Bankverbindung',
-        NotifyTopic.buddy => 'Gehalt ist da, Ziel erreicht',
+        NotifyTopic.buddy => tr('Gehalt ist da, Ziel erreicht'),
       };
 }
 
@@ -132,7 +133,7 @@ class NotificationService {
   static Future<bool> enable() async {
     if (!_ready) await init();
     if (!_ready) {
-      problem = 'Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.';
+      problem = tr('Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.');
       return false;
     }
     bool? granted;
@@ -152,8 +153,7 @@ class NotificationService {
       granted = true;
     }
     if (granted != true) {
-      problem = 'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen '
-          '${kIsWeb ? 'deines Browsers' : 'deines Geräts'} für Ahead erlauben.';
+      problem = tr('Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen {x} für Ahead erlauben.', {'x': kIsWeb ? 'deines Browsers' : tr('deines Geräts')});
       return false;
     }
     await _box.put('notifyOn', true);
@@ -173,16 +173,16 @@ class NotificationService {
   // a short confirmation right after turning it on
   static Future<void> hello() => _show(
         1,
-        'Buddy meldet sich ab jetzt',
-        'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.',
+        tr('Buddy meldet sich ab jetzt'),
+        tr('Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.'),
         'home',
       );
 
-  static const _details = NotificationDetails(
+  static NotificationDetails get _details => NotificationDetails(
     android: AndroidNotificationDetails(
       'buddy',
       'Buddy',
-      channelDescription: 'Hinweise, Erinnerungen und Wochenbericht',
+      channelDescription: tr('Hinweise, Erinnerungen und Wochenbericht'),
       importance: Importance.high,
       priority: Priority.high,
     ),
@@ -260,7 +260,7 @@ class NotificationService {
         final key = 'weekly-${report?.start.toIso8601String().substring(0, 10)}';
         final fresh = report != null && today.difference(report.end).inDays < 2 && !_shown.contains(key);
         if (fresh) {
-          await _show(_idFor(key), 'Dein Wochenbericht ist da', report.summary, 'weekly');
+          await _show(_idFor(key), tr('Dein Wochenbericht ist da'), report.summary, 'weekly');
           await _markShown([key]);
         }
       }
@@ -353,15 +353,15 @@ class NotificationService {
     for (final t in tasks) {
       final when = at(t.due, 9);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, 'Erinnerung von Buddy', t.text, NotifyTopic.buddy,
+        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, tr('Erinnerung von Buddy'), t.text, NotifyTopic.buddy,
             'buddy:Hilf mir bei diesem Schritt: ${t.text}'));
       }
     }
     DateTime before(DateTime d, int days, int hour) => DateTime(d.year, d.month, d.day - days, hour);
 
     final weekly = WeeklyReportService.nextReady(now);
-    out.add(Reminder(_idFor('weekly-$weekly'), weekly, 'Dein Wochenbericht ist da',
-        'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.', NotifyTopic.weekly, 'weekly'));
+    out.add(Reminder(_idFor('weekly-$weekly'), weekly, tr('Dein Wochenbericht ist da'),
+        tr('Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.'), NotifyTopic.weekly, 'weekly'));
 
     for (final c in Contracts.detect(tx, now: now)) {
       if (c.monthlyCents < 5000) continue;
@@ -379,9 +379,8 @@ class NotificationService {
         out.add(Reminder(
             _idFor('trial-${sub.trialEnds}'),
             when,
-            'Dein Gratis-Test endet in 2 Tagen',
-            'Ab ${Dates.dayMonth(sub.trialEnds)} kostet Plus ${Money.format(sub.priceCents)}. '
-                'Wenn du nicht weitermachen willst, kündige vorher.',
+            tr('Dein Gratis-Test endet in 2 Tagen'),
+            tr('Ab {x} kostet Plus {y}. Wenn du nicht weitermachen willst, kündige vorher.', {'x': Dates.dayMonth(sub.trialEnds), 'y': Money.format(sub.priceCents)}),
             NotifyTopic.account,
             'subscription'));
       }
@@ -390,8 +389,8 @@ class NotificationService {
     if (bankValidUntil != null) {
       final when = before(bankValidUntil, 3, 10);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('bank-$bankValidUntil'), when, 'Bankverbindung läuft in 3 Tagen ab',
-            'Einmal kurz bestätigen, dann kommen deine Umsätze weiter.', NotifyTopic.account, 'connections'));
+        out.add(Reminder(_idFor('bank-$bankValidUntil'), when, tr('Bankverbindung läuft in 3 Tagen ab'),
+            tr('Einmal kurz bestätigen, dann kommen deine Umsätze weiter.'), NotifyTopic.account, 'connections'));
       }
     }
 
@@ -400,7 +399,7 @@ class NotificationService {
       if (d == null || g.reached) continue;
       final when = before(d, 7, 10);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('goal-${g.id}-$d'), when, '${g.emoji} ${g.name}: noch eine Woche',
+        out.add(Reminder(_idFor('goal-${g.id}-$d'), when, tr('{x} {y}: noch eine Woche', {'x': g.emoji, 'y': g.name}),
             'Es fehlen ${Money.format(g.remainingCents)}. Ein kleiner Endspurt?', NotifyTopic.spending, 'goals'));
       }
     }

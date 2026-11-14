@@ -154,7 +154,7 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                   if (q.isNotEmpty && !exact)
                     ListTile(
                       leading: Icon(Icons.add, color: AppColors.primary),
-                      title: Text('„${_q.trim()}" verwenden'),
+                      title: Text(tr('„{x}“ verwenden', {'x': _q.trim()})),
                       subtitle: Text(tr('Eigenes Wertpapier')),
                       onTap: () => Navigator.pop(context, Instrument(_q.trim(), '', 'Aktie', 0) /* l10n: data */),
                     ),

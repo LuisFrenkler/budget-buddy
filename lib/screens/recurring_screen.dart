@@ -121,8 +121,9 @@ class _RecurringScreenState extends State<RecurringScreen> {
 
   Widget _ruleRow(RecurringRule r) {
     final note = r.note?.trim() ?? '';
-    final title = note.isNotEmpty ? note : r.category;
-    final interval = r.interval.isEmpty ? '–' : '${r.interval[0].toUpperCase()}${r.interval.substring(1)}';
+    final title = note.isNotEmpty ? note : tr(r.category);
+    final shown = tr(r.interval);
+    final interval = shown.isEmpty ? '–' : '${shown[0].toUpperCase()}${shown.substring(1)}';
     // date of the next booking, short enough to never be cut off
     final when = r.active ? Dates.dayMonth(RecurringService.nextDate(r)) : 'pausiert';
 
@@ -207,7 +208,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
               Wrap(spacing: 8, children: [
                 for (final i in RecurringService.intervals)
                   ChoiceChip(
-                    label: Text(i),
+                    label: Text(tr(i)),
                     selected: interval == i,
                     showCheckmark: false,
                     onSelected: (_) => setSheet(() => interval = i),

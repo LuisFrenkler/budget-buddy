@@ -324,7 +324,7 @@ class TransactionScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 3200),
-            content: Text('$name merken · ${moved + 1} ${moved + 1 == 1 ? 'Buchung' : 'Buchungen'} jetzt $picked')));
+            content: Text(tr('{name} merken · {x} {y} jetzt {picked}', {'name': name, 'x': moved + 1, 'y': moved + 1 == 1 ? tr('Buchung') : tr('Buchungen'), 'picked': picked}))));
       }
     } else {
       // dismissed sheet or "only this": still remember, that is the expected default

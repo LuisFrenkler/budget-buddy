@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 // (web, desktop, a bare simulator) the methods fail safe so the user can
 // never get locked out of their own data.
 import 'package:local_auth/local_auth.dart';
+import '../l10n/l10n.dart';
 
 class AuthService {
   static final LocalAuthentication _auth = LocalAuthentication();
@@ -32,17 +33,17 @@ class AuthService {
     try {
       final types = debugBiometrics != null ? await debugBiometrics!() : await _auth.getAvailableBiometrics();
       if (types.contains(BiometricType.face) || types.contains(BiometricType.iris)) {
-        return 'Face ID oder Code beim Öffnen';
+        return tr('Face ID oder Code beim Öffnen');
       }
       if (types.contains(BiometricType.fingerprint) ||
           types.contains(BiometricType.strong) ||
           types.contains(BiometricType.weak)) {
-        return 'Fingerabdruck oder PIN beim Öffnen';
+        return tr('Fingerabdruck oder PIN beim Öffnen');
       }
     } catch (_) {}
     return defaultTargetPlatform == TargetPlatform.iOS
-        ? 'Face ID oder Code beim Öffnen'
-        : 'Gerätecode beim Öffnen';
+        ? tr('Face ID oder Code beim Öffnen')
+        : tr('Gerätecode beim Öffnen');
   }
 
   // prompts the user to authenticate. returns true on success.

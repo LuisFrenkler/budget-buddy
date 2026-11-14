@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import '../models/transaction.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
 import 'buddy_service.dart';
 import 'db.dart';
@@ -108,15 +109,15 @@ class BuddyTools {
         final n = ((input['monate'] as num?)?.toInt() ?? 6).clamp(2, 12);
         final months = _months(n);
         const names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-        charts.add(BuddyChart(ChartKind.months, 'Einnahmen und Ausgaben', [
-          for (final m in months) (label: names[m.month.month - 1], a: m.income, b: m.spent)
+        charts.add(BuddyChart(ChartKind.months, tr('Einnahmen und Ausgaben'), [
+          for (final m in months) (label: tr(names[m.month.month - 1]), a: m.income, b: m.spent)
         ]));
         return {'diagramm': 'gezeigt', 'art': 'monate', 'monate': n};
       case 'kategorien':
         final r = _ausgaben({'von': input['von'], 'bis': input['bis']});
         final rows = (r['nachKategorie'] as List).take(6).toList();
-        charts.add(BuddyChart(ChartKind.categories, 'Ausgaben nach Kategorie', [
-          for (final c in rows) (label: '${c['name']}', a: ((c['summe'] as num) * 100).round(), b: 0)
+        charts.add(BuddyChart(ChartKind.categories, tr('Ausgaben nach Kategorie'), [
+          for (final c in rows) (label: tr(c['name'].toString()), a: ((c['summe'] as num) * 100).round(), b: 0)
         ]));
         return {'diagramm': 'gezeigt', 'art': 'kategorien', 'summe': r['summe']};
       case 'sparplan':
@@ -129,10 +130,10 @@ class BuddyTools {
         final target = ((r['zielbetrag'] as num) * 100).round();
         const long = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
         final end = DateTime(today.year, today.month + months - 1);
-        charts.add(BuddyChart(ChartKind.plan, 'Sparplan bis ${long[end.month - 1]} ${end.year}', [
+        charts.add(BuddyChart(ChartKind.plan, tr('Sparplan bis {m} {y}', {'m': tr(long[end.month - 1]), 'y': end.year}), [
           for (var i = 0; i < months.clamp(1, 12); i++)
             (
-              label: names[(today.month - 1 + i) % 12],
+              label: tr(names[(today.month - 1 + i) % 12]),
               a: (have + rate * (i + 1)).clamp(0, target),
               b: target,
             )

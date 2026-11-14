@@ -272,6 +272,7 @@ class BuddyService {
           'erinnerungen': BuddyMemory.texts(),
           if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
         },
+        'lang': L10n.lang.value,
         'history': [
           for (final m in history) {'role': m.fromUser ? 'user' : 'assistant', 'text': m.text}
         ],
@@ -398,7 +399,7 @@ class BuddyService {
         } finally {
           conn.close();
         }
-        if (done == null) throw 'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.';
+        if (done == null) throw tr('Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.');
         final calls = [for (final c in (done['tools'] as List? ?? const [])) (c as Map).cast<String, dynamic>()];
         if (calls.isEmpty) return;
         toolbox ??= tools();
@@ -451,10 +452,10 @@ class BuddyService {
   // a photo of a receipt -> booking (needs the AI and consent)
   static Future<ParsedBooking> receipt(Uint8List bytes, String mediaType) async {
     if (AccountService.current.value == null) {
-      throw 'Belege scannen geht mit einem kostenlosen Konto.';
+      throw tr('Belege scannen geht mit einem kostenlosen Konto.');
     }
     if (!await live()) throw 'Belege scannen braucht die KI auf dem Server.';
-    if (!hasConsent) throw 'Belege scannen braucht „Buddy mit KI“ in den Einstellungen.';
+    if (!hasConsent) throw tr('Belege scannen braucht „Buddy mit KI“ in den Einstellungen.');
     final res = await http
         .post(Uri.parse('${BackendService.base}/ai/receipt'),
             headers: {'Content-Type': 'application/json', ...BackendService.authHeaders},
@@ -483,7 +484,7 @@ class BuddyService {
     try {
       return '${(jsonDecode(body) as Map)['error']}';
     } catch (_) {
-      return 'Buddy ist gerade nicht erreichbar ($status).';
+      return tr('Buddy ist gerade nicht erreichbar ({status}).', {'status': status});
     }
   }
 }
