@@ -74,6 +74,7 @@ Future<void> _ask(WidgetTester tester, String q) async {
 
 void main() {
   setUpAll(() async {
+    BuddyScreen.debugStatus = 'KI an';
     final inter = FontLoader('Inter');
     for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
       inter.addFont(rootBundle.load('assets/fonts/Inter-$w.ttf'));

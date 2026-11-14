@@ -3,7 +3,7 @@
     "short_name": "Ahead",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#110E0C",
+    "background_color": "#0C0A09",
     "theme_color": "#B06030",
     "description": "Deine Finanzen mit KI",
     "orientation": "portrait-primary",
