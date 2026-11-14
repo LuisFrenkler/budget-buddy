@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:budget_buddy/models/transaction.dart';
+import 'package:budget_buddy/services/buddy_log.dart';
 import 'package:budget_buddy/services/buddy_memory.dart';
 import 'package:budget_buddy/services/buddy_proposals.dart';
 import 'package:budget_buddy/services/buddy_tasks.dart';
@@ -158,6 +159,47 @@ void main() {
         await BuddyTasks.add('Schritt $i', now: now.add(Duration(minutes: i)));
       }
       expect(BuddyTasks.open(now: now).length, BuddyTasks.maxOpen);
+    });
+  });
+
+  group('everything Buddy did can be taken back', () {
+    test('a budget, a goal and a reminder disappear again', () async {
+      final t = tools();
+      t.run('budget_vorschlagen', {'kategorie': 'Lebensmittel', 'betrag': 250});
+      t.run('sparziel_vorschlagen', {'name': 'Urlaub', 'betrag': 800});
+      t.run('erinnerung_vorschlagen', {'text': 'Personalabteilung fragen', 'datum': '2026-11-20'});
+      for (final p in t.proposals) {
+        await p.apply(now: now);
+      }
+      expect(BuddyLog.all().length, 3);
+      for (final e in BuddyLog.all()) {
+        await BuddyLog.undo(e.id);
+      }
+      expect(DB.getBudgets(), isEmpty);
+      expect(GoalsService.all(), isEmpty);
+      expect(BuddyTasks.open(now: now), isEmpty);
+      expect(BuddyLog.all().every((e) => e.undone && !e.canUndo), isTrue);
+    });
+
+    test('moved bookings go back to their old categories', () async {
+      await DB.addTx(Transaction(
+          id: 'b1', amountCents: 1860, category: 'Sonstiges', date: DateTime(2026, 10, 3), isIncome: false, note: 'Burger Bar'));
+      await DB.addTx(Transaction(
+          id: 'b2', amountCents: 2140, category: 'Freizeit', date: DateTime(2026, 11, 2), isIncome: false, note: 'Burger Bar'));
+      final t = tools();
+      t.run('kategorie_vorschlagen', {'haendler': 'Burger Bar', 'kategorie': 'Essen gehen'});
+      await t.proposals.single.apply(now: now);
+      expect(DB.getTx().every((x) => x.category == 'Essen gehen'), isTrue);
+      await BuddyLog.undo(BuddyLog.all().single.id);
+      final back = {for (final x in DB.getTx()) x.id: x.category};
+      expect(back, {'b1': 'Sonstiges', 'b2': 'Freizeit'});
+    });
+
+    test('a copied letter is logged, but there is nothing to undo', () async {
+      final t = tools();
+      t.run('kuendigung_vorbereiten', {'anbieter': 'FitX'});
+      await t.proposals.single.apply(now: now);
+      expect(BuddyLog.all().single.canUndo, isFalse);
     });
   });
 

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import '../l10n/l10n.dart';
 import '../models/goal.dart';
 import '../models/holding.dart';
 import '../models/money_account.dart';
@@ -50,7 +51,7 @@ class BuddyService {
   // seams for tests
   @visibleForTesting
   static http.Client Function() client = http.Client.new;
-  @visibleForTesting
+  // the tools on this device (tests and the test catalog swap them)
   static BuddyTools Function() tools = BuddyTools.device;
   // who answers on the server: 'anthropic', or 'google' (Gemini, free tier)
   static String provider = 'anthropic';
@@ -307,14 +308,44 @@ class BuddyService {
         'erinnerungen': BuddyMemory.textsForAgent(),
         if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
         'offeneAufgaben': BuddyTasks.forAgent(),
+        'sprache': L10n.lang.value,
       };
 
   // the cards and charts the last answer's tools produced, taken once by the chat
   static BuddyTools? _lastTools;
-  static ({List<BuddyProposal> proposals, List<BuddyChart> charts}) takeExtras() {
+  static ({List<BuddyProposal> proposals, List<BuddyChart> charts, List<String> tools}) takeExtras() {
     final t = _lastTools;
     _lastTools = null;
-    return (proposals: [...?t?.proposals], charts: [...?t?.charts]);
+    return (proposals: [...?t?.proposals], charts: [...?t?.charts], tools: [...?t?.used]);
+  }
+
+  // a thumbs up or down; question and answer go along so the team can turn a
+  // bad answer into a test case
+  static Future<void> feedback({
+    required bool up,
+    required String question,
+    required String answer,
+    String reason = '',
+    String note = '',
+    List<String> tools = const [],
+  }) async {
+    try {
+      await http
+          .post(Uri.parse('${BackendService.base}/ai/feedback'),
+              headers: {'Content-Type': 'application/json', ...BackendService.authHeaders},
+              body: jsonEncode({
+                'rating': up ? 'up' : 'down',
+                'reason': reason,
+                'note': note,
+                'question': question,
+                'answer': answer,
+                'tools': tools,
+                'lang': L10n.lang.value,
+              }))
+          .timeout(const Duration(seconds: 10));
+    } catch (_) {
+      // feedback is a bonus: never bother the person when it does not arrive
+    }
   }
 
   static Stream<String> _agent(List<ChatMessage> history) async* {
@@ -326,10 +357,16 @@ class BuddyService {
     try {
       context = _context();
     } catch (_) {
-      context = const {};
+      context = {};
     }
+    // the tools of this answer; their short summary goes along at once
     BuddyTools? toolbox;
     _lastTools = null;
+    try {
+      toolbox = tools();
+      _lastTools = toolbox;
+      context = {...context, 'kurzinfo': toolbox.kurzinfo()};
+    } catch (_) {}
     var wrote = false;
     try {
       for (var step = 0; step < maxSteps; step++) {

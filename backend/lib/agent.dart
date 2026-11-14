@@ -50,14 +50,17 @@ class BuddyAgent {
   final String fastModel;
   final String strongModel;
   final http.Client Function() _client;
+  // Gemini with the same tools when there is no Claude key (or as the only AI)
+  final Ai? gemini;
 
   BuddyAgent(this.apiKey,
-      {String fastModel = '', String strongModel = '', http.Client Function()? client})
+      {String fastModel = '', String strongModel = '', http.Client Function()? client, this.gemini})
       : fastModel = fastModel.isEmpty ? 'claude-haiku-5-5' : fastModel,
         strongModel = strongModel.isEmpty ? 'claude-sonnet-5-5' : strongModel,
         _client = client ?? http.Client.new;
 
-  bool get enabled => apiKey.isNotEmpty;
+  bool get _claude => apiKey.isNotEmpty;
+  bool get enabled => _claude || (gemini?.hasGemini ?? false);
 
   // Questions that need several numbers set against each other go to the
   // stronger model; everything else stays quick and cheap. Decided on the
@@ -165,6 +168,16 @@ class BuddyAgent {
     if (stage != null) lines.add('Lebenslage: ${jsonEncode(stage)}');
     final open = (context['offeneAufgaben'] as List?)?.take(5).toList();
     if (open != null && open.isNotEmpty) lines.add('Offene Aufgaben: ${jsonEncode(open)}');
+    final quick = context['kurzinfo'];
+    if (quick is Map && quick.isNotEmpty) {
+      lines.add('Kurzinfo aus der App, Stand jetzt: ${jsonEncode(quick)}\n'
+          'Für eine einfache Frage genau dazu reicht sie. Alles andere holst du mit Werkzeugen.');
+    }
+    if (context['sprache'] == 'en') {
+      lines.add('Die App ist auf Englisch eingestellt: Antworte auf Englisch, im selben Stil und mit Euro-Beträgen '
+          'im englischen Format (€1,234.56). Die Zeilen [weiter: …] und [merken: …] behalten ihre deutschen '
+          'Schlüsselwörter, der Inhalt ist englisch. Statt „Nächster Schritt:“ schreibst du „Next step:“.');
+    }
     return lines.join('\n\n');
   }
 
@@ -173,6 +186,10 @@ class BuddyAgent {
       {Map<String, dynamic> context = const {}, bool lastStep = false}) async* {
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
     if (messages.isEmpty) throw const AiError('Frage fehlt');
+    if (!_claude) {
+      yield* _geminiStep(messages, context: context, lastStep: lastStep);
+      return;
+    }
     final model = pickModel(messages);
     final req = http.Request('POST', Uri.parse(_url))
       ..headers.addAll({
@@ -252,6 +269,121 @@ class BuddyAgent {
     }
     final keys = blocks.keys.toList()..sort();
     yield AgentDone([for (final k in keys) blocks[k]!], stop, model);
+  }
+
+  // --- the same step on Gemini (function calling) --------------------------
+
+  // the conversation in Gemini's shape; tool results need the tool's name,
+  // which only the call that asked for them carries
+  static List<Map<String, dynamic>> geminiContents(List<Map<String, dynamic>> messages) {
+    final names = <String, String>{};
+    final out = <Map<String, dynamic>>[];
+    for (final m in messages) {
+      final role = m['role'] == 'assistant' ? 'model' : 'user';
+      final c = m['content'];
+      final parts = <Map<String, dynamic>>[];
+      if (c is String) {
+        parts.add({'text': c});
+      } else if (c is List) {
+        for (final b in c.cast<Map>()) {
+          switch (b['type']) {
+            case 'text':
+              parts.add({'text': '${b['text']}'});
+            case 'tool_use':
+              names['${b['id']}'] = '${b['name']}';
+              parts.add({
+                'functionCall': {'name': b['name'], 'args': b['input'] ?? {}},
+                if (b['gemini_signature'] != null) 'thoughtSignature': b['gemini_signature'],
+              });
+            case 'tool_result':
+              final raw = '${b['content']}';
+              dynamic result;
+              try {
+                result = jsonDecode(raw);
+              } catch (_) {
+                result = raw;
+              }
+              parts.add({
+                'functionResponse': {
+                  'name': names['${b['tool_use_id']}'] ?? 'werkzeug',
+                  'response': result is Map ? result : {'ergebnis': result},
+                }
+              });
+          }
+        }
+      }
+      if (parts.isNotEmpty) out.add({'role': role, 'parts': parts});
+    }
+    return out;
+  }
+
+  static List<Map<String, dynamic>> get geminiTools => [
+        {
+          'function_declarations': [
+            for (final t in tools)
+              {
+                'name': t['name'],
+                'description': t['description'],
+                if (((t['input_schema'] as Map)['properties'] as Map).isNotEmpty)
+                  'parameters': Ai.geminiSchema((t['input_schema'] as Map).cast<String, dynamic>()),
+              }
+          ]
+        }
+      ];
+
+  // Gemini's answer as the same blocks Claude would send
+  static AgentDone geminiDone(Map<String, dynamic> body, {String model = 'gemini'}) {
+    final parts = (((body['candidates'] as List?)?.firstOrNull as Map?)?['content'] as Map?)?['parts'] as List? ?? const [];
+    final text = StringBuffer();
+    final calls = <Map<String, dynamic>>[];
+    var n = 0;
+    for (final p in parts.cast<Map>()) {
+      if (p['thought'] == true) continue;
+      if (p['text'] != null) text.write(p['text']);
+      final call = p['functionCall'] as Map?;
+      if (call != null) {
+        calls.add({
+          'type': 'tool_use',
+          'id': 'g${DateTime.now().microsecondsSinceEpoch}_${n++}',
+          'name': call['name'],
+          'input': (call['args'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{},
+          if (p['thoughtSignature'] != null) 'gemini_signature': p['thoughtSignature'],
+        });
+      }
+    }
+    return AgentDone([
+      if (text.isNotEmpty) {'type': 'text', 'text': text.toString()},
+      ...calls,
+    ], calls.isEmpty ? 'end_turn' : 'tool_use', model);
+  }
+
+  Stream<AgentEvent> _geminiStep(List<Map<String, dynamic>> messages,
+      {required Map<String, dynamic> context, required bool lastStep}) async* {
+    final client = _client();
+    try {
+      final res = await gemini!.geminiGenerate({
+        'system_instruction': {
+          'parts': [
+            {'text': '$system\n\n${contextText(context)}'}
+          ]
+        },
+        'contents': geminiContents(messages),
+        'tools': geminiTools,
+        'tool_config': {
+          'function_calling_config': {'mode': lastStep ? 'NONE' : 'AUTO'}
+        },
+      }, client: client);
+      final body = jsonDecode(await res.stream.bytesToString()) as Map<String, dynamic>;
+      final done = geminiDone(body, model: gemini!.geminiModel);
+      final text = done.content.where((b) => b['type'] == 'text').map((b) => b['text']).join();
+      if (text.isNotEmpty) yield AgentText(text);
+      if (text.isEmpty && done.toolCalls.isEmpty) {
+        throw const AiError('Dazu kann Buddy gerade nichts sagen. Frag gern anders.');
+      }
+      yield done;
+    } finally {
+      client.close();
+    }
   }
 
   // --- what Buddy is told -------------------------------------------------

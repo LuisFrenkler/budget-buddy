@@ -49,7 +49,8 @@ void main() {
       } catch (e) {
         answer = 'FEHLER: $e';
       }
-      final v = Grader.grade(c, answer, tools.calls);
+      // the short summary that went along counts as a source too
+      final v = Grader.grade(c, answer, [(name: 'kurzinfo', result: tools.kurzinfo()), ...tools.calls]);
       verdicts.add(v);
       // ignore: avoid_print
       print('${v.passed ? 'ok  ' : 'FAIL'} ${c.id} ${v.failures.keys.join(', ')}');

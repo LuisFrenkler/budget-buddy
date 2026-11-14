@@ -8,7 +8,9 @@ import 'package:uuid/uuid.dart';
 import '../models/budget.dart';
 import '../models/goal.dart';
 import '../utils/money.dart';
+import '../l10n/l10n.dart';
 import 'account_service.dart';
+import 'buddy_log.dart';
 import 'buddy_tasks.dart';
 import 'cancellation_service.dart';
 import 'category_rules.dart';
@@ -30,47 +32,60 @@ class BuddyProposal {
         _ => 'Übernehmen',
       };
 
+  // does it, writes it into Buddy's log with the way back, and says what happened
   Future<String> apply({DateTime? now}) async {
     final today = now ?? DateTime.now();
+    final (said, undo) = await _do(today);
+    await BuddyLog.add(kind.name, title, said, undo, now: today);
+    return said;
+  }
+
+  Future<(String, Map<String, dynamic>)> _do(DateTime today) async {
     switch (kind) {
       case ProposalKind.budget:
+        final start = DateTime(today.year, today.month, 1);
         await DB.addBudget(Budget(
           category: '${data['kategorie']}',
           limitCents: data['cents'] as int,
-          startDate: DateTime(today.year, today.month, 1),
+          startDate: start,
           endDate: DateTime(today.year, today.month + 1, 0),
         ));
-        return 'Budget für ${data['kategorie']} steht.';
+        return (tr('Budget für {x} steht.', {'x': data['kategorie']}),
+            {'kategorie': data['kategorie'], 'start': start.toIso8601String()});
       case ProposalKind.goal:
-        final deadline = data['bis'] as DateTime?;
+        final id = const Uuid().v4();
         await GoalsService.save(Goal(
-          id: const Uuid().v4(),
+          id: id,
           name: '${data['name']}',
           emoji: '🎯',
           targetCents: data['cents'] as int,
-          deadline: deadline,
+          deadline: data['bis'] as DateTime?,
           createdAt: today,
           monthlyCents: (data['monthlyCents'] as int?) ?? 0,
         ));
-        return 'Sparziel ${data['name']} ist angelegt.';
+        return (tr('Sparziel {x} ist angelegt.', {'x': data['name']}), {'goalId': id});
       case ProposalKind.cancel:
         await Clipboard.setData(ClipboardData(text: '${data['letter']}'));
-        return 'Kündigung kopiert. Schick sie per Mail oder über das Kündigungsformular.';
+        return (tr('Kündigung kopiert. Schick sie per Mail oder über das Kündigungsformular.'), <String, dynamic>{});
       case ProposalKind.category:
         final name = '${data['haendler']}'.toLowerCase();
         final category = '${data['kategorie']}';
-        final hit = DB.getTx().where((t) => (t.note ?? '').toLowerCase().contains(name) && t.category != category);
-        if (hit.isEmpty) {
-          await CategoryRules.remember('${data['haendler']}', category, isIncome: false);
-          return 'Neue Buchungen von ${data['haendler']} landen in $category.';
+        final hit = DB.getTx().where((t) => (t.note ?? '').toLowerCase().contains(name) && t.category != category).toList();
+        // what each booking was before, for the way back
+        final old = {for (final t in hit) t.id: t.category};
+        final before = hit.isEmpty ? '' : hit.first.category;
+        for (final t in hit) {
+          await DB.addTx(t.withCategory(category));
         }
-        final first = hit.first;
-        final moved = await CategoryRules.applyToAll(first, category);
-        await DB.addTx(first.withCategory(category));
-        return '${moved + 1} Buchungen sind jetzt in $category.';
+        await CategoryRules.remember('${data['haendler']}', category, isIncome: false);
+        final undo = {'old': old, 'haendler': data['haendler'], 'vorher': before};
+        if (hit.isEmpty) {
+          return (tr('Neue Buchungen von {x} landen in {y}.', {'x': data['haendler'], 'y': category}), undo);
+        }
+        return (tr('{n} Buchungen sind jetzt in {y}.', {'n': hit.length, 'y': category}), undo);
       case ProposalKind.reminder:
-        await BuddyTasks.add('${data['text']}', due: data['datum'] as DateTime?);
-        return 'Notiert. Buddy erinnert dich.';
+        final id = await BuddyTasks.add('${data['text']}', due: data['datum'] as DateTime?);
+        return (tr('Notiert. Buddy erinnert dich.'), {if (id != null) 'taskId': id});
     }
   }
 

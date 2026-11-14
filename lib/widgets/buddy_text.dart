@@ -54,7 +54,7 @@ class _RichMarkdownState extends State<RichMarkdown> {
   }
 
   static final _numbered = RegExp(r'^(\d{1,2})[.)]\s+');
-  static const _next = 'Nächster Schritt:';
+  static final _stepLine = RegExp(r'^\**(Nächster Schritt|Next step):\**\s*', caseSensitive: false);
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +153,9 @@ class _RichMarkdownState extends State<RichMarkdown> {
             Expanded(child: Text.rich(TextSpan(children: spans(t.substring(m.end), caret: caret)), style: base)),
           ]),
         ));
-      } else if (t.startsWith(_next) || t.startsWith('**$_next**')) {
-        final rest = t.replaceFirst('**$_next**', '').replaceFirst(_next, '').trim();
+      } else if (_stepLine.hasMatch(t)) {
+        // "Nächster Schritt:" or, in English, "Next step:"
+        final rest = t.replaceFirst(_stepLine, '').trim();
         // Buddy's signature, like on the landing page: a stamp with a copper
         // frame and the label as a small tag; in Night it glows a little
         final night = ThemeController.isDark.value;

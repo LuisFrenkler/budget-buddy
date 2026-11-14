@@ -21,6 +21,8 @@ class BuddyTools {
   // under the answer
   final proposals = <BuddyProposal>[];
   final charts = <BuddyChart>[];
+  // which tools this answer used, for feedback
+  final used = <String>[];
 
   BuddyTools({required this.tx, required this.snapshot, required DateTime now})
       : today = DateTime(now.year, now.month, now.day);
@@ -55,6 +57,7 @@ class BuddyTools {
   // Runs one tool. A bad input or a failure comes back as {"fehler": …}, so
   // the model can say what is missing instead of guessing.
   Map<String, dynamic> run(String name, Map<String, dynamic> input) {
+    used.add(name);
     try {
       return switch (name) {
         'konten' => _konten(),
@@ -137,6 +140,22 @@ class BuddyTools {
         return {'diagramm': 'gezeigt', 'art': 'sparplan', 'rateProMonat': r['rateProMonat'], 'monate': months};
     }
     throw const FormatException('art muss monate, kategorien oder sparplan sein');
+  }
+
+  // A few numbers that go with every question, so simple ones ("wie viel ist
+  // frei?") need no extra step. Everything else still goes through tools.
+  Map<String, dynamic> kurzinfo() {
+    const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+    final f = snapshot['prognose'] as Map?;
+    return {
+      'heute': '${days[today.weekday - 1]}, ${_day(today)}',
+      if (snapshot['kontostand'] != null) 'summeKonten': snapshot['kontostand'],
+      if (snapshot['tageBisMonatsende'] != null) 'tageBisMonatsende': snapshot['tageBisMonatsende'],
+      if (f?['vorhanden'] == true) ...{
+        'freiBisMonatsende': f!['freiBisMonatsende'],
+        'proTag': f['proTag'],
+      },
+    };
   }
 
   // --- helpers --------------------------------------------------------------

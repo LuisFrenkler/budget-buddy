@@ -26,7 +26,8 @@ class EvalData {
       add(day(1), 780, 'Wohnen', 'Miete Hufnerstraße');
       add(day(2), 58, 'Transport', 'Deutschlandticket');
       add(day(3), 29.90, 'Sport', 'FitX Fitnessstudio');
-      add(day(5), 13.99, 'Abos', 'Netflix');
+      // Netflix got more expensive this month
+      add(day(5), i == 0 ? 17.99 : 13.99, 'Abos', 'Netflix');
       add(day(5), 10.99, 'Abos', 'Spotify');
       add(day(7), 15, 'Handy', 'Congstar');
       add(day(10), 42, 'Versicherung', 'Haftpflicht und Hausrat');
@@ -45,8 +46,6 @@ class EvalData {
       add(day(12), i == 1 ? 129.99 : 49.95, 'Shopping', 'Zalando');
       add(day(19), 27.40, 'Shopping', 'Amazon');
       add(day(20), 36.00, 'Freizeit', 'Kino und Bar');
-      // Netflix got more expensive two months ago
-      if (i <= 1) add(day(5), 4.00, 'Abos', 'Netflix Preisanpassung');
     }
     // a refund and one big purchase this year
     add(DateTime(today.year, today.month, 6), 49.95, 'Shopping', 'Zalando Rücksendung', income: true);
