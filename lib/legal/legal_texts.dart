@@ -106,7 +106,10 @@ class LegalTexts {
                 'bisherigen Chat an den KI-Anbieter, keine Finanzdaten. Für die Begrenzung auf wenige Fragen pro '
                 'Tag nutzen wir eine zufällige Gerätekennung und deine IP-Adresse; beides speichern wir nur für '
                 'den laufenden Tag im Arbeitsspeicher. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO '
-                '(berechtigtes Interesse am Schutz vor Missbrauch). Der Chat selbst liegt nur auf deinem Gerät.'),
+                '(berechtigtes Interesse am Schutz vor Missbrauch). Der Chat selbst liegt nur auf deinem Gerät.\n\n'
+                'Sprichst du mit Buddy, statt zu tippen, wandelt die Spracherkennung deines Geräts oder Browsers '
+                'die Sprache in Text um; je nach System geschieht das beim Hersteller (zum Beispiel Apple oder Google). '
+                'Wir bekommen nur den Text, den du danach abschickst.'),
         const LegalSection(
             '5a. Warteliste und Einladungen',
             'Trägst du dich auf der Website in die Warteliste ein, speichern wir deine E-Mail-Adresse, den '

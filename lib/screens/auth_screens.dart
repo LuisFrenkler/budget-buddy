@@ -17,6 +17,7 @@ import 'connections_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 import '../l10n/l10n.dart';
+import '../widgets/buddy_orb.dart';
 
 // First screen for anyone not signed in: Buddy himself. The first message is
 // useful without an account or a bank link; sign-up and sign-in sit in the
@@ -455,12 +456,20 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           children: [
-            Text(name != null ? tr('Hallo {name}', {'name': name}) : tr('Los geht\'s'),
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
-            const SizedBox(height: 8),
-            Text(tr('Wie willst du starten? Du kannst alles später ändern.'),
-                style: TextStyle(fontSize: 17, color: AppColors.textDim)),
-            const SizedBox(height: 28),
+            // Buddy asks, like in the chat: the same voice from the first screen on
+            const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 52, mood: BuddyMood.happy)),
+            const SizedBox(height: 18),
+            Text(name != null ? tr('Schön, dass du da bist, {name}.', {'name': name}) : tr('Schön, dass du da bist.'),
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+              child: Text(
+                  tr('Wie wollen wir starten? Am schnellsten geht es mit mir im Chat. Die Bank kannst du jederzeit später verbinden.'),
+                  style: TextStyle(fontSize: 15.5, height: 1.45, color: AppColors.text)),
+            ),
+            const SizedBox(height: 24),
             _ChoiceCard(
               icon: Icons.chat_bubble_outline_rounded,
               title: tr('Mit Buddy loslegen'),
@@ -624,15 +633,15 @@ class _ChoiceCard extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: highlighted ? AppColors.primary : Colors.transparent, width: 1.5),
+            border: Border.all(color: highlighted ? AppColors.brand.withValues(alpha: 0.7) : AppColors.border, width: highlighted ? 1.5 : 1),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, color: AppColors.primary),
+                  color: AppColors.brand.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: AppColors.brand),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -643,9 +652,9 @@ class _ChoiceCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(999)),
                       child: Text(badge!,
-                          style: TextStyle(color: AppColors.onPrimary, fontSize: 11, fontWeight: FontWeight.w700)),
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                     ),
                   ],
                 ]),

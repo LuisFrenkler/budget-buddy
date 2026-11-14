@@ -304,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(tr('Neu'),
-                            style: TextStyle(fontSize: 10.5, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+                            style: TextStyle(fontSize: 11.5, color: AppColors.textDim, fontWeight: FontWeight.w500)),
                       ]),
                     ),
                   ),
@@ -356,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     overflow: TextOverflow.fade,
                     softWrap: false,
                     style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         color: color,
                         fontWeight: active ? FontWeight.w800 : FontWeight.w500,
                         letterSpacing: active ? -0.2 : 0)),
@@ -531,7 +531,7 @@ class _BuddyButtonState extends State<_BuddyButton> {
             const SizedBox(height: 1),
             Text(tr('Buddy'),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: widget.active ? AppColors.brand : AppColors.text,
                 )),
