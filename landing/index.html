@@ -28,8 +28,9 @@
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;--tint:#1C1815;color-scheme:dark}}
   :root[data-theme="dark"]{--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;--tint:#1C1815;color-scheme:dark}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  html{scroll-behavior:smooth;overflow-x:hidden;overflow-x:clip}
+  body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased}
+  [id]{scroll-margin-top:96px}
   .w{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   a{color:inherit}
   h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:-.035em;line-height:1;text-wrap:balance}
@@ -378,6 +379,22 @@
     var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
     document.querySelectorAll('.rise').forEach(function (el) { io.observe(el); });
   } else document.querySelectorAll('.rise').forEach(function (el) { el.classList.add('seen'); });
+
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var id = a.getAttribute('href').slice(1);
+      var el = id ? document.getElementById(id) : document.body;
+      if (!el) return;
+      e.preventDefault();
+      if (id === 'platz') {
+        var form = el.querySelector('form.join');
+        el = form && form.style.display !== 'none' ? form : el;
+      }
+      var y = id ? el.getBoundingClientRect().top + scrollY - 96 : 0;
+      scrollTo({ top: Math.max(0, y), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      if (id === 'platz') { var input = el.querySelector && el.querySelector('input'); if (input) setTimeout(function () { input.focus({ preventScroll: true }); }, 450); }
+    });
+  });
 
   // ------------------------------------------------ the conversation
   var talks = {
