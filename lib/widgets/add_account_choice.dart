@@ -81,7 +81,7 @@ Future<void> _furtherDepot(BuildContext context) async {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tr('Weiteres Depot'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Weiteres Depot'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(tr('Dein Depot kommt über Parqet. Dort kannst du mehrere Broker gleichzeitig verbinden.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4)),

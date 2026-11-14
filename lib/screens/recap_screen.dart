@@ -205,7 +205,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
           child: Text(big,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: const TextStyle(fontFamily: AppFonts.display, 
                   color: Colors.white, fontSize: 46, fontWeight: FontWeight.w800, letterSpacing: -1.6, height: 1.05)),
         ),
         if (small != null) ...[

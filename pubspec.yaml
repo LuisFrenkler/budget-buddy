@@ -76,6 +76,13 @@ flutter:
           weight: 700
         - asset: assets/fonts/Inter-ExtraBold.ttf
           weight: 800
+    # headlines, the same face as on the landing page (SIL OFL)
+    - family: Bricolage
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
+          weight: 800
 
 # app icon generation (run: dart run flutter_launcher_icons)
 flutter_launcher_icons:

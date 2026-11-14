@@ -140,7 +140,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           Icon(signedIn ? Icons.cloud_off_rounded : Icons.person_outline_rounded, size: 48, color: AppColors.textDim),
           const SizedBox(height: 16),
           Text(signedIn ? tr('Gerade nicht erreichbar') : tr('Erst ein Konto'),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
               signedIn
@@ -566,7 +566,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Row(children: [
           Text(tr('Heute fällig'), style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
-          Text(PlusService.price(_plan!), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(PlusService.price(_plan!), style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
         ]),
         Divider(height: 24, color: AppColors.border),
         step(Icons.lock_open_rounded, AppColors.positive, tr('Heute'),
@@ -578,7 +578,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Row(children: [
           Text(tr('Heute fällig'), style: TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
-          Text(Money.raw(0), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(Money.raw(0), style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
         ]),
         Divider(height: 24, color: AppColors.border),
         step(Icons.lock_open_rounded, AppColors.positive, tr('Heute'),
@@ -1055,7 +1055,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                 child: Column(children: [
                   Text(tr('Willkommen bei Plus'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+                      style: TextStyle(fontFamily: AppFonts.display, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
                   const SizedBox(height: 10),
                   Text(
                     sub.inTrial(DateTime.now())

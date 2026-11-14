@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../l10n/l10n.dart';
 import '../services/file_saver.dart';
+import '../utils/theme.dart';
 import 'brand.dart';
 import 'buddy_orb.dart';
 import 'buddy_text.dart';
@@ -70,7 +71,7 @@ class ShareCard extends StatelessWidget {
                   Text(headline,
                       maxLines: 4,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -1, height: 1.12)),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -1, height: 1.12)),
                   const SizedBox(height: 22),
                   Container(
                     width: double.infinity,
@@ -159,7 +160,7 @@ class _ShareSheetState extends State<_ShareSheet> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(tr('Als Karte teilen'),
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+              style: const TextStyle(fontFamily: AppFonts.display, color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 14),
           ConstrainedBox(
             constraints: BoxConstraints(maxHeight: height * 0.52),

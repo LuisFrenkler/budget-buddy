@@ -101,7 +101,7 @@ class _Report extends StatelessWidget {
         Text('${Dates.dayMonth(r.start)} – ${Dates.dayMonth(r.end)}',
             style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
-        Text(r.headline, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+        Text(r.headline, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
         const SizedBox(height: 18),
         Container(
           padding: const EdgeInsets.all(18),
@@ -111,7 +111,7 @@ class _Report extends StatelessWidget {
             const SizedBox(height: 4),
             Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text(Money.format(r.spentCents),
-                  style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                  style: const TextStyle(fontFamily: AppFonts.display, fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1)),
               const SizedBox(width: 10),
               if (change != null)
                 Padding(

@@ -136,7 +136,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         children: [
                           Row(children: [
                             Text(tr('Konto'),
-                                style: TextStyle(
+                                style: TextStyle(fontFamily: AppFonts.display, 
                                     fontSize: 22, fontWeight: FontWeight.w800)),
                             SizedBox(width: 12),
                             // shrinks rather than overflows with large text or a long bank name

@@ -89,7 +89,7 @@ class BigNumber extends StatelessWidget {
             cents,
             signed: signed,
             animate: animate,
-            style: TextStyle(
+            style: TextStyle(fontFamily: AppFonts.display, 
               color: AppColors.text,
               fontSize: 44,
               fontWeight: FontWeight.w800,

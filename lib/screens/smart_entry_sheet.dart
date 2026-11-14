@@ -211,7 +211,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         Row(children: [
           BuddyOrb(size: 28, active: _busy != null),
           const SizedBox(width: 10),
-          Text(tr('Schnell erfassen'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Schnell erfassen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
         ]),
         const SizedBox(height: 6),
         Text(tr('Schreib es so, wie du es sagen würdest, oder fotografiere den Beleg.'),
