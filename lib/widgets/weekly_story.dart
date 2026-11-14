@@ -64,7 +64,7 @@ class WeeklyStory extends StatelessWidget {
                   Text('KW ${r.week}',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85))),
                   Text(r.headline,
-                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: -1.2, height: 1.1)),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: -1.2, height: 1.1)),
                   const SizedBox(height: 8),
                   Text('${Dates.dayMonth(r.start)} – ${Dates.dayMonth(r.end)}',
                       style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.75))),
@@ -168,7 +168,7 @@ class _WeeklyStorySheetState extends State<_WeeklyStorySheet> with SingleTickerP
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(tr('Wochen-Story'),
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+              style: TextStyle(fontFamily: AppFonts.display, color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(tr('Nur Prozente und Anzahlen, kein Kontostand.'),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),

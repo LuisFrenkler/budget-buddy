@@ -194,7 +194,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
             style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(r.gapClosed ? tr('Im groben Plan') : Money.format(r.gapMonthlyCents),
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -0.8, color: color)),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -0.8, color: color)),
         const SizedBox(height: 8),
         Text(
           r.gapClosed
@@ -223,7 +223,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('So rechnet Buddy'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             Text(
               tr('• Kapital (Depot, optional Sparziele ohne Notgroschen) wird über {drawYears} Jahre ohne Rendite aufgeteilt, konservativ für die Entnahmephase.\n\n• Die „extra sparen“-Rate nimmt ~{x} % Realrendite bis zur Rente an (Faustformel, kein Versprechen).\n\n• Netto-Schätzung der gesetzlichen Rente: etwa {x2} % deines heutigen Nettos. Das ist nur ein Platzhalter. Ersetze ihn durch die Zahl aus der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.', {'drawYears': Vorsorge.drawYears, 'x': (Vorsorge.realReturn * 100).round(), 'x2': (Vorsorge.estimateShare * 100).round()}),
@@ -256,7 +256,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
             onPressed: value <= min ? null : () => onChanged(value - 1),
             icon: const Icon(Icons.remove_rounded),
           ),
-          Text('$value', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text('$value', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
           IconButton(
             visualDensity: VisualDensity.compact,
             onPressed: value >= max ? null : () => onChanged(value + 1),

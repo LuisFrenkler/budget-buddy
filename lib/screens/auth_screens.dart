@@ -379,7 +379,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(tr('Passwort vergessen'),
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+              style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
           const SizedBox(height: 12),
           Text(
             tr('Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.'),
@@ -460,7 +460,7 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
             const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 52, mood: BuddyMood.happy)),
             const SizedBox(height: 18),
             Text(name != null ? tr('Schön, dass du da bist, {name}.', {'name': name}) : tr('Schön, dass du da bist.'),
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
+                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -517,7 +517,7 @@ class _AuthScaffold extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           children: [
-            Text(title, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(title, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
             const SizedBox(height: 8),
             Text(subtitle, style: TextStyle(fontSize: 16, color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 28),

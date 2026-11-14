@@ -51,7 +51,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text('„${g.sample}“',
-                    style: const TextStyle(
+                    style: const TextStyle(fontFamily: AppFonts.display, 
                         fontSize: 20, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text(
@@ -127,7 +127,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
         children: [
           Text(tr('Buchungen einordnen'),
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(
               n == 0

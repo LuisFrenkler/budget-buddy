@@ -385,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Text(tr('Neu'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+                child: Text(tr('Neu'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
               ),
               _sectionLabel(tr('Schnell')),
               _addOption(sheet, Icons.edit_note_rounded, tr('Schnell erfassen'),

@@ -91,7 +91,7 @@ class BuddyScreen extends StatefulWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
-            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Text(
               tr('Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
@@ -931,28 +931,102 @@ class _BuddyScreenState extends State<BuddyScreen> {
         Text(text),
       ]);
 
-  PreferredSizeWidget _guestBar() => AppBar(
-        titleSpacing: 20,
-        title: const Row(children: [BrandMark(size: 30), SizedBox(width: 10), Wordmark(size: 21)]),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
-            child: Text(tr('Anmelden')),
+  // before sign-up the opening is copper, like the landing page; once the
+  // chat starts the bar turns quiet
+  PreferredSizeWidget _guestBar() {
+    final copper = _messages.isEmpty;
+    const ink = Color(0xFF16120F);
+    return AppBar(
+      titleSpacing: 20,
+      backgroundColor: copper ? AppColors.brand : null,
+      foregroundColor: copper ? Colors.white : null,
+      systemOverlayStyle: copper ? SystemUiOverlayStyle.light : null,
+      title: Row(children: [
+        BrandMark(size: 30, inverse: copper),
+        const SizedBox(width: 10),
+        copper
+            ? const Text('Ahead.',
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.9,
+                    color: Colors.white))
+            : const Wordmark(size: 21),
+      ]),
+      actions: [
+        TextButton(
+          style: copper ? TextButton.styleFrom(foregroundColor: Colors.white) : null,
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
+          child: Text(tr('Anmelden')),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12, left: 2),
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              backgroundColor: copper ? ink : AppColors.brand,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+            child: Text(tr('Starten')),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12, left: 2),
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                backgroundColor: AppColors.brand,
-                foregroundColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  // the guest's opening: the landing page's question on copper, with the
+  // coin rolling in from the right
+  Widget _guestHero() => Container(
+        color: AppColors.brand,
+        child: Stack(clipBehavior: Clip.hardEdge, children: [
+          Positioned(
+            right: -70,
+            bottom: -60,
+            child: Container(
+              width: 210,
+              height: 210,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                    center: Alignment(-0.3, -0.4), colors: [Color(0xFFC77847), Color(0xFF9C5226)], stops: [0, 0.75]),
               ),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-              child: Text(tr('Starten')),
+              child: Padding(
+                padding: const EdgeInsets.all(48),
+                child: CustomPaint(painter: MarkPainter(color: const Color(0x66FFF6EF))),
+              ),
             ),
           ),
-        ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: tr('Was mach ich jetzt mit meinem ')),
+                  TextSpan(text: tr('Gehalt?'), style: const TextStyle(color: Color(0xFF2A140A))),
+                ]),
+                style: const TextStyle(
+                  fontFamily: AppFonts.display,
+                  fontSize: 44,
+                  height: 0.98,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.6,
+                  color: Color(0xFFFFF6EF),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.only(right: 70),
+                child: Text(
+                  tr('Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.'),
+                  style: const TextStyle(fontSize: 15.5, height: 1.45, color: Color(0xEBFFF6EF)),
+                ),
+              ),
+            ]),
+          ),
+        ]),
       );
 
   String get _statusLabel {
@@ -986,6 +1060,25 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final chips = (_guest ? BuddyScreen.guestSuggestions : BuddySuggestions.pick(BuddyService.snapshot(), max: 5))
         .take(3)
         .toList();
+    if (_guest) {
+      return ListView(padding: EdgeInsets.zero, children: [
+        _guestHero(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            _sectionLabel(tr('Wo stehst du gerade?')),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [for (final s in others) _stageChip(s)]),
+            const SizedBox(height: 18),
+            _sectionLabel(tr('Oder frag einfach')),
+            const SizedBox(height: 8),
+            for (final s in chips) _suggestion(s),
+            const SizedBox(height: 10),
+            _trustLine(),
+          ]),
+        ),
+      ]);
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
       children: [
@@ -997,7 +1090,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               _guest
                   ? tr('Hi, ich bin Buddy.')
                   : (name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?')),
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.1),
+              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.1),
             ),
           ),
         ]),
@@ -1044,7 +1137,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       );
 
   Widget _sectionLabel(String text) => Text(text.toUpperCase(),
-      style: TextStyle(fontSize: 11.5, letterSpacing: 0.9, fontWeight: FontWeight.w700, color: AppColors.textDim));
+      style: TextStyle(fontSize: 11.5, letterSpacing: 0.9, fontWeight: FontWeight.w700, color: AppColors.brand));
 
   Widget _stageProgress(LifeStage s) {
     final done = LifeStages.progress(s);

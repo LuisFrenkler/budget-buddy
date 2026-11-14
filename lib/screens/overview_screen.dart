@@ -1152,7 +1152,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(name == null || name.isEmpty ? tr('Dein Überblick') : tr('Hallo {name}', {'name': name}),
-          style: const TextStyle(
+          style: const TextStyle(fontFamily: AppFonts.display, 
               fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
       const SizedBox(height: 8),
       Text(

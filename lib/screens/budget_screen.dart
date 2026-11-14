@@ -137,7 +137,7 @@ Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? 
       builder: (ctx, setLocal) => Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tr('Budgets vorschlagen'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Budgets vorschlagen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(tr('Etwas unter deinem Schnitt der letzten Monate, damit es greift.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
@@ -481,7 +481,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(_editing ? tr('Limit für {category}', {'category': _category}) : tr('Monatsbudget'),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
         Text(
             _editing
@@ -514,7 +514,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         TextField(
           controller: _limit,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+          style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800),
           autofocus: _editing,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _save(),

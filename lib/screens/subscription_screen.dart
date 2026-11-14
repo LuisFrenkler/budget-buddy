@@ -63,7 +63,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
             Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primaryText),
             const SizedBox(height: 12),
             Text(tr('Du nutzt Ahead gratis'),
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(
                 tr('Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Sparziel gratis, mit Plus unbegrenzt.', {'x': PlusService.freeAiQuestions, 'x2': PlusService.freeReceiptScans, 'freeGoals': PlusService.freeGoals}),
@@ -394,7 +394,7 @@ class _Details extends StatelessWidget {
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tr('Plan wechseln'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(tr('Plan wechseln'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(tr('Der neue Preis gilt ab der nächsten Zahlung.'), style: TextStyle(color: AppColors.textDim)),
           const SizedBox(height: 16),
@@ -533,7 +533,7 @@ class _Details extends StatelessWidget {
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tr('Plus kündigen?'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Plus kündigen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text(
             sub.inTrial(now)

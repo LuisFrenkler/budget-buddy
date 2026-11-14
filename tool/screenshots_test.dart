@@ -69,6 +69,11 @@ void main() {
       inter.addFont(rootBundle.load('assets/fonts/Inter-$w.ttf'));
     }
     await inter.load();
+    final display = FontLoader('Bricolage');
+    for (final w in ['Bold', 'ExtraBold']) {
+      display.addFont(rootBundle.load('assets/fonts/BricolageGrotesque-$w.ttf'));
+    }
+    await display.load();
     final icons = FontLoader('MaterialIcons')
       ..addFont(Future.value(ByteData.sublistView(
           File('${Platform.environment['FLUTTER_ROOT'] ?? '/opt/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf')

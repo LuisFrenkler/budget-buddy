@@ -129,21 +129,26 @@ class _RichMarkdownState extends State<RichMarkdown> {
         ));
       } else if (t.startsWith(_next) || t.startsWith('**$_next**')) {
         final rest = t.replaceFirst('**$_next**', '').replaceFirst(_next, '').trim();
+        // Buddy's signature, like on the landing page: a stamp with a copper
+        // frame and the label as a small tag
         children.add(Container(
-          margin: const EdgeInsets.only(top: 8),
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.fromLTRB(12, 10, 14, 12),
           decoration: BoxDecoration(
-            color: AppColors.brand.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(12),
-            border: Border(left: BorderSide(color: AppColors.brand, width: 3)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.brand, width: 2),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Nächster Schritt').toUpperCase(),
-                style: TextStyle(
-                    fontSize: 10.5, letterSpacing: 0.8, fontWeight: FontWeight.w800, color: AppColors.brand)),
-            const SizedBox(height: 3),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+              decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(6)),
+              child: Text(tr('Nächster Schritt').toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 10.5, letterSpacing: 0.8, fontWeight: FontWeight.w800, color: Colors.white, height: 1)),
+            ),
+            const SizedBox(height: 7),
             Text.rich(TextSpan(children: spans(rest, caret: caret)),
-                style: base.copyWith(fontWeight: FontWeight.w500)),
+                style: base.copyWith(fontWeight: FontWeight.w600)),
           ]),
         ));
       } else {
@@ -256,7 +261,7 @@ Future<void> showGlossary(BuildContext context, GlossaryTerm term, {void Functio
             ),
           ]),
           const SizedBox(height: 12),
-          Text(term.term, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          Text(term.term, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
           const SizedBox(height: 8),
           Text(term.text, style: TextStyle(fontSize: 15.5, height: 1.5, color: AppColors.text)),
           if (onAsk != null) ...[

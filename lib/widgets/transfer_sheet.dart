@@ -43,7 +43,7 @@ Future<void> showTransferSheet(BuildContext context) async {
       builder: (ctx) => Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(tr('Geld verschieben'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Geld verschieben'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(
             tr('Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.'),
@@ -144,7 +144,7 @@ class _TransferSheetState extends State<_TransferSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(tr('Geld verschieben'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Geld verschieben'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
         Text(tr('Zwischen deinen eigenen Konten. Zählt nicht als Ausgabe.'), style: TextStyle(color: AppColors.textDim)),
         const SizedBox(height: 16),

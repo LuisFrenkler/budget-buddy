@@ -53,7 +53,7 @@ class ForecastCard extends StatelessWidget {
             // wraps onto a second line on narrow phones instead of overflowing
             Wrap(crossAxisAlignment: WrapCrossAlignment.end, spacing: 10, runSpacing: 2, children: [
               Text(Money.format(f.freeCents),
-                  style: TextStyle(
+                  style: TextStyle(fontFamily: AppFonts.display, 
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.8,
@@ -118,7 +118,7 @@ class ForecastCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(tr('So rechnet Buddy'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary

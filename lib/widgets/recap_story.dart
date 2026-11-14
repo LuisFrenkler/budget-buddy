@@ -53,7 +53,7 @@ class RecapStory extends StatelessWidget {
                   const Spacer(),
                   Text(tr('Mein'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
                   Text(month,
-                      style: const TextStyle(fontSize: 58, fontWeight: FontWeight.w900, letterSpacing: -2, height: 1)),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 58, fontWeight: FontWeight.w900, letterSpacing: -2, height: 1)),
                   const SizedBox(height: 28),
                   for (final (icon, text) in facts)
                     Padding(
@@ -153,7 +153,7 @@ class _StorySheetState extends State<_StorySheet> {
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(tr('Deine Story'),
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+              style: TextStyle(fontFamily: AppFonts.display, color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(tr('Nur Prozente, keine Beträge.'), style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           const SizedBox(height: 14),

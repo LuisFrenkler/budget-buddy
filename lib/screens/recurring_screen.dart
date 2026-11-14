@@ -186,7 +186,7 @@ class _RecurringScreenState extends State<RecurringScreen> {
           return Padding(
             padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(tr('Dauerauftrag ändern'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              Text(tr('Dauerauftrag ändern'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Text(tr('Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.'),
                   style: TextStyle(color: AppColors.textDim)),

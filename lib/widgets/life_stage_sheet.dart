@@ -63,7 +63,7 @@ class _LifeStageSheetState extends State<_LifeStageSheet> {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(s.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+                  Text(s.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
                   Text(s.tagline, style: TextStyle(color: AppColors.textDim)),
                 ]),
               ),

@@ -54,7 +54,7 @@ class _WealthScreenState extends State<WealthScreen> {
             Text(tr('Sobald Einnahmen und Ausgaben über ein paar Monate da sind, erscheint hier dein Anteil.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35))
           else ...[
-            Text('$rate %', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
+            Text('$rate %', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -0.8)),
             const SizedBox(height: 4),
             Text(tr('Einnahmen minus Ausgaben · letzte drei volle Monate (ohne laufenden Monat).'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
@@ -235,7 +235,7 @@ class _WealthScreenState extends State<WealthScreen> {
         Row(children: [
           Expanded(
             child: Text(e.ready ? tr('Polster steht') : tr('Noch {x}', {'x': Money.format(e.missingCents)}),
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800, color: color)),
           ),
           TextButton(onPressed: _editExtra, child: Text(tr('Anpassen'))),
         ]),

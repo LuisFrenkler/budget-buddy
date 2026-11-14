@@ -7,6 +7,12 @@ class ThemeController {
   static final ValueNotifier<bool> isDark = ValueNotifier(true);
 }
 
+// Headlines and big numbers: Bricolage Grotesque, as on the landing page.
+// Running text and controls stay Inter.
+class AppFonts {
+  static const display = 'Bricolage';
+}
+
 class AppColors {
   // brand: a deep copper, like the coin ring in the logo. Used sparingly:
   // logo, Buddy, the add button, shared stories. White text on it passes 4.5:1.
@@ -79,9 +85,9 @@ class AppTheme {
       // same type as the in-page titles ("Konto"): an explicit style here
       // does not inherit the theme font, so Inter is named again
       titleTextStyle: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: AppFonts.display,
         color: AppColors.text,
-        fontSize: 22,
+        fontSize: 23,
         fontWeight: FontWeight.w800,
       ),
     ),

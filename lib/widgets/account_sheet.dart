@@ -94,7 +94,7 @@ class _AccountSheetState extends State<_AccountSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(_isNew ? tr('Konto hinzufügen') : a!.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(_isNew ? tr('Konto hinzufügen') : a!.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
         // no dead end: an account at a bank is better linked than typed in
         if (_isNew)
           Align(
