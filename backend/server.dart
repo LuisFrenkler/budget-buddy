@@ -54,6 +54,7 @@ import 'dart:typed_data';
 // the app's legal texts, so app and web pages never drift apart
 import '../lib/legal/legal_texts.dart';
 import 'lib/accounts.dart';
+import 'lib/agent.dart';
 import 'lib/ai.dart';
 import 'lib/bank_provider.dart';
 import 'lib/billing.dart';
@@ -174,10 +175,14 @@ final _whatsapp = WhatsApp(
 final _growth = Growth(File('$_dataDir/growth.json'));
 final _guestQuota = GuestQuota();
 final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
+// Buddy with tools (Claude only); the app runs the tools on the device
+final _agent = BuddyAgent(_env('ANTHROPIC_API_KEY'),
+    fastModel: _env('AI_MODEL_FAST'), strongModel: _env('AI_MODEL_STRONG'));
 
 // AI calls cost money: at most this many per user and day
 // about 5 cents a day at most per person with Haiku
-const _aiDailyLimit = 50;
+// questions per account and day; raise it for a test-catalog run (AI_DAILY_LIMIT)
+final _aiDailyLimit = int.tryParse(_env('AI_DAILY_LIMIT')) ?? 50;
 final _aiUsage = <String, ({String day, int count})>{};
 
 Future<void> main() async {
@@ -504,6 +509,8 @@ Future<void> _handle(HttpRequest req) async {
         // Buddy answers before sign-up (a few questions per device and day)
         'guest': _ai.enabled,
         'aiProvider': _ai.enabled ? _ai.provider : null,
+        // the app runs Buddy's tools and calls /ai/agent step by step
+        'agent': _agent.enabled,
         'depot': _depot.mode,
         'billing': _billing.mode,
         'stores': _stores.mode,
@@ -664,6 +671,10 @@ Future<void> _handle(HttpRequest req) async {
     case '/ai/chat':
       _guardAi(req);
       return _aiChat(req);
+    // POST {messages, context, last} -> one agent step as server-sent events
+    case '/ai/agent':
+      _guardAi(req);
+      return _aiAgent(req);
     // POST {device, history} -> the same event stream as /ai/chat, without an account
     case '/ai/guest':
       _guardAi(req);
@@ -1132,6 +1143,34 @@ Future<void> _aiChat(HttpRequest req) async {
   return _stream(req, _ai.chat(finances: (body['finances'] as Map?)?.cast<String, dynamic>() ?? {}, history: history));
 }
 
+// One step of Buddy's agent loop. The app sends the turns so far (its own
+// words, Buddy's earlier steps, tool results) and gets back
+// {"t": piece}… then {"step": {content, stop, model, tools}} and {"done": true}.
+// Only a step that starts a new answer counts against the daily limit.
+Future<void> _aiAgent(HttpRequest req) async {
+  final user = _aiUser(req);
+  final body = await _body(req);
+  final messages = BuddyAgent.clean(body['messages'] as List? ?? const []);
+  if (messages.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
+  if (BuddyAgent.startsAnswer(messages)) _countAi(user);
+  final context = (body['context'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+  final events = _agent.step(messages, context: context, lastStep: body['last'] == true);
+  return _streamEvents(req, events.map((e) => switch (e) {
+        AgentText(:final text) => {'t': text},
+        AgentDone d => {
+            'step': {
+              'content': d.content,
+              'stop': d.stopReason,
+              'model': d.model,
+              'tools': [
+                for (final c in d.toolCalls)
+                  {'id': c['id'], 'name': c['name'], 'input': c['input'], 'zeigt': BuddyAgent.activity[c['name']]}
+              ],
+            }
+          },
+      }));
+}
+
 // the chat before sign-up: general answers, nothing about the person's money
 Future<void> _aiGuest(HttpRequest req) async {
   if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
@@ -1149,7 +1188,10 @@ Future<void> _aiGuest(HttpRequest req) async {
 }
 
 // the shared event stream: {"t": piece}…, then {"done": true} or {"error": …}
-Future<void> _stream(HttpRequest req, Stream<String> pieces, {Map<String, dynamic>? first}) async {
+Future<void> _stream(HttpRequest req, Stream<String> pieces, {Map<String, dynamic>? first}) =>
+    _streamEvents(req, pieces.map((p) => {'t': p}), first: first);
+
+Future<void> _streamEvents(HttpRequest req, Stream<Map<String, dynamic>> events, {Map<String, dynamic>? first}) async {
   final res = req.response;
   _cors(req, res);
   _securityHeaders(res);
@@ -1160,8 +1202,8 @@ Future<void> _stream(HttpRequest req, Stream<String> pieces, {Map<String, dynami
   void send(Map<String, dynamic> event) => res.write('data: ${jsonEncode(event)}\n\n');
   if (first != null) send(first);
   try {
-    await for (final piece in pieces) {
-      send({'t': piece});
+    await for (final event in events) {
+      send(event);
       await res.flush();
     }
     send({'done': true});

@@ -4,7 +4,7 @@
 import 'money_accounts.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import '../models/goal.dart';
@@ -16,6 +16,7 @@ import '../utils/theme.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
 import 'buddy_memory.dart';
+import 'buddy_tools.dart';
 import 'life_stages.dart';
 import 'db.dart';
 import 'finance_snapshot.dart';
@@ -36,6 +37,16 @@ class ChatMessage {
 
 class BuddyService {
   static bool? _serverAi;
+  // the server runs Buddy as an agent with tools (Claude); otherwise the
+  // older one-shot chat with a summary of the finances (Gemini fallback)
+  static bool _serverAgent = false;
+  // what Buddy is looking at while he works ("deine Ausgaben"), for the chat
+  static final activity = ValueNotifier<String?>(null);
+  // seams for tests
+  @visibleForTesting
+  static http.Client Function() client = http.Client.new;
+  @visibleForTesting
+  static BuddyTools Function() tools = BuddyTools.device;
   // who answers on the server: 'anthropic', or 'google' (Gemini, free tier)
   static String provider = 'anthropic';
 
@@ -62,6 +73,7 @@ class BuddyService {
       final health = jsonDecode(res.body) as Map;
       _serverAi = res.statusCode == 200 && health['ai'] == true;
       provider = '${health['aiProvider'] ?? 'anthropic'}';
+      _serverAgent = health['agent'] == true;
     } catch (_) {
       return false; // offline now; ask again next time
     }
@@ -231,6 +243,11 @@ class BuddyService {
       return;
     }
 
+    if (_serverAgent) {
+      yield* _agent(history);
+      return;
+    }
+
     final req = http.Request('POST', Uri.parse('${BackendService.base}/ai/chat'))
       ..headers.addAll({'Content-Type': 'application/json', ...BackendService.authHeaders})
       ..body = jsonEncode({
@@ -259,6 +276,91 @@ class BuddyService {
       }
     } finally {
       client.close();
+    }
+  }
+
+  // Buddy as an agent: the server asks Claude, the tools run here. Each step
+  // streams text; when Claude asks for tools, they run on this device and
+  // their results go into the next step. At most 6 steps; the last one has
+  // to answer with what it has.
+  static const maxSteps = 6;
+
+  @visibleForTesting
+  static void useAgent(bool on) => _serverAgent = on;
+
+  static Map<String, dynamic> _context() => {
+        if (AccountService.current.value != null) 'name': AccountService.current.value!.firstName,
+        'erinnerungen': BuddyMemory.texts(),
+        if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
+      };
+
+  static Stream<String> _agent(List<ChatMessage> history) async* {
+    final messages = <Map<String, dynamic>>[
+      for (final m in history)
+        if (m.text.trim().isNotEmpty) {'role': m.fromUser ? 'user' : 'assistant', 'content': m.text}
+    ];
+    Map<String, dynamic> context;
+    try {
+      context = _context();
+    } catch (_) {
+      context = const {};
+    }
+    BuddyTools? toolbox;
+    var wrote = false;
+    try {
+      for (var step = 0; step < maxSteps; step++) {
+        final req = http.Request('POST', Uri.parse('${BackendService.base}/ai/agent'))
+          ..headers.addAll({'Content-Type': 'application/json', ...BackendService.authHeaders})
+          ..body = jsonEncode({'messages': messages, 'context': context, 'last': step == maxSteps - 1});
+        final conn = client();
+        Map<String, dynamic>? done;
+        var stepWrote = false;
+        try {
+          final res = await conn.send(req).timeout(const Duration(seconds: 30));
+          if (res.statusCode != 200) {
+            final body = await res.stream.bytesToString();
+            throw _error(body, res.statusCode);
+          }
+          await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+            if (!line.startsWith('data: ')) continue;
+            final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
+            if (event['t'] != null) {
+              // a new step after earlier text starts a new paragraph
+              if (!stepWrote && wrote) yield '\n\n';
+              activity.value = null;
+              stepWrote = wrote = true;
+              yield event['t'] as String;
+            }
+            if (event['step'] != null) done = (event['step'] as Map).cast<String, dynamic>();
+            if (event['error'] != null) throw '${event['error']}';
+          }
+        } finally {
+          conn.close();
+        }
+        if (done == null) throw 'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.';
+        final calls = [for (final c in (done['tools'] as List? ?? const [])) (c as Map).cast<String, dynamic>()];
+        if (calls.isEmpty) return;
+        toolbox ??= tools();
+        activity.value = '${calls.first['zeigt'] ?? 'deine Zahlen'}';
+        messages.add({'role': 'assistant', 'content': done['content']});
+        messages.add({
+          'role': 'user',
+          'content': [
+            for (final c in calls)
+              () {
+                final result = toolbox!.run('${c['name']}', (c['input'] as Map?)?.cast<String, dynamic>() ?? const {});
+                return {
+                  'type': 'tool_result',
+                  'tool_use_id': c['id'],
+                  'content': jsonEncode(result),
+                  if (result.containsKey('fehler')) 'is_error': true,
+                };
+              }(),
+          ],
+        });
+      }
+    } finally {
+      activity.value = null;
     }
   }
 
