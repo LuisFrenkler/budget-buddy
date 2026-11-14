@@ -243,18 +243,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // a floating pill, Buddy first: ink on paper in Glow, glass in Night. The
-  // active tab opens up and shows its name; the others are icons only.
+  // Buddy is the heart of the app, so he is not one tab among four: the
+  // tabs and "+" share a slim pill, and beside it Buddy stands on his own as
+  // a big glowing orb that breathes softly
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
     final night = ThemeController.isDark.value;
-    final bar = Container(
-      height: 62,
-      padding: const EdgeInsets.symmetric(horizontal: 7),
+    final pill = Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: night ? const Color(0x1AFFFFFF) : const Color(0xEB17120E),
-        borderRadius: BorderRadius.circular(31),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(color: night ? const Color(0x24FFFFFF) : const Color(0x00000000)),
         boxShadow: [
           BoxShadow(
@@ -264,8 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        _BuddyButton(active: _tab == 3, onTap: () => _open(3)),
+      // small phones: the pill shrinks a little instead of overflowing
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
         _navItem(Icons.insights_rounded, tr('Überblick'), 0),
         _navItem(Icons.account_balance_wallet_outlined, tr('Konto'), 1),
         _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
@@ -284,27 +287,31 @@ class _HomeScreenState extends State<HomeScreen> {
               _showAddMenu();
             },
             child: SizedBox(
-              width: 50,
+              width: 44,
               height: 48,
               child: Icon(Icons.add_rounded, size: 24, color: night ? const Color(0xFFA79C93) : const Color(0xFFCFC4BB)),
             ),
           ),
         ),
       ]),
+      ),
     );
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
-        child: Center(
-          heightFactor: 1,
-          child: night
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(31),
-                  child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18), child: bar),
-                )
-              : bar,
-        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Flexible(
+            child: night
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18), child: pill),
+                  )
+                : pill,
+          ),
+          const SizedBox(width: 12),
+          _BuddyButton(active: _tab == 3, onTap: () => _open(3)),
+        ]),
       ),
     );
   }
@@ -327,8 +334,8 @@ class _HomeScreenState extends State<HomeScreen> {
           duration: const Duration(milliseconds: 280),
           curve: Curves.easeOutCubic,
           height: 46,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          padding: EdgeInsets.symmetric(horizontal: active ? 14 : 13),
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          padding: EdgeInsets.symmetric(horizontal: active ? 12 : 11),
           decoration: BoxDecoration(
             color: active ? activeBg : Colors.transparent,
             borderRadius: BorderRadius.circular(23),
@@ -340,9 +347,9 @@ class _HomeScreenState extends State<HomeScreen> {
               curve: Curves.easeOutCubic,
               child: active
                   ? Padding(
-                      padding: const EdgeInsets.only(left: 7),
+                      padding: const EdgeInsets.only(left: 6),
                       child: Text(label,
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: onActive)),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: onActive)),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -456,8 +463,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Buddy at the front of the navigation: his glowing orb, brighter and a
-// little bigger while his chat is open
+// Buddy beside the navigation: a big glowing orb on his own. He breathes
+// softly while you are elsewhere, and wears a ring while his chat is open.
 class _BuddyButton extends StatefulWidget {
   final bool active;
   final VoidCallback onTap;
@@ -467,11 +474,22 @@ class _BuddyButton extends StatefulWidget {
   State<_BuddyButton> createState() => _BuddyButtonState();
 }
 
-class _BuddyButtonState extends State<_BuddyButton> {
+class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderStateMixin {
   bool _down = false;
+  late final AnimationController _breath =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _breath.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final night = ThemeController.isDark.value;
+    const size = 60.0;
     return Semantics(
       button: true,
       selected: widget.active,
@@ -486,22 +504,38 @@ class _BuddyButtonState extends State<_BuddyButton> {
           HapticFeedback.mediumImpact();
           widget.onTap();
         },
-        child: SizedBox(
-          width: 58,
-          height: 48,
-          child: Center(
-            child: AnimatedScale(
-              scale: _down ? 0.9 : (widget.active ? 1.0 : 0.86),
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutBack,
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BuddyOrb.sphere(46, glow: widget.active ? 1.4 : 0.7),
-                child: CustomPaint(painter: MarkPainter(color: const Color(0xF2FFF7F0))),
+        child: AnimatedBuilder(
+          animation: _breath,
+          builder: (_, child) {
+            final b = reduce || widget.active ? 0.5 : Curves.easeInOut.transform(_breath.value);
+            return Container(
+              width: size + 6,
+              height: size + 6,
+              alignment: Alignment.center,
+              // the ring shows that his chat is open
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: widget.active
+                      ? (night ? const Color(0xFFF4C7A1) : const Color(0xFFB06030))
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
-            ),
-          ),
+              child: AnimatedScale(
+                scale: _down ? 0.9 : 1,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutBack,
+                child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BuddyOrb.sphere(size, glow: 0.8 + b * 0.7),
+                  child: child,
+                ),
+              ),
+            );
+          },
+          child: CustomPaint(painter: MarkPainter(color: const Color(0xF2FFF7F0))),
         ),
       ),
     );
