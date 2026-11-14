@@ -90,7 +90,7 @@ class Wordmark extends StatelessWidget {
         TextSpan(text: 'Ahead', style: TextStyle(color: AppColors.text)),
         TextSpan(text: '.', style: TextStyle(color: AppColors.brand)),
       ]),
-      style: TextStyle(fontFamily: AppFonts.display, fontSize: size, fontWeight: FontWeight.w800, letterSpacing: -0.9),
+      style: TextStyle(fontFamily: AppFonts.display, fontSize: size, fontWeight: FontWeight.w600, letterSpacing: -0.9),
     );
   }
 }
@@ -137,5 +137,39 @@ class CopperLight extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// The soft light behind Buddy's screens: a peach glow on warm paper in
+// Glow (light), copper glowing out of the dark in Night. [align] says where
+// it sits; the child draws on top.
+class AmbientGlow extends StatelessWidget {
+  final Widget child;
+  final Alignment align;
+  final double size;
+  const AmbientGlow({super.key, required this.child, this.align = const Alignment(-0.4, -1.25), this.size = 1.6});
+
+  @override
+  Widget build(BuildContext context) {
+    final night = ThemeController.isDark.value;
+    return Stack(children: [
+      Positioned.fill(
+        child: IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: align,
+                radius: size * 0.62,
+                colors: night
+                    ? const [Color(0x8CD9813F), Color(0x408E4620), Color(0x000C0A09)]
+                    : const [Color(0xD9F4B78A), Color(0x73F4C7A1), Color(0x00FBF7F3)],
+                stops: const [0, 0.5, 1],
+              ),
+            ),
+          ),
+        ),
+      ),
+      child,
+    ]);
   }
 }

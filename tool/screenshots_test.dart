@@ -80,7 +80,7 @@ void main() {
     }
     await inter.load();
     final display = FontLoader('Bricolage');
-    for (final w in ['Bold', 'ExtraBold']) {
+    for (final w in ['Light', 'Regular', 'Medium', 'SemiBold', 'Bold', 'ExtraBold']) {
       display.addFont(rootBundle.load('assets/fonts/BricolageGrotesque-$w.ttf'));
     }
     await display.load();

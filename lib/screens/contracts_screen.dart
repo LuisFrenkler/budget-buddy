@@ -312,7 +312,7 @@ class _ContractSheetState extends State<_ContractSheet> {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(c.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+                Text(c.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
                 Text(tr('{x} im Monat · {x2} im Jahr', {'x': Money.format(c.monthlyCents), 'x2': Money.format(c.monthlyCents * 12)}),
                     style: TextStyle(color: AppColors.textDim)),
               ]),

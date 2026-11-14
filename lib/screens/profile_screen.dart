@@ -599,7 +599,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Soft-Launch Tipps'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Soft-Launch Tipps'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Text(
               tr('Kurz durchklicken und Feedback schicken, wenn etwas hakt:\n\n1. Konto anlegen und erneut anmelden\n2. Bank verbinden (oder Demo) und Sync ziehen\n3. Buddy fragen + Sonstiges aufräumen (Start-Kachel)\n4. 1 Sparziel gratis anlegen · Autopilot braucht Plus\n5. Wochenbericht öffnen und „Mit Buddy weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein, echte Freigaben kommen mit der öffentlichen Version.'),
@@ -629,7 +629,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Was das Gerät verlässt'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Was das Gerät verlässt'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Text(
               tr('Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.'),
@@ -718,7 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text(rate == null ? tr('Sparquote') : tr('Sparquote: {rate} %', {'rate': rate}),
-                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(tr('Wie viel von deinem Einkommen übrig bleibt, über die letzten drei abgeschlossenen Monate. Der laufende Monat zählt erst mit, wenn er vorbei ist, sonst würde das Gehalt am Monatsanfang die Zahl verzerren.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),

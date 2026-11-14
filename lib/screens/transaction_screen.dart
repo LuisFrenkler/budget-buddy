@@ -299,7 +299,7 @@ class TransactionScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('$name → $picked merken?', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text('$name → $picked merken?', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             Text(
                 tr('{others} ältere {x} noch auf einer anderen Kategorie. Standard: merken und alle anpassen, künftige {name}-Buchungen landen automatisch bei {picked}.', {'others': others.length, 'x': others.length == 1 ? tr('Buchung steht') : tr('Buchungen stehen'), 'name': name, 'picked': picked}),

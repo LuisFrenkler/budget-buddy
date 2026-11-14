@@ -36,7 +36,7 @@ class AccountSettingsScreen extends StatelessWidget {
             Icon(Icons.person_outline_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 12),
             Text(tr('Nicht angemeldet'),
-                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(tr('Melde dich an, um Bank und Depot zu verbinden und deine Daten zu sichern.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
@@ -77,7 +77,7 @@ class AccountSettingsScreen extends StatelessWidget {
             child: Text(tr('Profilbild ändern')),
           ),
         ),
-        Center(child: Text(account.name, style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800))),
+        Center(child: Text(account.name, style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600))),
         Center(child: Text(account.email, style: TextStyle(color: AppColors.textDim))),
         SectionLabel(tr('Persönliche Daten')),
         SettingsGroup([
@@ -349,7 +349,7 @@ class _Sheet extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(title, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(title, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         if (text != null) ...[
           const SizedBox(height: 4),
           Text(text!, style: TextStyle(color: AppColors.textDim)),
@@ -903,7 +903,7 @@ class _SessionsSheetState extends State<_SessionsSheet> {
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(tr('Angemeldete Geräte'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Angemeldete Geräte'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(tr('Eine gestohlene Sitzung bleibt gültig, bis du sie hier beendest oder das Passwort änderst.'),
             style: TextStyle(color: AppColors.textDim)),

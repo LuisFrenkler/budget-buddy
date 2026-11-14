@@ -89,7 +89,7 @@ class SplitsScreen extends StatelessWidget {
             const SizedBox(height: 18),
             Text(tr('Ausgaben teilen,\nohne Rechnerei'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: AppFonts.display, fontSize: 24, fontWeight: FontWeight.w800, height: 1.2, letterSpacing: -0.4)),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 24, fontWeight: FontWeight.w600, height: 1.2, letterSpacing: -0.4)),
             const SizedBox(height: 10),
             Text(tr('Lege eine Gruppe an. Freunde einladen geht danach.'),
                 textAlign: TextAlign.center,
@@ -255,14 +255,14 @@ class _JoinSheetState extends State<_JoinSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(p == null ? tr('Mit Code beitreten') : '${p['emoji']} ${p['name']}',
-            style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         SizedBox(height: 14),
         if (p == null) ...[
           TextField(
             controller: _code,
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
-            style: TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 6),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: 6),
             onSubmitted: (_) => _look(),
             decoration: InputDecoration(hintText: 'CODE', errorText: _error),
           ),
@@ -358,7 +358,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(tr('Neue Gruppe'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Neue Gruppe'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 14),
         Wrap(spacing: 8, children: [
           for (final (emoji, name) in _presets)
@@ -922,14 +922,14 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(tr('Leute einladen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Leute einladen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(tr('Andere brauchen ein kostenloses Konto, tippen unter „Geteilt“ auf „Mit Code beitreten“ und wählen ihren Namen.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             Center(
               child: SelectableText(group.code ?? '',
-                  style: const TextStyle(fontFamily: AppFonts.display, fontSize: 40, fontWeight: FontWeight.w900, letterSpacing: 8)),
+                  style: const TextStyle(fontFamily: AppFonts.display, fontSize: 40, fontWeight: FontWeight.w600, letterSpacing: 8)),
             ),
             const SizedBox(height: 18),
             OutlinedButton.icon(
@@ -1114,7 +1114,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
       child: Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(tr('Person suchen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(tr('Person suchen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(tr('Genau die E-Mail ihres Ahead-Kontos. Keine öffentliche Namenssuche.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35)),
@@ -1337,7 +1337,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(widget.edit != null ? tr('Ausgabe bearbeiten') : tr('Ausgabe in {emoji} {name}', {'emoji': widget.group.emoji, 'name': widget.group.name}),
-              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 21, fontWeight: FontWeight.w800)),
+              style: const TextStyle(fontFamily: AppFonts.display, fontSize: 21, fontWeight: FontWeight.w600)),
           const SizedBox(height: 14),
           TextField(controller: _title, decoration: InputDecoration(labelText: tr('Wofür?'))),
           const SizedBox(height: 10),
@@ -1348,7 +1348,7 @@ class _ExpenseSheetState extends State<_ExpenseSheet> {
               if (_exact) _fillExactFromShares(null);
               setState(() {});
             },
-            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600),
             decoration: InputDecoration(labelText: tr('Betrag'), suffixText: '€'),
           ),
           const SizedBox(height: 14),
@@ -1457,7 +1457,7 @@ Future<void> shareTransaction(BuildContext context, Transaction tx) async {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Padding(
             padding: EdgeInsets.only(bottom: 8),
-            child: Text(tr('Mit wem teilen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w800)),
+            child: Text(tr('Mit wem teilen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
           ),
           for (final g in groups)
             ListTile(

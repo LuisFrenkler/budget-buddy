@@ -11,8 +11,29 @@ import 'brand.dart';
 // - alert: a slow amber pulse when he speaks up about something important
 enum BuddyMood { idle, thinking, happy, alert }
 
-// Buddy's avatar: the "b" of the logo in a brand-coloured circle.
+// Buddy's avatar: a glowing copper sphere with the "b" of the logo.
 class BuddyOrb extends StatefulWidget {
+  // the sphere: lit from the top left, glowing softly (more so at night)
+  static BoxDecoration sphere(double size, {double glow = 1}) {
+    final night = ThemeController.isDark.value;
+    return BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: const RadialGradient(
+        center: Alignment(-0.32, -0.44),
+        radius: 0.95,
+        colors: [Color(0xFFFFEBD9), Color(0xFFF4B98A), Color(0xFFC8682F), Color(0xFF7A3A16)],
+        stops: [0, 0.28, 0.66, 1],
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFFD9813F).withValues(alpha: (night ? 0.55 : 0.32) * glow),
+          blurRadius: size * (night ? 0.6 : 0.45),
+          offset: Offset(0, night ? 0 : size * 0.18),
+        ),
+      ],
+    );
+  }
+
   final double size;
   // legacy switch: true is the same as BuddyMood.thinking
   final bool active;
@@ -67,8 +88,8 @@ class _BuddyOrbState extends State<BuddyOrb> with TickerProviderStateMixin {
     final coin = Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.brand),
-      child: CustomPaint(painter: MarkPainter()),
+      decoration: BuddyOrb.sphere(size),
+      child: CustomPaint(painter: MarkPainter(color: const Color(0xF2FFF7F0))),
     );
     if (reduce) return coin;
     return AnimatedBuilder(

@@ -79,6 +79,14 @@ flutter:
     # headlines, the same face as on the landing page (SIL OFL)
     - family: Bricolage
       fonts:
+        - asset: assets/fonts/BricolageGrotesque-Light.ttf
+          weight: 300
+        - asset: assets/fonts/BricolageGrotesque-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/BricolageGrotesque-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BricolageGrotesque-SemiBold.ttf
+          weight: 600
         - asset: assets/fonts/BricolageGrotesque-Bold.ttf
           weight: 700
         - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf

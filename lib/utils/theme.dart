@@ -32,7 +32,7 @@ class AppColors {
 
   // the same meaning for small text: on the light background the bright
   // fills are too faint to read (2:1), these reach 4.5:1
-  static Color get positiveText => _d ? positive : const Color(0xFF0A7A43);
+  static Color get positiveText => _d ? const Color(0xFF7BE0AD) : const Color(0xFF0A6B3C);
   static Color get errorText => _d ? error : const Color(0xFFC9283E);
   static Color get warningText => _d ? warning : const Color(0xFF7A6200);
   static Color get primaryText => text;
@@ -47,15 +47,21 @@ class AppColors {
     Color(0xFFF472B6), // pink
   ];
 
-  // neutral colors, warm like the landing page's paper and ink (a hint of
-  // copper in every grey), resolved from the current theme mode
+  // two moods of one brand: "Glow" in light mode (warm paper, a peach glow)
+  // and "Night" in dark mode (near black, copper glowing from above, glass)
   static bool get _d => ThemeController.isDark.value;
-  static Color get bg => _d ? const Color(0xFF110E0C) : const Color(0xFFF7F3EF);
-  static Color get surface => _d ? const Color(0xFF1C1815) : const Color(0xFFFFFFFF);
-  static Color get surfaceAlt => _d ? const Color(0xFF27211D) : const Color(0xFFEFE8E2);
+  static Color get bg => _d ? const Color(0xFF0C0A09) : const Color(0xFFFBF7F3);
+  static Color get surface => _d ? const Color(0xFF181412) : const Color(0xFFFFFFFF);
+  static Color get surfaceAlt => _d ? const Color(0xFF231E1A) : const Color(0xFFF3ECE6);
   static Color get text => _d ? const Color(0xFFF5EFEA) : const Color(0xFF17120E);
-  static Color get textDim => _d ? const Color(0xFFAAA098) : const Color(0xFF6B625B);
-  static Color get border => _d ? const Color(0xFF302925) : const Color(0xFFE6DED7);
+  static Color get textDim => _d ? const Color(0xFFA79C93) : const Color(0xFF6B625B);
+  static Color get border => _d ? const Color(0xFF2C2522) : const Color(0xFFEFE8E2);
+
+  // the warm highlight: big numbers, Buddy's emphasis, the glow
+  static Color get glow => _d ? const Color(0xFFF4C7A1) : const Color(0xFFA4542A);
+  static const peach = Color(0xFFF4C7A1);
+  // hairline on glass cards in Night, a soft line in Glow
+  static Color get hairline => _d ? const Color(0x1CFFFFFF) : const Color(0xFFEFE8E2);
 }
 
 // app theme
@@ -88,8 +94,9 @@ class AppTheme {
       titleTextStyle: TextStyle(
         fontFamily: AppFonts.display,
         color: AppColors.text,
-        fontSize: 23,
-        fontWeight: FontWeight.w800,
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.6,
       ),
     ),
     
@@ -97,7 +104,8 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22), side: BorderSide(color: AppColors.hairline)),
     ),
 
     // text fields
@@ -119,26 +127,27 @@ class AppTheme {
     ),
 
     // buttons
-    // the one main action on a screen is copper, like Buddy's own buttons;
-    // everything secondary (outlined, text, switches, selection) stays ink
+    // the main action is an ink pill (cream in Night); copper is kept for
+    // Buddy himself: his orb, the send button, the next-step stamp
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.brand,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const StadiumBorder(),
         textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
 
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.brand,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
         disabledBackgroundColor: AppColors.surfaceAlt,
         disabledForegroundColor: AppColors.textDim,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const StadiumBorder(),
         textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),

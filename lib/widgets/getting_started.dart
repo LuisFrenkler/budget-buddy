@@ -63,7 +63,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(MoneyAccounts.several ? tr('Wie viel ist gerade auf {x}?', {'x': (widget.account ?? MoneyAccounts.main).name}) : tr('Wie viel ist gerade auf deinem Konto?'),
-            style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, height: 1.2)),
         SizedBox(height: 6),
         Text(tr('Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
@@ -72,7 +72,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
-          style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800),
+          style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600),
           onSubmitted: (_) => _save(),
           decoration: InputDecoration(
             hintText: '0,00',

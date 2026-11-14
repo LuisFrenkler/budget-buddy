@@ -81,7 +81,8 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
       );
     }
     final up = pts.last.cents >= pts.first.cents;
-    final color = up ? AppColors.positive : AppColors.error;
+    // rising in Buddy's copper light, falling stays red
+    final color = up ? (ThemeController.isDark.value ? const Color(0xFFF4B98A) : AppColors.brand) : AppColors.error;
 
     // what a screen reader says instead of the drawing: start, end, low and high
     final low = pts.reduce((a, b) => b.cents < a.cents ? b : a);
@@ -290,14 +291,14 @@ class RangeSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: labels.length > 5 ? 8 : 14, vertical: 7),
               decoration: BoxDecoration(
-                color: l == selected ? AppColors.surfaceAlt : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                color: l == selected ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
               ),
               child: Text(l,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: l == selected ? AppColors.text : AppColors.textDim,
+                    color: l == selected ? AppColors.onPrimary : AppColors.textDim,
                   )),
                 ),
               ),

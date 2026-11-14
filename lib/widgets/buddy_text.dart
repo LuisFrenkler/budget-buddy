@@ -19,8 +19,17 @@ class RichMarkdown extends StatefulWidget {
   final void Function(String question)? onAsk;
   final double fontSize;
   final Color? color;
+  // the first sentence in large display type, like Buddy talking on the
+  // landing page; the rest stays easy-reading Inter
+  final bool lead;
   const RichMarkdown(this.text,
-      {super.key, this.glossary = true, this.streaming = false, this.onAsk, this.fontSize = 15.5, this.color});
+      {super.key,
+      this.glossary = true,
+      this.streaming = false,
+      this.onAsk,
+      this.fontSize = 15.5,
+      this.color,
+      this.lead = false});
 
   @override
   State<RichMarkdown> createState() => _RichMarkdownState();
@@ -57,14 +66,24 @@ class _RichMarkdownState extends State<RichMarkdown> {
     var budget = 3; // explained words per answer
     final children = <Widget>[];
 
-    List<InlineSpan> spans(String line, {bool caret = false}) {
+    var leadDone = !widget.lead;
+    final leadStyle = base.copyWith(
+        fontFamily: AppFonts.display,
+        fontWeight: FontWeight.w400,
+        fontSize: widget.fontSize * 1.36,
+        height: 1.28,
+        letterSpacing: -0.4);
+
+    List<InlineSpan> spans(String line, {bool caret = false, bool glowBold = false}) {
       final out = <InlineSpan>[];
       final parts = line.split('**');
       for (var i = 0; i < parts.length; i++) {
         final bold = i.isOdd;
         final part = parts[i];
         if (part.isEmpty) continue;
-        final style = bold ? const TextStyle(fontWeight: FontWeight.w700) : null;
+        final style = bold
+            ? TextStyle(fontWeight: glowBold ? FontWeight.w600 : FontWeight.w700, color: glowBold ? AppColors.glow : null)
+            : null;
         if (!widget.glossary || budget <= 0) {
           out.add(TextSpan(text: part, style: style));
           continue;
@@ -130,26 +149,40 @@ class _RichMarkdownState extends State<RichMarkdown> {
       } else if (t.startsWith(_next) || t.startsWith('**$_next**')) {
         final rest = t.replaceFirst('**$_next**', '').replaceFirst(_next, '').trim();
         // Buddy's signature, like on the landing page: a stamp with a copper
-        // frame and the label as a small tag
+        // frame and the label as a small tag; in Night it glows a little
+        final night = ThemeController.isDark.value;
         children.add(Container(
-          margin: const EdgeInsets.only(top: 10),
+          margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.fromLTRB(12, 10, 14, 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.brand, width: 2),
+            borderRadius: BorderRadius.circular(18),
+            color: night ? const Color(0x14D9813F) : AppColors.surface,
+            border: Border.all(color: night ? const Color(0xFFD9813F) : AppColors.brand, width: night ? 1.5 : 2),
+            boxShadow: night ? const [BoxShadow(color: Color(0x2ED9813F), blurRadius: 24)] : null,
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-              decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(6)),
+              decoration: BoxDecoration(
+                  color: night ? AppColors.peach : AppColors.brand, borderRadius: BorderRadius.circular(6)),
               child: Text(tr('Nächster Schritt').toUpperCase(),
-                  style: const TextStyle(
-                      fontSize: 10.5, letterSpacing: 0.8, fontWeight: FontWeight.w800, color: Colors.white, height: 1)),
+                  style: TextStyle(
+                      fontSize: 10.5,
+                      letterSpacing: 0.8,
+                      fontWeight: FontWeight.w800,
+                      color: night ? const Color(0xFF1A0E07) : Colors.white,
+                      height: 1)),
             ),
             const SizedBox(height: 7),
             Text.rich(TextSpan(children: spans(rest, caret: caret)),
                 style: base.copyWith(fontWeight: FontWeight.w600)),
           ]),
+        ));
+      } else if (!leadDone) {
+        leadDone = true;
+        children.add(Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text.rich(TextSpan(children: spans(raw, caret: caret, glowBold: true)), style: leadStyle),
         ));
       } else {
         children.add(Text.rich(TextSpan(children: spans(raw, caret: caret)), style: base));
@@ -261,7 +294,7 @@ Future<void> showGlossary(BuildContext context, GlossaryTerm term, {void Functio
             ),
           ]),
           const SizedBox(height: 12),
-          Text(term.term, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          Text(term.term, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: -0.5)),
           const SizedBox(height: 8),
           Text(term.text, style: TextStyle(fontSize: 15.5, height: 1.5, color: AppColors.text)),
           if (onAsk != null) ...[

@@ -52,7 +52,7 @@ class _InviteScreenState extends State<InviteScreen> {
               const BuddyOrb(size: 52),
               const SizedBox(height: 20),
               Text(tr('Zu dritt ist Geld weniger nervig.'),
-                  style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6, height: 1.15)),
+                  style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: -0.6, height: 1.15)),
               const SizedBox(height: 8),
               Text(
                 tr('Lade bis zu drei Leute ein. Für jede Person, die mitmacht, bekommst du {n} Buddy-Fragen mehr im Monat.',
@@ -105,7 +105,7 @@ class _InviteScreenState extends State<InviteScreen> {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(tr('Dein Code'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                         Text(i.code,
-                            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 4)),
+                            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 4)),
                       ]),
                     ),
                     IconButton(
