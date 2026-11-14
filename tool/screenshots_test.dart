@@ -3,6 +3,7 @@
 //   flutter test tool/screenshots_test.dart
 // Pictures land in build/screens/.
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:budget_buddy/screens/buddy_memory_screen.dart';
 import 'package:budget_buddy/screens/buddy_screen.dart';
@@ -18,6 +19,7 @@ import 'package:budget_buddy/services/life_stages.dart';
 import 'package:budget_buddy/utils/theme.dart';
 import 'package:budget_buddy/widgets/share_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +31,14 @@ Future<void> _shot(WidgetTester tester, String name) async {
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pump(const Duration(milliseconds: 600));
   await expectLater(find.byKey(_key), matchesGoldenFile('../build/screens/$name.png'));
+  // a sharp 3x copy for the landing page and the stores
+  final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(_key));
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: 3);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    Directory('build/screens/3x').createSync(recursive: true);
+    File('build/screens/3x/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
+  });
 }
 
 Future<void> _pump(WidgetTester tester, Widget home, {bool dark = true}) async {
