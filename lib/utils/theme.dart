@@ -47,14 +47,15 @@ class AppColors {
     Color(0xFFF472B6), // pink
   ];
 
-  // neutral colors, a calm graphite resolved from the current theme mode
+  // neutral colors, warm like the landing page's paper and ink (a hint of
+  // copper in every grey), resolved from the current theme mode
   static bool get _d => ThemeController.isDark.value;
-  static Color get bg => _d ? const Color(0xFF0B0B10) : const Color(0xFFF6F6F9);
-  static Color get surface => _d ? const Color(0xFF16161E) : const Color(0xFFFFFFFF);
-  static Color get surfaceAlt => _d ? const Color(0xFF1F1F2A) : const Color(0xFFEDEDF3);
-  static Color get text => _d ? const Color(0xFFF7F7FA) : const Color(0xFF0B0B10);
-  static Color get textDim => _d ? const Color(0xFFA0A0B4) : const Color(0xFF5E5E70);
-  static Color get border => _d ? const Color(0xFF26263A) : const Color(0xFFE3E3EC);
+  static Color get bg => _d ? const Color(0xFF110E0C) : const Color(0xFFF7F3EF);
+  static Color get surface => _d ? const Color(0xFF1C1815) : const Color(0xFFFFFFFF);
+  static Color get surfaceAlt => _d ? const Color(0xFF27211D) : const Color(0xFFEFE8E2);
+  static Color get text => _d ? const Color(0xFFF5EFEA) : const Color(0xFF17120E);
+  static Color get textDim => _d ? const Color(0xFFAAA098) : const Color(0xFF6B625B);
+  static Color get border => _d ? const Color(0xFF302925) : const Color(0xFFE6DED7);
 }
 
 // app theme

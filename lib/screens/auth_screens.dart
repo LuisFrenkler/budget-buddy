@@ -12,6 +12,7 @@ import '../services/settings_service.dart';
 import '../utils/errors.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
+import '../widgets/brand.dart';
 import 'buddy_screen.dart';
 import 'connections_screen.dart';
 import 'about_screen.dart';
@@ -63,7 +64,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-
   bool get _valid =>
       _email.text.contains('@') && _password.text.length >= 8 && _name.text.trim().isNotEmpty && _accepted;
 
@@ -112,7 +112,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         AutofillGroup(
           child: Column(children: [
-            _Field(controller: _name, label: tr('Vorname'), hints: const [AutofillHints.givenName], onChanged: _refresh),
+            _Field(
+                controller: _name, label: tr('Vorname'), hints: const [AutofillHints.givenName], onChanged: _refresh),
             const SizedBox(height: 12),
             _Field(
               controller: _email,
@@ -234,9 +235,8 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  bool get _valid => _challenge == null
-      ? _email.text.contains('@') && _password.text.isNotEmpty
-      : _code.text.length == 6;
+  bool get _valid =>
+      _challenge == null ? _email.text.contains('@') && _password.text.isNotEmpty : _code.text.length == 6;
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
@@ -285,8 +285,8 @@ class _SignInScreenState extends State<SignInScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 4200),
-            content: Text(
-                tr('Deine gesicherten Daten konnten gerade nicht geladen werden. Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.'))));
+            content: Text(tr(
+                'Deine gesicherten Daten konnten gerade nicht geladen werden. Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.'))));
       }
     }
   }
@@ -347,7 +347,8 @@ class _SignInScreenState extends State<SignInScreen> {
           const SizedBox(height: 8),
         ] else
           const SizedBox(height: 24),
-        _PrimaryButton(_challenge == null ? tr('Anmelden') : tr('Code prüfen'), busy: _busy, onPressed: _valid ? _submit : null),
+        _PrimaryButton(_challenge == null ? tr('Anmelden') : tr('Code prüfen'),
+            busy: _busy, onPressed: _valid ? _submit : null),
         const SizedBox(height: 8),
         Center(
           child: TextButton(
@@ -379,7 +380,8 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(tr('Passwort vergessen'),
-              style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+              style: TextStyle(
+                  fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
           const SizedBox(height: 12),
           Text(
             tr('Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.'),
@@ -451,48 +453,74 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
   @override
   Widget build(BuildContext context) {
     final name = AccountService.current.value?.firstName;
+    // Buddy asks from copper light, like on the landing page
     return Scaffold(
-      body: SafeArea(
+      backgroundColor: AppColors.bg,
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          padding: EdgeInsets.zero,
           children: [
-            // Buddy asks, like in the chat: the same voice from the first screen on
-            const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 52, mood: BuddyMood.happy)),
-            const SizedBox(height: 18),
-            Text(name != null ? tr('Schön, dass du da bist, {name}.', {'name': name}) : tr('Schön, dass du da bist.'),
-                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-              child: Text(
-                  tr('Wie wollen wir starten? Am schnellsten geht es mit mir im Chat. Die Bank kannst du jederzeit später verbinden.'),
-                  style: TextStyle(fontSize: 15.5, height: 1.45, color: AppColors.text)),
+            CopperLight(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24, MediaQuery.paddingOf(context).top + 32, 24, 26),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const BuddyOrb(size: 52, mood: BuddyMood.happy),
+                  const SizedBox(height: 18),
+                  Text(
+                      name != null
+                          ? tr('Schön, dass du da bist, {name}.', {'name': name})
+                          : tr('Schön, dass du da bist.'),
+                      style: const TextStyle(
+                          fontFamily: AppFonts.display,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.3,
+                          height: 1.02,
+                          color: Color(0xFFFFF7F0))),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                    decoration: BoxDecoration(
+                      color: CopperLight.card,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0x1FFFFFFF)),
+                    ),
+                    child: Text(
+                        tr('Wie wollen wir starten? Am schnellsten geht es mit mir im Chat. Die Bank kannst du jederzeit später verbinden.'),
+                        style: const TextStyle(fontSize: 15.5, height: 1.45, color: Colors.white)),
+                  ),
+                ]),
+              ),
             ),
-            const SizedBox(height: 24),
-            _ChoiceCard(
-              icon: Icons.chat_bubble_outline_rounded,
-              title: tr('Mit Buddy loslegen'),
-              text: tr('Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.'),
-              badge: tr('Empfohlen'),
-              onTap: _busy ? null : () => _finish(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _ChoiceCard(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: tr('Mit Buddy loslegen'),
+                  text: tr('Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.'),
+                  badge: tr('Empfohlen'),
+                  onTap: _busy ? null : () => _finish(),
+                ),
+                const SizedBox(height: 12),
+                _ChoiceCard(
+                  icon: Icons.account_balance_rounded,
+                  title: tr('Bankkonto verbinden'),
+                  text: tr('Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.'),
+                  onTap: _busy ? null : () => _finish(bank: true),
+                ),
+                const SizedBox(height: 12),
+                _ChoiceCard(
+                  icon: Icons.science_rounded,
+                  title: tr('Mit Beispieldaten testen'),
+                  text: tr('Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.'),
+                  onTap: _busy ? null : () => _finish(demo: true, buddy: true),
+                ),
+                if (_busy)
+                  const Padding(padding: EdgeInsets.only(top: 24), child: Center(child: CircularProgressIndicator())),
+              ]),
             ),
-            const SizedBox(height: 12),
-            _ChoiceCard(
-              icon: Icons.account_balance_rounded,
-              title: tr('Bankkonto verbinden'),
-              text: tr('Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.'),
-              onTap: _busy ? null : () => _finish(bank: true),
-            ),
-            const SizedBox(height: 12),
-            _ChoiceCard(
-              icon: Icons.science_rounded,
-              title: tr('Mit Beispieldaten testen'),
-              text: tr('Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.'),
-              onTap: _busy ? null : () => _finish(demo: true, buddy: true),
-            ),
-            if (_busy)
-              const Padding(padding: EdgeInsets.only(top: 24), child: Center(child: CircularProgressIndicator())),
           ],
         ),
       ),
@@ -510,18 +538,40 @@ class _AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // the title sits in copper light, like the landing page's opening
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: CopperLight.top,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: EdgeInsets.zero,
           children: [
-            Text(title, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
-            const SizedBox(height: 8),
-            Text(subtitle, style: TextStyle(fontSize: 16, color: AppColors.textDim, height: 1.4)),
-            const SizedBox(height: 28),
-            ...children,
+            CopperLight(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 28),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontFamily: AppFonts.display,
+                          fontSize: 36,
+                          height: 1,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1.5,
+                          color: Color(0xFFFFF7F0))),
+                  const SizedBox(height: 10),
+                  Text(subtitle, style: const TextStyle(fontSize: 16, color: Color(0xDBFFF7F0), height: 1.4)),
+                ]),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+            ),
           ],
         ),
       ),
@@ -633,7 +683,9 @@ class _ChoiceCard extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: highlighted ? AppColors.brand.withValues(alpha: 0.7) : AppColors.border, width: highlighted ? 1.5 : 1),
+            border: Border.all(
+                color: highlighted ? AppColors.brand.withValues(alpha: 0.7) : AppColors.border,
+                width: highlighted ? 1.5 : 1),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(

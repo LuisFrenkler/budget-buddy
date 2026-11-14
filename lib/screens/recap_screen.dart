@@ -63,7 +63,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
     Color(0xFF2E2A5C),
     Color(0xFF1F5132),
     Color(0xFF5A1E3A),
-    Color(0xFF16161E),
+    Color(0xFF1C1815),
   ];
 
   @override
@@ -284,7 +284,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(54),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _share,
             icon: const Icon(Icons.ios_share_rounded),

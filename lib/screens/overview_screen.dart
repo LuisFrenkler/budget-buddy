@@ -35,7 +35,6 @@ import '../services/contracts.dart';
 import '../widgets/getting_started.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
-import '../widgets/buddy_orb.dart';
 import '../services/notification_service.dart';
 import '../services/auto_save.dart';
 import '../services/weekly_report.dart';
@@ -444,60 +443,57 @@ class _OverviewScreenState extends State<OverviewScreen> {
       headline = tr('Frag mich, was du dir diesen Monat leisten kannst.');
       question = tr('Kann ich mir 800 € Urlaub leisten?');
     }
-    return Material(
-      color: AppColors.surface,
+    // Buddy speaks from copper light, like on the landing page
+    return ClipRRect(
       borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: () => BuddyScreen.open(context, tip?.question ?? question),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.brand.withValues(alpha: 0.35)),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const BuddyOrb(size: 36, mood: BuddyMood.idle),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child: CopperLight(
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: () => BuddyScreen.open(context, tip?.question ?? question),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const BrandMark(size: 22, inverse: true),
+                  const SizedBox(width: 8),
                   Text(tr('Buddy sagt'),
-                      style: TextStyle(fontSize: 11.5, letterSpacing: 0.6, fontWeight: FontWeight.w800, color: AppColors.brand)),
-                  const SizedBox(height: 3),
-                  RichMarkdown(headline, glossary: false, fontSize: 16.5),
-                  if (tip != null) ...[
-                    const SizedBox(height: 6),
-                    Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
-                  ],
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
                 ]),
-              ),
-            ]),
-            const SizedBox(height: 14),
-            // looks like the chat's input: the way in is to ask
-            Container(
-              height: 44,
-              padding: const EdgeInsets.fromLTRB(14, 0, 4, 0),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Row(children: [
-                Expanded(
-                  child: Text(tip?.question ?? question,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: AppColors.textDim, fontSize: 14)),
-                ),
+                const SizedBox(height: 10),
+                RichMarkdown(headline, glossary: false, fontSize: 18, color: Colors.white),
+                if (tip != null) ...[
+                  const SizedBox(height: 6),
+                  Text(tip.text, style: const TextStyle(color: Color(0xD9FFF7F0), fontSize: 14, height: 1.4)),
+                ],
+                const SizedBox(height: 14),
+                // looks like the chat's input: the way in is to ask
                 Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
-                  child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 19),
+                  height: 44,
+                  padding: const EdgeInsets.fromLTRB(14, 0, 4, 0),
+                  decoration: BoxDecoration(
+                    color: const Color(0x29FFFFFF),
+                    border: Border.all(color: const Color(0x38FFFFFF)),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(tip?.question ?? question,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xE6FFFFFF), fontSize: 14)),
+                    ),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF17120E), size: 19),
+                    ),
+                  ]),
                 ),
               ]),
             ),
-          ]),
+          ),
         ),
       ),
     );

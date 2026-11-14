@@ -228,4 +228,14 @@ void main() {
     await _pump(tester, const StartChoiceScreen());
     await _shot(tester, '14_start_choice');
   });
+
+  testWidgets('15 sign up', (tester) async {
+    await _pump(tester, const SignUpScreen());
+    await _shot(tester, '15_sign_up');
+  });
+
+  testWidgets('16 sign up light', (tester) async {
+    await _pump(tester, const SignUpScreen(), dark: false);
+    await _shot(tester, '16_sign_up_light');
+  });
 }

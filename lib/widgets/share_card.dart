@@ -112,7 +112,7 @@ Future<void> showShareCard(BuildContext context, ShareCardData data, {bool hideB
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF16161E),
+    backgroundColor: const Color(0xFF1C1815),
     showDragHandle: true,
     builder: (_) => _ShareSheet(data, hideByDefault),
   );
@@ -183,7 +183,7 @@ class _ShareSheetState extends State<_ShareSheet> {
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _busy ? null : _share,
             icon: _busy
