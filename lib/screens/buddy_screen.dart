@@ -22,6 +22,7 @@ import '../services/hints_service.dart';
 import '../services/life_stages.dart';
 import '../services/plus_service.dart';
 import '../services/settings_service.dart';
+import '../services/voice_input.dart';
 import 'plus_screen.dart';
 import '../utils/dates.dart';
 import '../utils/errors.dart';
@@ -156,6 +157,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _away = false;
   // the guest's sign-up card was closed for this session
   bool _ctaClosed = false;
+  // Buddy's little hop after something good happened
+  bool _cheer = false;
+  Timer? _cheerTimer;
+
+  void _celebrate() {
+    _cheerTimer?.cancel();
+    setState(() => _cheer = true);
+    _cheerTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _cheer = false);
+    });
+  }
+
+  BuddyMood get _mood => _thinking ? BuddyMood.thinking : (_cheer ? BuddyMood.happy : BuddyMood.idle);
 
   bool get _guest => widget.guest;
   static Box get _settings => Hive.box('settings');
@@ -174,6 +188,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _consentListenable.addListener(_consentListener);
     _scroll.addListener(_onScroll);
     _focus.addListener(_onFocus);
+    VoiceInput.listening.addListener(_onFocus);
     _restore();
     (_guest ? GuestBuddy.live() : BuddyService.live()).then((v) {
       if (!mounted) return;
@@ -255,7 +270,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
     _scroll.removeListener(_onScroll);
     _focus.removeListener(_onFocus);
+    VoiceInput.listening.removeListener(_onFocus);
+    if (VoiceInput.listening.value) VoiceInput.stop();
     _sub?.cancel();
+    _cheerTimer?.cancel();
     _input.dispose();
     _focus.dispose();
     // shell owns the controller when Buddy is a tab
@@ -285,6 +303,26 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (mounted) setState(() {});
     } else {
       await _askConsent(force: true);
+    }
+  }
+
+  // speak a question or "Döner 8,50 gestern"; the words fill the field
+  Future<void> _voice() async {
+    if (VoiceInput.listening.value) {
+      HapticFeedback.selectionClick();
+      await VoiceInput.stop();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    final ok = await VoiceInput.start((text, done) {
+      if (!mounted) return;
+      setState(() {
+        _input.text = text;
+        _input.selection = TextSelection.collapsed(offset: text.length);
+      });
+    });
+    if (!ok && mounted) {
+      _snack(tr('Spracheingabe geht hier gerade nicht. Erlaube das Mikrofon oder tipp deine Frage.'));
     }
   }
 
@@ -382,6 +420,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       final done = await BuddyEntries.apply(e);
       if (!mounted) return;
       setState(() => m.applied[i] = done);
+      _celebrate();
       _tickLifeStage(e);
       if (e.type == 'recategorize' || e.type == 'recategorize_all') {
         _snack(tr('{done}. Buddy merkt sich die Regel für künftige Buchungen.', {'done': done}));
@@ -425,6 +464,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final ok = await BuddyMemory.add(fact);
     if (!mounted) return;
     setState(() => m.rememberState = ok ? 'saved' : 'known');
+    if (ok) _celebrate();
   }
 
   // asks only for missing fields, then shows the same confirm card as a booking
@@ -515,6 +555,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   Future<void> _send(String text) async {
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
+    if (VoiceInput.listening.value) VoiceInput.stop();
     HapticFeedback.selectionClick();
     if (_guest) return _sendGuest(question);
     if (_photo == null && _rememberCommand(question)) return;
@@ -821,7 +862,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         // without a back button the tab's title keeps the page margin
         titleSpacing: widget.tab ? 20 : 0,
         title: Row(children: [
-          BuddyOrb(size: 34, active: _thinking),
+          BuddyOrb(size: 34, mood: _mood),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tr('Buddy'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
@@ -936,95 +977,74 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // --------------------------------------------------------------- welcome
 
+  // the empty chat fits one screen: who Buddy is, where you stand, three
+  // ways in, and the input right below
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     final stage = _guest ? null : LifeStages.current;
     final others = LifeStages.all.where((s) => s.id != stage?.id).toList();
-    final chips = _guest ? BuddyScreen.guestSuggestions : BuddySuggestions.pick(BuddyService.snapshot(), max: 5);
+    final chips = (_guest ? BuddyScreen.guestSuggestions : BuddySuggestions.pick(BuddyService.snapshot(), max: 5))
+        .take(3)
+        .toList();
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
       children: [
-        const SizedBox(height: 8),
-        const _HeroOrb(),
-        const SizedBox(height: 22),
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          const _HeroOrb(),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              _guest
+                  ? tr('Hi, ich bin Buddy.')
+                  : (name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?')),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.1),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 12),
         Text(
           _guest
-              ? tr('Hi, ich bin Buddy.')
-              : (name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?')),
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.9, height: 1.1),
+              ? tr('Frag mich alles rund um Geld im ersten Job, ohne Anmeldung. Ich sag dir, was du als Nächstes tun kannst.')
+              : tr('Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.'),
+          style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
         ),
-        const SizedBox(height: 8),
-        Text(
-          _guest
-              ? tr('Frag mich alles rund um Geld im ersten Job. Ohne Anmeldung, ohne Bankverbindung. Ich sag dir, was du als Nächstes tun kannst.')
-              : tr('Finanz-Apps zeigen dir dein Geld. Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.'),
-          style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
-        ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         if (stage != null) ...[
           _stageProgress(stage),
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
         ],
         _sectionLabel(stage == null ? tr('Wo stehst du gerade?') : tr('Andere Lebenslagen')),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 128,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: others.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (_, i) => _stageCard(others[i]),
-          ),
-        ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, runSpacing: 8, children: [for (final s in others) _stageChip(s)]),
+        const SizedBox(height: 18),
         _sectionLabel(tr('Oder frag einfach')),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         for (final s in chips) _suggestion(s),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         _trustLine(),
       ],
     );
   }
 
-  Widget _sectionLabel(String text) => Text(text.toUpperCase(),
-      style: TextStyle(fontSize: 11.5, letterSpacing: 0.9, fontWeight: FontWeight.w700, color: AppColors.textDim));
-
-  Widget _stageCard(LifeStage s) => SizedBox(
-        width: 172,
-        child: Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => _openStage(s),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.brand.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(11),
-                  ),
-                  child: Icon(s.icon, size: 19, color: AppColors.brand),
-                ),
-                const Spacer(),
-                Text(s.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5)),
-                const SizedBox(height: 2),
-                Text(s.tagline,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: AppColors.textDim, fontSize: 11.5, height: 1.25)),
-              ]),
-            ),
+  Widget _stageChip(LifeStage s) => Material(
+        color: AppColors.surface,
+        shape: StadiumBorder(side: BorderSide(color: AppColors.border)),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: () => _openStage(s),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(s.icon, size: 17, color: AppColors.brand),
+              const SizedBox(width: 7),
+              Text(s.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+            ]),
           ),
         ),
       );
+
+  Widget _sectionLabel(String text) => Text(text.toUpperCase(),
+      style: TextStyle(fontSize: 11.5, letterSpacing: 0.9, fontWeight: FontWeight.w700, color: AppColors.textDim));
 
   Widget _stageProgress(LifeStage s) {
     final done = LifeStages.progress(s);
@@ -1096,9 +1116,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
             borderRadius: BorderRadius.circular(16),
             onTap: () => _send(s.text),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
               child: Row(children: [
-                Icon(s.icon, color: AppColors.textDim, size: 19),
+                Icon(s.icon, color: AppColors.brand, size: 19),
                 const SizedBox(width: 12),
                 Expanded(child: Text(s.text, style: const TextStyle(fontWeight: FontWeight.w600))),
                 Icon(Icons.arrow_forward_rounded, color: AppColors.textDim, size: 17),
@@ -1231,7 +1251,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
         SizedBox(
           width: 30,
           child: first
-              ? Padding(padding: const EdgeInsets.only(top: 1), child: BuddyOrb(size: 28, active: m.streaming))
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: BuddyOrb(
+                      size: 28,
+                      mood: m.streaming
+                          ? BuddyMood.thinking
+                          : (m.checkIn && last ? BuddyMood.alert : BuddyMood.idle)))
               : null,
         ),
         const SizedBox(width: 12),
@@ -1550,7 +1576,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   onChanged: (_) => setState(() {}),
                   style: const TextStyle(fontSize: 15.5),
                   decoration: InputDecoration(
-                    hintText: _guest ? tr('Frag Buddy etwas …') : tr('Frag Buddy oder erzähl was …'),
+                    hintText: VoiceInput.listening.value
+                        ? tr('Ich höre zu …')
+                        : (_guest ? tr('Frag Buddy etwas …') : tr('Frag Buddy oder erzähl was …')),
                     hintMaxLines: 1,
                     filled: false,
                     isDense: true,
@@ -1562,24 +1590,52 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              Semantics(
-                button: true,
-                label: tr('Senden'),
-                enabled: canSend,
-                child: GestureDetector(
-                  onTap: () => _send(_input.text),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: canSend ? AppColors.brand : AppColors.surfaceAlt,
+              // empty field: talk instead of typing; with text: send
+              if (!canSend && !_thinking && _photo == null)
+                ValueListenableBuilder<bool>(
+                  valueListenable: VoiceInput.listening,
+                  builder: (_, on, __) => Semantics(
+                    button: true,
+                    label: on ? tr('Zuhören beenden') : tr('Sprechen'),
+                    child: GestureDetector(
+                      onTap: _voice,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: on ? AppColors.brand : AppColors.surfaceAlt,
+                          boxShadow: on
+                              ? [BoxShadow(color: AppColors.brand.withValues(alpha: 0.5), blurRadius: 14, spreadRadius: 1)]
+                              : null,
+                        ),
+                        child: Icon(on ? Icons.stop_rounded : Icons.mic_none_rounded,
+                            size: 21, color: on ? Colors.white : AppColors.text),
+                      ),
                     ),
-                    child: Icon(Icons.arrow_upward_rounded, size: 21, color: canSend ? Colors.white : AppColors.textDim),
+                  ),
+                )
+              else
+                Semantics(
+                  button: true,
+                  label: tr('Senden'),
+                  enabled: canSend,
+                  child: GestureDetector(
+                    onTap: () => _send(_input.text),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: canSend ? AppColors.brand : AppColors.surfaceAlt,
+                      ),
+                      child:
+                          Icon(Icons.arrow_upward_rounded, size: 21, color: canSend ? Colors.white : AppColors.textDim),
+                    ),
                   ),
                 ),
-              ),
             ]),
           ),
           const SizedBox(height: 5),
@@ -1594,7 +1650,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               [if (note != null) note, tr('Buddy kann sich irren, keine Anlageberatung')].join(' · '),
               textAlign: TextAlign.center,
               maxLines: 2,
-              style: TextStyle(fontSize: 11, color: AppColors.textDim, height: 1.3),
+              style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3),
             ),
         ]),
       ),
@@ -1706,6 +1762,7 @@ class _HeroOrbState extends State<_HeroOrb> with SingleTickerProviderStateMixin 
   @override
   Widget build(BuildContext context) => Align(
         alignment: Alignment.centerLeft,
+        widthFactor: 1,
         child: AnimatedBuilder(
           animation: _c,
           builder: (_, child) {
@@ -1724,7 +1781,7 @@ class _HeroOrbState extends State<_HeroOrb> with SingleTickerProviderStateMixin 
               child: child,
             );
           },
-          child: const BuddyOrb(size: 60),
+          child: const BuddyOrb(size: 52),
         ),
       );
 }

@@ -47,7 +47,7 @@ class AppColors {
   static Color get surface => _d ? const Color(0xFF16161E) : const Color(0xFFFFFFFF);
   static Color get surfaceAlt => _d ? const Color(0xFF1F1F2A) : const Color(0xFFEDEDF3);
   static Color get text => _d ? const Color(0xFFF7F7FA) : const Color(0xFF0B0B10);
-  static Color get textDim => _d ? const Color(0xFF8C8CA1) : const Color(0xFF6A6A7D);
+  static Color get textDim => _d ? const Color(0xFFA0A0B4) : const Color(0xFF5E5E70);
   static Color get border => _d ? const Color(0xFF26263A) : const Color(0xFFE3E3EC);
 }
 
@@ -112,10 +112,12 @@ class AppTheme {
     ),
 
     // buttons
+    // the one main action on a screen is copper, like Buddy's own buttons;
+    // everything secondary (outlined, text, switches, selection) stays ink
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
+        backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
@@ -124,8 +126,10 @@ class AppTheme {
 
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
+        backgroundColor: AppColors.brand,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: AppColors.surfaceAlt,
+        disabledForegroundColor: AppColors.textDim,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),

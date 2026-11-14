@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:budget_buddy/screens/buddy_memory_screen.dart';
 import 'package:budget_buddy/screens/buddy_screen.dart';
 import 'package:budget_buddy/screens/home_screen.dart';
+import 'package:budget_buddy/screens/auth_screens.dart';
 import 'package:budget_buddy/screens/invite_screen.dart';
 import 'package:budget_buddy/services/account_service.dart';
 import 'package:budget_buddy/services/buddy_history.dart';
@@ -195,5 +196,21 @@ void main() {
     await _shot(tester, '09_nav_overview');
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 10));
+  });
+
+  for (final (n, tab) in [(10, 0), (11, 1), (12, 2), (13, 3)]) {
+    testWidgets('$n light tab $tab', (tester) async {
+      await _pump(tester, const HomeScreen(), dark: false);
+      HomeScreen.goTab.value = tab;
+      await tester.pump(const Duration(milliseconds: 800));
+      await _shot(tester, '${n}_light_tab$tab');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 10));
+    });
+  }
+
+  testWidgets('14 start choice', (tester) async {
+    await _pump(tester, const StartChoiceScreen());
+    await _shot(tester, '14_start_choice');
   });
 }

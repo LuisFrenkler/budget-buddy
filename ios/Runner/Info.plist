@@ -4,6 +4,10 @@
 	<dict>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Ahead nutzt Face ID, um deine Finanzdaten zu schützen.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Ahead nutzt das Mikrofon nur, wenn du Buddy etwas sagst statt zu tippen.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Ahead wandelt deine gesprochene Frage an Buddy in Text um.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Ahead greift auf Fotos zu, damit du Belege scannen und ein Profilbild setzen kannst.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>

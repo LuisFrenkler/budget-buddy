@@ -35,6 +35,7 @@ import '../services/contracts.dart';
 import '../widgets/getting_started.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
+import '../widgets/buddy_orb.dart';
 import '../services/notification_service.dart';
 import '../services/auto_save.dart';
 import '../services/weekly_report.dart';
@@ -256,6 +257,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     _quickActions(),
                   ] else ...[
                     if (DemoData.active) _demoBanner(),
+                    // Buddy first: what to do now, before any chart
+                    _buddyBrief(tx, cash),
+                    const SizedBox(height: 24),
                     if (!OnboardingService.hidden &&
                         !OnboardingService.complete) ...[
                       GettingStartedCard(),
@@ -412,20 +416,98 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
+  // Buddy's one line on top of the overview: the number that matters this
+  // month and, when something stands out, what to do about it. One tap and
+  // the conversation starts right there.
+  Widget _buddyBrief(List<Transaction> tx, int cash) {
+    MonthForecast? f;
+    try {
+      f = OnboardingService.balanceKnown
+          ? ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash)
+          : null;
+    } catch (_) {}
+    final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash);
+    final hidden = Settings.hideAmounts.value;
+    final String headline;
+    final String question;
+    if (f != null && f.freeCents >= 0) {
+      headline = tr('**{x}** sind bis Monatsende noch frei, etwa {y} pro Tag.', {
+        'x': hidden ? Money.hidden : Money.format(f.freeCents),
+        'y': hidden ? Money.hidden : Money.format(f.perDayCents),
+      });
+      question = tr('Wie viel ist diesen Monat noch frei?');
+    } else if (f != null) {
+      headline = tr('Diesen Monat wird es knapp: **{x}** fehlen bis Monatsende.',
+          {'x': hidden ? Money.hidden : Money.format(-f.freeCents)});
+      question = tr('Wie komme ich diesen Monat noch hin?');
+    } else {
+      headline = tr('Frag mich, was du dir diesen Monat leisten kannst.');
+      question = tr('Kann ich mir 800 € Urlaub leisten?');
+    }
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => BuddyScreen.open(context, tip?.question ?? question),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.brand.withValues(alpha: 0.35)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const BuddyOrb(size: 36, mood: BuddyMood.idle),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(tr('Buddy sagt'),
+                      style: TextStyle(fontSize: 11.5, letterSpacing: 0.6, fontWeight: FontWeight.w800, color: AppColors.brand)),
+                  const SizedBox(height: 3),
+                  RichMarkdown(headline, glossary: false, fontSize: 16.5),
+                  if (tip != null) ...[
+                    const SizedBox(height: 6),
+                    Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
+                  ],
+                ]),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            // looks like the chat's input: the way in is to ask
+            Container(
+              height: 44,
+              padding: const EdgeInsets.fromLTRB(14, 0, 4, 0),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Text(tip?.question ?? question,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: AppColors.textDim, fontSize: 14)),
+                ),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
+                  child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 19),
+                ),
+              ]),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   // Buddy tip + wealth/vorsorge bridge under the habit number
   List<Widget> _bridge(List<Transaction> tx, int cash, int depotNow) {
-    final tip = BuddyTips.pick(
-      tx: tx,
-      budgets: DB.getBudgets(),
-      balanceCents: cash,
-    );
     final emergency = Wealth.emergency(tx);
     final out = <Widget>[const SizedBox(height: 16)];
-    out.add(BuddyCard(
-      tip: tip,
-      chips: BuddySuggestions.pick(BuddyService.snapshot()),
-    ));
-    out.add(const SizedBox(height: 10));
+
     // one calm Polster row, not a second mini-dashboard of 3 chips
     out.add(_bridgeChip(
       Icons.savings_outlined,
