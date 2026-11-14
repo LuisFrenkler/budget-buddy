@@ -110,8 +110,14 @@ flutter_launcher_icons:
 
 # native splash screen (run: dart run flutter_native_splash:create)
 flutter_native_splash:
-  color: "#0B0B10"
+  color: "#FBF7F3"
   image: "assets/icon/splash.png"
+  color_dark: "#0C0A09"
+  image_dark: "assets/icon/splash_dark.png"
+  # the web start screen is hand-made in web/index.html
+  web: false
   android_12:
-    color: "#0B0B10"
+    color: "#FBF7F3"
     image: "assets/icon/splash_android12.png"
+    color_dark: "#0C0A09"
+    image_dark: "assets/icon/splash_android12_dark.png"
