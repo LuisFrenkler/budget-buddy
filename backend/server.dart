@@ -50,6 +50,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 
 // the app's legal texts, so app and web pages never drift apart
 import '../lib/legal/legal_texts.dart';
@@ -177,7 +179,7 @@ final _guestQuota = GuestQuota();
 final _ai = Ai(_env('ANTHROPIC_API_KEY'), geminiKey: _env('GEMINI_API_KEY'), geminiModel: _env('GEMINI_MODEL'));
 // Buddy with tools (Claude only); the app runs the tools on the device
 final _agent = BuddyAgent(_env('ANTHROPIC_API_KEY'),
-    fastModel: _env('AI_MODEL_FAST'), strongModel: _env('AI_MODEL_STRONG'));
+    fastModel: _env('AI_MODEL_FAST'), strongModel: _env('AI_MODEL_STRONG'), gemini: _ai);
 
 // AI calls cost money: at most this many per user and day
 // about 5 cents a day at most per person with Haiku
@@ -671,6 +673,10 @@ Future<void> _handle(HttpRequest req) async {
     case '/ai/chat':
       _guardAi(req);
       return _aiChat(req);
+    // POST {rating, reason, note, question, answer, tools} -> {ok}
+    case '/ai/feedback':
+      _guardAi(req);
+      return _aiFeedback(req);
     // POST {messages, context, last} -> one agent step as server-sent events
     case '/ai/agent':
       _guardAi(req);
@@ -1169,6 +1175,37 @@ Future<void> _aiAgent(HttpRequest req) async {
             }
           },
       }));
+}
+
+// A thumbs up or down on one of Buddy's answers. Kept in a file the team
+// turns into test cases (tool/buddy_eval/feedback_to_cases.dart). The account
+// is stored only as a short hash; texts are capped.
+final _feedbackFile = File('$_dataDir/feedback.jsonl');
+
+Future<void> _aiFeedback(HttpRequest req) async {
+  if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+  final user = _user(req);
+  final body = await _body(req);
+  String cap(dynamic v, int n) {
+    final t = '${v ?? ''}'.trim();
+    return t.length > n ? t.substring(0, n) : t;
+  }
+
+  final rating = body['rating'] == 'up' ? 'up' : 'down';
+  final entry = {
+    'at': DateTime.now().toUtc().toIso8601String(),
+    'who': sha256.convert(utf8.encode('${user['id']}')).toString().substring(0, 12),
+    'rating': rating,
+    'reason': cap(body['reason'], 40),
+    'note': cap(body['note'], 500),
+    'question': cap(body['question'], 600),
+    'answer': cap(body['answer'], 2000),
+    'tools': [for (final t in (body['tools'] as List? ?? const []).take(12)) cap(t, 40)],
+    'lang': cap(body['lang'], 5),
+  };
+  await _feedbackFile.parent.create(recursive: true);
+  await _feedbackFile.writeAsString('${jsonEncode(entry)}\n', mode: FileMode.append, flush: true);
+  return _json(req, 200, {'ok': true});
 }
 
 // the chat before sign-up: general answers, nothing about the person's money

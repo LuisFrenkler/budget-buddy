@@ -47,6 +47,7 @@ dependencies:
   in_app_purchase_android: ^0.5.0
   cryptography: ^2.7.0
   speech_to_text: ^7.4.0
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:

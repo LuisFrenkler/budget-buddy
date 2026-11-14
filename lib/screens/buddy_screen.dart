@@ -34,6 +34,7 @@ import '../widgets/life_stage_sheet.dart';
 import '../widgets/share_card.dart';
 import 'auth_screens.dart';
 import 'buddy_actions.dart';
+import 'buddy_log_screen.dart';
 import 'buddy_memory_screen.dart';
 import 'depot_screen.dart';
 import 'goals_screen.dart';
@@ -44,6 +45,8 @@ import '../l10n/l10n.dart';
 import '../services/notification_service.dart';
 import '../widgets/buddy_chart.dart';
 import '../services/buddy_tasks.dart';
+import '../services/buddy_first_look.dart';
+import '../services/buddy_voice.dart';
 import '../services/buddy_proposals.dart';
 import '../services/money_accounts.dart';
 import '../services/ledger_busy.dart';
@@ -210,7 +213,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       setState(() => _live = v);
       if (widget.question != null) _send(widget.question!);
       if (widget.tab) _asked();
-      if (!_guest) _checkIn();
+      if (!_guest && !_firstLook()) _checkIn();
     });
     if (widget.tab) BuddyScreen.ask.addListener(_asked);
   }
@@ -236,6 +239,29 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // Buddy speaks first, rarely: once a day at most, only when something
   // really matters (a budget tipping over, a contract got pricier)
+  // once there is enough data, Buddy says what stands out (only once)
+  bool _firstLook() {
+    if (_thinking || widget.question != null || _settings.get('firstLookDone') == true) return false;
+    FirstLook? look;
+    try {
+      look = BuddyFirstLook.build(BuddyService.tools());
+    } catch (_) {
+      return false;
+    }
+    if (look == null) return false;
+    _settings.put('firstLookDone', true);
+    final step = look.text.split('\n').last.replaceFirst(RegExp(r'^(Nächster Schritt|Next step):\s*'), '');
+    BuddyTasks.add(step);
+    setState(() {
+      _messages.add(_Message(false, look!.text)
+        ..checkIn = true
+        ..followUps = look.followUps);
+    });
+    _persist();
+    _scrollDown();
+    return true;
+  }
+
   void _checkIn() {
     if (_guest || _thinking) return;
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -287,6 +313,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   @override
   void dispose() {
+    BuddyVoice.stop();
     _consentListenable.removeListener(_consentListener);
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
     _scroll.removeListener(_onScroll);
@@ -337,6 +364,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     HapticFeedback.mediumImpact();
     final ok = await VoiceInput.start((text, done) {
       if (!mounted) return;
+      _spokenInput = true;
       setState(() {
         _input.text = text;
         _input.selection = TextSelection.collapsed(offset: text.length);
@@ -573,10 +601,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return true;
   }
 
+  // a spoken question gets a spoken answer
+  bool _spokenInput = false;
+  bool _speakNext = false;
+
   Future<void> _send(String text) async {
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
     if (VoiceInput.listening.value) VoiceInput.stop();
+    BuddyVoice.stop();
+    _speakNext = _spokenInput && question == _input.text.trim();
+    _spokenInput = false;
     HapticFeedback.selectionClick();
     if (_guest) return _sendGuest(question);
     if (_photo == null && _rememberCommand(question)) return;
@@ -685,7 +720,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
       answer
         ..text = ''
         ..streaming = true
-        ..error = false;
+        ..error = false
+        ..question = question;
       if (degraded) {
         answer
           ..offline = true
@@ -730,12 +766,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
           answer.streaming = false;
           answer
             ..proposals = extras.proposals
-            ..charts = extras.charts;
+            ..charts = extras.charts
+            ..tools = extras.tools;
           _finish(answer, question);
         });
         _persist();
         _scrollDown();
         HapticFeedback.lightImpact();
+        if (_speakNext) {
+          _speakNext = false;
+          BuddyVoice.speak(answer.text);
+        }
       },
     );
   }
@@ -753,7 +794,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   static String? _stepOf(String text) {
-    final m = RegExp(r'^\**Nächster Schritt:\**\s*(.+)$', multiLine: true).firstMatch(text);
+    final m = RegExp(r'^\**(?:Nächster Schritt|Next step):\**\s*(.+)$', multiLine: true, caseSensitive: false).firstMatch(text);
     final step = m?.group(1)?.replaceAll('**', '').trim();
     return step == null || step.isEmpty ? null : step;
   }
@@ -948,6 +989,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
               switch (v) {
                 case 'memory':
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen()));
+                case 'log':
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen()));
                 case 'stage':
                   _openStage(LifeStages.current ?? LifeStages.firstJob);
                 case 'new':
@@ -959,6 +1002,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             itemBuilder: (_) => [
               PopupMenuItem(value: 'stage', child: _menuRow(Icons.flag_outlined, tr('Lebenslage'))),
               PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Buddy weiß'))),
+              PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Buddy getan hat'))),
               if (_messages.isNotEmpty)
                 PopupMenuItem(value: 'new', child: _menuRow(Icons.add_comment_outlined, tr('Neuer Chat'))),
               if (_live == true)
@@ -1676,6 +1720,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     ),
                 ]),
               ),
+            if (!m.streaming && !m.error && m.text.trim().isNotEmpty) _answerTools(m),
             if (last && m.followUps.isNotEmpty && !m.streaming && !_thinking)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -1688,6 +1733,99 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       ]),
     );
+  }
+
+  // under an answer: read aloud, and for live answers thumbs up or down
+  Widget _answerTools(_Message m) => Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(children: [
+          ValueListenableBuilder<String?>(
+            valueListenable: BuddyVoice.speaking,
+            builder: (_, now, __) => IconButton(
+              tooltip: now == m.text ? tr('Stopp') : tr('Vorlesen'),
+              visualDensity: VisualDensity.compact,
+              iconSize: 18,
+              color: now == m.text ? AppColors.glow : AppColors.textDim,
+              icon: Icon(now == m.text ? Icons.stop_circle_outlined : Icons.volume_up_outlined),
+              onPressed: () => BuddyVoice.toggle(m.text),
+            ),
+          ),
+          if (!m.offline && !m.checkIn && m.question != null && _live == true) ..._rating(m),
+        ]),
+      );
+
+  // thumbs under a live answer; down asks why, so it can become a test case
+  List<Widget> _rating(_Message m) => [
+          if (m.liked != null)
+            Text(m.liked! ? tr('Danke!') : tr('Danke, das hilft Buddy.'),
+                style: TextStyle(fontSize: 12, color: AppColors.textDim))
+          else ...[
+            IconButton(
+              tooltip: tr('Gute Antwort'),
+              visualDensity: VisualDensity.compact,
+              iconSize: 18,
+              color: AppColors.textDim,
+              icon: const Icon(Icons.thumb_up_alt_outlined),
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                setState(() => m.liked = true);
+                BuddyService.feedback(up: true, question: m.question!, answer: m.text, tools: m.tools);
+              },
+            ),
+            IconButton(
+              tooltip: tr('Schlechte Antwort'),
+              visualDensity: VisualDensity.compact,
+              iconSize: 18,
+              color: AppColors.textDim,
+              icon: const Icon(Icons.thumb_down_alt_outlined),
+              onPressed: () => _dislike(m),
+            ),
+          ],
+        ];
+
+  Future<void> _dislike(_Message m) async {
+    final reasons = [tr('Zahl stimmt nicht'), tr('Hilft mir nicht'), tr('Zu lang'), tr('Falscher Ton'), tr('Anderes')];
+    String? reason;
+    final note = TextEditingController();
+    final sent = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(ctx).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tr('Was war nicht gut?'),
+                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 14),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final r in reasons)
+                ChoiceChip(label: Text(r), selected: reason == r, onSelected: (_) => set(() => reason = r)),
+            ]),
+            const SizedBox(height: 14),
+            TextField(
+              controller: note,
+              maxLength: 300,
+              decoration: InputDecoration(hintText: tr('Was hättest du erwartet? (optional)')),
+            ),
+            Text(tr('Deine Frage und Buddys Antwort gehen an Ahead, damit Buddy besser wird. Nichts anderes.'),
+                style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: reason == null ? null : () => Navigator.pop(ctx, true),
+                child: Text(tr('Senden')),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+    if (sent != true || !mounted) return;
+    setState(() => m.liked = false);
+    BuddyService.feedback(
+        up: false, question: m.question!, answer: m.text, reason: reason ?? '', note: note.text, tools: m.tools);
   }
 
   Widget _confirmNote() => Padding(
@@ -1744,7 +1882,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ]),
           const SizedBox(height: 10),
           if (done != null)
-            Text('✓ $done', style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35))
+            Row(children: [
+              Expanded(
+                child: Text('✓ $done',
+                    style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35)),
+              ),
+              if (p.kind != ProposalKind.cancel)
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen())),
+                  child: Text(tr('Rückgängig')),
+                ),
+            ])
           else if (dropped)
             Text(tr('Verworfen'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600))
           else
@@ -2123,6 +2271,9 @@ class _Message {
   final Set<int> proposalDropped = {};
   List<BuddyChart> charts = const []; // small charts under the answer
   bool stepDone = false; // the next step is marked done
+  String? question; // what this answer answers, for feedback
+  List<String> tools = const []; // which tools it used
+  bool? liked; // thumbs up (true) or down (false)
   List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user
   final Map<int, String> applied = {}; // entry index -> what was done
   final Set<int> dismissed = {}; // entries the user waved away

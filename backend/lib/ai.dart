@@ -540,6 +540,10 @@ nicht drängeln.''';
 
   // shared with the agent (agent.dart)
   static String apiErrorText(int status, String body) => _apiError(status, body);
+  bool get hasGemini => geminiKey.isNotEmpty;
+  // one Gemini request with the same retries and model fallback as the chat
+  Future<http.StreamedResponse> geminiGenerate(Map<String, dynamic> body, {required http.Client client}) =>
+      _geminiSend('generateContent', body, client: client);
   static String get persona => _persona;
 
   static String _apiError(int status, String body) {

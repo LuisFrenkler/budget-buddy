@@ -5,6 +5,7 @@ import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../lib/agent.dart';
+import '../lib/ai.dart';
 
 // a Claude stream as server-sent events
 String _sse(List<Map<String, dynamic>> events) => events.map((e) => 'data: ${jsonEncode(e)}\n\n').join();
@@ -78,6 +79,78 @@ void main() {
         {'role': 'user', 'content': 'x'}
       ], lastStep: true).toList();
       expect(sent['tool_choice'], {'type': 'none'});
+    });
+  });
+
+  group('gemini', () {
+    test('the conversation keeps tool names, signatures and results', () {
+      final contents = BuddyAgent.geminiContents([
+        {'role': 'user', 'content': 'Wie viel für Essen?'},
+        {
+          'role': 'assistant',
+          'content': [
+            {'type': 'tool_use', 'id': 'g1', 'name': 'ausgaben', 'input': {'von': '2026-11-01'}, 'gemini_signature': 'sig'}
+          ]
+        },
+        {
+          'role': 'user',
+          'content': [
+            {'type': 'tool_result', 'tool_use_id': 'g1', 'content': '{"summe": 58.3}'}
+          ]
+        },
+      ]);
+      expect(contents[1]['role'], 'model');
+      expect(contents[1]['parts'][0], {
+        'functionCall': {'name': 'ausgaben', 'args': {'von': '2026-11-01'}},
+        'thoughtSignature': 'sig',
+      });
+      expect(contents[2]['parts'][0]['functionResponse'], {
+        'name': 'ausgaben',
+        'response': {'summe': 58.3}
+      });
+    });
+
+    test('tools without fields have no parameters, others a Gemini schema', () {
+      final decl = BuddyAgent.geminiTools.single['function_declarations'] as List;
+      final konten = decl.firstWhere((d) => d['name'] == 'konten') as Map;
+      expect(konten.containsKey('parameters'), isFalse);
+      final ausgaben = decl.firstWhere((d) => d['name'] == 'ausgaben') as Map;
+      expect(ausgaben['parameters']['type'], 'OBJECT');
+      expect(ausgaben['parameters']['properties']['von']['type'], 'STRING');
+    });
+
+    test('a step on Gemini asks for tools the same way', () async {
+      late Map<String, dynamic> sent;
+      final agent = BuddyAgent('', gemini: Ai('', geminiKey: 'g'), client: () => MockClient((req) async {
+            sent = jsonDecode(req.body) as Map<String, dynamic>;
+            return http.Response(
+                jsonEncode({
+                  'candidates': [
+                    {
+                      'content': {
+                        'parts': [
+                          {'text': 'nachdenken', 'thought': true},
+                          {
+                            'functionCall': {'name': 'konten', 'args': {}},
+                            'thoughtSignature': 'abc'
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }),
+                200);
+          }));
+      expect(agent.enabled, isTrue);
+      final events = await agent.step([
+        {'role': 'user', 'content': 'Kontostand?'}
+      ]).toList();
+      final done = events.single as AgentDone;
+      expect(done.stopReason, 'tool_use');
+      expect(done.toolCalls.single['name'], 'konten');
+      expect(done.toolCalls.single['gemini_signature'], 'abc');
+      expect(sent['tool_config']['function_calling_config']['mode'], 'AUTO');
+      expect(sent['system_instruction']['parts'][0]['text'], contains('Werkzeuge'));
     });
   });
 

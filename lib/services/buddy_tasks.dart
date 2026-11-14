@@ -36,6 +36,7 @@ class BuddyTasks {
   static const maxOpen = 8;
   static const keepDays = 30;
   static final changed = ValueNotifier<int>(0);
+  static int _seq = 0;
 
   static Box? get _box => Hive.isBoxOpen('settings') ? Hive.box('settings') : null;
 
@@ -56,14 +57,16 @@ class BuddyTasks {
   static String _norm(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-zäöüß0-9]+'), ' ').trim();
 
   // the same step twice is one task
-  static Future<void> add(String text, {DateTime? due, DateTime? now}) async {
+  static Future<String?> add(String text, {DateTime? due, DateTime? now}) async {
     final box = _box;
     final clean = text.replaceAll(RegExp(r'\*\*'), '').trim();
-    if (box == null || clean.isEmpty) return;
+    if (box == null || clean.isEmpty) return null;
     final today = now ?? DateTime.now();
     final list = all(now: today);
-    if (list.any((t) => !t.done && _norm(t.text) == _norm(clean))) return;
-    final task = BuddyTask('${today.microsecondsSinceEpoch}', clean.length > 160 ? clean.substring(0, 160) : clean,
+    for (final t in list) {
+      if (!t.done && _norm(t.text) == _norm(clean)) return t.id;
+    }
+    final task = BuddyTask('${DateTime.now().microsecondsSinceEpoch}-${_seq++}', clean.length > 160 ? clean.substring(0, 160) : clean,
         today,
         due: due);
     final openOnes = [task, ...list.where((t) => !t.done)];
@@ -71,6 +74,7 @@ class BuddyTasks {
     await box.put(_key, [for (final t in kept) t.toMap()]);
     changed.value++;
     if (due != null) onDated?.call();
+    return task.id;
   }
 
   // set by the app: plan notifications again when a dated reminder is added
@@ -82,6 +86,16 @@ class BuddyTasks {
     await box.put(_key, [
       for (final t in all())
         (t.id == id ? BuddyTask(t.id, t.text, t.created, due: t.due, done: done) : t).toMap()
+    ]);
+    changed.value++;
+  }
+
+  static Future<void> remove(String id) async {
+    final box = _box;
+    if (box == null) return;
+    await box.put(_key, [
+      for (final t in all())
+        if (t.id != id) t.toMap()
     ]);
     changed.value++;
   }
