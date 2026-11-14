@@ -1031,7 +1031,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                       DB.balanceOf(MoneyAccounts.bookingsOf(a.id, month));
                   return net == 0
                       ? MoneyAccount.kinds[a.kind]!
-                      : '${Money.signed(net)} im ${Dates.month(DateTime.now())}';
+                      : tr('{x} im {y}', {'x': Money.signed(net), 'y': Dates.month(DateTime.now())});
                 }(),
                 up: null,
                 onTap: () {
@@ -1049,7 +1049,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               // without the real balance the sum of bookings means nothing
               value: known ? Money.format(cash) : tr('Eintragen'),
               change: known
-                  ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}'
+                  ? tr('{x} im {y}', {'x': Money.signed(monthNet), 'y': Dates.month(DateTime.now())})
                   : tr('Kontostand fehlt noch'),
               up: !known || monthNet == 0 ? null : monthNet > 0,
               onTap: () => widget.onOpen(1, segment: 0),

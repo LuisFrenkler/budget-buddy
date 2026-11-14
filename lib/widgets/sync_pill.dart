@@ -20,7 +20,7 @@ class SyncPill extends StatefulWidget {
     if (d.inMinutes < 1) return tr('gerade eben');
     if (d.inMinutes < 60) return tr('vor {inMinutes} Min.', {'inMinutes': d.inMinutes});
     if (d.inHours < 24) return tr('vor {inHours} Std.', {'inHours': d.inHours});
-    return 'am ${Dates.dayMonth(last)}';
+    return tr('am {x}', {'x': Dates.dayMonth(last)});
   }
 
   @override

@@ -384,7 +384,7 @@ class _AddScreenState extends State<AddScreen> {
               color: AppColors.surface,
               initialValue: _account ?? MoneyAccount.main,
               onSelected: (v) => setState(() => _account = v == MoneyAccount.main ? null : v),
-              itemBuilder: (_) => [for (final a in accounts) PopupMenuItem(value: a.id, child: Text(a.name))],
+              itemBuilder: (_) => [for (final a in accounts) PopupMenuItem(value: a.id, child: Text(tr(a.name)))],
               child: _chip(Icons.account_balance_wallet_rounded,
                   (MoneyAccounts.byId(_account) ?? MoneyAccounts.main).name, null),
             ),
@@ -504,7 +504,7 @@ class _AddScreenState extends State<AddScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(tr('{count} Umsätze nachtragen?', {'count': count})),
-        content: Text(tr('Der Beginn liegt in der Vergangenheit. Ahead trägt jeden {interval}en Termin bis heute nach, also {count} Umsätze über zusammen {x}.', {'interval': rule.interval, 'count': count, 'x': Money.raw(rule.amountCents * count)})),
+        content: Text(tr('Der Beginn liegt in der Vergangenheit. Ahead trägt jeden {interval}en Termin bis heute nach, also {count} Umsätze über zusammen {x}.', {'interval': tr(rule.interval), 'count': count, 'x': Money.raw(rule.amountCents * count)})),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Datum ändern'))),
           TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Nachtragen'))),

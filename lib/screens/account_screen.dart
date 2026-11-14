@@ -194,7 +194,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               points: points, onScrub: (p) => _scrub.value = p),
                           SizedBox(height: 12),
                           RangeSelector(
-                            labels: [for (final r in _ranges) tr(r)],
+                            labels: _ranges,
                             selected: _range,
                             onChanged: (r) => setState(() => _range = r),
                           ),
@@ -316,7 +316,7 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(width: 8),
         ],
         for (final a in accounts) ...[
-          chip('${a.name} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
+          chip('${tr(a.name)} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
               selected == a.id, () {
             HapticFeedback.selectionClick();
             if (selected == a.id) {

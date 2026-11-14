@@ -25,7 +25,7 @@ class RecapStory extends StatelessWidget {
       if (r.savingsRate > 0) (Icons.savings_outlined, tr('{savingsRate} % meines Einkommens gespart', {'savingsRate': r.savingsRate})),
       if (change != null && change != 0)
         (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-            tr('{x} % {x2} ausgegeben als im {prev}', {'x': change.abs(), 'x2': change < 0 ? 'weniger' : 'mehr', 'prev': prev})),
+            tr('{x} % {x2} ausgegeben als im {prev}', {'x': change.abs(), 'x2': change < 0 ? tr('weniger') : tr('mehr'), 'prev': prev})),
       if (r.topCategory != null) (Icons.pie_chart_outline_rounded, tr('{x} % für {topCategory}', {'x': r.topCategoryShare, 'topCategory': r.topCategory})),
       if (r.topMerchant != null && r.topMerchantVisits > 1)
         (Icons.place_outlined, '${r.topMerchantVisits}× bei ${r.topMerchant}'),

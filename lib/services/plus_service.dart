@@ -17,6 +17,7 @@ import 'package:hive/hive.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
 import 'store_purchases.dart';
+import '../l10n/l10n.dart';
 
 enum PlusFeature { aiQuestion, receiptScan, goal }
 
@@ -31,7 +32,7 @@ extension PayMethodLabel on PayMethod {
         PayMethod.applePay => 'Apple Pay',
         PayMethod.googlePay => 'Google Pay',
         PayMethod.paypal => 'PayPal',
-        PayMethod.card => 'Kredit- oder Debitkarte',
+        PayMethod.card => tr('Kredit- oder Debitkarte'),
         PayMethod.sepa => 'SEPA-Lastschrift',
         PayMethod.klarna => 'Klarna',
       };
@@ -266,7 +267,7 @@ class PlusService {
       syncError.value = null;
       return true;
     } catch (_) {
-      syncError.value = 'Plus-Status gerade nicht abrufbar.';
+      syncError.value = tr('Plus-Status gerade nicht abrufbar.');
       return false;
     }
   }

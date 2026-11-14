@@ -146,11 +146,11 @@ class BuddyScreen extends StatefulWidget {
   static List<BuddyChip> get suggestions => BuddySuggestions.fallback;
 
   // the first questions before sign-up: the moments of a first job
-  static const guestSuggestions = <BuddyChip>[
-    (icon: Icons.receipt_long_rounded, text: 'Wie prüfe ich meine erste Gehaltsabrechnung?'),
-    (icon: Icons.savings_outlined, text: 'Wie viel Notgroschen brauche ich?'),
-    (icon: Icons.work_outline_rounded, text: 'Lohnt sich die Betriebsrente?'),
-    (icon: Icons.show_chart_rounded, text: 'Was ist ein ETF-Sparplan?'),
+  static List<BuddyChip> get guestSuggestions => [
+    (icon: Icons.receipt_long_rounded, text: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
+    (icon: Icons.savings_outlined, text: tr('Wie viel Notgroschen brauche ich?')),
+    (icon: Icons.work_outline_rounded, text: tr('Lohnt sich die Betriebsrente?')),
+    (icon: Icons.show_chart_rounded, text: tr('Was ist ein ETF-Sparplan?')),
   ];
 
   @override
@@ -2468,7 +2468,7 @@ class _BuddyCardState extends State<BuddyCard> {
                         duration: const Duration(milliseconds: 400),
                         layoutBuilder: (current, previous) =>
                             Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
-                        child: Text('„${s[_i % s.length].text}“',
+                        child: Text(tr('„{x}“', {'x': s[_i % s.length].text}),
                             key: ValueKey(_i),
                             style: TextStyle(color: AppColors.textDim, fontSize: 13.5),
                             overflow: TextOverflow.ellipsis),

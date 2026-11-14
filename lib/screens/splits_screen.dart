@@ -489,7 +489,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           for (int i = 0; i < g.members.length; i++)
             ListTile(
               leading: const Icon(Icons.person_outline_rounded),
-              title: Text(i == g.me ? '${g.members[i]} (du)' : g.members[i]),
+              title: Text(i == g.me ? tr('{x} (du)', {'x': g.members[i]}) : g.members[i]),
               onTap: () => Navigator.pop(context, i),
             ),
         ]),
@@ -566,7 +566,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
-      content: Text('„${e.title}“ entfernt'),
+      content: Text(tr('„{x}“ entfernt', {'x': e.title})),
       action: SnackBarAction(label: tr('Rückgängig'), onPressed: () {
         final now = SplitService.byId(g.id);
         if (now != null) SplitService.addExpense(now, e);

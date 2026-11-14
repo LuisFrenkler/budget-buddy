@@ -738,7 +738,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ],
       PayMethod.paypal => [
-          _field(_paypal, tr('PayPal-E-Mail'), 'du@beispiel.de', error: _paypalError, keyboard: TextInputType.emailAddress),
+          _field(_paypal, tr('PayPal-E-Mail'), tr('du@beispiel.de'), error: _paypalError, keyboard: TextInputType.emailAddress),
           const SizedBox(height: 8),
           _note(Icons.open_in_new_rounded, tr('Zum Bestätigen wirst du kurz zu PayPal weitergeleitet.')),
         ],

@@ -50,7 +50,7 @@ class _MiscSortSheetState extends State<_MiscSortSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('„${g.sample}“',
+                Text(tr('„{x}“', {'x': g.sample}),
                     style: const TextStyle(fontFamily: AppFonts.display, 
                         fontSize: 20, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),

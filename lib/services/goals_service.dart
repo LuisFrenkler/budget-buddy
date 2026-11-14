@@ -3,6 +3,7 @@
 import 'package:hive/hive.dart';
 import '../models/goal.dart';
 import '../utils/money.dart';
+import '../l10n/l10n.dart';
 
 class GoalPlan {
   final String text;
@@ -35,12 +36,12 @@ class GoalsService {
   // Buddy's plan, from the goal and the average monthly surplus
   static GoalPlan plan(Goal g, {required int avgSurplusCents, DateTime? now}) {
     final today = now ?? DateTime.now();
-    if (g.reached) return const GoalPlan('Ziel erreicht.', true);
+    if (g.reached) return GoalPlan(tr('Ziel erreicht.'), true);
     final deadline = g.deadline;
     // the date has passed: say so instead of pretending a month is left
     if (deadline != null && deadline.isBefore(DateTime(today.year, today.month, today.day))) {
       return GoalPlan(
-          'Datum vorbei, noch ${Money.format(g.remainingCents)}. Neues Datum setzen.',
+          tr('Datum vorbei, noch {x}. Neues Datum setzen.', {'x': Money.format(g.remainingCents)}),
           false);
     }
     // on autopilot: the plan is what the user set up, measured against the date
@@ -49,38 +50,38 @@ class GoalsService {
       final need = g.monthlyNeeded(today);
       if (need != null && g.monthlyCents < need) {
         return GoalPlan(
-            '${Money.format(g.monthlyCents)}/Monat ist knapp, bis zum Datum bräuchtest du ${Money.format(need)}.',
+            tr('{x}/Monat ist knapp, bis zum Datum bräuchtest du {y}.', {'x': Money.format(g.monthlyCents), 'y': Money.format(need)}),
             false);
       }
       return GoalPlan(
-          '${Money.format(g.monthlyCents)} im Monat, fertig in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
+          tr('{x} im Monat, fertig in {months} {y}.', {'x': Money.format(g.monthlyCents), 'months': months, 'y': months == 1 ? tr('Monat') : tr('Monaten')}),
           true);
     }
     final need = g.monthlyNeeded(today);
     if (need == null) {
       if (avgSurplusCents <= 0) {
-        return const GoalPlan('Mit Datum rechne ich dir einen Monatsplan aus.', false);
+        return GoalPlan(tr('Mit Datum rechne ich dir einen Monatsplan aus.'), false);
       }
       // without a date: how long at half of the usual surplus
       // rounded down to full 10 €, a number people actually set up
       final perMonth = (avgSurplusCents ~/ 2 ~/ 1000) * 1000;
       if (perMonth <= 0) {
-        return const GoalPlan('Mit Datum rechne ich dir einen Monatsplan aus.', false);
+        return GoalPlan(tr('Mit Datum rechne ich dir einen Monatsplan aus.'), false);
       }
       final months = (g.remainingCents / perMonth).ceil();
       return GoalPlan(
-          'Etwa ${Money.format(perMonth)} im Monat, fertig in $months ${months == 1 ? 'Monat' : 'Monaten'}.',
+          tr('Etwa {x} im Monat, fertig in {months} {y}.', {'x': Money.format(perMonth), 'months': months, 'y': months == 1 ? tr('Monat') : tr('Monaten')}),
           true);
     }
     final share = avgSurplusCents <= 0 ? 999.0 : need / avgSurplusCents;
     if (share <= 0.6) {
-      return GoalPlan('${Money.format(need)} im Monat passt in deinen Überschuss.', true);
+      return GoalPlan(tr('{x} im Monat passt in deinen Überschuss.', {'x': Money.format(need)}), true);
     }
     if (share <= 1) {
-      return GoalPlan('${Money.format(need)} im Monat ist knapp, fast dein ganzer Überschuss.', true);
+      return GoalPlan(tr('{x} im Monat ist knapp, fast dein ganzer Überschuss.', {'x': Money.format(need)}), true);
     }
     return GoalPlan(
-        '${Money.format(need)}/Monat wären nötig. Datum verschieben oder Ziel senken.',
+        tr('{x}/Monat wären nötig. Datum verschieben oder Ziel senken.', {'x': Money.format(need)}),
         false);
   }
 }

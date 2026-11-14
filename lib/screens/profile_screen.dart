@@ -172,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   builder: (context, on, _) => SettingsRow(
                     icon: Icons.notifications_rounded,
                     title: tr('Mitteilungen'),
-                    subtitle: on ? 'An' : tr('Aus'),
+                    subtitle: on ? tr('An') : tr('Aus'),
                     onTap: _openNotifications,
                   ),
                 ),
@@ -216,6 +216,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   await Settings.setHideAmounts(v);
                   if (mounted) setState(() {});
                 }),
+                SettingsRow(
+                  icon: Icons.translate_rounded,
+                  title: tr('Sprache'),
+                  subtitle: L10n.names[L10n.lang.value]!,
+                  onTap: _pickLanguage,
+                ),
               ]),
 
               SectionLabel(tr('Planen')),
@@ -676,6 +682,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // each language is named in itself, so it can be found from either side
+  Future<void> _pickLanguage() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final code in L10n.supported)
+            ListTile(
+              title: Text(L10n.names[code]!, style: const TextStyle(fontWeight: FontWeight.w600)),
+              trailing: code == L10n.lang.value ? Icon(Icons.check_rounded, color: AppColors.text) : null,
+              onTap: () => Navigator.pop(context, code),
+            ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (picked == null || picked == L10n.lang.value) return;
+    await L10n.set(picked);
+    if (mounted) setState(() {});
+  }
+
   Widget _switch(IconData icon, String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
     return SettingsRow(
       icon: icon,
@@ -735,7 +763,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     m.income <= 0
                         ? tr('kein Einkommen')
-                        : '${Money.format(m.income - m.spent)} von ${Money.format(m.income)}',
+                        : tr('{x} von {y}', {'x': Money.format(m.income - m.spent), 'y': Money.format(m.income)}),
                     style: TextStyle(color: AppColors.textDim, fontSize: 13),
                   ),
                   SizedBox(

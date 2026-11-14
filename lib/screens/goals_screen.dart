@@ -124,14 +124,14 @@ class GoalCard extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(goal.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text('${Money.format(goal.savedCents)} von ${Money.format(goal.targetCents)}',
+              Text(tr('{x} von {y}', {'x': Money.format(goal.savedCents), 'y': Money.format(goal.targetCents)}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 14)),
               if (GoalMove.potOf(goal) case final pot?)
                 Text(tr('liegt auf {name}', {'name': pot.name}), style: TextStyle(color: AppColors.textDim, fontSize: 12.5))
               else if (goal.deadline != null)
-                Text('bis ${Dates.full(goal.deadline!)}', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                Text(tr('bis {x}', {'x': Dates.full(goal.deadline!)}), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               if (goal.deadline != null && GoalMove.potOf(goal) != null)
-                Text('bis ${Dates.full(goal.deadline!)}', style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+                Text(tr('bis {x}', {'x': Dates.full(goal.deadline!)}), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
             ]),
           ),
           PopupMenuButton<String>(
@@ -310,7 +310,7 @@ class GoalCard extends StatelessWidget {
                 items: [
                   for (final a in MoneyAccounts.all)
                     if (a.id != (take ? to.id : from.id))
-                      DropdownMenuItem(value: a.id, child: Text(a.name)),
+                      DropdownMenuItem(value: a.id, child: Text(tr(a.name))),
                 ],
                 onChanged: (id) {
                   final a = MoneyAccounts.byId(id);
@@ -368,7 +368,7 @@ class GoalCard extends StatelessWidget {
     final msg = take
         ? (result.booked
             ? tr('{x} von {x2} zurück', {'x': Money.raw(result.moved), 'x2': result.potName ?? tr('Sparkonto')})
-            : '${Money.raw(result.moved)} aus ${goal.name} entnommen')
+            : tr('{x} aus {y} entnommen', {'x': Money.raw(result.moved), 'y': goal.name}))
         : (result.booked
             ? tr('{x} auf {x2} · Ziel aktualisiert', {'x': Money.raw(result.moved), 'x2': result.potName ?? tr('Sparkonto')})
             : tr('{x} für {name} gezählt', {'x': Money.raw(result.moved), 'name': goal.name}));
@@ -616,7 +616,7 @@ class _NewGoalState extends State<_NewGoal> {
             if (d != null) setState(() => _deadline = d);
           },
           icon: const Icon(Icons.event_rounded, size: 18),
-          label: Text(_deadline == null ? tr('Bis wann? (optional)') : 'bis ${Dates.full(_deadline!)}'),
+          label: Text(_deadline == null ? tr('Bis wann? (optional)') : tr('bis {x}', {'x': Dates.full(_deadline!)})),
         ),
         if (_deadline != null)
           TextButton(
@@ -630,7 +630,7 @@ class _NewGoalState extends State<_NewGoal> {
             decoration: InputDecoration(labelText: tr('Geld landet auf')),
             items: [
               for (final a in MoneyAccounts.all)
-                DropdownMenuItem(value: a.id, child: Text(a.name)),
+                DropdownMenuItem(value: a.id, child: Text(tr(a.name))),
             ],
             onChanged: (id) => setState(() => _potId = id),
           ),

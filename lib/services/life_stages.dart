@@ -8,23 +8,31 @@
 // savings goal) ends in the usual confirm card.
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../l10n/l10n.dart';
 
+// texts are German keys, shown in the app language
 class LifeStep {
   final String id;
-  final String title;
-  final String subtitle;
-  final String prompt; // what goes into the chat
-  final String offline; // the answer without AI
-  const LifeStep(this.id, this.title, this.subtitle, this.prompt, this.offline);
+  final String _title;
+  final String _subtitle;
+  final String _prompt; // what goes into the chat
+  final String _offline; // the answer without AI
+  const LifeStep(this.id, this._title, this._subtitle, this._prompt, this._offline);
+  String get title => tr(_title);
+  String get subtitle => tr(_subtitle);
+  String get prompt => tr(_prompt);
+  String get offline => tr(_offline);
 }
 
 class LifeStage {
   final String id;
-  final String name;
-  final String tagline;
+  final String _name;
+  final String _tagline;
   final IconData icon;
   final List<LifeStep> steps;
-  const LifeStage(this.id, this.name, this.tagline, this.icon, this.steps);
+  const LifeStage(this.id, this._name, this._tagline, this.icon, this.steps);
+  String get name => tr(_name);
+  String get tagline => tr(_tagline);
 }
 
 class LifeStages {
@@ -217,16 +225,16 @@ class LifeStages {
       }
     }
     const hints = <String, List<String>>{
-      'gehalt': ['gehaltsabrechnung', 'lohnabrechnung', 'abrechnung prüfen', 'steuerklasse'],
-      'betriebsrente': ['betriebsrente', 'bav', 'entgeltumwandlung'],
-      'notgroschen': ['notgroschen', 'notreserve', 'rücklage'],
-      'sparrate': ['wie viel sparen', 'wieviel sparen', 'sparrate', 'wie viel sollte ich', 'monatlich sparen'],
-      'steuer': ['steuererklärung', 'steuer zurück', 'elster'],
-      'kaution': ['kaution', 'umzug kost', 'umziehen'],
-      'vertraege': ['ummelden', 'verträge umzug'],
-      'teilen': ['zusammenziehen', 'kosten teilen', 'fair aufteilen'],
-      'konto': ['gemeinschaftskonto', 'gemeinsames konto'],
-      'was': ['altersvorsorgedepot'],
+      'gehalt': ['gehaltsabrechnung', 'lohnabrechnung', 'abrechnung prüfen', 'steuerklasse', 'payslip', 'tax class'],
+      'betriebsrente': ['betriebsrente', 'bav', 'entgeltumwandlung', 'company pension'],
+      'notgroschen': ['notgroschen', 'notreserve', 'rücklage', 'emergency fund'],
+      'sparrate': ['wie viel sparen', 'wieviel sparen', 'sparrate', 'wie viel sollte ich', 'monatlich sparen', 'how much should i save', 'savings rate'],
+      'steuer': ['steuererklärung', 'steuer zurück', 'elster', 'tax return'],
+      'kaution': ['kaution', 'umzug kost', 'umziehen', 'deposit'],
+      'vertraege': ['ummelden', 'verträge umzug', 'contracts when i move'],
+      'teilen': ['zusammenziehen', 'kosten teilen', 'fair aufteilen', 'moving in together', 'split costs'],
+      'konto': ['gemeinschaftskonto', 'gemeinsames konto', 'joint account'],
+      'was': ['altersvorsorgedepot', 'retirement savings depot'],
     };
     for (final entry in hints.entries) {
       if (entry.value.any(q.contains)) {

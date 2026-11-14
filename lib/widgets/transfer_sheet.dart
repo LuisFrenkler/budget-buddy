@@ -124,7 +124,7 @@ class _TransferSheetState extends State<_TransferSheet> {
   Widget _picker(String label, MoneyAccount value, ValueChanged<MoneyAccount> onChanged) => DropdownButtonFormField<String>(
         initialValue: value.id,
         decoration: InputDecoration(labelText: label),
-        items: [for (final a in _accounts) DropdownMenuItem(value: a.id, child: Text(a.name))],
+        items: [for (final a in _accounts) DropdownMenuItem(value: a.id, child: Text(tr(a.name)))],
         onChanged: (id) {
           if (id == null) return;
           onChanged(_accounts.firstWhere((a) => a.id == id));

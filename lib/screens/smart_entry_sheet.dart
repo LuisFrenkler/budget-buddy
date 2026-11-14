@@ -188,7 +188,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     messenger.showSnackBar(SnackBar(
       persist: false,
       duration: const Duration(seconds: 5),
-      content: Text('${tx.note ?? tx.category} · ${tx.amountText} gespeichert'),
+      content: Text(tr('{x} · {y} gespeichert', {'x': tx.note ?? tx.category, 'y': tx.amountText})),
       action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.deleteTx(tx.id)),
     ));
     if (needBalance) {
@@ -314,7 +314,7 @@ class _SmartEntryState extends State<_SmartEntry> {
             Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
             Text(
-                '${b.category} · ${Dates.relativeDay(b.date)}'
+                '${tr(b.category)} · ${Dates.relativeDay(b.date)}'
                 '${remembered ? ' · Merkt sich $title' : ''}'
                 '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : _withoutAi ? ' · Ohne KI erkannt' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 13)),

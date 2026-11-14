@@ -97,7 +97,7 @@ class ShareCard extends StatelessWidget {
                   Text(tr('Dein Buddy für Geld und Zukunft'),
                       style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.8))),
                   const SizedBox(height: 2),
-                  const Text('ahead · Frag Buddy', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  Text(tr('ahead · Frag Buddy'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),
             ),

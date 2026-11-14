@@ -200,7 +200,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(children: [
-                Expanded(child: Text(a.name)),
+                Expanded(child: Text(tr(a.name))),
                 Text(Money.format(MoneyAccounts.balanceOf(a, tx)),
                     style: const TextStyle(fontWeight: FontWeight.w700)),
               ]),
@@ -975,7 +975,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     if (d.inMinutes < 1) return tr('gerade eben');
     if (d.inMinutes < 60) return tr('vor {inMinutes} Min.', {'inMinutes': d.inMinutes});
     if (d.inHours < 24) return tr('vor {inHours} Std.', {'inHours': d.inHours});
-    return 'am ${Dates.dayMonth(t)}';
+    return tr('am {x}', {'x': Dates.dayMonth(t)});
   }
 
   // --- bank flow ---

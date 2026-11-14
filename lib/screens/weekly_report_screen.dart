@@ -43,7 +43,7 @@ class WeeklyReportScreen extends StatelessWidget {
                 final pct = change == null ? null : (change * 100).round().abs();
                 final text = change == null || report.roughlyUsual
                     ? tr('Meine Woche mit Ahead: {headline}', {'headline': report.headline})
-                    : tr('Meine Woche: {pct} % {x} als sonst · Ahead', {'pct': pct, 'x': change < 0 ? 'weniger' : 'mehr'});
+                    : tr('Meine Woche: {pct} % {x} als sonst · Ahead', {'pct': pct, 'x': change < 0 ? tr('weniger') : tr('mehr')});
                 showWeeklyStoryShare(context, report, fallbackText: text);
               },
               icon: const Icon(Icons.ios_share_rounded),

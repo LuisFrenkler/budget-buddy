@@ -8,6 +8,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import '../l10n/l10n.dart';
 
 class AvatarService {
   static const key = 'avatarBytes';
@@ -51,7 +52,7 @@ class AvatarService {
     try {
       desc = await ui.ImageDescriptor.encoded(await ui.ImmutableBuffer.fromUint8List(data));
     } catch (_) {
-      throw 'Das ist kein gültiges Foto.';
+      throw tr('Das ist kein gültiges Foto.');
     }
     final scale = side / math.min(desc.width, desc.height);
     if (scale >= 1 && data.length <= maxBytes && _looksLikeImage(data)) return data;
@@ -62,12 +63,12 @@ class AvatarService {
     final image = (await codec.getNextFrame()).image;
     final png = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
-    if (png == null) throw 'Das Foto konnte nicht gelesen werden.';
+    if (png == null) throw tr('Das Foto konnte nicht gelesen werden.');
     return png.buffer.asUint8List();
   }
 
   static Future<void> set(Uint8List data) async {
-    if (data.isEmpty) throw 'Das Bild ist leer.';
+    if (data.isEmpty) throw tr('Das Bild ist leer.');
     data = await shrink(data);
     await _box.put(key, base64Encode(data));
     changed.value++;

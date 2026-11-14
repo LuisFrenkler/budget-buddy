@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'backend_service.dart';
 import 'glossary.dart';
 import 'life_stages.dart';
+import '../l10n/l10n.dart';
 
 class GuestBuddy {
   static const perDay = 3;
@@ -63,6 +64,7 @@ class GuestBuddy {
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode({
         'device': deviceId,
+        'lang': L10n.lang.value,
         'history': [
           for (final m in history.length > 9 ? history.sublist(history.length - 9) : history)
             {'role': m.fromUser ? 'user' : 'assistant', 'text': m.text}
@@ -78,7 +80,7 @@ class GuestBuddy {
         try {
           msg = '${(jsonDecode(body) as Map)['error']}';
         } catch (_) {
-          msg = 'Buddy ist gerade nicht erreichbar.';
+          msg = tr('Buddy ist gerade nicht erreichbar.');
         }
         throw msg;
       }
@@ -100,16 +102,11 @@ class GuestBuddy {
     if (step != null) return step.offline;
     final q = question.toLowerCase();
     for (final t in Glossary.terms) {
-      final words = [t.term, ...t.also].map((w) => w.toLowerCase());
+      final words = t.words.map((w) => w.toLowerCase());
       if (words.any((w) => RegExp('(^|[^a-zäöüß])${RegExp.escape(w)}([^a-zäöüß]|\$)').hasMatch(q))) {
-        return '**${t.term}**: ${t.text}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.';
+        return tr('**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.', {'x': t.term, 'y': t.text});
       }
     }
-    return 'Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\n'
-        'Was ich offline gut kann:\n'
-        '- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n'
-        '- **Umzug** und **Zusammenziehen**\n'
-        '- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\n'
-        'Nächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.';
+    return tr('Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.');
   }
 }

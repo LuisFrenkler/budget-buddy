@@ -230,8 +230,8 @@ class _PlusScreenState extends State<PlusScreen> {
                 // automatic renewal, where to cancel, and the legal texts
                 Text(
                   _hasTrial
-                      ? tr('Danach {x} {x2}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? 'im ${StorePurchases.storeName}' : tr('unter Profil › Mein Abo')})
-                      : tr('{x} {x2}, verlängert sich automatisch, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? 'im ${StorePurchases.storeName}' : tr('unter Profil › Mein Abo')}),
+                      ? tr('Danach {x} {x2}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? tr('im {x}', {'x': StorePurchases.storeName}) : tr('unter Profil › Mein Abo')})
+                      : tr('{x} {x2}, verlängert sich automatisch, jederzeit kündbar {x3}.', {'x': PlusService.price(_yearly ? PlusPlan.yearly : PlusPlan.monthly), 'x2': _yearly ? tr('im Jahr') : tr('im Monat'), 'x3': StorePurchases.supported ? tr('im {x}', {'x': StorePurchases.storeName}) : tr('unter Profil › Mein Abo')}),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
                 ),

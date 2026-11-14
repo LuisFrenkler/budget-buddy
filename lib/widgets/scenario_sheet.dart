@@ -109,7 +109,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
                 Text(
                   cmp.deltaFree == 0
                       ? tr('wie heute')
-                      : '${cmp.deltaFree > 0 ? '+' : ''}${Money.format(cmp.deltaFree)} vs. heute',
+                      : tr('{x}{y} vs. heute', {'x': cmp.deltaFree > 0 ? '+' : '', 'y': Money.format(cmp.deltaFree)}),
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: cmp.deltaFree > 0
@@ -156,7 +156,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   title: Text(c.name),
-                  subtitle: Text('${Money.format(c.monthlyCents)} / Monat'),
+                  subtitle: Text(tr('{x} / Monat', {'x': Money.format(c.monthlyCents)})),
                   value: _excluded.contains(Merchant.key(c.name)),
                   onChanged: (on) {
                     HapticFeedback.selectionClick();
@@ -195,7 +195,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
                 Expanded(
                   child: Text(_goalsTrim == 0
                       ? tr('Volle Rate ({x})', {'x': Money.format(baseGoals)})
-                      : '− ${Money.format(_goalsTrim)} (noch ${Money.format(baseGoals - _goalsTrim)})'),
+                      : tr('− {x} (noch {y})', {'x': Money.format(_goalsTrim), 'y': Money.format(baseGoals - _goalsTrim)})),
                 ),
                 IconButton(
                   onPressed: _goalsTrim >= baseGoals

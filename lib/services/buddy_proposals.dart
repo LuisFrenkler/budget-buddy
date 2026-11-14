@@ -101,8 +101,8 @@ class BuddyProposal {
     final category = '${input['kategorie'] ?? ''}'.trim();
     if (category.isEmpty) throw const FormatException('kategorie fehlt');
     final cents = _cents(input['betrag']);
-    return BuddyProposal(ProposalKind.budget, 'Budget $category',
-        '${Money.format(cents)} im Monat, ab diesem Monat', {'kategorie': category, 'cents': cents});
+    return BuddyProposal(ProposalKind.budget, tr('Budget {category}', {'category': category}),
+        tr('{x} im Monat, ab diesem Monat', {'x': Money.format(cents)}), {'kategorie': category, 'cents': cents});
   }
 
   static BuddyProposal goal(Map<String, dynamic> input, {required DateTime today}) {
@@ -115,8 +115,8 @@ class BuddyProposal {
     final monthly = input['monatlich'] == null ? null : _cents(input['monatlich']);
     final parts = [
       Money.format(cents),
-      if (until != null) 'bis ${until.month.toString().padLeft(2, '0')}/${until.year}',
-      if (monthly != null) '${Money.format(monthly)} im Monat',
+      if (until != null) tr('bis {x}/{y}', {'x': until.month.toString().padLeft(2, '0'), 'y': until.year}),
+      if (monthly != null) tr('{x} im Monat', {'x': Money.format(monthly)}),
     ];
     return BuddyProposal(ProposalKind.goal, 'Sparziel $name', parts.join(' · '),
         {'name': name, 'cents': cents, 'bis': until, 'monthlyCents': monthly});
@@ -134,7 +134,7 @@ class BuddyProposal {
       }
     } catch (_) {}
     final letter = CancellationService.letter(provider: provider, name: name, email: email);
-    return BuddyProposal(ProposalKind.cancel, 'Kündigung $provider', 'Fertiger Text, fristgerecht zum nächstmöglichen Termin',
+    return BuddyProposal(ProposalKind.cancel, tr('Kündigung {provider}', {'provider': provider}), tr('Fertiger Text, fristgerecht zum nächstmöglichen Termin'),
         {'anbieter': provider, 'letter': letter});
   }
 
@@ -142,7 +142,7 @@ class BuddyProposal {
     final merchant = '${input['haendler'] ?? ''}'.trim();
     final category = '${input['kategorie'] ?? ''}'.trim();
     if (merchant.isEmpty || category.isEmpty) throw const FormatException('haendler und kategorie nötig');
-    return BuddyProposal(ProposalKind.category, '$merchant → $category', 'Alle Buchungen und neue in Zukunft',
+    return BuddyProposal(ProposalKind.category, '$merchant → $category', tr('Alle Buchungen und neue in Zukunft'),
         {'haendler': merchant, 'kategorie': category});
   }
 
@@ -150,7 +150,7 @@ class BuddyProposal {
     final text = '${input['text'] ?? ''}'.trim();
     if (text.isEmpty) throw const FormatException('text fehlt');
     final date = DateTime.tryParse('${input['datum'] ?? ''}');
-    final when = date == null ? 'ohne Datum' : '${date.day}.${date.month}.${date.year}';
+    final when = date == null ? tr('ohne Datum') : '${date.day}.${date.month}.${date.year}';
     return BuddyProposal(ProposalKind.reminder, 'Erinnerung', '$text · $when', {'text': text, 'datum': date});
   }
 }
