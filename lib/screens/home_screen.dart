@@ -16,6 +16,7 @@ import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/tx_row.dart';
 import '../widgets/vault_banner.dart';
+import '../widgets/brand.dart';
 import 'account_screen.dart';
 import 'add_holding_screen.dart';
 import 'budget_screen.dart';
@@ -240,68 +241,90 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // floating pill nav + add, inspired by modern finance apps (clear, springy, one primary CTA)
+  // floating pill nav. Buddy is the product, so he is not one tab among
+  // four: a raised copper button in the middle that sits above the bar.
+  // Quick entry ("+") is a quiet item at the end.
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
+    const barHeight = 64.0;
+    const rise = 20.0;
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 64,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.85)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.35 : 0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
+        child: SizedBox(
+          height: barHeight + rise,
+          child: Stack(clipBehavior: Clip.none, alignment: Alignment.bottomCenter, children: [
+            Container(
+              height: barHeight,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.96),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: AppColors.border.withValues(alpha: 0.85)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.35 : 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(children: [
+                _navItem(Icons.dashboard_rounded, tr('Überblick'), 0),
+                _navItem(Icons.account_balance_wallet_rounded, tr('Konto'), 1),
+                // room for Buddy
+                const SizedBox(width: 84),
+                _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: tr('Schnell erfassen. Lange drücken für mehr.'),
+                    excludeSemantics: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        showSmartEntry(context);
+                      },
+                      onLongPress: () {
+                        HapticFeedback.heavyImpact();
+                        _showAddMenu();
+                      },
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Container(
+                          width: 30,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceAlt,
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Icon(Icons.add_rounded, size: 20, color: AppColors.text),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(tr('Neu'),
+                            style: TextStyle(fontSize: 10.5, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+                      ]),
                     ),
-                  ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    _navItem(Icons.dashboard_rounded, tr('Überblick'), 0),
-                    // Buddy sits in the middle of the bar — the product, not a side tab
-                    _navItem(Icons.chat_bubble_rounded, tr('Buddy'), 3, featured: true),
-                    _navItem(Icons.account_balance_wallet_rounded, tr('Konto'), 1),
-                    _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
-                  ],
-                ),
-              ),
+              ]),
             ),
-            const SizedBox(width: 12),
-            Semantics(
-              button: true,
-              label: tr('Schnell erfassen. Lange drücken für mehr.'),
-              child: _AddFab(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  showSmartEntry(context);
-                },
-                onLongPress: _showAddMenu,
-              ),
+            Positioned(
+              top: 0,
+              child: _BuddyButton(active: _tab == 3, onTap: () => _open(3)),
             ),
-          ],
+          ]),
         ),
       ),
     );
   }
 
-  Widget _navItem(IconData icon, String label, int i, {bool featured = false}) {
+  Widget _navItem(IconData icon, String label, int i) {
     final active = _tab == i;
-    final color = active || featured
-        ? AppColors.primaryText
-        : AppColors.textDim;
+    final color = active ? AppColors.primaryText : AppColors.textDim;
     return Expanded(
-      flex: featured ? 6 : 5,
       child: Semantics(
         button: true,
         selected: active,
@@ -315,28 +338,27 @@ class _HomeScreenState extends State<HomeScreen> {
             curve: Curves.easeOutCubic,
             margin: const EdgeInsets.symmetric(horizontal: 2),
             decoration: BoxDecoration(
-              color: active
-                  ? AppColors.primary.withValues(alpha: 0.18)
-                  : featured
-                      ? AppColors.primary.withValues(alpha: 0.08)
-                      : Colors.transparent,
+              color: active ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
               borderRadius: BorderRadius.circular(26),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedScale(
-                  scale: active ? 1.1 : featured ? 1.04 : 1,
+                  scale: active ? 1.08 : 1,
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutBack,
-                  child: Icon(icon, color: color, size: featured ? 24 : 22),
+                  child: Icon(icon, color: color, size: 22),
                 ),
                 const SizedBox(height: 2),
                 Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
                     style: TextStyle(
-                        fontSize: featured ? 11 : 10.5,
+                        fontSize: 10.5,
                         color: color,
-                        fontWeight: active || featured ? FontWeight.w800 : FontWeight.w500,
+                        fontWeight: active ? FontWeight.w800 : FontWeight.w500,
                         letterSpacing: active ? -0.2 : 0)),
               ],
             ),
@@ -450,49 +472,70 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// round + : tap = Schnell erfassen, long-press = volles Neu-Menü
-class _AddFab extends StatefulWidget {
+// Buddy in the middle of the navigation: a copper coin with his "b",
+// raised above the bar, glowing softly while his chat is open
+class _BuddyButton extends StatefulWidget {
+  final bool active;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  const _AddFab({required this.onTap, required this.onLongPress});
+  const _BuddyButton({required this.active, required this.onTap});
 
   @override
-  State<_AddFab> createState() => _AddFabState();
+  State<_BuddyButton> createState() => _BuddyButtonState();
 }
 
-class _AddFabState extends State<_AddFab> {
+class _BuddyButtonState extends State<_BuddyButton> {
   bool _down = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _down = true),
-      onTapUp: (_) => setState(() => _down = false),
-      onTapCancel: () => setState(() => _down = false),
-      onTap: widget.onTap,
-      onLongPress: () {
-        HapticFeedback.heavyImpact();
-        widget.onLongPress();
-      },
-      child: AnimatedScale(
-        scale: _down ? 0.92 : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.brand,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+    return Semantics(
+      button: true,
+      selected: widget.active,
+      label: tr('Buddy'),
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _down = true),
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          widget.onTap();
+        },
+        child: SizedBox(
+          width: 84,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            AnimatedScale(
+              scale: _down ? 0.92 : (widget.active ? 1.0 : 0.96),
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOutBack,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                width: 62,
+                height: 62,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.brand,
+                  border: Border.all(color: AppColors.bg, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.brand.withValues(alpha: widget.active ? 0.55 : 0.3),
+                      blurRadius: widget.active ? 22 : 12,
+                      spreadRadius: widget.active ? 1 : 0,
+                    ),
+                  ],
+                ),
+                child: CustomPaint(painter: MarkPainter()),
               ),
-            ],
-          ),
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+            ),
+            const SizedBox(height: 1),
+            Text(tr('Buddy'),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: widget.active ? AppColors.brand : AppColors.text,
+                )),
+          ]),
         ),
       ),
     );
