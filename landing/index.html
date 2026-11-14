@@ -4,136 +4,297 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ahead</title>
-<meta name="description" content="Ahead ist ein Buddy für dein Geld, der weiß, was gerade bei dir los ist. Du schreibst ihm, er rechnet mit deinen echten Zahlen und sagt dir, was du jetzt tun solltest.">
+<meta name="description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
 <meta property="og:title" content="Ahead">
-<meta property="og:description" content="Ein Buddy für dein Geld. Du schreibst ihm, er rechnet mit deinen echten Zahlen und sagt dir, was du jetzt tun solltest.">
+<meta property="og:description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
 <meta property="og:image" content="hero.png">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#B06030">
 <!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server -->
 <meta name="ahead-api" content="demo">
 <link rel="icon" href="appicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* One voice, one column, no cards: the page reads like Buddy talking.
-     Ink on paper, copper only where something can be tapped. */
+  /* Ahead's own world: a copper coin, a path with steps, and Buddy's
+     "Nächster Schritt". Copper is the ground of the opening, not a glow.
+     Below it, plain paper and a conversation set in large type. */
   :root{
-    --paper:#FFFFFF; --ink:#141414; --soft:#6B6B6B; --line:#D9D9D9; --copper:#A4552A; --quote:#F6F2EE;
-    --serif:"Newsreader","Iowan Old Style","Georgia",serif;
-    --sans:"Inter",ui-sans-serif,system-ui,-apple-system,sans-serif;
+    --copper:#B06030; --copper-ink:#7A3A16; --on-copper:#FFF6EF;
+    --paper:#FFFFFF; --ink:#16120F; --soft:#6E655F; --line:#E7E1DC; --tint:#F5EEE8;
+    --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+    --text:"Inter",ui-sans-serif,system-ui,-apple-system,sans-serif;
   }
-  @media (prefers-color-scheme:dark){:root{--paper:#111111;--ink:#EDEDED;--soft:#9A9A9A;--line:#3A3A3A;--copper:#E0915F;--quote:#1C1916;color-scheme:dark}}
+  @media (prefers-color-scheme:dark){:root{--paper:#14110F;--ink:#F2ECE7;--soft:#A39A93;--line:#2E2824;--tint:#201A16;color-scheme:dark}}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
-  body{background:var(--paper);color:var(--ink);font:400 clamp(25px,3.1vw,36px)/1.32 var(--serif);
-       font-optical-sizing:auto;-webkit-font-smoothing:antialiased;letter-spacing:-.005em}
-  .page{max-width:760px;margin:0 auto;padding:max(40px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) 64px max(24px,env(safe-area-inset-left))}
-  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:clamp(64px,12vw,140px)}
-  .mark{width:52px;height:73px;color:var(--ink);display:block}
-  nav{display:flex;gap:24px;font:500 15px/1.4 var(--sans)}
-  nav a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
-  p+p,p+.ex,.ex+p,p+form,p+.spot{margin-top:1.05em}
+  body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .w{max-width:1080px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
   a{color:inherit}
-  /* tappable examples: underlined like Instinct, copper when open */
-  .ex-link{color:inherit;cursor:pointer;
-           text-decoration:underline;text-decoration-thickness:1px;text-decoration-color:var(--line);text-underline-offset:.16em}
-  .ex-link:hover,.ex-link[aria-expanded="true"]{text-decoration-color:var(--copper);color:var(--copper)}
-  .ex-link:focus-visible,button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:2px}
-  /* what Buddy says, set apart quietly */
-  .ex{font:400 17px/1.55 var(--sans);background:var(--quote);border-radius:18px;padding:18px 20px;max-width:560px}
-  .ex[hidden]{display:none}
-  .ex .q{color:var(--soft);font-size:14px;margin-bottom:10px}
-  .ex .who{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-bottom:6px}
-  .ex .who svg{width:14px;color:var(--copper)}
-  .ex b{font-weight:600}
-  .ex ul{list-style:none;margin:8px 0 0;display:grid;gap:4px}
-  .ex li{padding-left:16px;position:relative}
-  .ex li::before{content:"";position:absolute;left:3px;top:.68em;width:5px;height:5px;border-radius:50%;background:var(--copper)}
-  .ex .next{margin-top:12px;font-weight:500}
-  .ex .next::before{content:"Nächster Schritt: ";color:var(--copper);font-weight:600}
-  .ex .tag{margin-top:10px;font-size:12px;color:var(--soft)}
-  /* the waitlist as one sentence */
-  form.join{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3em .5em}
-  form.join input{font:inherit;color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--line);
-                  width:min(12.5em,100%);padding:0 0 .05em;border-radius:0;outline:0}
-  form.join input::placeholder{color:var(--soft)}
-  form.join input:focus{border-bottom-color:var(--copper)}
-  .go{font:600 16px/1 var(--sans);background:var(--ink);color:var(--paper);border:0;border-radius:999px;
-      padding:14px 22px;cursor:pointer;align-self:center;white-space:nowrap}
-  .go:disabled{opacity:.5;cursor:default}
-  .err{font:500 15px/1.4 var(--sans);color:#C0392B;margin-top:10px;min-height:1px}
-  .spot[hidden]{display:none}
-  .spot .num{color:var(--copper)}
-  .spot .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;font:500 15px/1 var(--sans)}
-  .spot code{font:500 15px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--copper);word-break:break-all}
-  .pill{font:600 15px/1 var(--sans);border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:12px 18px;cursor:pointer;text-decoration:none}
-  /* ask Buddy right here */
-  form.ask{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:6px;max-width:560px}
-  form.ask input{flex:1;min-width:0;font:400 17px/1.4 var(--sans);color:var(--ink);background:transparent;border:0;outline:0}
-  form.ask input::placeholder{color:var(--soft)}
-  form.ask button{font:600 14px/1 var(--sans);background:transparent;color:var(--copper);border:0;cursor:pointer;padding:8px 0}
+  h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:.98;text-wrap:balance}
+  :focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:4px}
+
+  /* the coin: Buddy's "b" stamped into copper */
+  .coin{display:inline-grid;place-items:center;border-radius:50%;background:var(--copper);color:#fff;flex:none}
+  .coin svg{width:60%;height:60%}
+  .hero .coin{background:#fff;color:var(--copper)}
+
+  /* ---------------- opening: copper ground */
+  .hero{background:var(--copper);color:var(--on-copper);position:relative;overflow:hidden;padding-bottom:clamp(56px,9vw,104px)}
+  .hero nav{display:flex;align-items:center;gap:20px;padding-top:max(22px,env(safe-area-inset-top));padding-bottom:22px}
+  .brand{display:flex;align-items:center;gap:10px;font:800 23px/1 var(--display);letter-spacing:-.04em;text-decoration:none}
+  .hero nav .links{margin-left:auto;display:flex;gap:22px;font-weight:600;font-size:15px}
+  .hero nav .links a{text-decoration:none;opacity:.88}
+  .hero nav .links a:hover{opacity:1;text-decoration:underline;text-underline-offset:4px}
+  .hero h1{font-size:clamp(50px,10.4vw,128px);margin-top:clamp(44px,8vw,96px);max-width:10.5em}
+  .hero h1 span{color:#2A140A}
+  .hero .lead{font-size:clamp(18px,2vw,21px);max-width:31em;margin-top:22px;color:rgba(255,246,239,.92)}
+  /* the big coin rolling off the right edge */
+  .roll{position:absolute;right:-9vw;top:clamp(120px,15vw,170px);width:clamp(180px,34vw,420px);aspect-ratio:1;border-radius:50%;
+        background:radial-gradient(circle at 34% 30%,#C77847,#9C5226 70%);box-shadow:inset 0 0 0 clamp(8px,1.4vw,16px) rgba(255,255,255,.08);
+        display:grid;place-items:center;color:rgba(255,246,239,.95);pointer-events:none}
+  .roll svg{width:52%;height:52%}
+  @media (max-width:760px){.roll{top:auto;bottom:-14vw;right:-18vw;width:58vw;opacity:.55}}
+
+  /* waitlist: one field, one button */
+  .join{margin-top:34px;display:flex;gap:8px;max-width:520px;padding:6px;border-radius:999px;background:#fff;position:relative;z-index:1}
+  .join input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#16120F;font:500 16px var(--text);padding:0 16px}
+  .join input::placeholder{color:#8B827C}
+  .btn{font:700 15px/1 var(--text);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .btn.ink{background:#16120F;color:#fff}
+  .btn.line{background:transparent;border:1.5px solid currentColor}
+  .btn:disabled{opacity:.6;cursor:default}
+  .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px;color:#2A140A;position:relative;z-index:1}
+  .fine{font-size:13px;color:rgba(255,246,239,.8);position:relative;z-index:1}
+  .spot{display:none;margin-top:30px;max-width:540px;position:relative;z-index:1}
+  .spot.on{display:block}
+  .spot .n{font:800 clamp(64px,10vw,108px)/.9 var(--display);letter-spacing:-.05em}
+  .spot p{margin-top:10px;font-size:17px}
+  .spot code{display:block;margin-top:14px;font:600 15px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+  .spot .row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .spot .btn.line{color:var(--on-copper)}
+  .bars{display:flex;gap:6px;margin-top:16px;max-width:260px}
+  .bars i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.28)}
+  .bars i.on{background:#fff}
+
+  /* ---------------- sections */
+  section{padding:clamp(72px,10vw,128px) 0}
+  .label{font:700 13px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;color:var(--copper)}
+  h2{font-size:clamp(38px,6vw,72px);margin-top:14px;max-width:12em}
+
+  /* the conversation, in large type, no bubbles */
+  .topics{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
+  .topics button{font:600 15px/1 var(--text);color:var(--ink);background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:11px 16px;cursor:pointer}
+  .topics button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .talk{margin-top:44px;display:grid;gap:26px;max-width:820px;min-height:420px}
+  .you{justify-self:end;text-align:right;max-width:16em;font:700 clamp(26px,3.6vw,40px)/1.12 var(--display);letter-spacing:-.03em}
+  .you small{display:block;font:600 13px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:8px}
+  .buddy{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+  .buddy .coin{width:44px;height:44px;margin-top:4px}
+  .buddy .say{font:500 clamp(21px,2.6vw,28px)/1.35 var(--display);letter-spacing:-.015em;max-width:24em}
+  .buddy .say b{font-weight:800;background:linear-gradient(transparent 62%,rgba(176,96,48,.28) 62%)}
+  .buddy ul{list-style:none;margin-top:12px;display:grid;gap:6px;font:500 18px/1.45 var(--text)}
+  .buddy li{display:flex;gap:10px}
+  .buddy li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--copper);margin-top:.62em}
+  /* Buddy's signature: the next step, like a stamp */
+  .step{display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:12px 16px 12px 12px;border:2px solid var(--copper);border-radius:14px;
+        font:600 16px/1.35 var(--text);max-width:100%}
+  .step em{font-style:normal;flex:none;font:800 11px/1 var(--text);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--copper);border-radius:7px;padding:7px 8px}
+  .note{margin-top:14px;font-size:13px;color:var(--soft)}
+  .fade{animation:in .35s ease both}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* the path: life stages as steps forward */
+  .path{margin-top:48px;display:grid;gap:0;max-width:860px}
+  .stop{display:grid;grid-template-columns:64px 1fr;gap:20px;position:relative;padding-bottom:40px}
+  .stop:last-child{padding-bottom:0}
+  .stop::before{content:"";position:absolute;left:31px;top:64px;bottom:0;width:2px;background:var(--line)}
+  .stop:last-child::before{display:none}
+  .dot{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font:800 22px var(--display);border:2px solid var(--line);background:var(--paper)}
+  .stop.now .dot{background:var(--copper);border-color:var(--copper);color:#fff}
+  .stop h3{font-size:clamp(26px,3.4vw,36px);margin-top:12px}
+  .stop p{color:var(--soft);margin-top:8px;max-width:34em}
+  .segs{display:flex;gap:5px;margin-top:14px;max-width:320px}
+  .segs i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+  .segs i.on{background:var(--copper)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .chips span{font:600 13px/1 var(--text);background:var(--tint);border-radius:999px;padding:8px 11px}
+  .when{display:inline-block;font:700 12px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:var(--copper);margin-top:12px}
+
+  /* what Buddy does not do */
+  .nots{margin-top:36px;display:grid;gap:4px}
+  .nots div{font:800 clamp(30px,5.2vw,62px)/1.08 var(--display);letter-spacing:-.035em;text-decoration:line-through;text-decoration-thickness:.08em;text-decoration-color:var(--copper);color:var(--soft)}
+  .punch{margin-top:28px;font:700 clamp(22px,2.8vw,30px)/1.3 var(--display);letter-spacing:-.02em;max-width:22em}
+  .trust{margin-top:44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px 32px;max-width:900px}
+  .trust div{border-top:2px solid var(--ink);padding-top:14px}
+  .trust b{display:block;font:800 19px/1.2 var(--display);letter-spacing:-.02em}
+  .trust span{display:block;color:var(--soft);font-size:15px;margin-top:6px}
+
+  /* ask now + last call */
+  .last{background:var(--tint)}
+  .ask{display:flex;gap:8px;margin-top:30px;max-width:620px;padding:6px;border-radius:999px;background:var(--paper);border:1.5px solid var(--line)}
+  .ask input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font:500 16px var(--text);padding:0 16px}
+  .ask .btn{background:var(--copper);color:#fff}
+  .answer{margin-top:28px;max-width:820px}
   .answer:empty{display:none}
-  .answer{margin-top:16px}
-  .small{font:400 15px/1.55 var(--sans);color:var(--soft)}
-  footer{margin-top:clamp(72px,12vw,140px);display:flex;flex-wrap:wrap;gap:12px 24px;font:400 13px/1.5 var(--sans);color:var(--soft)}
-  footer a{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
-  @media (max-width:520px){header{margin-bottom:56px}nav{gap:16px;font-size:14px}.ex{font-size:16px;padding:16px}}
+  .again{margin-top:56px}
+  .again .join{background:var(--paper);border:1.5px solid var(--line)}
+  .again .join input{color:var(--ink)}
+  .again .err{color:#B3261E}
+  footer{padding:36px 0 max(40px,env(safe-area-inset-bottom));font-size:13px;color:var(--soft)}
+  footer .w{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
+  footer a{text-decoration:underline;text-underline-offset:3px}
+
+  @media (max-width:560px){
+    .step{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 14px}
+    .hero nav .links a:not(:last-child){display:none}
+    .join{flex-direction:column;border-radius:22px}
+    .join input{height:48px}
+    .ask{border-radius:22px}
+    .stop{grid-template-columns:48px 1fr;gap:16px}
+    .dot{width:48px;height:48px;font-size:18px}
+    .stop::before{left:23px;top:48px}
+    .stop h3{margin-top:6px}
+  }
+  @media (prefers-reduced-motion:reduce){.fade{animation:none}}
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="buddy" viewBox="0 0 80 112"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M29.6 7.2 Q30.4 13.5 30.2 17.1 Q30.1 20.7 29.5 24.1 Q28.9 27.5 28.9 30.7 Q28.9 33.8 28.9 36.7 Q29.0 39.5 29.4 43.7 Q29.8 47.8 29.5 50.3 Q29.1 52.8 29.7 57.0 Q30.3 61.1 30.2 63.7 Q30.2 66.3 30.7 69.1 Q31.1 71.9 31.0 75.5 Q30.9 79.0 30.0 82.0 Q29.1 85.1 29.3 89.2 Q29.5 93.3 29.4 96.2 L29.2 99.2" stroke-width="9"/><path d="M29.0 89.7 Q28.5 84.3 28.3 81.6 Q28.1 78.9 29.4 76.6 Q30.7 74.2 32.0 72.0 Q33.2 69.8 34.8 67.8 Q36.4 65.8 38.3 63.8 Q40.1 61.8 42.8 61.2 Q45.5 60.7 48.1 60.6 Q50.7 60.5 53.4 60.6 Q56.1 60.6 58.5 61.8 Q60.9 63.1 62.9 64.8 Q64.9 66.6 67.1 68.2 Q69.4 69.9 70.4 72.5 Q71.5 75.0 71.3 77.8 Q71.2 80.5 71.6 83.2 Q71.9 85.9 71.0 88.4 Q70.2 91.0 69.2 93.6 Q68.2 96.2 66.1 98.0 Q63.9 99.8 61.3 100.7 Q58.7 101.6 56.4 103.3 Q54.1 105.0 51.3 103.9 Q48.5 102.9 45.9 102.8 Q43.3 102.7 40.6 102.0 Q38.0 101.3 36.4 98.9 Q34.9 96.6 32.9 94.8 Q31.0 93.0 30.5 90.3 Q30.1 87.7 28.8 85.2 L27.5 82.8" stroke-width="8.5"/></g></symbol>
+  <symbol id="b" viewBox="0 0 1024 1024"><rect fill="currentColor" x="277" y="210" width="118" height="602" rx="59"/><path fill="currentColor" fill-rule="evenodd" d="M529 376a218 218 0 1 1 0 436a218 218 0 1 1 0-436zm0 114a104 104 0 1 0 0 208a104 104 0 1 0 0-208z"/></symbol>
 </svg>
 
-<div class="page">
-  <header>
-    <a href="#" aria-label="Ahead"><svg class="mark"><use href="#buddy"/></svg></a>
-    <nav><a href="#platz">Warteliste</a><a href="#platz" data-invite>Freund einladen</a></nav>
-  </header>
+<header class="hero">
+  <div class="w">
+    <nav>
+      <a class="brand" href="#"><span class="coin" style="width:34px;height:34px"><svg><use href="#b"/></svg></span>Ahead.</a>
+      <div class="links"><a href="#buddy">Buddy</a><a href="#weg">Lebenslagen</a><a href="#platz">Warteliste</a></div>
+    </nav>
+    <h1>Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
+    <p class="lead">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
+    <div id="platz">
+      <form class="join" novalidate>
+        <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
+        <button class="btn ink" type="submit">Auf die Warteliste</button>
+      </form>
+      <div class="err" role="alert"></div>
+      <div class="spot">
+        <div class="n" data-pos>#–</div>
+        <p>So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
+        <div class="bars" data-bars><i></i><i></i><i></i></div>
+        <code data-link></code>
+        <div class="row">
+          <a class="btn ink" data-wa target="_blank" rel="noopener">Per WhatsApp schicken</a>
+          <button class="btn line" type="button" data-copy>Link kopieren</button>
+        </div>
+      </div>
+      <p class="fine">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
+    </div>
+  </div>
+  <div class="roll" aria-hidden="true"><svg><use href="#b"/></svg></div>
+</header>
 
-  <main>
-    <p>Ahead ist ein Buddy für dein Geld, der weiß, was gerade bei dir los ist: erster Job, erste eigene Wohnung, erstes Gehalt, das schneller weg ist als gedacht.</p>
+<main>
+  <section id="buddy">
+    <div class="w">
+      <div class="label">So redet Buddy</div>
+      <h2>Eine Zahl. Ein Warum. Ein nächster Schritt.</h2>
+      <div class="topics" role="group" aria-label="Beispiele">
+        <button type="button" aria-pressed="true" data-t="urlaub">Urlaub im Juli</button>
+        <button type="button" aria-pressed="false" data-t="gehalt">Erste Abrechnung</button>
+        <button type="button" aria-pressed="false" data-t="abos">Vergessene Abos</button>
+        <button type="button" aria-pressed="false" data-t="wg">WG-Kasse</button>
+        <button type="button" aria-pressed="false" data-t="bav">Betriebsrente</button>
+      </div>
+      <div class="talk" data-talk aria-live="polite"></div>
+    </div>
+  </section>
 
-    <p>Es gibt kein Dashboard, das du verstehen musst. Du schreibst ihm, wie du einer Freundin schreibst. Er rechnet mit deinen echten Zahlen und sagt dir, was du jetzt tun solltest. Entscheiden tust du.</p>
-
-    <p>Er kann dir sagen, <a class="ex-link" href="#ex" role="button" aria-expanded="false" data-ex="urlaub">ob der Urlaub im Juli drin ist</a>, <a class="ex-link" href="#ex" role="button" aria-expanded="false" data-ex="gehalt">deine erste Gehaltsabrechnung prüfen</a>, <a class="ex-link" href="#ex" role="button" aria-expanded="false" data-ex="abos">die Abos finden, die du vergessen hast</a>, <a class="ex-link" href="#ex" role="button" aria-expanded="false" data-ex="wg">ausrechnen, wer in der WG wem was schuldet</a> oder <a class="ex-link" href="#ex" role="button" aria-expanded="false" data-ex="bav">erklären, ob sich die Betriebsrente lohnt</a>.</p>
-
-    <div class="ex" id="ex" hidden aria-live="polite"></div>
-
-    <p>Er bewegt kein Geld und verkauft dir nichts. Er sagt dir auch nicht, dass der Kaffee to go dein Problem ist. Meistens ist es das Fitnessstudio, in das du seit März nicht mehr gehst.</p>
-
-    <p id="platz">Ahead startet bald.</p>
-    <form class="join" novalidate>
-      <span>Trag dich ein:</span>
-      <input type="email" id="email" name="email" placeholder="deine@mail.de" autocomplete="email" required aria-label="E-Mail">
-      <button class="go" type="submit">Platz sichern</button>
-    </form>
-    <div class="err" role="alert"></div>
-
-    <div class="spot" hidden>
-      <p>Du bist Nummer <span class="num" data-pos>–</span>. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
-      <p class="small" style="margin-top:14px"><code data-link></code></p>
-      <div class="row">
-        <button class="pill" type="button" data-copy>Link kopieren</button>
-        <a class="pill" data-wa target="_blank" rel="noopener">Per WhatsApp schicken</a>
+  <section id="weg" style="padding-top:0">
+    <div class="w">
+      <div class="label">Lebenslagen statt Menüs</div>
+      <h2>Dein Weg nach vorn, Schritt für Schritt.</h2>
+      <div class="path">
+        <div class="stop now">
+          <div class="dot">1</div>
+          <div>
+            <h3>Erster Job</h3>
+            <p>Die fünf Dinge, die im ersten Jahr wirklich zählen. Buddy geht jeden mit dir durch und hakt ab, was erledigt ist.</p>
+            <div class="segs" aria-label="2 von 5 erledigt"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="chips"><span>Gehaltsabrechnung</span><span>Betriebsrente</span><span>Notgroschen</span><span>Sparrate</span><span>Steuererklärung</span></div>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="dot">2</div>
+          <div>
+            <h3>Erste eigene Wohnung</h3>
+            <p>Kaution, doppelte Miete, Verträge ummelden. Buddy legt das Umzugsbudget an, bevor der Notgroschen dran glauben muss.</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="dot">3</div>
+          <div>
+            <h3>Zusammenziehen</h3>
+            <p>Halbe-halbe oder nach Einkommen? Buddy rechnet beides und schreibt, wer wem was schuldet.</p>
+          </div>
+        </div>
+        <div class="stop">
+          <div class="dot">4</div>
+          <div>
+            <h3>Altersvorsorgedepot</h3>
+            <p>Neu und staatlich gefördert. Buddy rechnet deine grobe Rentenlücke aus, damit du zum Start weißt, wie viel du brauchst.</p>
+            <span class="when">Start nach aktuellem Plan: 1. Januar 2027</span>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <p style="margin-top:2em">Oder frag ihn einfach jetzt:</p>
-    <form class="ask" style="margin-top:14px">
-      <input id="q" name="q" placeholder="Wie viel Notgroschen brauche ich?" autocomplete="off" maxlength="400" aria-label="Frage an Buddy">
-      <button type="submit">Fragen</button>
-    </form>
-    <div class="answer" aria-live="polite"></div>
-  </main>
+  <section style="padding-top:0">
+    <div class="w">
+      <div class="label">Was Buddy nicht macht</div>
+      <div class="nots">
+        <div>Geld bewegen</div>
+        <div>Dir Fonds verkaufen</div>
+        <div>Den Kaffee to go zählen</div>
+      </div>
+      <p class="punch">Meistens ist es eh das Fitnessstudio, in das du seit März nicht mehr gehst.</p>
+      <div class="trust">
+        <div><b>Nur lesen</b><span>Dein Konto ist über die offizielle PSD2-Schnittstelle verbunden. Überweisen kann Ahead nicht.</span></div>
+        <div><b>Du bestätigst</b><span>Buddy bereitet Sparziele und Buchungen vor. Gespeichert wird erst, wenn du tippst.</span></div>
+        <div><b>Nur was er braucht</b><span>Für eine Frage bekommt die KI eine Zusammenfassung, nie Kontonummern oder Zugangsdaten.</span></div>
+        <div><b>Wenig Mitteilungen</b><span>Höchstens eine am Tag, und nur wenn es wirklich zählt.</span></div>
+      </div>
+    </div>
+  </section>
 
-  <footer>
+  <section class="last">
+    <div class="w">
+      <div class="label">Probier ihn aus</div>
+      <h2>Frag Buddy. Jetzt, ohne Anmeldung.</h2>
+      <form class="ask">
+        <input id="q" name="q" placeholder="Wie viel Notgroschen brauche ich?" autocomplete="off" maxlength="400" aria-label="Frage an Buddy">
+        <button class="btn" type="submit">Fragen</button>
+      </form>
+      <div class="answer" aria-live="polite"></div>
+      <div class="again">
+        <h2 style="font-size:clamp(30px,4.4vw,48px)">Sei früh dabei.</h2>
+        <form class="join" novalidate style="margin-top:22px">
+          <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
+          <button class="btn ink" type="submit">Auf die Warteliste</button>
+        </form>
+        <div class="err" role="alert"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="w">
     <span>© 2026 Ahead</span>
     <span>Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
     <a href="#">Datenschutz</a><a href="#">Impressum</a>
-  </footer>
-</div>
+  </div>
+</footer>
 
 <script>
 (function () {
@@ -143,7 +304,6 @@
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
-  // content="demo": a preview without a server
   if (API === 'demo') {
     var realFetch = window.fetch.bind(window);
     window.fetch = function (url, opts) {
@@ -156,42 +316,47 @@
   }
   var ref = new URLSearchParams(location.search).get('ref');
   if (ref && /^[A-Za-z0-9]{6}$/.test(ref)) store.set('ahead-ref', ref.toUpperCase());
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var coin = '<span class="coin"><svg><use href="#b"/></svg></span>';
 
-  // ------------------------------------------------ what Buddy would say
-  var examples = {
-    urlaub: { q: 'Kann ich mir im Juli 800 € Urlaub leisten?', a: 'Ja, wenn du ab jetzt <b>100 € im Monat</b> zur Seite legst. Dein Notgroschen bleibt dabei unangetastet, und bis Monatsende sind trotzdem noch 340 € frei.', next: 'Sparziel „Urlaub Juli“ anlegen. Ich rechne jeden Monat mit.' },
-    gehalt: { q: 'Kannst du meine erste Gehaltsabrechnung prüfen?', a: 'Schick mir ein Foto, dann gehe ich sie mit dir durch. Darauf schaue ich zuerst:', list: ['Steuerklasse: ledig ist Klasse I', 'Steuer-ID und Krankenkasse richtig eingetragen', 'Sozialabgaben, zusammen grob ein Fünftel deines Bruttos', 'Kommt genau das Netto auf deinem Konto an?'], next: 'Foto der Abrechnung in den Chat.' },
-    abos: { q: 'Welche Abos habe ich eigentlich?', a: 'Ich habe <b>6 feste Zahlungen</b> gefunden, zusammen 74 € im Monat. Zwei davon kosten zusammen 44 €, und ein Streamingdienst ist im Juni teurer geworden.', next: 'Ich zeig dir, wie du kündigst. Den Brief schreibe ich vor.' },
-    wg: { q: 'Wer schuldet in der WG wem was?', a: 'Mit <b>zwei Überweisungen</b> seid ihr quitt: Jonas schickt dir 38,50 €, Lea schickt Mia 12 €. Du selbst schuldest niemandem etwas.', next: 'Ich schreibe die Nachricht für euren Gruppenchat.' },
-    bav: { q: 'Lohnt sich die Betriebsrente für mich?', a: 'Oft ja, wegen des Zuschusses. Spart dein Arbeitgeber durch die Entgeltumwandlung Sozialabgaben, muss er in der Regel <b>15 Prozent</b> dazugeben. Frag in der Personalabteilung:', list: ['Wie viel gibt der Arbeitgeber dazu?', 'Welche Kosten hat der Vertrag?', 'Was passiert bei einem Jobwechsel?'], next: 'Mit den drei Antworten rechnen wir gemeinsam nach.' }
+  // ------------------------------------------------ the conversation
+  var talks = {
+    urlaub: { q: 'Kann ich mir im Juli 800 € Urlaub leisten?', a: 'Ja, mit <b>100 € im Monat</b> ab jetzt. Dein Notgroschen bleibt unangetastet, und bis Monatsende sind trotzdem noch 340 € frei.', next: 'Sparziel „Urlaub Juli“ anlegen. Ich rechne jeden Monat mit.' },
+    gehalt: { q: 'Kannst du meine erste Gehaltsabrechnung prüfen?', a: 'Schick mir ein Foto. Zuerst schaue ich auf <b>vier Dinge</b>:', list: ['Steuerklasse: ledig ist Klasse I', 'Steuer-ID und Krankenkasse richtig eingetragen', 'Sozialabgaben, grob ein Fünftel vom Brutto', 'Kommt genau das Netto auf deinem Konto an?'], next: 'Foto der Abrechnung in den Chat.' },
+    abos: { q: 'Welche Abos habe ich eigentlich?', a: '<b>6 feste Zahlungen</b>, zusammen 74 € im Monat. Ein Streamingdienst ist im Juni teurer geworden, und zwei davon hast du dieses Jahr kaum genutzt.', next: 'Ich zeig dir, wie du kündigst. Den Text schreibe ich vor.' },
+    wg: { q: 'Wer schuldet in der WG wem was?', a: 'Mit <b>zwei Überweisungen</b> seid ihr quitt: Jonas schickt dir 38,50 €, Lea schickt Mia 12 €.', next: 'Ich schreibe die Nachricht für euren Gruppenchat.' },
+    bav: { q: 'Lohnt sich die Betriebsrente?', a: 'Oft ja, wegen des Zuschusses: Spart dein Arbeitgeber Sozialabgaben, gibt er in der Regel <b>15 Prozent</b> dazu. Frag in der Personalabteilung:', list: ['Wie viel gibt der Arbeitgeber dazu?', 'Welche Kosten hat der Vertrag?', 'Was passiert beim Jobwechsel?'], next: 'Mit den drei Antworten rechnen wir gemeinsam nach.' }
   };
-  var b = '<svg viewBox="0 0 80 112"><use href="#buddy"/></svg>';
-  var exBox = document.getElementById('ex');
-  var links = document.querySelectorAll('.ex-link');
-  function showExample(key, btn) {
-    var e = examples[key];
-    var open = btn.getAttribute('aria-expanded') === 'true';
-    links.forEach(function (l) { l.setAttribute('aria-expanded', 'false'); });
-    if (open) { exBox.hidden = true; return; }
-    btn.setAttribute('aria-expanded', 'true');
-    exBox.innerHTML = '<div class="q">„' + e.q + '“</div><div class="who">' + b + 'Buddy</div><div>' + e.a + '</div>' +
-      (e.list ? '<ul>' + e.list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' : '') +
-      '<div class="next">' + e.next + '</div><div class="tag">Beispiel. In der App rechnet Buddy mit deinen eigenen Zahlen.</div>';
-    exBox.hidden = false;
+  function block(q, a, list, next, note) {
+    return '<div class="you fade"><small>Du</small>' + esc(q) + '</div>' +
+      '<div class="buddy fade">' + coin + '<div><div class="say">' + a + '</div>' +
+      (list ? '<ul>' + list.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+      (next ? '<div class="step"><em>Nächster Schritt</em><span>' + next + '</span></div>' : '') +
+      (note ? '<div class="note">' + note + '</div>' : '') + '</div></div>';
   }
-  links.forEach(function (l) { l.addEventListener('click', function (ev) { ev.preventDefault(); showExample(l.dataset.ex, l); }); });
+  var talk = document.querySelector('[data-talk]');
+  function showTalk(key) {
+    var t = talks[key];
+    talk.innerHTML = block(t.q, t.a, t.list, esc(t.next), 'Beispiel. In der App rechnet Buddy mit deinen eigenen Zahlen.');
+    document.querySelectorAll('.topics button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === key)); });
+  }
+  document.querySelectorAll('.topics button').forEach(function (b) { b.addEventListener('click', function () { showTalk(b.dataset.t); }); });
+  showTalk('urlaub');
 
   // ------------------------------------------------------------ waitlist
-  var join = document.querySelector('form.join'), err = document.querySelector('.err'), spot = document.querySelector('.spot');
+  var spot = document.querySelector('.spot');
   function myLink(code) { return location.origin + location.pathname + '?ref=' + code; }
   function showSpot(d) {
     store.set('ahead-code', d.code);
-    join.hidden = true; join.style.display = 'none';
-    spot.hidden = false;
-    spot.querySelector('[data-pos]').textContent = Number(d.position).toLocaleString('de-DE');
+    document.querySelectorAll('form.join').forEach(function (f) { f.style.display = 'none'; });
+    document.querySelector('.again').style.display = 'none';
+    spot.classList.add('on');
+    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString('de-DE');
+    var bars = spot.querySelectorAll('[data-bars] i');
+    for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = 'Ich steh auf der Warteliste für Ahead, einen Buddy für Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ' + link;
+    var text = 'Ich steh auf der Warteliste für Ahead, einen Buddy fürs Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ' + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
@@ -199,57 +364,59 @@
       if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, function () {}); else done();
     };
   }
-  join.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var btn = join.querySelector('.go'), email = join.email.value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; return; }
-    err.textContent = ''; btn.disabled = true; btn.textContent = 'Einen Moment …';
-    fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref') }) })
-      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Fehler'); return j; }); })
-      .then(showSpot)
-      .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : 'Gerade nicht erreichbar. Versuch es gleich noch einmal.'; })
-      .finally(function () { btn.disabled = false; btn.textContent = 'Platz sichern'; });
+  document.querySelectorAll('form.join').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = form.nextElementSibling, btn = form.querySelector('button'), email = form.email.value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; return; }
+      err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = 'Einen Moment …';
+      fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref') }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Fehler'); return j; }); })
+        .then(function (d) { showSpot(d); document.getElementById('platz').scrollIntoView({ behavior: 'smooth', block: 'center' }); })
+        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : 'Gerade nicht erreichbar. Versuch es gleich noch einmal.'; })
+        .finally(function () { btn.disabled = false; btn.textContent = label; });
+    });
   });
   var mine = store.get('ahead-code');
   if (mine) fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
-  document.querySelector('[data-invite]').addEventListener('click', function () { setTimeout(function () { (spot.hidden ? join.email : spot.querySelector('[data-copy]')).focus(); }, 300); });
 
   // ------------------------------------------------------- ask Buddy now
   var ask = document.querySelector('form.ask'), out = document.querySelector('.answer');
   var device = store.get('ahead-device');
   if (!device) { device = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, ''); store.set('ahead-device', device); }
   var basics = [
-    [/notgroschen|rücklage|reserve|polster/i, '<b>Drei Monatsausgaben</b> auf einem Tagesgeldkonto sind eine gute Faustregel. Bei 1.500 € Ausgaben im Monat sind das 4.500 €. Erst den Notgroschen füllen, dann investieren.', 'Dauerauftrag direkt nach dem Gehalt.'],
-    [/betriebsrente|bav|entgeltumwandlung/i, examples.bav.a, examples.bav.next],
-    [/etf|sparplan|aktie|fonds|invest/i, 'Ein <b>ETF</b> bildet einen Index nach, also viele Unternehmen auf einmal. Mit einem Sparplan kaufst du jeden Monat automatisch für einen festen Betrag. Meist günstig und breit gestreut, Schwankungen gehören dazu.', 'Erst den Notgroschen, dann einen Betrag, den du jeden Monat sicher schaffst.'],
-    [/gehalt|abrechnung|steuerklasse|netto|brutto/i, examples.gehalt.a, examples.gehalt.next],
-    [/spar|wie viel|wieviel/i, 'Ein guter Start sind <b>10 bis 20 Prozent</b> deines Nettos, direkt am Zahltag per Dauerauftrag. Lieber klein anfangen und jährlich erhöhen.', 'In der App rechne ich aus deinen echten Ausgaben aus, was realistisch ist.']
+    [/notgroschen|rücklage|reserve|polster/i, '<b>Drei Monatsausgaben</b> auf einem Tagesgeldkonto. Bei 1.500 € Ausgaben im Monat sind das 4.500 €. Erst den Notgroschen füllen, dann investieren.', 'Dauerauftrag direkt nach dem Gehalt.'],
+    [/betriebsrente|bav|entgeltumwandlung/i, talks.bav.a, talks.bav.next, talks.bav.list],
+    [/etf|sparplan|aktie|fonds|invest/i, 'Ein <b>ETF</b> bildet einen Index nach, also viele Unternehmen auf einmal. Mit einem Sparplan kaufst du jeden Monat automatisch für einen festen Betrag. Meist günstig und breit gestreut.', 'Erst den Notgroschen, dann einen Betrag, den du jeden Monat sicher schaffst.'],
+    [/gehalt|abrechnung|steuerklasse|netto|brutto/i, talks.gehalt.a, talks.gehalt.next, talks.gehalt.list],
+    [/spar|wie viel|wieviel/i, 'Ein guter Start sind <b>10 bis 20 Prozent</b> deines Nettos, direkt am Zahltag per Dauerauftrag.', 'In der App rechne ich aus deinen echten Ausgaben aus, was realistisch ist.']
   ];
-  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function render(text) {
-    var next = '', body = [];
+    var next = '', body = [], list = [];
     text.split('\n').forEach(function (l) {
       l = l.trim();
       if (!l || /^\[(weiter|merken)/i.test(l)) return;
       var m = /^(\*\*)?Nächster Schritt:(\*\*)?\s*(.*)$/.exec(l);
       if (m) { next = m[3]; return; }
-      body.push(esc(l.replace(/^[-•*]\s+/, '· ')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'));
+      var md = function (s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); };
+      if (/^([-•*]|\d+[.)])\s+/.test(l)) { list.push(md(l.replace(/^([-•*]|\d+[.)])\s+/, ''))); return; }
+      body.push(md(l));
     });
-    return { html: body.join('<br>'), next: esc(next).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') };
+    return { a: body.join(' '), list: list, next: esc(next).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>') };
   }
-  function show(q, html, next, note) {
-    out.innerHTML = '<div class="ex"><div class="q">„' + esc(q) + '“</div><div class="who">' + b + 'Buddy</div><div>' + html + '</div>' +
-      (next ? '<div class="next">' + next + '</div>' : '') + (note ? '<div class="tag">' + note + '</div>' : '') + '</div>';
+  function show(q, a, next, list, note) {
+    out.innerHTML = '<div class="talk" style="margin-top:0;min-height:0">' + block(q, a, null, next, note) + '</div>';
+    if (list && list.length) out.querySelector('.say').insertAdjacentHTML('afterend', '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>');
   }
   function offline(q) {
-    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], basics[i][2], 'Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.');
+    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), 'Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.');
     show(q, 'Dafür brauche ich gerade die KI, und die ist nicht erreichbar oder für heute aufgebraucht.', 'Trag dich ein, dann rechnet Buddy in der App mit deinen echten Zahlen.');
   }
   ask.addEventListener('submit', function (e) {
     e.preventDefault();
     var q = ask.q.value.trim() || ask.q.placeholder;
     var btn = ask.querySelector('button'); btn.disabled = true;
-    out.innerHTML = '<div class="ex"><div class="q">„' + esc(q) + '“</div><div class="who">' + b + 'Buddy schreibt …</div></div>';
+    show(q, '<span style="color:var(--soft)">Buddy schreibt …</span>', '');
     var acc = '';
     fetch(API + '/ai/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device: device, history: [{ role: 'user', text: q }] }) })
       .then(function (res) {
@@ -257,13 +424,13 @@
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', failed = false;
         return (function pump() {
           return reader.read().then(function (p) {
-            if (p.done) { if (failed || !acc) offline(q); else { var r = render(acc); show(q, r.html, r.next); } return; }
+            if (p.done) { if (failed || !acc) offline(q); else { var r = render(acc); show(q, r.a, r.next, r.list); } return; }
             buf += dec.decode(p.value, { stream: true });
             var parts = buf.split('\n'); buf = parts.pop();
             parts.forEach(function (line) {
               if (line.indexOf('data: ') !== 0) return;
               var ev = JSON.parse(line.slice(6));
-              if (ev.t) { acc += ev.t; var r = render(acc); show(q, r.html, ''); }
+              if (ev.t) { acc += ev.t; var r = render(acc); show(q, r.a, '', r.list); }
               if (ev.error) failed = true;
             });
             return pump();
