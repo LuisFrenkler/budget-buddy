@@ -1,0 +1,32 @@
+# HTTPS for all three addresses; certificates come from Let's Encrypt.
+{$DOMAIN}, www.{$DOMAIN} {
+	@www host www.{$DOMAIN}
+	redir @www https://{$DOMAIN}{uri} permanent
+	root * /srv/landing
+	encode zstd gzip
+	file_server
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}
+
+app.{$DOMAIN} {
+	root * /srv/app
+	encode zstd gzip
+	# the app's own pages are routed inside Flutter
+	try_files {path} /index.html
+	file_server
+	@static path *.js *.wasm *.ttf *.otf *.png
+	header @static Cache-Control "public, max-age=604800"
+	header /index.html Cache-Control "no-cache"
+}
+
+api.{$DOMAIN} {
+	encode gzip
+	# Buddy streams his answers: pass each piece through at once
+	reverse_proxy server:8090 {
+		flush_interval -1
+	}
+}
