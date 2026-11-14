@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'screens/buddy_screen.dart';
+import 'services/buddy_tasks.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
 import 'screens/auth_screens.dart';
@@ -92,6 +94,7 @@ void main() async {
   SplitService.refreshAll();
 
   NotificationService.onTap = _openFromNotification;
+  BuddyTasks.onDated = NotificationService.syncSoon;
   await NotificationService.init();
   NotificationService.sync();
 
@@ -102,6 +105,12 @@ void main() async {
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void _openFromNotification(String payload) {
+  // Buddy's moments open his chat with the question that fits
+  if (payload.startsWith('buddy:')) {
+    navigatorKey.currentState?.popUntil((r) => r.isFirst);
+    BuddyScreen.ask.value = payload.substring(6);
+    return;
+  }
   final Widget? page = switch (payload) {
     'weekly' => WeeklyReportScreen(),
     'contracts' || 'hint:contracts' => ContractsScreen(),

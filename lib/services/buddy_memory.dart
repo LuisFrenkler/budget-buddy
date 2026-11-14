@@ -42,6 +42,26 @@ class BuddyMemory {
   }
 
   static List<String> texts() => [for (final f in all()) f.text];
+  // for the agent: each fact with what it is about
+  static List<String> textsForAgent() => [for (final f in all()) '${kindOf(f.text).label}: ${f.text}'];
+
+  // what a fact is about, so Buddy and the memory page can sort it
+  static MemoryKind kindOf(String text) {
+    final t = text.toLowerCase();
+    if (RegExp(r'gehalt|lohn|miete|zahlt|bezahl|kommt am|am \d+\.|überweis|kredit|schulden|rate').hasMatch(t)) {
+      return MemoryKind.money;
+    }
+    if (RegExp(r'ziel|spart? (für|auf)|will |möchte|plant|wünscht|traum|bis (ende|zum|nächst)').hasMatch(t)) {
+      return MemoryKind.goal;
+    }
+    if (RegExp(r'job|arbeit|studi|ausbildung|umzug|zieht|wohnung|wg|partner|kind|azubi|praktikum|rente').hasMatch(t)) {
+      return MemoryKind.life;
+    }
+    if (RegExp(r'mag |lieber|bevorzug|nicht gern|keine? |immer |nie |ungern|gern ').hasMatch(t)) {
+      return MemoryKind.preference;
+    }
+    return MemoryKind.other;
+  }
 
   // things that do not belong in a finance coach's memory
   static final _sensitive = RegExp(
@@ -96,4 +116,16 @@ class BuddyMemory {
     if (what == null || what.length < 3) return null;
     return clean(what[0].toUpperCase() + what.substring(1));
   }
+}
+
+enum MemoryKind { money, goal, life, preference, other }
+
+extension MemoryKindLabel on MemoryKind {
+  String get label => switch (this) {
+        MemoryKind.money => 'Geld und Termine',
+        MemoryKind.goal => 'Ziele',
+        MemoryKind.life => 'Leben',
+        MemoryKind.preference => 'Vorlieben',
+        MemoryKind.other => 'Sonstiges',
+      };
 }

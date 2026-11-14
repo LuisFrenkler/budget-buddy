@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import '../models/transaction.dart';
 import '../utils/theme.dart';
+import 'buddy_proposals.dart';
 import 'buddy_service.dart';
 import 'db.dart';
 
@@ -16,6 +17,10 @@ class BuddyTools {
   // the summary the offline Buddy uses too (konten, sparziele, prognose …)
   final Map<String, dynamic> snapshot;
   final DateTime today;
+  // what this answer proposes (cards) and shows (charts); the chat puts them
+  // under the answer
+  final proposals = <BuddyProposal>[];
+  final charts = <BuddyChart>[];
 
   BuddyTools({required this.tx, required this.snapshot, required DateTime now})
       : today = DateTime(now.year, now.month, now.day);
@@ -39,6 +44,12 @@ class BuddyTools {
     'was_waere_wenn',
     'sparplan',
     'rechner',
+    'budget_vorschlagen',
+    'sparziel_vorschlagen',
+    'kuendigung_vorbereiten',
+    'kategorie_vorschlagen',
+    'erinnerung_vorschlagen',
+    'diagramm',
   };
 
   // Runs one tool. A bad input or a failure comes back as {"fehler": …}, so
@@ -57,6 +68,12 @@ class BuddyTools {
         'was_waere_wenn' => _wasWaereWenn(input),
         'sparplan' => _sparplan(input),
         'rechner' => {'ergebnis': _round(Calculator.eval('${input['ausdruck'] ?? ''}'))},
+        'budget_vorschlagen' => _propose(BuddyProposal.budget(input)),
+        'sparziel_vorschlagen' => _propose(BuddyProposal.goal(input, today: today)),
+        'kuendigung_vorbereiten' => _propose(BuddyProposal.cancel(input)),
+        'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
+        'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
+        'diagramm' => _diagramm(input),
         _ => {'fehler': 'Unbekanntes Werkzeug $name'},
       };
     } on FormatException catch (e) {
@@ -64,6 +81,62 @@ class BuddyTools {
     } catch (e) {
       return {'fehler': 'Das ging gerade nicht: $e'};
     }
+  }
+
+  // a card under the answer; nothing is stored until the person confirms
+  Map<String, dynamic> _propose(BuddyProposal p) {
+    if (proposals.length >= 3) return {'fehler': 'Höchstens drei Vorschläge pro Antwort.'};
+    if (proposals.any((x) => x.kind == p.kind && x.title == p.title)) {
+      return {'karte': 'schon gezeigt', 'titel': p.title};
+    }
+    proposals.add(p);
+    return {
+      'karte': 'gezeigt',
+      'titel': p.title,
+      'details': p.detail,
+      'hinweis': 'Die Person sieht jetzt eine Karte mit „${p.confirm}“. Gespeichert ist noch nichts.',
+    };
+  }
+
+  Map<String, dynamic> _diagramm(Map<String, dynamic> input) {
+    if (charts.length >= 2) return {'fehler': 'Höchstens zwei Diagramme pro Antwort.'};
+    switch ('${input['art'] ?? ''}') {
+      case 'monate':
+        final n = ((input['monate'] as num?)?.toInt() ?? 6).clamp(2, 12);
+        final months = _months(n);
+        const names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+        charts.add(BuddyChart(ChartKind.months, 'Einnahmen und Ausgaben', [
+          for (final m in months) (label: names[m.month.month - 1], a: m.income, b: m.spent)
+        ]));
+        return {'diagramm': 'gezeigt', 'art': 'monate', 'monate': n};
+      case 'kategorien':
+        final r = _ausgaben({'von': input['von'], 'bis': input['bis']});
+        final rows = (r['nachKategorie'] as List).take(6).toList();
+        charts.add(BuddyChart(ChartKind.categories, 'Ausgaben nach Kategorie', [
+          for (final c in rows) (label: '${c['name']}', a: ((c['summe'] as num) * 100).round(), b: 0)
+        ]));
+        return {'diagramm': 'gezeigt', 'art': 'kategorien', 'summe': r['summe']};
+      case 'sparplan':
+        final r = _sparplan({'betrag': input['betrag'], 'bis': input['bis_monat'], 'schon_gespart': input['schon_gespart']});
+        if (r['fehler'] != null) return r;
+        final months = r['monate'] as int;
+        final rate = ((r['rateProMonat'] as num) * 100).round();
+        final have = ((((input['schon_gespart'] as num?) ?? 0)) * 100).round();
+        const names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+        final target = ((r['zielbetrag'] as num) * 100).round();
+        const long = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+        final end = DateTime(today.year, today.month + months - 1);
+        charts.add(BuddyChart(ChartKind.plan, 'Sparplan bis ${long[end.month - 1]} ${end.year}', [
+          for (var i = 0; i < months.clamp(1, 12); i++)
+            (
+              label: names[(today.month - 1 + i) % 12],
+              a: (have + rate * (i + 1)).clamp(0, target),
+              b: target,
+            )
+        ]));
+        return {'diagramm': 'gezeigt', 'art': 'sparplan', 'rateProMonat': r['rateProMonat'], 'monate': months};
+    }
+    throw const FormatException('art muss monate, kategorien oder sparplan sein');
   }
 
   // --- helpers --------------------------------------------------------------

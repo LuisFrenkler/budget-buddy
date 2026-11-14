@@ -20,6 +20,8 @@ import 'package:budget_buddy/utils/theme.dart';
 import 'package:budget_buddy/widgets/share_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:budget_buddy/services/buddy_proposals.dart';
+import 'package:budget_buddy/widgets/buddy_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -228,6 +230,44 @@ void main() {
   testWidgets('14 start choice', (tester) async {
     await _pump(tester, const StartChoiceScreen());
     await _shot(tester, '14_start_choice');
+  });
+
+  testWidgets('17 buddy charts', (tester) async {
+    await _pump(
+        tester,
+        Scaffold(
+          body: SafeArea(
+            child: ListView(padding: const EdgeInsets.all(16), children: const [
+              BuddyChartCard(BuddyChart(ChartKind.months, 'Einnahmen und Ausgaben', [
+                (label: 'Jun', a: 253000, b: 171000),
+                (label: 'Jul', a: 235000, b: 189000),
+                (label: 'Aug', a: 253000, b: 162000),
+                (label: 'Sep', a: 235000, b: 241000),
+                (label: 'Okt', a: 253000, b: 158000),
+                (label: 'Nov', a: 0, b: 96000),
+              ])),
+              BuddyChartCard(BuddyChart(ChartKind.categories, 'Ausgaben nach Kategorie', [
+                (label: 'Wohnen', a: 78000, b: 0),
+                (label: 'Lebensmittel', a: 21240, b: 0),
+                (label: 'Shopping', a: 7735, b: 0),
+                (label: 'Essen gehen', a: 7500, b: 0),
+              ])),
+              BuddyChartCard(BuddyChart(ChartKind.plan, 'Sparplan bis Juli 2027', [
+                (label: 'Nov', a: 45000, b: 120000),
+                (label: 'Dez', a: 55000, b: 120000),
+                (label: 'Jan', a: 65000, b: 120000),
+                (label: 'Feb', a: 75000, b: 120000),
+                (label: 'Mär', a: 85000, b: 120000),
+                (label: 'Apr', a: 95000, b: 120000),
+                (label: 'Mai', a: 105000, b: 120000),
+                (label: 'Jun', a: 115000, b: 120000),
+                (label: 'Jul', a: 120000, b: 120000),
+              ])),
+            ]),
+          ),
+        ),
+        dark: false);
+    await _shot(tester, '17_buddy_charts');
   });
 
   testWidgets('15 sign up', (tester) async {

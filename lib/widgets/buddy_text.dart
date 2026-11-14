@@ -22,6 +22,10 @@ class RichMarkdown extends StatefulWidget {
   // the first sentence in large display type, like Buddy talking on the
   // landing page; the rest stays easy-reading Inter
   final bool lead;
+  // the stamp's two buttons: Buddy helps with the step, or it is done
+  final void Function(String step)? onStepHelp;
+  final void Function(String step)? onStepDone;
+  final bool stepDone;
   const RichMarkdown(this.text,
       {super.key,
       this.glossary = true,
@@ -29,7 +33,10 @@ class RichMarkdown extends StatefulWidget {
       this.onAsk,
       this.fontSize = 15.5,
       this.color,
-      this.lead = false});
+      this.lead = false,
+      this.onStepHelp,
+      this.onStepDone,
+      this.stepDone = false});
 
   @override
   State<RichMarkdown> createState() => _RichMarkdownState();
@@ -176,6 +183,19 @@ class _RichMarkdownState extends State<RichMarkdown> {
             const SizedBox(height: 7),
             Text.rich(TextSpan(children: spans(rest, caret: caret)),
                 style: base.copyWith(fontWeight: FontWeight.w600)),
+            if (!widget.streaming && (widget.onStepHelp != null || widget.onStepDone != null))
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: widget.stepDone
+                    ? Text(tr('✓ Erledigt'),
+                        style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.positiveText, fontSize: 13.5))
+                    : Wrap(spacing: 8, runSpacing: 8, children: [
+                        if (widget.onStepHelp != null)
+                          _StepButton(tr('Hilf mir dabei'), filled: true, onTap: () => widget.onStepHelp!(rest.replaceAll('**', '').trim())),
+                        if (widget.onStepDone != null)
+                          _StepButton(tr('Erledigt'), onTap: () => widget.onStepDone!(rest.replaceAll('**', '').trim())),
+                      ]),
+              ),
           ]),
         ));
       } else if (!leadDone) {
@@ -313,4 +333,31 @@ Future<void> showGlossary(BuildContext context, GlossaryTerm term, {void Functio
       ),
     ),
   );
+}
+
+
+// a small pill under the next step
+class _StepButton extends StatelessWidget {
+  final String label;
+  final bool filled;
+  final VoidCallback onTap;
+  const _StepButton(this.label, {required this.onTap, this.filled = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: filled ? AppColors.primary : Colors.transparent,
+      shape: StadiumBorder(side: BorderSide(color: filled ? AppColors.primary : AppColors.border)),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 13.5, fontWeight: FontWeight.w700, color: filled ? AppColors.onPrimary : AppColors.text)),
+        ),
+      ),
+    );
+  }
 }

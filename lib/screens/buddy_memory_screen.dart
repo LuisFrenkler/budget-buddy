@@ -79,11 +79,25 @@ class BuddyMemoryScreen extends StatelessWidget {
                   ),
                 )
               else
-                for (final f in facts)
+                // sorted by what it is about: money and dates, goals, life, likes
+                for (final kind in MemoryKind.values)
+                  for (final (i, f) in facts.where((f) => BuddyMemory.kindOf(f.text) == kind).indexed) ...[
+                    if (i == 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 6, left: 2),
+                        child: Text(tr(kind.label),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDim)),
+                      ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: _tile(
-                      icon: Icons.bookmark_outline_rounded,
+                      icon: switch (kind) {
+                        MemoryKind.money => Icons.event_note_outlined,
+                        MemoryKind.goal => Icons.flag_outlined,
+                        MemoryKind.life => Icons.home_outlined,
+                        MemoryKind.preference => Icons.favorite_border_rounded,
+                        MemoryKind.other => Icons.bookmark_outline_rounded,
+                      },
                       title: f.text,
                       subtitle: tr('Gemerkt am {date}', {'date': Dates.dayMonth(f.at)}),
                       onDelete: () {
@@ -92,6 +106,7 @@ class BuddyMemoryScreen extends StatelessWidget {
                       },
                     ),
                   ),
+                  ],
               const SizedBox(height: 24),
               if (facts.isNotEmpty)
                 OutlinedButton.icon(

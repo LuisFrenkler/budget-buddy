@@ -15,10 +15,24 @@ import 'contracts.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
 
-enum HintKind { budgetOver, budgetClose, priceUp, upcoming, trialEnds, bankExpires, bigExpense, goalDue, stillCharging, splitNew }
+enum HintKind {
+  budgetOver,
+  budgetClose,
+  priceUp,
+  upcoming,
+  trialEnds,
+  bankExpires,
+  bigExpense,
+  goalDue,
+  stillCharging,
+  splitNew,
+  salaryIn,
+  lowMonth,
+  goalReached,
+}
 
 // where tapping a hint leads
-enum HintTarget { budgets, contracts, subscription, connections, transactions, goals, splits }
+enum HintTarget { budgets, contracts, subscription, connections, transactions, goals, splits, buddy }
 
 class Hint {
   final String id;
@@ -27,8 +41,10 @@ class Hint {
   final String text;
   final HintTarget target;
   final bool urgent;
+  // what to ask Buddy when the hint is tapped (a notification opens his chat)
+  final String? question;
 
-  const Hint(this.id, this.kind, this.title, this.text, this.target, {this.urgent = false});
+  const Hint(this.id, this.kind, this.title, this.text, this.target, {this.urgent = false, this.question});
 }
 
 class HintsService {
@@ -53,6 +69,7 @@ class HintsService {
     required List<Goal> goals,
     Subscription? subscription,
     DateTime? bankValidUntil,
+    int? freeCents,
     DateTime? now,
   }) {
     final hidden = dismissed;
@@ -65,6 +82,7 @@ class HintsService {
       bankValidUntil: bankValidUntil,
       cancellations: cancellations,
       splitNews: Hive.isBoxOpen('splits') ? SplitService.news() : const [],
+      freeCents: freeCents,
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
   }
@@ -83,6 +101,8 @@ class HintsService {
     DateTime? bankValidUntil,
     Map<String, DateTime> cancellations = const {},
     List<({String group, String groupId, String title, int cents, String by})> splitNews = const [],
+    // what is left for the month after fixed costs (the forecast), if known
+    int? freeCents,
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
@@ -99,15 +119,35 @@ class HintsService {
         out.add(Hint('budget-over-${b.category}-$month', HintKind.budgetOver, '${b.category}: Budget überschritten',
             '${Money.format(b.spentCents - b.limitCents)} drüber. Vielleicht das Limit anpassen?', HintTarget.budgets,
             urgent: true));
-      } else if (share >= 0.85 && daysLeft >= 3) {
+      } else if (share >= 0.8 && daysLeft >= 3) {
         out.add(Hint(
             'budget-close-${b.category}-$month',
             HintKind.budgetClose,
             '${b.category}: ${(share * 100).round()} % weg',
             'Noch ${Money.format(b.limitCents - b.spentCents)} für $daysLeft Tage, also etwa '
                 '${Money.format((b.limitCents - b.spentCents) ~/ daysLeft)} am Tag.',
-            HintTarget.budgets));
+            HintTarget.budgets,
+            question: 'Wie komme ich mit ${b.category} bis Monatsende hin?'));
       }
+    }
+
+    // the salary arrived in the last two days: the moment to put some aside
+    for (final t in tx) {
+      if (!t.isEarning || t.category != 'Gehalt' || t.amountCents < 50000) continue;
+      final d = _daysBetween(t.date, today);
+      if (d < 0 || d > 2) continue;
+      out.add(Hint('salary-${t.id}', HintKind.salaryIn, 'Dein Gehalt ist da',
+          '${Money.format(t.amountCents)} sind angekommen. Leg gleich einen Teil zur Seite, bevor der Monat ihn verteilt.',
+          HintTarget.buddy,
+          question: 'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?'));
+    }
+
+    // the forecast says the month will not work out
+    if (freeCents != null && freeCents < 0 && today.day <= 25) {
+      out.add(Hint('low-$month-${today.day ~/ 7}', HintKind.lowMonth, 'Der Monat wird knapp',
+          'Nach den festen Kosten fehlen bis Monatsende etwa ${Money.format(-freeCents)}. Buddy hat einen Plan.',
+          HintTarget.buddy,
+          urgent: true, question: 'Mein Monat wird knapp. Was kann ich jetzt tun?'));
     }
 
     final contracts = Contracts.detect(tx, now: today);
@@ -197,6 +237,14 @@ class HintsService {
             HintTarget.connections,
             urgent: d < 0));
       }
+    }
+
+    // a goal that is reached: worth a moment, and the question what comes next
+    for (final g in goals) {
+      if (!g.reached) continue;
+      out.add(Hint('goal-done-${g.id}', HintKind.goalReached, '${g.emoji} ${g.name} ist erreicht',
+          '${Money.format(g.targetCents)} zusammen. Stark. Was wird das nächste Ziel?', HintTarget.buddy,
+          question: 'Ich habe mein Sparziel ${g.name} erreicht. Was wäre ein gutes nächstes Ziel?'));
     }
 
     // goals with a date in the next 30 days that are not reached
