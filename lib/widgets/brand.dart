@@ -16,7 +16,19 @@ class BrandMark extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: inverse ? Colors.white : AppColors.brand),
+      // the copper sphere of the logo (white on copper grounds)
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: inverse ? Colors.white : null,
+        gradient: inverse
+            ? null
+            : const RadialGradient(
+                center: Alignment(-0.32, -0.44),
+                radius: 0.95,
+                colors: [Color(0xFFFFEBD9), Color(0xFFF4B98A), Color(0xFFC8682F), Color(0xFF7A3A16)],
+                stops: [0, 0.28, 0.66, 1],
+              ),
+      ),
       child: CustomPaint(painter: MarkPainter(color: inverse ? AppColors.brand : Colors.white)),
     );
   }
@@ -55,23 +67,27 @@ class MarkPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // same geometry as assets/icon/icon.png, on a 1024 grid; the glyph's
-    // extent (277..747) is centred on 512
-    // drawn into the centred square, whatever box the parent gives
+    // Ahead's "A", the Bricolage SemiBold capital, on a 1024 grid and centred
+    // the same way as in assets/icon/icon.png, whatever box the parent gives
     final side = size.shortestSide;
     canvas.translate((size.width - side) / 2, (size.height - side) / 2);
     final s = side / 1024;
-    final paint = Paint()..color = color;
-    const w = 118.0;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(277 * s, 210 * s, w * s, 602 * s), Radius.circular(w / 2 * s)),
-      paint,
-    );
-    final ring = Path()
-      ..fillType = PathFillType.evenOdd
-      ..addOval(Rect.fromCircle(center: Offset(529 * s, 594 * s), radius: 218 * s))
-      ..addOval(Rect.fromCircle(center: Offset(529 * s, 594 * s), radius: 104 * s));
-    canvas.drawPath(ring, paint);
+    final glyph = Path()
+      ..moveTo(317.8 * s, 718.0 * s)
+      ..lineTo(455.9 * s, 318.0 * s)
+      ..lineTo(568.1 * s, 318.0 * s)
+      ..lineTo(706.2 * s, 718.0 * s)
+      ..lineTo(622.6 * s, 718.0 * s)
+      ..lineTo(516.5 * s, 379.2 * s)
+      ..lineTo(508.1 * s, 379.2 * s)
+      ..lineTo(400.8 * s, 718.0 * s)
+      ..close()
+      ..moveTo(391.1 * s, 635.6 * s)
+      ..lineTo(391.1 * s, 581.6 * s)
+      ..lineTo(643.2 * s, 581.6 * s)
+      ..lineTo(643.2 * s, 635.6 * s)
+      ..close();
+    canvas.drawPath(glyph, Paint()..color = color);
   }
 
   @override

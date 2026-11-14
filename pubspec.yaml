@@ -100,12 +100,12 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   web:
     generate: true
-    background_color: "#0B0B10"
+    background_color: "#0C0A09"
     theme_color: "#B06030"
   macos:
     generate: true
     image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#B06030"
+  adaptive_icon_background: "#1A0D07"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 
 # native splash screen (run: dart run flutter_native_splash:create)

@@ -68,6 +68,10 @@ class BuddyScreen extends StatefulWidget {
   // a question for the Buddy tab ('' just opens it); the shell switches to the tab
   static final ask = ValueNotifier<String?>(null);
 
+  // store and landing-page pictures show Buddy as he usually is: online
+  // (set only by tool/screenshots_test.dart)
+  static String? debugStatus;
+
   // from anywhere: back to the shell and on into the Buddy chat
   static void open(BuildContext context, [String? question]) {
     HapticFeedback.selectionClick();
@@ -1053,6 +1057,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       );
 
   String get _statusLabel {
+    if (BuddyScreen.debugStatus != null) return BuddyScreen.debugStatus!;
     if (_live == null) return tr('verbindet …');
     if (_live != true) return tr('Offline-Modus');
     return _aiOn ? tr('KI an') : tr('KI aus · tippen zum Einschalten');
