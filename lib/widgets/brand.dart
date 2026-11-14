@@ -94,3 +94,48 @@ class Wordmark extends StatelessWidget {
     );
   }
 }
+
+// Copper light, the landing page's atmosphere: dark at the top, glowing
+// warm towards the bottom, with two soft lights. The guest's app bar uses
+// [CopperLight.top] so bar and hero meet without a seam.
+class CopperLight extends StatelessWidget {
+  final Widget child;
+  const CopperLight({super.key, required this.child});
+
+  static const top = Color(0xFF2E160A);
+  static const peach = Color(0xFFF4C7A1);
+  static const card = Color(0xFF24130A);
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [top, Color(0xFF5E2C14), Color(0xFFA4542A), Color(0xFFD9813F)],
+          stops: [0, .38, .78, 1],
+        ),
+      ),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(-1.1, -0.7),
+            radius: 1.1,
+            colors: [Color(0x66C7703A), Color(0x00C7703A)],
+          ),
+        ),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(1.1, 1.2),
+              radius: 0.9,
+              colors: [Color(0x80FFD6B0), Color(0x00FFD6B0)],
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}

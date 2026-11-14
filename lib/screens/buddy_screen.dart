@@ -931,14 +931,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
         Text(text),
       ]);
 
-  // before sign-up the opening is copper, like the landing page; once the
-  // chat starts the bar turns quiet
+  // before sign-up the opening is copper light, like the landing page; once
+  // the chat starts the bar turns quiet
   PreferredSizeWidget _guestBar() {
     final copper = _messages.isEmpty;
-    const ink = Color(0xFF16120F);
     return AppBar(
       titleSpacing: 20,
-      backgroundColor: copper ? AppColors.brand : null,
+      backgroundColor: copper ? CopperLight.top : null,
+      surfaceTintColor: copper ? Colors.transparent : null,
       foregroundColor: copper ? Colors.white : null,
       systemOverlayStyle: copper ? SystemUiOverlayStyle.light : null,
       title: Row(children: [
@@ -949,8 +949,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 style: TextStyle(
                     fontFamily: AppFonts.display,
                     fontSize: 21,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.8,
                     color: Colors.white))
             : const Wordmark(size: 21),
       ]),
@@ -965,9 +965,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
           child: FilledButton(
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              backgroundColor: copper ? ink : AppColors.brand,
-              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              backgroundColor: copper ? Colors.white : AppColors.brand,
+              foregroundColor: copper ? const Color(0xFF17120E) : Colors.white,
             ),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
             child: Text(tr('Starten')),
@@ -977,56 +977,59 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
-  // the guest's opening: the landing page's question on copper, with the
-  // coin rolling in from the right
-  Widget _guestHero() => Container(
-        color: AppColors.brand,
-        child: Stack(clipBehavior: Clip.hardEdge, children: [
-          Positioned(
-            right: -70,
-            bottom: -60,
-            child: Container(
-              width: 210,
-              height: 210,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                    center: Alignment(-0.3, -0.4), colors: [Color(0xFFC77847), Color(0xFF9C5226)], stops: [0, 0.75]),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(48),
-                child: CustomPaint(painter: MarkPainter(color: const Color(0x66FFF6EF))),
+  // the guest's opening: the landing page's question in copper light, and
+  // one remark in Buddy's voice so you hear how he talks
+  Widget _guestHero() => CopperLight(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text.rich(
+              TextSpan(children: [
+                TextSpan(text: tr('Was mach ich jetzt mit meinem ')),
+                TextSpan(text: tr('Gehalt?'), style: const TextStyle(color: CopperLight.peach)),
+              ]),
+              style: const TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 44,
+                height: 0.96,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -2,
+                color: Color(0xFFFFF7F0),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 30),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text.rich(
-                TextSpan(children: [
-                  TextSpan(text: tr('Was mach ich jetzt mit meinem ')),
-                  TextSpan(text: tr('Gehalt?'), style: const TextStyle(color: Color(0xFF2A140A))),
+            const SizedBox(height: 16),
+            Text(
+              tr('Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.'),
+              style: const TextStyle(fontSize: 15.5, height: 1.45, color: Color(0xDBFFF7F0)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              decoration: BoxDecoration(
+                color: CopperLight.card,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0x1FFFFFFF)),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const BrandMark(size: 18, inverse: true),
+                  const SizedBox(width: 6),
+                  Text(tr('Buddy'),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
                 ]),
-                style: const TextStyle(
-                  fontFamily: AppFonts.display,
-                  fontSize: 44,
-                  height: 0.98,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.6,
-                  color: Color(0xFFFFF6EF),
+                const SizedBox(height: 8),
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: tr('Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ')),
+                    const TextSpan(text: '29,90 €', style: TextStyle(fontWeight: FontWeight.w700)),
+                    TextSpan(text: tr(' ab.')),
+                  ]),
+                  style: const TextStyle(fontSize: 15, height: 1.4, fontWeight: FontWeight.w500, color: Colors.white),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.only(right: 70),
-                child: Text(
-                  tr('Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.'),
-                  style: const TextStyle(fontSize: 15.5, height: 1.45, color: Color(0xEBFFF6EF)),
-                ),
-              ),
-            ]),
-          ),
-        ]),
+              ]),
+            ),
+          ]),
+        ),
       );
 
   String get _statusLabel {
@@ -1136,8 +1139,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       );
 
-  Widget _sectionLabel(String text) => Text(text.toUpperCase(),
-      style: TextStyle(fontSize: 11.5, letterSpacing: 0.9, fontWeight: FontWeight.w700, color: AppColors.brand));
+  // quiet headings like on the landing page, no shouting caps
+  Widget _sectionLabel(String text) => Text(text,
+      style: TextStyle(
+          fontFamily: AppFonts.display, fontSize: 18, letterSpacing: -0.4, fontWeight: FontWeight.w700, color: AppColors.text));
 
   Widget _stageProgress(LifeStage s) {
     final done = LifeStages.progress(s);
