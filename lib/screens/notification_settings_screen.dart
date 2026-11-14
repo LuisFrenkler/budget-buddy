@@ -94,6 +94,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         NotifyTopic.contracts => Icons.receipt_long_rounded,
         NotifyTopic.weekly => Icons.insights_rounded,
         NotifyTopic.account => Icons.workspace_premium_rounded,
+        NotifyTopic.buddy => Icons.auto_awesome_rounded,
       };
 
   Future<void> _toggle(bool on) async {

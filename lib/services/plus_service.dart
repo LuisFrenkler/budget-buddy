@@ -1,6 +1,6 @@
 // Ahead Plus: who has it and how much of the free tier is used.
 //
-// Free: 5 AI questions and 3 receipt scans per month, 1 savings goal.
+// Free: 30 AI questions and 3 receipt scans per month, 1 savings goal.
 // Plus: everything without limits, 7 days free, then monthly or yearly.
 //
 // The subscription (plan, payment method, trial, renewal, cancellation) is
@@ -169,7 +169,7 @@ class Subscription {
 }
 
 class PlusService {
-  static const freeAiQuestions = 5;
+  static const freeAiQuestions = 30;
   static const freeReceiptScans = 3;
   static const freeGoals = 1;
   static const trialDays = 7;

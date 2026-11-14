@@ -41,6 +41,10 @@ import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 import '../l10n/l10n.dart';
+import '../services/notification_service.dart';
+import '../widgets/buddy_chart.dart';
+import '../services/buddy_tasks.dart';
+import '../services/buddy_proposals.dart';
 import '../services/money_accounts.dart';
 import '../services/ledger_busy.dart';
 import '../services/onboarding_service.dart';
@@ -189,6 +193,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   @override
   void initState() {
     super.initState();
+    // the day Buddy first met this person: his offer to speak up waits a week
+    if (_settings.get('buddyFirstSeen') == null) _settings.put('buddyFirstSeen', DateTime.now().toIso8601String());
     // Profil-Schalter und Chat-Schalter halten den Status synchron
     _consentListenable = _settings.listenable(keys: const ['aiConsent', 'aiConsentGoogle']);
     _consentListener = () {
@@ -243,7 +249,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         goals: GoalsService.all(),
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
-      ).where((h) => h.urgent).firstOrNull;
+        freeCents: BuddyService.freeCents(),
+      ).where((h) => h.urgent || h.kind == HintKind.salaryIn || h.kind == HintKind.goalReached).firstOrNull;
     } catch (_) {
       return;
     }
@@ -252,7 +259,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     setState(() {
       _messages.add(_Message(false, tr('Kurz von mir: **{title}**. {text}', {'title': hint!.title, 'text': hint.text}))
         ..checkIn = true
-        ..followUps = [tr('Was kann ich da tun?'), tr('Wie wirkt sich das auf den Monat aus?')]);
+        ..followUps = [
+          if (hint.question != null) hint.question! else tr('Was kann ich da tun?'),
+          tr('Wie wirkt sich das auf den Monat aus?'),
+        ]);
     });
     _persist();
     _scrollDown();
@@ -714,9 +724,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
         // only an answer that arrived uses up one of the free questions
         if (countsQuestion && !answer.error && !answer.degraded) PlusService.count(PlusFeature.aiQuestion);
         if (!mounted || answer.error) return;
+        final extras = BuddyService.takeExtras();
         setState(() {
           _thinking = false;
           answer.streaming = false;
+          answer
+            ..proposals = extras.proposals
+            ..charts = extras.charts;
           _finish(answer, question);
         });
         _persist();
@@ -733,6 +747,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final fact = parsed.remember;
     if (!_guest && fact != null && BuddyMemory.allowed(fact) && !BuddyMemory.knows(fact)) answer.remember = fact;
     if (!_guest) answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
+    // the next step stays open until it is done; Buddy picks it up again
+    final step = _stepOf(answer.text);
+    if (!_guest && step != null) BuddyTasks.add(step);
+  }
+
+  static String? _stepOf(String text) {
+    final m = RegExp(r'^\**Nächster Schritt:\**\s*(.+)$', multiLine: true).firstMatch(text);
+    final step = m?.group(1)?.replaceAll('**', '').trim();
+    return step == null || step.isEmpty ? null : step;
   }
 
   // offline answers have no follow-ups from the AI: the next steps of the
@@ -1162,6 +1185,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
           _remark(brief.tip!),
           const SizedBox(height: 18),
         ],
+        if (_offerNotify) ...[
+          _notifyOffer(),
+          const SizedBox(height: 18),
+        ],
+        // what is still open from earlier: Buddy keeps track
+        ValueListenableBuilder<int>(
+          valueListenable: BuddyTasks.changed,
+          builder: (_, __, ___) {
+            final open = BuddyTasks.open();
+            if (open.isEmpty) return const SizedBox.shrink();
+            return Padding(padding: const EdgeInsets.only(bottom: 18), child: _openTask(open.first));
+          },
+        ),
         if (stage != null) ...[
           _stageProgress(stage),
           const SizedBox(height: 18),
@@ -1199,6 +1235,86 @@ class _BuddyScreenState extends State<BuddyScreen> {
       return (free: null, perDay: null, tip: null);
     }
   }
+
+  // after a week Buddy asks once whether he may speak up on his own
+  bool get _offerNotify {
+    if (_guest || _settings.get('notifyOfferDone') == true) return false;
+    final first = DateTime.tryParse('${_settings.get('buddyFirstSeen') ?? ''}');
+    if (first == null || DateTime.now().difference(first).inDays < 7) return false;
+    if (!NotificationService.canAsk) return false;
+    return !NotificationService.enabled.value || !NotificationService.topic(NotifyTopic.buddy);
+  }
+
+  Widget _notifyOffer() => Container(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        decoration: BoxDecoration(
+          color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(
+              tr('Soll ich mich melden, wenn dein Gehalt da ist, ein Budget kippt oder ein Abo teurer wird? Sonntags gibt es einen kurzen Rückblick. Höchstens einmal am Tag.'),
+              style: TextStyle(
+                  fontFamily: AppFonts.display, fontSize: 17, height: 1.35, letterSpacing: -0.2, color: AppColors.text)),
+          const SizedBox(height: 10),
+          Row(children: [
+            TextButton(
+              onPressed: () => setState(() => _settings.put('notifyOfferDone', true)),
+              child: Text(tr('Lieber nicht')),
+            ),
+            const Spacer(),
+            FilledButton(
+              style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+              onPressed: () async {
+                HapticFeedback.mediumImpact();
+                final ok = NotificationService.enabled.value || await NotificationService.enable();
+                if (ok) {
+                  await NotificationService.setTopic(NotifyTopic.buddy, true);
+                  await NotificationService.setTopic(NotifyTopic.weekly, true);
+                }
+                await _settings.put('notifyOfferDone', true);
+                if (mounted) setState(() {});
+                if (!ok && mounted && NotificationService.problem.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NotificationService.problem)));
+                }
+              },
+              child: Text(tr('Ja, gern')),
+            ),
+          ]),
+        ]),
+      );
+
+  Widget _openTask(BuddyTask t) => Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.hairline),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(t.due != null ? tr('Erinnerung') : tr('Noch offen'),
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.glow)),
+          const SizedBox(height: 4),
+          Text(t.text, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.35)),
+          const SizedBox(height: 10),
+          Row(children: [
+            TextButton(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                BuddyTasks.done(t.id);
+              },
+              child: Text(tr('Erledigt')),
+            ),
+            const Spacer(),
+            FilledButton(
+              style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+              onPressed: () => _send(tr('Hilf mir bei diesem Schritt: {x}', {'x': t.text})),
+              child: Text(tr('Hilf mir dabei')),
+            ),
+          ]),
+        ]),
+      );
 
   // one remark in Buddy's voice with the step that goes with it
   Widget _remark(BuddyTip tip) => Container(
@@ -1510,7 +1626,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
                                       ),
                                     ]),
                             )
-                          : RichMarkdown(text, streaming: m.streaming, onAsk: _send, lead: true),
+                          : RichMarkdown(text,
+                              streaming: m.streaming,
+                              onAsk: _send,
+                              lead: true,
+                              stepDone: m.stepDone,
+                              onStepHelp: _guest || m.offline ? null : (step) => _send(tr('Hilf mir bei diesem Schritt: {x}', {'x': step})),
+                              onStepDone: _guest
+                                  ? null
+                                  : (step) {
+                                      HapticFeedback.lightImpact();
+                                      BuddyTasks.doneByText(step);
+                                      setState(() => m.stepDone = true);
+                                    }),
                     ),
             ),
             if (m.offline && text.isNotEmpty && !m.error && !m.streaming)
@@ -1524,6 +1652,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
                         : (_guest ? tr('Ohne KI · aus Buddys Grundwissen') : tr('Ohne KI berechnet aus deinen Daten')),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
+            if (!m.streaming)
+              for (final c in m.charts) BuddyChartCard(c),
+            if (m.proposals.isNotEmpty && !m.streaming) _confirmNote(),
+            if (!m.streaming)
+              for (var i = 0; i < m.proposals.length; i++) _proposalCard(m, i),
             if (m.entries.isNotEmpty && !m.streaming) _confirmNote(),
             if (!m.streaming)
               for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
@@ -1566,6 +1699,82 @@ class _BuddyScreenState extends State<BuddyScreen> {
               style: TextStyle(fontSize: 11.5, color: AppColors.textDim, fontWeight: FontWeight.w500)),
         ]),
       );
+
+  // one thing Buddy's tools propose (budget, goal, letter …); nothing
+  // happens until the button
+  Widget _proposalCard(_Message m, int i) {
+    final p = m.proposals[i];
+    final done = m.proposalDone[i];
+    final dropped = m.proposalDropped.contains(i);
+    final icon = switch (p.kind) {
+      ProposalKind.budget => Icons.pie_chart_outline_rounded,
+      ProposalKind.goal => Icons.flag_outlined,
+      ProposalKind.cancel => Icons.mark_email_read_outlined,
+      ProposalKind.category => Icons.label_outline_rounded,
+      ProposalKind.reminder => Icons.notifications_none_rounded,
+    };
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: dropped ? 0.55 : 1,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: done == null && !dropped ? AppColors.brand.withValues(alpha: 0.55) : AppColors.hairline),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, size: 19, color: AppColors.text),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(p.title, style: const TextStyle(fontWeight: FontWeight.w700, height: 1.3)),
+                const SizedBox(height: 2),
+                Text(p.detail, style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.35)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          if (done != null)
+            Text('✓ $done', style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35))
+          else if (dropped)
+            Text(tr('Verworfen'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600))
+          else
+            Row(children: [
+              TextButton(
+                onPressed: () => setState(() => m.proposalDropped.add(i)),
+                child: Text(tr('Verwerfen')),
+              ),
+              const Spacer(),
+              FilledButton(
+                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  try {
+                    final said = await p.apply();
+                    if (mounted) setState(() => m.proposalDone[i] = said);
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(friendlyError(e, fallback: tr('Das ging gerade nicht.')))));
+                    }
+                  }
+                },
+                child: Text(tr(p.confirm)),
+              ),
+            ]),
+        ]),
+      ),
+    );
+  }
 
   // one proposed entry; nothing is stored until "Übernehmen"
   Widget _entryCard(_Message m, int i) {
@@ -1909,6 +2118,11 @@ class _Message {
   bool restored = false; // from last time: no entry animation
   bool checkIn = false; // Buddy spoke first
   List<BuddyAction> actions = const []; // next steps under an answer
+  List<BuddyProposal> proposals = const []; // what Buddy's tools propose, confirmed by the user
+  final Map<int, String> proposalDone = {}; // proposal index -> what was done
+  final Set<int> proposalDropped = {};
+  List<BuddyChart> charts = const []; // small charts under the answer
+  bool stepDone = false; // the next step is marked done
   List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user
   final Map<int, String> applied = {}; // entry index -> what was done
   final Set<int> dismissed = {}; // entries the user waved away

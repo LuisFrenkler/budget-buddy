@@ -20,6 +20,8 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'buddy_service.dart';
+import 'buddy_tasks.dart';
 import 'cancellation_service.dart';
 import 'contracts.dart';
 import 'db.dart';
@@ -29,7 +31,7 @@ import 'plus_service.dart';
 import 'settings_service.dart';
 import 'weekly_report.dart';
 
-enum NotifyTopic { spending, contracts, weekly, account }
+enum NotifyTopic { spending, contracts, weekly, account, buddy }
 
 extension NotifyTopicLabel on NotifyTopic {
   String get label => switch (this) {
@@ -37,6 +39,7 @@ extension NotifyTopicLabel on NotifyTopic {
         NotifyTopic.contracts => 'Verträge & Abbuchungen',
         NotifyTopic.weekly => 'Wochenbericht',
         NotifyTopic.account => 'Abo & Bankverbindung',
+        NotifyTopic.buddy => 'Buddy-Momente',
       };
 
   String get description => switch (this) {
@@ -44,6 +47,7 @@ extension NotifyTopicLabel on NotifyTopic {
         NotifyTopic.contracts => 'Preiserhöhungen und große Abbuchungen am Tag vorher',
         NotifyTopic.weekly => 'Jeden Sonntag um 18 Uhr',
         NotifyTopic.account => 'Ende des Gratis-Tests, ablaufende Bankverbindung',
+        NotifyTopic.buddy => 'Gehalt ist da, Ziel erreicht',
       };
 }
 
@@ -69,7 +73,10 @@ class NotificationService {
 
   static final enabled = ValueNotifier<bool>(false);
 
-  static bool topic(NotifyTopic t) => _box.get('notify_${t.name}', defaultValue: true) as bool;
+  // warnings are on once notifications are; the nice-to-know ones (weekly
+  // report, Buddy moments) Buddy offers in the chat after the first week
+  static bool topic(NotifyTopic t) =>
+      _box.get('notify_${t.name}', defaultValue: t != NotifyTopic.weekly && t != NotifyTopic.buddy) as bool;
 
   static Future<void> setTopic(NotifyTopic t, bool on) async {
     await _box.put('notify_${t.name}', on);
@@ -200,7 +207,8 @@ class NotificationService {
   }
 
   static NotifyTopic? _topicOf(HintKind k) => switch (k) {
-        HintKind.budgetOver || HintKind.bigExpense => NotifyTopic.spending,
+        HintKind.budgetOver || HintKind.budgetClose || HintKind.bigExpense || HintKind.lowMonth => NotifyTopic.spending,
+        HintKind.salaryIn || HintKind.goalReached => NotifyTopic.buddy,
         HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,
         _ => null, // the rest is planned ahead as a reminder
       };
@@ -212,6 +220,7 @@ class NotificationService {
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
         cancellations: CancellationService.all,
+        freeCents: BuddyService.freeCents(),
         now: now,
       ).where((h) => _topicOf(h.kind) != null).toList();
 
@@ -238,7 +247,8 @@ class NotificationService {
     final fresh =
         _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(room).toList();
     for (final h in fresh) {
-      await _show(_idFor(h.id), h.title, h.text, 'hint:${h.target.name}');
+      // a hint with a question opens Buddy's chat with it
+      await _show(_idFor(h.id), h.title, h.text, h.question != null ? 'buddy:${h.question}' : 'hint:${h.target.name}');
     }
     await _markShown(fresh.map((h) => h.id));
     if (fresh.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in fresh) today.toIso8601String()]);
@@ -265,8 +275,12 @@ class NotificationService {
         goals: GoalsService.all(),
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
+        tasks: [
+          for (final t in BuddyTasks.open(now: today))
+            if (t.due != null) (text: t.text, due: t.due!)
+        ],
         now: today,
-      ).where((r) => topic(r.topic));
+      ).where((r) => topic(r.topic) || r.payload.startsWith('buddy:'));
       for (final r in planned) {
         await _plugin.zonedSchedule(
           id: r.id,
@@ -328,10 +342,21 @@ class NotificationService {
     required List<Goal> goals,
     Subscription? subscription,
     DateTime? bankValidUntil,
+    // reminders the person asked Buddy for
+    List<({String text, DateTime due})> tasks = const [],
     required DateTime now,
   }) {
     final out = <Reminder>[];
     DateTime at(DateTime d, int hour) => DateTime(d.year, d.month, d.day, hour);
+
+    // asked for, so always on: in the morning of the day, the chat opens with help
+    for (final t in tasks) {
+      final when = at(t.due, 9);
+      if (when.isAfter(now)) {
+        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, 'Erinnerung von Buddy', t.text, NotifyTopic.buddy,
+            'buddy:Hilf mir bei diesem Schritt: ${t.text}'));
+      }
+    }
     DateTime before(DateTime d, int days, int hour) => DateTime(d.year, d.month, d.day - days, hour);
 
     final weekly = WeeklyReportService.nextReady(now);

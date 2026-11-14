@@ -16,11 +16,16 @@ import '../utils/theme.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
 import 'buddy_memory.dart';
+import 'buddy_proposals.dart';
+import 'buddy_tasks.dart';
 import 'buddy_tools.dart';
 import 'life_stages.dart';
 import 'db.dart';
 import 'finance_snapshot.dart';
 import 'goals_service.dart';
+import 'onboarding_service.dart';
+import 'ledger_busy.dart';
+import 'forecast_service.dart';
 import 'local_buddy.dart';
 import 'plus_service.dart';
 import 'quick_parser.dart';
@@ -108,6 +113,15 @@ class BuddyService {
       plus: _plus(today),
     );
   }
+
+  // what the month leaves after fixed costs, when the balance is known
+  static int? freeCents() => _try(() {
+        if (!OnboardingService.balanceKnown) return null;
+        final tx = DB.getTx();
+        if (tx.isEmpty) return null;
+        final cash = LedgerBusy.cashOr(DB.balanceOf(tx) + MoneyAccounts.openingTotal);
+        return ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash)?.freeCents;
+      }, null);
 
   static T _try<T>(T Function() fn, T fallback) {
     try {
@@ -290,9 +304,18 @@ class BuddyService {
 
   static Map<String, dynamic> _context() => {
         if (AccountService.current.value != null) 'name': AccountService.current.value!.firstName,
-        'erinnerungen': BuddyMemory.texts(),
+        'erinnerungen': BuddyMemory.textsForAgent(),
         if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
+        'offeneAufgaben': BuddyTasks.forAgent(),
       };
+
+  // the cards and charts the last answer's tools produced, taken once by the chat
+  static BuddyTools? _lastTools;
+  static ({List<BuddyProposal> proposals, List<BuddyChart> charts}) takeExtras() {
+    final t = _lastTools;
+    _lastTools = null;
+    return (proposals: [...?t?.proposals], charts: [...?t?.charts]);
+  }
 
   static Stream<String> _agent(List<ChatMessage> history) async* {
     final messages = <Map<String, dynamic>>[
@@ -306,6 +329,7 @@ class BuddyService {
       context = const {};
     }
     BuddyTools? toolbox;
+    _lastTools = null;
     var wrote = false;
     try {
       for (var step = 0; step < maxSteps; step++) {
@@ -341,6 +365,7 @@ class BuddyService {
         final calls = [for (final c in (done['tools'] as List? ?? const [])) (c as Map).cast<String, dynamic>()];
         if (calls.isEmpty) return;
         toolbox ??= tools();
+        _lastTools = toolbox;
         activity.value = '${calls.first['zeigt'] ?? 'deine Zahlen'}';
         messages.add({'role': 'assistant', 'content': done['content']});
         messages.add({

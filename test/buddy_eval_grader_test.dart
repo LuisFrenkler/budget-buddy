@@ -46,8 +46,9 @@ void main() {
   test('claiming to have saved something fails an action case', () {
     final a = evalCases.firstWhere((c) => c.id == 'a01');
     expect(Grader.grade(a, 'Ich habe das Sparziel angelegt.\n[weiter: a | b]', const []).failures['inhalt'], isNotNull);
-    expect(Grader.grade(a, 'Tipp auf „Sparziel Urlaub 800“, dann siehst du die Karte.\n[weiter: a | b]', const []).passed,
-        isTrue);
+    final card = [(name: 'sparziel_vorschlagen', result: <String, dynamic>{'karte': 'gezeigt', 'details': '800,00 €'})];
+    expect(Grader.grade(a, 'Die Karte für dein Sparziel liegt unten bereit.\n[weiter: a | b]', card).passed, isTrue);
+    expect(Grader.grade(a, 'Die Karte liegt unten bereit.\n[weiter: a | b]', const []).failures['werkzeuge'], isNotNull);
   });
 
   test('the catalog: 100 unique cases across the seven groups', () {
