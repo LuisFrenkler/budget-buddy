@@ -274,4 +274,19 @@ void main() {
     }
     expect(BuddyAgent.tools.last['cache_control'], isNotNull);
   });
+
+  test('the persona leads with the figure and refuses advice and unconfirmed writes', () {
+    final p = Ai.persona;
+    expect(p, contains('Zahl **fett** oder die Ampel'));
+    expect(p, contains('40 Wörter'));
+    expect(p, contains('Höchstens ein „Nächster Schritt:“'));
+    expect(p, contains('Schätzung'));
+    expect(p, contains('ein Satz nein, kein Produkt'));
+    expect(p, contains('erst nach Bestätigung'));
+    expect(p, isNot(contains('—')));
+    expect(p.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length, lessThan(170));
+    expect(BuddyAgent.system, contains('Übernehmen'));
+    expect(BuddyAgent.system, contains('Schätzung als Schätzung'));
+    expect(BuddyAgent.system, isNot(contains('—')));
+  });
 }
