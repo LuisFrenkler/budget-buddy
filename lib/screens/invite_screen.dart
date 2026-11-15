@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../l10n/l10n.dart';
-import '../services/account_service.dart';
 import '../services/invite_service.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
@@ -30,7 +29,7 @@ class _InviteScreenState extends State<InviteScreen> {
 
   Future<void> _share(InviteInfo i) async {
     HapticFeedback.mediumImpact();
-    final text = i.shareText(AccountService.current.value?.firstName);
+    final text = i.shareText();
     try {
       await Share.share(text);
     } catch (_) {
@@ -55,7 +54,7 @@ class _InviteScreenState extends State<InviteScreen> {
                   style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: -0.6, height: 1.15)),
               const SizedBox(height: 8),
               Text(
-                tr('Lad bis zu drei Leute ein. Pro Person, die mitmacht: {n} Buddy-Fragen mehr im Monat.',
+                tr('Bis zu drei Personen. Jede bringt {n} Buddy-Fragen mehr im Monat.',
                     {'n': i?.bonusPerFriend ?? 5}),
                 style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15.5),
               ),

@@ -744,9 +744,8 @@ const en = <String, String>{
       'Your spending is about the same as last month.',
   'Größter Posten: {x} ({y}).': 'Biggest item: {x} ({y}).',
   '{incCat} ist um {x} gestiegen.': '{incCat} went up by {x}.',
-  'Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. {x}{link}':
-      'I use Ahead, a money buddy that works with your real numbers and tells you what to do next. {x}{link}',
-  'Hier ist meine Einladung: ': 'Here\'s my invite: ',
+  'Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead: {link}':
+      'What do I do with my salary? Buddy names one next step. Ahead: {link}',
   'Erster Job': 'First job',
   'Gehalt, Betriebsrente, Notgroschen, Sparrate':
       'Salary, company pension, emergency fund, savings rate',
@@ -2225,8 +2224,8 @@ const en = <String, String>{
   'Link kopiert': 'Link copied',
   'Freunde einladen': 'Invite friends',
   'Zu dritt ist Geld weniger nervig.': 'Money is less annoying with friends.',
-  'Lad bis zu drei Leute ein. Pro Person, die mitmacht: {n} Buddy-Fragen mehr im Monat.':
-      'Invite up to three people. For each person who joins: {n} extra Buddy questions a month.',
+  'Bis zu drei Personen. Jede bringt {n} Buddy-Fragen mehr im Monat.':
+      'Up to three people. Each one adds {n} Buddy questions a month.',
   'Dabei': 'Joined',
   'Frei': 'Free',
   'Schon {n} Fragen extra im Monat.': 'Already {n} extra questions a month.',

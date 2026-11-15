@@ -31,8 +31,8 @@ class InviteInfo {
         (j['bonusQuestions'] as num?)?.toInt() ?? 0,
       );
 
-  String shareText(String? name) =>
-      tr('Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. {x}{link}', {'x': name != null && name.isNotEmpty ? tr('Hier ist meine Einladung: ') : 'Einladung: ', 'link': link});
+  String shareText() =>
+      tr('Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead: {link}', {'link': link});
 }
 
 class InviteService {
