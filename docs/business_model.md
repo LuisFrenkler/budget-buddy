@@ -111,7 +111,7 @@ Alles unter „Schätzung“ ist keine Rechnung aus Produktion. Es gibt keine Nu
 | VPS | ~4 €/Monat | Schätzung aus der Hosting-Notiz |
 | Apple Developer | ~8 €/Monat, ~99 €/Jahr | Listenpreis, bevor irgendwer zahlt |
 | LLM, Kommentar 0,1 ¢/Frage | 30 Free-Fragen ≈ 3 ¢ | Schätzung, nicht gemessen |
-| LLM, Testschritt 0,29 ¢, zwei bis drei Schritte | grob 1 ¢/Frage, 30 Fragen ≈ 0,30 € | Schätzung aus der Formel, kein Median |
+| LLM, Testschritt 0,29 ¢, zwei bis drei Schritte | grob 1 ¢/Frage, 30 Fragen ≈ 0,30 € | Schätzung auf der Preis-Map im Code, kein Median |
 | Plus, 100 Fragen in dem zweiten Band | grob 1 € variabel | Schätzung |
 | Store-Cut 15 % | 4,24 € von 4,99 €, 33,99 € von 39,99 € | Schätzung, Small-Business-Satz, nicht beantragt |
 | Store-Cut 30 % | 3,49 € von 4,99 €, 27,99 € von 39,99 € | Schätzung, Standardsatz |
@@ -120,9 +120,11 @@ Alles unter „Schätzung“ ist keine Rechnung aus Produktion. Es gibt keine Nu
 
 Der variable Posten, der zählt, ist der Store-Schnitt, nicht das Modell. Web über Stripe wäre billiger. Die App soll im Store kaufen. Die Kartengebühr steht nicht im Repo und wird hier nicht erfunden.
 
-Infrastruktur allein (VPS plus Apple-Gebühr, grob 12 € im Monat) kippt bei einer Handvoll zahlender Monatskunden, selbst beim 30-%-Schnitt. Das sagt nichts darüber, ob jemand zahlt, was ein Aktivierter in Stunden kostet, oder wie viele Minuten Support eine Person frisst.
+Die 4,24 € und 3,49 € sind Brutto minus Schnitt, ohne Umsatzsteuer. Die schärfere Serviette ist `docs/unit_economics.md`: dort bleibt nach 19 % USt und 15 % Schnitt etwa 3,56 € von 4,99 €, nach 30 % etwa 2,94 €. Dieselbe Serviette setzt eine typische Haiku-Frage auf der öffentlichen Liste vom 15. Nov 2026 bei etwa 0,16 US-Cent an. Die 0,29 Cent oben kommen aus der Preis-Map im Code (`BuddyAgent.prices`, 1 $ / 5 $ je Million), die über dieser Liste liegt. Beide Rechnungen sind Schätzungen. Keine von beiden ist eine Marge.
 
-Steuer: keine Gesellschaft, keine USt-Id. 4,99 € und 39,99 € sind der Sticker in der App. Ein Netto nach Umsatzsteuer wird hier nicht ausgewiesen.
+Infrastruktur allein (VPS plus Apple-Gebühr, grob 12 € im Monat) kippt bei einer Handvoll zahlender Monatskunden, selbst beim 30-%-Schnitt auf dem Brutto. Das sagt nichts darüber, ob jemand zahlt, was ein Aktivierter in Stunden kostet, oder wie viele Minuten Support eine Person frisst.
+
+Steuer: keine Gesellschaft, keine USt-Id. 4,99 € und 39,99 € sind der Sticker in der App. Welcher der beiden Netto-Wege gilt, entscheidet der Händlervertrag, nicht dieses Dokument.
 
 ## 8. Go-to-market
 
