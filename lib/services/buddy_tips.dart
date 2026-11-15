@@ -29,6 +29,8 @@ class BuddyTips {
     required List<Budget> budgets,
     DateTime? now,
     int? balanceCents,
+    // welcome already built this month's forecast; skip a second ledger scan
+    MonthForecast? knownForecast,
   }) {
     final today = now ?? DateTime.now();
     final day = DateTime(today.year, today.month, today.day);
@@ -78,8 +80,8 @@ class BuddyTips {
       }
     }
     // 5. free cash this month is running low
-    final forecast = ForecastService.build(tx,
-        goals: GoalsService.all(), balanceCents: balanceCents, now: today);
+    final forecast = knownForecast ??
+        ForecastService.build(tx, goals: GoalsService.all(), balanceCents: balanceCents, now: today);
     if (forecast != null && forecast.freeCents >= 0 && forecast.pace == ForecastPace.tight) {
       return BuddyTip(
           tr('Noch {x} frei bis Monatsende, eher knapp.', {'x': Money.format(forecast.freeCents)}),

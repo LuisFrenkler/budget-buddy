@@ -2574,4 +2574,7 @@ const en = <String, String>{
   'Versicherungs-Check:\n{x}\n\n{y}': 'Insurance check:\n{x}\n\n{y}',
   'Altersvorsorge ist noch nicht eingerichtet.': 'Retirement planning isn\'t set up yet.',
   '{x} läuft schon länger': '{x} has been running a while',
+  'Abrechnung: Brutto und Netto': 'Payslip: gross and net',
+  'Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.': 'No saved payslips yet. Send Buddy a photo of one.',
+  'Grau = Brutto, Kupfer = Netto. Die Lücke sind die Abzüge.': 'Grey = gross, copper = net. The gap is deductions.',
 };

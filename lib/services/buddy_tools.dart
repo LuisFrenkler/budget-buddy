@@ -20,6 +20,7 @@ import 'income_sources.dart';
 import 'installments.dart';
 import 'insurance_check.dart';
 import 'overdraft.dart';
+import 'payslip_history.dart';
 import 'periodic_payments.dart';
 import 'sub_tips.dart';
 import 'tax_estimate.dart';
@@ -243,9 +244,23 @@ class BuddyTools {
           'rateProMonat': r['rateProMonat'],
           'monate': months
         };
+      case 'abrechnung':
+        final c = PayslipHistory.chart();
+        if (c == null) {
+          return {
+            'fehler': tr('Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.')
+          };
+        }
+        charts.add(c);
+        return {
+          'diagramm': 'gezeigt',
+          'art': 'abrechnung',
+          'monate': c.rows.length,
+          'hinweis': tr('Grau = Brutto, Kupfer = Netto. Die Lücke sind die Abzüge.'),
+        };
     }
     throw const FormatException(
-        'art muss monate, kategorien oder sparplan sein');
+        'art muss monate, kategorien, sparplan oder abrechnung sein');
   }
 
   // A few numbers that go with every question, so simple ones ("wie viel ist

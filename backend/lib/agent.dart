@@ -909,7 +909,8 @@ oder Passwörter.''';
     {
       'name': 'diagramm',
       'description': 'Zeigt unter der Antwort ein kleines Diagramm: monate (Einnahmen und Ausgaben je Monat), '
-          'kategorien (Ausgaben eines Zeitraums nach Kategorie) oder sparplan (Weg zu einem Zielbetrag).',
+          'kategorien (Ausgaben eines Zeitraums nach Kategorie), sparplan (Weg zu einem Zielbetrag) '
+          'oder abrechnung (Brutto und Netto aus gespeicherten Gehaltsabrechnungen).',
       'input_schema': {
         'type': 'object',
         'additionalProperties': false,
@@ -917,7 +918,7 @@ oder Passwörter.''';
         'properties': {
           'art': {
             'type': 'string',
-            'enum': ['monate', 'kategorien', 'sparplan'],
+            'enum': ['monate', 'kategorien', 'sparplan', 'abrechnung'],
           },
           'monate': {'type': 'integer', 'minimum': 2, 'maximum': 12, 'description': 'bei monate'},
           'von': _date('bei kategorien: erster Tag'),

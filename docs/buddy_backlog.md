@@ -8,11 +8,11 @@ kurz berichten. Erledigtes wandert nach unten.
 ## Offen
 1. Weniger Text in der ganzen App: restliche Screens weiter kürzen
 2. Leistungs-Check: weitere Startzeit-Messung und Optimierung
-3. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
-4. Datenübersicht: Serverstandort eintragen, sobald der Server steht
-5. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
+3. Datenübersicht: Serverstandort eintragen, sobald der Server steht
+4. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
+- Abrechnungs-Verlauf als Diagramm (Brutto/Netto) über Buddy-Werkzeug `diagramm` art `abrechnung`
 - Monatsrückblick als Story direkt aus Buddy (Menü + „Monatsrückblick“ im Chat)
 - LifeProgress.sync nach dem ersten Frame (Buddy-Tab startet schneller)
 - Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
