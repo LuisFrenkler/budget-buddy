@@ -19,6 +19,7 @@ import 'income_sources.dart';
 import 'installments.dart';
 import 'insurance_check.dart';
 import 'overdraft.dart';
+import 'periodic_payments.dart';
 import 'sub_tips.dart';
 import 'tax_estimate.dart';
 import 'buddy_service.dart';
@@ -72,6 +73,7 @@ class BuddyTools {
     'leisten',
     'buchung_erklaeren',
     'versicherungen_pruefen',
+    'jahreszahlungen',
     'diagramm',
   };
 
@@ -104,6 +106,7 @@ class BuddyTools {
         'leisten' => _leisten(input),
         'buchung_erklaeren' => _erklaeren(input),
         'versicherungen_pruefen' => _versicherungen(),
+        'jahreszahlungen' => _jahreszahlungen(),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -644,6 +647,40 @@ class BuddyTools {
       },
       'erklaerung': BookingText.explain(raw: t.raw, note: t.note, income: t.isIncome),
     };
+  }
+
+  Map<String, dynamic> _jahreszahlungen() {
+    final list = PeriodicPayments.detect(tx, now: today);
+    if (list.isEmpty) {
+      return {'gefunden': const [], 'hinweis': 'Keine Jahres- oder Quartalszahlungen erkannt. Frag nach Kfz, Versicherungen, Rundfunkbeitrag.'};
+    }
+    final monthly = PeriodicPayments.monthly(list);
+    final goals = (snapshot['sparziele'] as List?) ?? const [];
+    final hasReserve = goals.whereType<Map>().any((g) => RegExp(r'r[üu]cklage|jahreszahlung|versicherung', caseSensitive: false)
+        .hasMatch('${g['name']}'));
+    final out = <String, dynamic>{
+      'gefunden': [
+        for (final p in list)
+          {
+            'name': p.name,
+            'betrag': p.cents / 100,
+            'alleMonate': p.everyMonths,
+            'naechste': _day(p.next),
+            'proMonatZuruecklegen': p.monthlyCents / 100,
+          }
+      ],
+      'zusammenProMonat': monthly / 100,
+      'hinweis': 'Monatlich zurücklegen, am besten per Dauerauftrag auf ein eigenes Sparziel.',
+    };
+    if (!hasReserve && monthly >= 1000) {
+      final year = list.fold<int>(0, (s, p) => s + p.cents * (12 ~/ p.everyMonths));
+      out['karte'] = _propose(BuddyProposal.goal({
+        'name': tr('Rücklage Jahreszahlungen'),
+        'betrag': year / 100,
+        'monatlich': (monthly / 100).ceilToDouble(),
+      }, today: today));
+    }
+    return out;
   }
 
   Map<String, dynamic> _versicherungen() {

@@ -19,6 +19,7 @@ import 'buddy_log.dart';
 import 'income_sources.dart';
 import 'installments.dart';
 import 'oddities.dart';
+import 'periodic_payments.dart';
 import 'overdraft.dart';
 import 'tax_estimate.dart';
 
@@ -50,6 +51,7 @@ enum HintKind {
   incomeMissing,
   installments,
   followUp,
+  periodicDue,
 }
 
 // where tapping a hint leads
@@ -81,6 +83,7 @@ class HintsService {
     HintKind.incomeMissing: 75,
     HintKind.installments: 47,
     HintKind.followUp: 33,
+    HintKind.periodicDue: 52,
     HintKind.overdraft: 88,
     HintKind.returnedDebit: 86,
     HintKind.doubleCharge: 85,
@@ -255,6 +258,22 @@ class HintsService {
             'budget' => tr('Wie läuft mein Budget seit einer Woche: {x}?', {'x': e.title}),
             _ => tr('Wie komme ich voran seit letzter Woche: {x}?', {'x': e.title}),
           }));
+    }
+
+    // a yearly or quarterly payment of 100 € or more within the next month
+    for (final pp in PeriodicPayments.detect(tx, now: today)) {
+      final days = _daysBetween(today, pp.next);
+      if (days < 0 || days > 30 || pp.cents < 10000) continue;
+      out.add(Hint(
+          'periodic-${pp.name}-${pp.next.year}-${pp.next.month}',
+          HintKind.periodicDue,
+          tr('{x}: {y} {z}', {'x': pp.name, 'y': Money.format(pp.cents), 'z': _inDays(days)}),
+          tr('Kommt nicht jeden Monat, deshalb leicht vergessen. Ab jetzt {x} im Monat zurücklegen, dann tut es nächstes Mal nicht weh.',
+              {'x': Money.format(pp.monthlyCents)}),
+          HintTarget.buddy,
+          question: tr('{x} kommt bald mit {y}. Wie lege ich für solche Jahreszahlungen am besten zurück?',
+              {'x': pp.name, 'y': Money.format(pp.cents)})));
+      break;
     }
 
     // buy now, pay later adds up: once a month when there are some

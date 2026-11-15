@@ -11,6 +11,9 @@ import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/screens/tax_screen.dart';
 import 'package:budget_buddy/screens/transaction_screen.dart';
 import 'package:budget_buddy/screens/contracts_screen.dart';
+import 'package:budget_buddy/screens/goals_screen.dart';
+import 'package:budget_buddy/models/goal.dart';
+import 'package:budget_buddy/services/goals_service.dart';
 import 'package:budget_buddy/services/bank_sync.dart';
 import 'package:budget_buddy/services/db.dart';
 import 'package:budget_buddy/utils/money.dart';
@@ -196,6 +199,19 @@ void main() {
     });
     await _pump(tester, const BuddyMemoryScreen());
     await _shot(tester, '05_memory');
+  });
+
+  testWidgets('22 goal reached', (tester) async {
+    final done = Goal(
+        id: 'g1', name: tr('Notgroschen'), emoji: '🛟', targetCents: 300000, savedCents: 300000,
+        createdAt: DateTime(2026), monthlyCents: 20000);
+    await tester.runAsync(() => GoalsService.save(done));
+    await _pump(tester, Builder(builder: (context) {
+      return Scaffold(body: Center(child: FilledButton(onPressed: () => celebrateGoal(context, done), child: const Text('go'))));
+    }));
+    await tester.tap(find.text('go'));
+    await tester.pump(const Duration(milliseconds: 900));
+    await _shot(tester, '22_goal_reached');
   });
 
   testWidgets('21 contract tip', (tester) async {

@@ -8,6 +8,7 @@ import '../services/auto_save.dart';
 import '../services/buddy_service.dart';
 import '../services/db.dart';
 import '../services/goal_move.dart';
+import '../services/goal_next.dart';
 import '../services/goals_service.dart';
 import '../services/money_accounts.dart';
 import '../services/plus_service.dart';
@@ -389,6 +390,7 @@ class GoalCard extends StatelessWidget {
 // "Ziel erreicht" with a burst of confetti
 void celebrateGoal(BuildContext context, Goal goal) {
     HapticFeedback.heavyImpact();
+    final next = GoalNext.suggest(goal, GoalsService.all());
     showDialog(
       context: context,
       builder: (context) => Stack(children: [
@@ -411,11 +413,26 @@ void celebrateGoal(BuildContext context, Goal goal) {
             SizedBox(height: 8),
             Text(tr('{x} für {name} sind zusammen.', {'x': Money.format(goal.targetCents), 'name': goal.name}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            SizedBox(height: 14),
+            // what the monthly money does next, so the habit keeps going
+            Container(
+              key: const Key('goal-next'),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+              child: Text(next.text, textAlign: TextAlign.center, style: const TextStyle(height: 1.4)),
+            ),
             SizedBox(height: 20),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: Size.fromHeight(50)),
               onPressed: () => Navigator.pop(context),
               child: Text(tr('Feiern')),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                BuddyScreen.open(context, next.question);
+              },
+              child: Text(tr('Mit Buddy weiterplanen')),
             ),
           ]),
         ),
