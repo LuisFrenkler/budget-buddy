@@ -273,10 +273,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   void _onFocus() {
-    if (!mounted) return;
-    setState(() {});
-    // the keyboard covers the latest line unless the thread follows it
-    if (_focus.hasFocus && _messages.isNotEmpty) _scrollDown();
+    if (mounted) setState(() {});
   }
 
   // the conversation from last time (and, right after sign-up, the guest chat)
@@ -592,7 +589,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       _messages.add(answer);
       _thinking = true;
     });
-    BuddyService.activity.value = 'Abrechnung';
+    BuddyService.activity.value = 'deine Abrechnung';
     _scrollDown();
     try {
       final slip = await PayslipCheck.read(photo.bytes, photo.type);
@@ -856,9 +853,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _input.clear();
     setState(() {
       _messages.add(_Message(true, question));
-      // streaming from the first frame, so the thread shows the thinking row
-      // and not an empty assistant block before the first token
-      _messages.add(_Message(false, '', offline: !live)..streaming = true);
+      _messages.add(_Message(false, '', offline: !live));
       _thinking = true;
     });
     _scrollDown();
@@ -886,7 +881,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final live = _live == true && GuestBuddy.left() > 0;
     setState(() {
       _messages.add(_Message(true, question));
-      _messages.add(_Message(false, '', offline: !live)..streaming = true);
+      _messages.add(_Message(false, '', offline: !live));
       _thinking = true;
     });
     _scrollDown();
@@ -1394,16 +1389,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return tr('Noch {left} von {x} Gratis-KI-Fragen', {'left': left, 'x': PlusService.limit(PlusFeature.aiQuestion)});
   }
 
-  // hidden while typing, and on an empty start with nothing else to say
-  String? _footnote(String? note) {
-    if (_focus.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0) return null;
-    final parts = [
-      if (note != null) note,
-      if (_messages.isNotEmpty) tr('Kann sich irren, keine Anlageberatung'),
-    ];
-    return parts.isEmpty ? null : parts.join(' · ');
-  }
-
   // --------------------------------------------------------------- welcome
 
   // Logged-in start: one number, one remark, three ways in. Nothing else.
@@ -1411,12 +1396,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     // fallbacks until _warmStart: snapshot() builds a forecast, which is the cold-start cost
-    final chips = (_guest ? BuddyScreen.guestSuggestions : (_startChips ?? BuddySuggestions.fallback)).take(3).toList();
+    final chips = (_guest ? BuddyScreen.guestSuggestions : (_startChips ?? BuddySuggestions.fallback))
+        .take(3)
+        .toList();
     if (_guest) {
       // the question on top, the ways in at the bottom next to the input
       return LayoutBuilder(
         builder: (context, box) => SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: box.maxHeight),
             // one copper surface from the question down to the ways in
@@ -1449,7 +1435,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
     final brief = _startBrief ?? (free: null, perDay: null, tip: null);
     return ListView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
       children: [
         Center(child: BuddyOrb(size: 88, mood: _mood)),
@@ -1629,7 +1614,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final count = _messages.length + (_showCta ? 1 : 0);
     return ListView.builder(
       controller: _scroll,
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: count,
       itemBuilder: (_, i) {
@@ -1637,8 +1621,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
         final m = _messages[i];
         final prev = i > 0 ? _messages[i - 1] : null;
         final newDay = prev == null || !_sameDay(prev.at, m.at);
+        final first = prev == null || prev.fromUser != m.fromUser || newDay;
         final last = i == _messages.length - 1;
-        final bubble = m.fromUser ? _userBubble(m) : _buddyMessage(m, last: last);
+        final bubble = m.fromUser ? _userBubble(m) : _buddyMessage(m, first: first, last: last);
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (newDay) _dayChip(m.at),
           _Appear(key: ObjectKey(m), animate: !m.restored, child: bubble),
@@ -1682,9 +1667,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
               margin: const EdgeInsets.only(bottom: 14),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
               decoration: BoxDecoration(
-                // warm muted fill: the person's words, not an ink bubble
-                color: ThemeController.isDark.value ? AppColors.surfaceAlt : const Color(0xFFE8DDD4),
-                borderRadius: BorderRadius.circular(18),
+                color: ThemeController.isDark.value ? const Color(0x1AFFFFFF) : AppColors.primary,
+                border: ThemeController.isDark.value ? Border.all(color: const Color(0x24FFFFFF)) : null,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(22),
+                  topRight: Radius.circular(22),
+                  bottomLeft: Radius.circular(22),
+                  bottomRight: Radius.circular(6),
+                ),
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
                 if (m.image != null)
@@ -1695,7 +1685,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 if (m.image != null && m.text.isNotEmpty) const SizedBox(height: 8),
                 if (m.text.isNotEmpty)
                   Text(m.text,
-                      style: TextStyle(color: AppColors.text, fontSize: 15.5, height: 1.4)),
+                      style: TextStyle(
+                          color: ThemeController.isDark.value ? AppColors.text : AppColors.onPrimary,
+                          fontSize: 15.5,
+                          height: 1.4)),
               ]),
             ),
           ),
@@ -1703,13 +1696,27 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       );
 
-  Widget _buddyMessage(_Message m, {required bool last}) {
+  Widget _buddyMessage(_Message m, {required bool first, required bool last}) {
     final text = BuddyMarkers.parse(m.text).text;
-    // no assistant block until the first token: a one-line thinking row instead
-    if (text.isEmpty && m.streaming && !m.error) return _thinkingRow();
+    final waiting = text.isEmpty && m.streaming;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: const EdgeInsets.only(right: 8, bottom: 18),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          width: 30,
+          child: first
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: BuddyOrb(
+                      size: 28,
+                      mood: m.streaming
+                          ? BuddyMood.thinking
+                          : (m.checkIn && last ? BuddyMood.alert : BuddyMood.idle)))
+              : null,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (m.checkIn)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -1722,12 +1729,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
               ),
             Semantics(
               container: true,
-              label: tr('Buddy'),
+              label: waiting ? tr('Buddy denkt nach') : tr('Buddy'),
               // the finished answer is read out without moving focus
               liveRegion: last && !m.streaming,
-              onLongPressHint: tr('Kopieren und mehr'),
+              onLongPressHint: waiting ? null : tr('Kopieren und mehr'),
               child: GestureDetector(
-              onLongPress: () => _message(m),
+              onLongPress: waiting ? null : () => _message(m),
               child: m.error
                   ? Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
@@ -1739,7 +1746,22 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 3),
-                      child: RichMarkdown(text,
+                      child: waiting
+                          // while his tools run, Buddy says where he is looking
+                          ? ValueListenableBuilder<String?>(
+                              valueListenable: BuddyService.activity,
+                              builder: (_, looking, __) => looking == null
+                                  ? const TypingDots()
+                                  : Row(mainAxisSize: MainAxisSize.min, children: [
+                                      const TypingDots(),
+                                      const SizedBox(width: 10),
+                                      Flexible(
+                                        child: Text(tr('schaut in {x} …', {'x': tr(looking)}),
+                                            style: TextStyle(fontSize: 13.5, color: AppColors.textDim)),
+                                      ),
+                                    ]),
+                            )
+                          : RichMarkdown(text,
                               streaming: m.streaming,
                               onAsk: _send,
                               lead: true,
@@ -1804,42 +1826,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
             if (!m.streaming && !m.error && m.text.trim().isNotEmpty) _answerTools(m),
             if (last && m.followUps.isNotEmpty && !m.streaming && !_thinking)
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 12),
                 child: Wrap(spacing: 8, runSpacing: 8, children: [
-                  // onboarding choices stay; suggested questions stop at two, like Claude
-                  for (final f in (BuddyOnboarding.active ? m.followUps : m.followUps.take(2)))
+                  for (final f in m.followUps)
                     _Pill(icon: Icons.subdirectory_arrow_right_rounded, label: f, quiet: true, onTap: () => _follow(f)),
                 ]),
               ),
           ]),
+        ),
+      ]),
     );
   }
-
-  // orb plus one short line until the first token. Tools replace "schreibt …".
-  Widget _thinkingRow() => ValueListenableBuilder<String?>(
-        valueListenable: BuddyService.activity,
-        builder: (_, looking, __) {
-          final line = looking == null || looking.trim().isEmpty ? tr('schreibt …') : buddyToolLine(looking);
-          return Padding(
-            padding: const EdgeInsets.only(top: 2, bottom: 16),
-            child: Semantics(
-              container: true,
-              liveRegion: true,
-              label: line,
-              child: ExcludeSemantics(
-                child: Row(children: [
-                  const BuddyOrb(size: 20, mood: BuddyMood.thinking),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(line,
-                        style: TextStyle(fontSize: 14, height: 1.3, color: AppColors.textDim, fontWeight: FontWeight.w500)),
-                  ),
-                ]),
-              ),
-            ),
-          );
-        },
-      );
 
   // under an answer: read aloud, and for live answers thumbs up or down
   Widget _answerTools(_Message m) => Padding(
@@ -2377,43 +2374,25 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 ),
             ]),
           ),
-          if (PlusService.syncError.value != null && !_guest) ...[
-            const SizedBox(height: 5),
+          const SizedBox(height: 5),
+          if (PlusService.syncError.value != null && !_guest)
             GestureDetector(
               onTap: () => PlusService.syncWithServer(fresh: true),
               child: Text(tr('{syncError} Erneut versuchen', {'syncError': PlusService.syncError.value}),
                   style: TextStyle(fontSize: 11, color: AppColors.textDim, decoration: TextDecoration.underline)),
+            )
+          else
+            Text(
+              [if (note != null) note, tr('Kann sich irren, keine Anlageberatung')].join(' · '),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3),
             ),
-          ] else if (_footnote(note) case final line?) ...[
-            const SizedBox(height: 5),
-            Text(line,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3)),
-          ],
         ]),
       ),
     );
   }
 }
-
-// One line while a tool runs. [looking] is the German activity phrase
-// ("Konten", or the older "deine Konten").
-String buddyToolLine(String looking) {
-  final noun = tr(_shortToolNoun(looking));
-  final shown = L10n.isDe ? noun : noun.toLowerCase();
-  return tr('Prüft {x}…', {'x': shown});
-}
-
-String _shortToolNoun(String looking) => switch (looking) {
-      'ob es passt' => 'Leistbarkeit',
-      'die letzten Monate' => 'Monatsverlauf',
-      'deinen Monat' => 'Monatsprognose',
-      'die Gehaltsrechnung' => 'Gehalt',
-      'deinen Schulden-Plan' => 'Schuldenplan',
-      'deine Abrechnung' => 'Abrechnung',
-      _ => looking.replaceFirst(RegExp(r'^(deinen|deine|dein|einen|ein|die|den)\s+'), ''),
-    };
 
 class _Message {
   final bool fromUser;
@@ -2494,20 +2473,13 @@ class _Pill extends StatelessWidget {
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: quiet ? 7 : 8),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (!quiet) ...[
-                Icon(icon, size: 16, color: AppColors.brand),
-                const SizedBox(width: 6),
-              ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(icon, size: 16, color: quiet ? AppColors.textDim : AppColors.brand),
+              const SizedBox(width: 6),
               Flexible(
-                child: Text(label,
-                    style: TextStyle(
-                        fontSize: quiet ? 13.5 : 13,
-                        fontWeight: quiet ? FontWeight.w500 : FontWeight.w600,
-                        height: 1.3,
-                        color: AppColors.text)),
+                child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text)),
               ),
             ]),
           ),
