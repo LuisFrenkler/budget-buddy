@@ -1,5 +1,9 @@
 import 'dart:io';
+import 'package:budget_buddy/models/transaction.dart';
+import 'package:budget_buddy/screens/account_screen.dart';
 import 'package:budget_buddy/screens/buddy_screen.dart';
+import 'package:budget_buddy/screens/depot_screen.dart';
+import 'package:budget_buddy/screens/overview_screen.dart';
 import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/screens/home_screen.dart';
 import 'package:budget_buddy/utils/theme.dart';
@@ -126,4 +130,48 @@ void main() {
     expect(find.textContaining("from now on I'll answer in English", findRichText: true, skipOffstage: false), findsNothing);
     await settle(tester);
   });
+
+  testWidgets('cold start mounts Buddy only', (tester) async {
+    await pumpShell(tester);
+    expect(find.byType(BuddyScreen), findsOneWidget);
+    expect(find.byType(OverviewScreen), findsNothing);
+    expect(find.byType(AccountScreen), findsNothing);
+    expect(find.byType(DepotScreen), findsNothing);
+    expect(tester.takeException(), isNull);
+    await settle(tester);
+  });
+
+  testWidgets('Monatsrückblick in the chat opens the story chip', (tester) async {
+    final now = DateTime.now();
+    final tx = Transaction(
+      id: 'recap-now',
+      amountCents: 1299,
+      category: 'Lebensmittel',
+      date: DateTime(now.year, now.month, now.day),
+      isIncome: false,
+      note: 'REWE',
+    );
+    // in memory at once; awaiting the flush deadlocks the test clock
+    Hive.box('transactions').put(tx.id, tx.toMap());
+    await pumpShell(tester);
+    await tester.enterText(find.byType(TextField), 'Monatsrückblick');
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Senden'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.textContaining('Dein Monatsrückblick als Story', findRichText: true), findsOneWidget);
+    expect(find.text('Deine Story'), findsOneWidget);
+    Navigator.of(tester.element(find.text('Deine Story'))).pop();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Monats-Story teilen'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('Story teilen'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    Hive.box('transactions').delete(tx.id);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  }, timeout: const Timeout(Duration(seconds: 20)));
 }

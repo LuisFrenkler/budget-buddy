@@ -6,15 +6,16 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Weniger Text in der ganzen App: restliche Screens weiter kürzen
-2. Leistungs-Check: weitere Startzeit-Messung und Optimierung
-3. Datenübersicht: Serverstandort eintragen, sobald der Server steht
-4. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
+1. Datenübersicht: Serverstandort eintragen, sobald der Server steht
+2. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
-- Abrechnungs-Verlauf als Diagramm (Brutto/Netto) über Buddy-Werkzeug `diagramm` art `abrechnung`
-- Monatsrückblick als Story direkt aus Buddy (Menü + „Monatsrückblick“ im Chat)
-- LifeProgress.sync nach dem ersten Frame (Buddy-Tab startet schneller)
+- Buddy ChatGPT-clean: Thinking-Zeile (Orb + „Prüft …“), max. 2 Follow-ups, kurze Tool-Status
+- Persona auf die Regeln gekürzt, die die Antwort ändern
+- Weitere Textkürzungen auf Screens und Widgets
+- Abrechnungs-Verlauf als Diagramm (Brutto/Netto/Abzüge) über Buddy-Werkzeug `diagramm` art `abrechnung`
+- Buddy-Start: Prognose und Hinweise erst nach dem ersten Frame; ein Forecast für Zahl und Tipp
+- Monatsrückblick als Story aus dem Chat (Chip „Monats-Story teilen“ und Menü)
 - Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
 - Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern
 - Calm Buddy-Start nach Login: Zahl, eine Bemerkung, drei Wege; Composer „Nachricht an Buddy“; Stopp während Streaming

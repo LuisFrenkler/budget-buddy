@@ -51,7 +51,7 @@ Entitlement appleEntitlement({
   required PlusProducts products,
   required String environment,
 }) {
-  if (transaction['bundleId'] != bundleId) throw const BillingError('Dieser Kauf gehört nicht zu BudgetBuddy.');
+  if (transaction['bundleId'] != bundleId) throw const BillingError('Dieser Kauf gehört nicht zu Ahead.');
   final product = '${transaction['productId']}';
   if (!products.known(product)) throw const BillingError('Unbekanntes Produkt.');
   final started = _ms(transaction['originalPurchaseDate'] ?? transaction['purchaseDate']);

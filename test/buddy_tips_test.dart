@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:budget_buddy/models/budget.dart';
 import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/services/buddy_tips.dart';
+import 'package:budget_buddy/services/forecast_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
@@ -34,6 +35,28 @@ void main() {
     final tip = BuddyTips.pick(tx: [for (var i = 0; i < 6; i++) _buy('l$i', 'Lieferando', 1570, 2 + i)], budgets: [b], now: now)!;
     expect(tip.text, contains('12 Tage'));
     expect(tip.question, contains('Budget für Essen & Trinken'));
+  });
+
+  test('a forecast built by the caller is the tight-month tip', () {
+    final forecast = MonthForecast(
+      incomeCents: 200000,
+      fixedCents: 0,
+      goalsCents: 0,
+      spentCents: 150000,
+      freeCents: 4000,
+      daysLeft: 10,
+      paceCents: 80000,
+      due: const [],
+    );
+    final tip = BuddyTips.pick(
+      tx: [_buy('a', 'REWE', 4000, 3)],
+      budgets: const [],
+      now: now,
+      knownForecast: forecast,
+    )!;
+    expect(forecast.pace, ForecastPace.tight);
+    expect(tip.text, contains('knapp'));
+    expect(tip.question, contains('frei'));
   });
 
   test('nothing standing out gives no tip', () {
