@@ -36,6 +36,9 @@ class AppColors {
   static Color get errorText => _d ? error : const Color(0xFFC9283E);
   static Color get warningText => _d ? warning : const Color(0xFF7A6200);
   static Color get primaryText => text;
+  // copper for small text (labels, numbered steps): the brand fill itself
+  // reaches only 4:1 on the backgrounds, these reach 5:1 or more
+  static Color get brandText => _d ? const Color(0xFFE0915C) : const Color(0xFF9A5028);
 
   // categorical colors for charts, brand first
   static const chart = [

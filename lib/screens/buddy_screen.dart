@@ -1691,7 +1691,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   Widget _userBubble(_Message m) => Align(
         alignment: Alignment.centerRight,
-        child: GestureDetector(
+        // screen readers hear who speaks and what a long press does
+        child: Semantics(
+          container: true,
+          label: tr('Du'),
+          onLongPressHint: tr('Kopieren und mehr'),
+          child: GestureDetector(
           onLongPress: () => _message(m),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width.clamp(0, 480) * 0.8),
@@ -1725,6 +1730,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
           ),
         ),
+        ),
       );
 
   Widget _buddyMessage(_Message m, {required bool first, required bool last}) {
@@ -1755,10 +1761,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   Icon(Icons.notifications_none_rounded, size: 14, color: AppColors.brand),
                   const SizedBox(width: 4),
                   Text(tr('Buddy meldet sich'),
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand)),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brandText)),
                 ]),
               ),
-            GestureDetector(
+            Semantics(
+              container: true,
+              label: waiting ? tr('Buddy denkt nach') : tr('Buddy'),
+              // the finished answer is read out without moving focus
+              liveRegion: last && !m.streaming,
+              onLongPressHint: waiting ? null : tr('Kopieren und mehr'),
+              child: GestureDetector(
               onLongPress: waiting ? null : () => _message(m),
               child: m.error
                   ? Container(
@@ -1800,6 +1812,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                                       setState(() => m.stepDone = true);
                                     }),
                     ),
+            ),
             ),
             if (m.offline && text.isNotEmpty && !m.error && !m.streaming)
               Padding(

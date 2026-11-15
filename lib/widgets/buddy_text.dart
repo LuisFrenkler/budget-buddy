@@ -148,7 +148,7 @@ class _RichMarkdownState extends State<RichMarkdown> {
             SizedBox(
               width: 22,
               child: Text('${m.group(1)}.',
-                  style: base.copyWith(color: AppColors.brand, fontWeight: FontWeight.w700)),
+                  style: base.copyWith(color: AppColors.brandText, fontWeight: FontWeight.w700)),
             ),
             Expanded(child: Text.rich(TextSpan(children: spans(t.substring(m.end), caret: caret)), style: base)),
           ]),
@@ -311,7 +311,7 @@ Future<void> showGlossary(BuildContext context, GlossaryTerm term, {void Functio
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(tr('Kurz erklärt'),
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.brand, letterSpacing: 0.3)),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.brandText, letterSpacing: 0.3)),
             ),
           ]),
           const SizedBox(height: 12),

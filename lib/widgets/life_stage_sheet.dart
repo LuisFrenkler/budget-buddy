@@ -120,7 +120,7 @@ class _LifeStageSheetState extends State<_LifeStageSheet> {
                   width: 48,
                   child: Center(
                     child: Text('${i + 1}',
-                        style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.brand, fontSize: 16)),
+                        style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.brandText, fontSize: 16)),
                   ),
                 ),
               Expanded(
