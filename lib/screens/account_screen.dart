@@ -235,7 +235,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                      tr('Budgets gelten für alle Konten zusammen.'),
+                                      tr('Für alle Konten.'),
                                       style: TextStyle(
                                           color: AppColors.textDim,
                                           fontSize: 13)),
@@ -255,7 +255,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                      tr('Analyse gilt für alle Konten zusammen.'),
+                                      tr('Für alle Konten.'),
                                       style: TextStyle(
                                           color: AppColors.textDim,
                                           fontSize: 13)),
@@ -392,7 +392,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
-                              tr('Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.'),
+                              tr('Buchung tippen oder Buddy fragen.'),
                               style: TextStyle(
                                   color: AppColors.textDim,
                                   fontSize: 12.5,
@@ -427,7 +427,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   style: TextStyle(
                       color: AppColors.textDim, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
-              Text(tr('Andere Suche oder Filter zurücksetzen.'),
+              Text(tr('Andere Suche oder Filter weg.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               const SizedBox(height: 12),
@@ -529,8 +529,8 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 8),
           Text(
               bankLinked
-                  ? tr('Die Bank ist verbunden. Zieh nach unten zum Aktualisieren oder erfasse etwas von Hand, bis die ersten Buchungen da sind.')
-                  : tr('Verbinde deine Bank oder tippe die erste Ausgabe.'),
+                  ? tr('Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.')
+                  : tr('Bank verbinden oder erste Ausgabe tippen.'),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textDim, height: 1.35)),
           const SizedBox(height: 20),

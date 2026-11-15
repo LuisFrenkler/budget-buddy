@@ -70,7 +70,7 @@ class ContractsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                        tr('Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.'),
+                        tr('Gleiche Zahlung, gleicher Empfänger, regelmäßig.'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                   ],
@@ -83,8 +83,8 @@ class ContractsScreen extends StatelessWidget {
   Widget _raisedBanner(BuildContext context, List<Contract> raised) {
     final c = raised.first;
     final text = raised.length == 1
-        ? tr('{name} kostet seit der letzten Zahlung {x} mehr.', {'name': c.name, 'x': Money.format(c.priceChange)})
-        : tr('{raised} Verträge sind teurer geworden, z. B. {name} (+{x}).', {'raised': raised.length, 'name': c.name, 'x': Money.format(c.priceChange)});
+        ? tr('{name} kostet {x} mehr.', {'name': c.name, 'x': Money.format(c.priceChange)})
+        : tr('{raised} teurer, z. B. {name} (+{x}).', {'raised': raised.length, 'name': c.name, 'x': Money.format(c.priceChange)});
     return Material(
       color: AppColors.warning.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(16),
@@ -153,7 +153,7 @@ class ContractsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(tr('Noch keine Verträge erkannt'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(tr('Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. Mit verbundenem Bankkonto geht das automatisch.'),
+            Text(tr('Drei gleiche Monate in Folge. Mit Bank automatisch.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
           ]),
         ),
@@ -347,7 +347,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
               child: Text(
-                  tr('Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.', {'x': Dates.full(sent)}),
+                  tr('Gekündigt am {x}. Weitere Abbuchung meldet Buddy.', {'x': Dates.full(sent)}),
                   style: const TextStyle(height: 1.4)),
             ),
             TextButton(
@@ -384,7 +384,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(tr('Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.'),
+            Text(tr('Viele haben „Verträge hier kündigen“. Text dort einfügen.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
             const SizedBox(height: 14),
             Row(children: [
@@ -444,7 +444,7 @@ void _share(BuildContext context, List<Contract> contracts, int monthly) {
         for (final c in top.take(4)) tr('- **{x}**: {y} im Monat', {'x': c.name, 'y': Money.raw(c.monthlyCents)}),
         if (n > 4) tr('- und {n} weitere', {'n': n - 4}),
         '',
-        tr('Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.'),
+        tr('Nächster Schritt: Prüfen, was du nutzt.'),
       ].join('\n'),
       text: tr('Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?', {'n': n}),
     ),

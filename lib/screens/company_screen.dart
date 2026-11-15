@@ -41,22 +41,22 @@ class CompanyScreen extends StatelessWidget {
         children: [
           _block(
             tr('Über Ahead'),
-            tr('Ahead hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.'),
+            tr('Ahead zeigt, was reinkommt, was regelmäßig weggeht und was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.'),
             dim,
           ),
           _block(
             tr('Für Nutzer'),
-            tr('Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. Keine Werbung, kein Tracking, kein Verkauf von Daten.'),
+            tr('Umsätze, Budgets, Ziele und Depot zuerst auf dem Gerät. Mit Konto eine verschlüsselte Kopie, die wir nicht lesen. Keine Werbung, kein Tracking, kein Datenverkauf.'),
             dim,
           ),
           _block(
             tr('Für Investoren'),
-            tr('Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Buddy bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Buddy holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.'),
+            tr('Finanzguru ist eine Haushalts-App, KI als Zusatz. Ahead ist der Coach: die App liefert die Zahlen, für Lebenslagen wie den ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.'),
             dim,
           ),
           _block(
             tr('Karriere & Weiterbildung'),
-            tr('Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze, woran du arbeiten willst, reichen.'),
+            tr('Wir bauen selbst und suchen Werkstudenten, Praktika und Leute für Produkt, Flutter oder Backend. Ein paar Sätze reichen.'),
             dim,
           ),
           SettingsGroup([
@@ -70,7 +70,7 @@ class CompanyScreen extends StatelessWidget {
           ]),
           _block(
             tr('Transparenz'),
-            tr('Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. Auf dem Gerät schützt zusätzlich die App-Sperre.\n\nDie Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App sehen deine Zugangsdaten.\n\nBuddy mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit sie dort möglich ist.'),
+            tr('Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.'),
             dim,
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[
@@ -116,13 +116,13 @@ class CompanyScreen extends StatelessWidget {
             SettingsRow(
               icon: Icons.info_outline_rounded,
               title: tr('Wichtige Hinweise'),
-              subtitle: tr('Keine Anlageberatung, Kurse, KI'),
+              subtitle: tr('Keine Beratung, Kurse, KI'),
               onTap: () => _open(context, LegalTexts.notes),
             ),
             SettingsRow(
               icon: Icons.help_outline_rounded,
               title: tr('Hilfe & Lizenzen'),
-              subtitle: tr('Support und Open Source'),
+              subtitle: tr('Support, Open Source'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
           ]),

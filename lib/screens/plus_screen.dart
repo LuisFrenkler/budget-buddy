@@ -57,9 +57,9 @@ class _PlusScreenState extends State<PlusScreen> {
 
   static List<(IconData, String, String)> get _features => [
     (Icons.chat_bubble_outline_rounded, tr('Buddy ohne Limit'), tr('Frag so oft du willst')),
-    (Icons.document_scanner_rounded, tr('Belege ohne Limit'), tr('Fotografieren statt abtippen')),
-    (Icons.flag_rounded, tr('Unbegrenzte Sparziele'), tr('Beliebig viele, mit Aufrunden und Monatsbetrag')),
-    (Icons.favorite_rounded, tr('Du unterstützt Ahead'), tr('Ohne Werbung, ohne Datenverkauf')),
+    (Icons.document_scanner_rounded, tr('Belege ohne Limit'), tr('Foto statt tippen')),
+    (Icons.flag_rounded, tr('Unbegrenzte Sparziele'), tr('Aufrunden und Monatsbetrag')),
+    (Icons.favorite_rounded, tr('Du unterstützt Ahead'), tr('Keine Werbung, kein Datenverkauf')),
   ];
 
   Future<void> _buy() async {
@@ -74,7 +74,7 @@ class _PlusScreenState extends State<PlusScreen> {
     if (!mounted) return;
     setState(() => _restoring = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), 
-        content: Text(found ? tr('Dein Plus-Abo ist wieder aktiv') : tr('Kein Abo gefunden, das wiederhergestellt werden kann'))));
+        content: Text(found ? tr('Dein Plus-Abo ist wieder aktiv') : tr('Kein Abo zum Wiederherstellen'))));
     if (found) Navigator.pop(context);
   }
 
@@ -107,7 +107,7 @@ class _PlusScreenState extends State<PlusScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
             const SizedBox(height: 10),
-            Text(tr('Buddy, Belege und Sparziele laufen ohne Limit.'),
+            Text(tr('Buddy, Belege und Ziele ohne Limit.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4)),
             const Spacer(),
             FilledButton(
@@ -162,7 +162,7 @@ class _PlusScreenState extends State<PlusScreen> {
                   const SizedBox(height: 8),
                   Text(
                       _hasTrial
-                          ? tr('7 Tage gratis testen · danach jederzeit kündbar')
+                          ? tr('7 Tage gratis, danach kündbar')
                           : tr('Jederzeit kündbar · ohne Werbung'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim, fontSize: 15)),
@@ -196,7 +196,7 @@ class _PlusScreenState extends State<PlusScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          tr('Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.'),
+                          tr('Immer gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.'),
                           style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
                         ),
                       ),
