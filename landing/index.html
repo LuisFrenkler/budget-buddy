@@ -571,7 +571,7 @@
     for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = L('Ich steh auf der Warteliste für Ahead. Buddy nennt einen nächsten Schritt. Er bewegt kein Geld. Komm mit: ', 'I’m on the Ahead waitlist. Buddy names one next step. He can’t move your money. Join me: ') + link;
+    var text = L('Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead-Warteliste: ', 'What do I do with my salary? Buddy names one next step. Ahead waitlist: ') + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
