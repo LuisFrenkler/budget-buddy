@@ -3232,7 +3232,9 @@ const en = <String, String>{
   'Nur Prozente und Anzahlen, kein Kontostand.':
       'Only percentages and counts, no balance.',
   'Hey {name}': 'Hey {name}',
+  'Hey {name}, noch frei': 'Hey {name}, still free',
   'Hey': 'Hey',
+  'Frag nach deinem Gehalt.': 'Ask about your salary.',
   'Was steht an?': 'What\'s up?',
   'Nachricht an Buddy': 'Message Buddy',
   'Vom Einkommen übrig': 'Left from income',
@@ -3679,5 +3681,4 @@ const en = <String, String>{
   'Wie steht meine Altersvorsorge?': 'How is my retirement savings?',
   'Wie baue ich meinen Notgroschen auf?': 'How do I build my emergency fund?',
   'Wie steht mein Sparziel {x}?': 'How is my {x} savings goal doing?',
-  'Frag nach dem Monat, einem Abo oder ob du dir etwas leisten kannst.': 'Ask about the month, a subscription, or whether you can afford something.',
 };

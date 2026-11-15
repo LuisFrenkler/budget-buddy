@@ -140,6 +140,15 @@ void main() {
     expect(chips.length, lessThanOrEqualTo(6));
   });
 
+  test('the empty chat asks for euros, or one salary question', () {
+    expect(BuddySuggestions.openers(hasNumbers: true).map((c) => c.text), [
+      'Wie viel ist diesen Monat noch frei?',
+      'Wo kann ich sparen?',
+      'Kann ich mir 800 € Urlaub leisten?',
+    ]);
+    expect(BuddySuggestions.openers(hasNumbers: false).single.text, 'Was bleibt von 3.000 € brutto netto?');
+  });
+
   test('a budget answer leads with the tight number', () {
     final over = Budget(
       category: 'Lebensmittel',
