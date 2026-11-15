@@ -109,10 +109,13 @@
   @keyframes cue{0%,100%{transform:rotate(45deg) translateY(0);opacity:.5}50%{transform:rotate(45deg) translateY(4px);opacity:1}}
   .spot{display:none;margin-top:28px;max-width:520px}
   .spot.on{display:block}
-  .spot .n{font:300 clamp(72px,12vw,128px)/.9 var(--display);letter-spacing:-.05em}
+  .spot .ok{font:600 clamp(28px,4vw,44px)/1.05 var(--display);letter-spacing:-.03em;margin-top:0}
+  .spot .n{font:600 clamp(28px,4vw,40px)/1 var(--display);letter-spacing:-.04em;margin-top:18px}
   .spot p{margin-top:12px}
+  .spot .go{margin-top:16px}
   .spot code{display:block;margin-top:14px;font:600 14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;opacity:.9}
   .spot .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .spot [hidden]{display:none !important}
   .bars{display:flex;gap:6px;margin:16px 0 0;max-width:220px}
   .bars i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.28)}
   .bars i.on{background:#fff}
@@ -294,18 +297,24 @@
    <div class="hero-text">
     <p class="hero-mark hi hi-1" data-en="Ahead · Money coach">Ahead · Geld-Coach</p>
     <h1 class="hi hi-1" data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
-    <p class="lead hi hi-2" data-en="Buddy works with your numbers and names one next step. He can’t move your money. You decide.">Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Er bewegt kein Geld. Entscheiden tust du.</p>
+    <p class="lead hi hi-2" data-en="Buddy works with your numbers and names one next step, with a real euro amount. He can’t move your money. You decide.">Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt, mit einem echten Euro-Betrag. Er bewegt kein Geld. Entscheiden tust du.</p>
     <div id="platz" class="hi hi-3">
       <form class="join" novalidate>
         <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
         <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
       </form>
       <div class="err" role="alert"></div>
+      <p class="plan" data-join-why data-en="Early access once we invite you in. Ask Buddy here already.">Früher Zugang, sobald wir einladen. Buddy fragst du schon hier.</p>
       <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       <div class="spot">
-        <div class="n" data-pos>#–</div>
-        <p data-en="That’s your place in line. Every person who joins through your link moves you five places up.">So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
-        <div class="bars" data-bars><i></i><i></i><i></i></div>
+        <p class="ok" data-en="You’re on the list.">Du bist auf der Liste.</p>
+        <p data-en="Next is your invite by email — TestFlight, once the app is ready.">Als Nächstes kommt die Einladung per E-Mail — TestFlight, sobald die App bereit ist.</p>
+        <p data-en="Until then, ask Buddy. The first answer with a real euro amount is the start.">Bis dahin frag Buddy. Die erste Antwort mit einem echten Euro-Betrag ist der Anfang.</p>
+        <a class="btn white go" href="#fragen" data-en="Ask Buddy">Buddy fragen</a>
+        <p data-en="Send the link. Anyone who joins through it gets on the same list.">Schick den Link. Wer darüber kommt, steht auf derselben Liste.</p>
+        <div class="n" data-pos hidden></div>
+        <p data-place hidden data-en="Every person who joins through your link moves you five places up.">Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
+        <div class="bars" data-bars hidden><i></i><i></i><i></i></div>
         <code data-link></code>
         <div class="row">
           <a class="btn white" data-wa target="_blank" rel="noopener" data-en="Send via WhatsApp">Per WhatsApp schicken</a>
@@ -394,12 +403,13 @@
       </form>
       <div class="answer" aria-live="polite"></div>
       <div class="again">
-        <h3 data-en="Your place with Ahead.">Dein Platz bei Ahead.</h3>
+        <h3 data-en="Get early access.">Hol dir den frühen Zugang.</h3>
         <form class="join" novalidate>
           <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
           <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
+        <p class="plan" data-join-why data-en="Early access once we invite you in. Ask Buddy here already.">Früher Zugang, sobald wir einladen. Buddy fragst du schon hier.</p>
         <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       </div>
     </div>
@@ -562,13 +572,24 @@
     if (d) showSpot(d);
   }
   function showSpot(d) {
+    if (!d || d.preview || !d.code) return;
     store.set('ahead-code', d.code);
     document.querySelectorAll('form.join').forEach(function (f) { f.style.display = 'none'; });
+    document.querySelectorAll('[data-join-why]').forEach(function (el) { el.hidden = true; });
     document.querySelector('.again').style.display = 'none';
     spot.classList.add('on');
-    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString(L('de-DE', 'en-GB'));
-    var bars = spot.querySelectorAll('[data-bars] i');
-    for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
+    var n = Number(d.position);
+    var real = Number.isFinite(n) && n >= 1;
+    var pos = spot.querySelector('[data-pos]');
+    pos.hidden = !real;
+    spot.querySelector('[data-place]').hidden = !real;
+    if (real) pos.textContent = '#' + n.toLocaleString(L('de-DE', 'en-GB'));
+    var friends = Number(d.friends);
+    var bars = spot.querySelector('[data-bars]');
+    var marks = bars.querySelectorAll('i');
+    var showBars = Number.isFinite(friends) && friends > 0;
+    bars.hidden = !showBars;
+    if (showBars) for (var i = 0; i < marks.length; i++) marks[i].classList.toggle('on', i < friends);
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
     var text = L('Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead-Warteliste: ', 'What do I do with my salary? Buddy names one next step. Ahead waitlist: ') + link;
