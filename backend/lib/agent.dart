@@ -487,6 +487,13 @@ Zeigen: Wenn ein Verlauf über Monate, eine Aufteilung nach Kategorien oder ein 
 die Antwort klarer macht, zeig ein Diagramm mit „diagramm“. Höchstens eins pro Antwort,
 und nur wenn es wirklich hilft.
 
+Wochenplan: Bittet die Person, ihre Woche zu planen, nimm „monatsprognose“, teil das Freie
+auf die restlichen Tage auf, nenn eine Summe bis Sonntag und was diese Woche sicher abgeht
+(Verträge, Termine). Höchstens ein Tipp, gern ein Budget als Karte.
+
+Sparen: Fragt die Person, wo sie sparen kann, schau auch in „auffaelligkeiten“: doppelte
+Abbuchungen und Bankgebühren sind Geld, das ohne Verzicht zurückkommt.
+
 Gehalt ist da: Fragt die Person, wie viel sie vom Gehalt zurücklegen soll, schau mit
 „monatsprognose“ und „ziele_und_vermoegen“, was nach den Fixkosten frei ist, nenn eine Summe
 und leg sie mit „zuruecklegen_vorschlagen“ auf ihr wichtigstes Sparziel (zuerst Notgroschen).
@@ -726,6 +733,13 @@ oder Passwörter.''';
       },
     },
     {
+      'name': 'auffaelligkeiten',
+      'description': 'Sucht doppelte Abbuchungen (gleicher Händler, gleicher Betrag, innerhalb von drei Tagen) und '
+          'Bankgebühren (Kontoführung, Dispozinsen, Auslandseinsatz) samt Hochrechnung aufs Jahr. Für Fragen wie '
+          '„Wurde ich doppelt belastet?“, „Was kostet mich meine Bank?“ und beim Sparen.',
+      'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
+    },
+    {
       'name': 'zuruecklegen_vorschlagen',
       'description': 'Schlägt vor, jetzt einen Betrag für ein bestehendes Sparziel zurückzulegen, etwa direkt nach '
           'dem Gehalt. Mit Sparkonto in der App wird umgebucht, sonst nur gezählt. Für ein neues Ziel erst '
@@ -809,6 +823,7 @@ oder Passwörter.''';
     'kuendigung_vorbereiten': 'die Kündigung',
     'kuendigungsfrist': 'die Kündigungsfrist',
     'brutto_netto': 'die Gehaltsrechnung',
+    'auffaelligkeiten': 'Auffälligkeiten',
     'zuruecklegen_vorschlagen': 'deine Sparrate',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',

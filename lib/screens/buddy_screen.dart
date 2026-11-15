@@ -283,7 +283,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
               h.urgent ||
               h.kind == HintKind.salaryIn ||
               h.kind == HintKind.goalReached ||
-              h.kind == HintKind.monthReview).firstOrNull;
+              h.kind == HintKind.monthReview ||
+              h.kind == HintKind.goalBehind ||
+              h.kind == HintKind.weekPlan ||
+              h.kind == HintKind.doubleCharge).firstOrNull;
     } catch (_) {
       return;
     }

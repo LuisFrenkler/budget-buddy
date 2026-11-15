@@ -15,6 +15,7 @@ import 'contracts.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
+import 'oddities.dart';
 
 enum HintKind {
   budgetOver,
@@ -24,6 +25,9 @@ enum HintKind {
   trialEnds,
   bankExpires,
   bigExpense,
+  doubleCharge,
+  weekPlan,
+  bankFees,
   goalDue,
   stillCharging,
   splitNew,
@@ -222,6 +226,49 @@ class HintsService {
                 {'x': t.note ?? tr(t.category), 'y': Money.format(t.amountCents), 'z': Money.format(median)}),
             HintTarget.transactions));
       }
+    }
+
+    // Monday: what this week may cost, from what is free until month end
+    final free = freeCents;
+    if (today.weekday == DateTime.monday && free != null && free > 0) {
+      final daysLeft = DateTime(today.year, today.month + 1, 0).day - today.day + 1;
+      final week = (free * (daysLeft < 7 ? daysLeft : 7) / daysLeft).round();
+      final weekNo = ((today.difference(DateTime(today.year)).inDays) ~/ 7) + 1;
+      out.add(Hint(
+          'week-${today.year}-$weekNo',
+          HintKind.weekPlan,
+          tr('Deine Woche: {x} frei', {'x': Money.format(week)}),
+          tr('Bis Monatsende sind {x} frei, für diese Woche also etwa {y}.', {'x': Money.format(free), 'y': Money.format(week)}),
+          HintTarget.buddy,
+          question: tr('Plan meine Woche: Wie viel kann ich bis Sonntag ausgeben und worauf sollte ich achten?')));
+    }
+
+    // charged twice: same merchant, same amount, within three days
+    for (final d in Oddities.doubles(tx, now: today, days: 10)) {
+      out.add(Hint(
+          'double-${d.second.id}',
+          HintKind.doubleCharge,
+          tr('{x} zweimal abgebucht?', {'x': d.merchant}),
+          tr('{x} am {y} und am {z}. War das zweimal gewollt?',
+              {'x': Money.format(d.cents), 'y': Dates.dayMonth(d.first.date), 'z': Dates.dayMonth(d.second.date)}),
+          HintTarget.buddy,
+          question: tr('{x} hat zweimal {y} abgebucht. Was mache ich, wenn das ein Fehler war?',
+              {'x': d.merchant, 'y': Money.format(d.cents)})));
+    }
+
+    // bank fees that add up over a year (shown once a month)
+    final fees = Oddities.fees(tx, now: today);
+    final perYear = Oddities.yearly(fees);
+    if (perYear >= 3000) {
+      out.add(Hint(
+          'fees-$month',
+          HintKind.bankFees,
+          tr('Bankgebühren: rund {x} im Jahr', {'x': Money.format(perYear)}),
+          fees.any((f) => f.kind == 'dispo')
+              ? tr('Dabei sind Dispozinsen. Die sind meist der teuerste Kredit, den es gibt.')
+              : tr('Viele Banken haben ein kostenloses Girokonto. Buddy rechnet mit dir nach.'),
+          HintTarget.buddy,
+          question: tr('Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?', {'x': Money.format(perYear)})));
     }
 
     // the free trial ends soon and nothing is cancelled
