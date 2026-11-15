@@ -699,7 +699,9 @@ Future<void> _handle(HttpRequest req) async {
       if (_waitlistLimit.blocked(ip)) throw AuthError.wait(_waitlistLimit.wait(ip));
       _waitlistLimit.hit(ip);
       final b = await _body(req);
-      return _json(req, 200, await _growth.join('${b['email'] ?? ''}', ref: b['ref'] as String?, lang: b['lang'] as String?));
+      final joined = await _growth.join('${b['email'] ?? ''}', ref: b['ref'] as String?, lang: b['lang'] as String?);
+      if (joined['already'] != true) _productEvent('waitlist_signup');
+      return _json(req, 200, joined);
     // GET ?code= -> {code, position, total, friends}
     case '/waitlist/status':
       final ip = _clientIp(req);
@@ -957,6 +959,7 @@ Future<void> _callback(HttpRequest req) async {
     };
     _pending.remove(state);
     await _save();
+    _productEvent('bank_connect');
     return _html(req, '''
 <div class="check">✓</div>
 <h1>Verbunden</h1>
@@ -1916,6 +1919,15 @@ Future<void> _legal(HttpRequest req, LegalDoc doc) {
 
 String _escape(String s) =>
     s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+// grep "product_event". UTC day. No email, id, or amount.
+void _productEvent(String name) {
+  if (name != 'waitlist_signup' && name != 'bank_connect') return;
+  final d = DateTime.now().toUtc();
+  final month = d.month.toString().padLeft(2, '0');
+  final day = d.day.toString().padLeft(2, '0');
+  stderr.writeln('product_event ${d.year}-$month-$day $name');
+}
 
 String _page(String body) => '''<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

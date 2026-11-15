@@ -19,6 +19,7 @@ import 'services/db.dart';
 import 'services/depot_sync.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
+import 'services/product_events.dart';
 import 'services/split_service.dart';
 import 'services/store_purchases.dart';
 import 'screens/contracts_screen.dart';
@@ -57,6 +58,7 @@ void main() async {
   // guest mode removed, clear any leftover flag from older installs
   await Settings.setGuest(false);
   PlusService.load();
+  await ProductEvents.noteOpen();
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();
   // session + wipe before any finance mutation (recurring / budgets / autosave)

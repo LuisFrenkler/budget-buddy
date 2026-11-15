@@ -17,6 +17,7 @@ import 'package:hive/hive.dart';
 import '../utils/money.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'product_events.dart';
 import 'store_purchases.dart';
 import '../l10n/l10n.dart';
 
@@ -223,6 +224,15 @@ class PlusService {
     }
     subscription.value = sub;
     active.value = sub != null;
+    if (sub == null) return;
+    // trial until trialEnds; paid only once a payment date has passed
+    final now = DateTime.now();
+    try {
+      await ProductEvents.notePlus(
+        trial: sub.inTrial(now),
+        charged: !sub.inTrial(now) && sub.invoices(now).isNotEmpty,
+      );
+    } catch (_) {}
   }
 
   // --- server (signed in) ---
