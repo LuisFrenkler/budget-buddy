@@ -2,6 +2,7 @@
 // shots. Not part of the test suite:
 //   flutter test tool/screenshots_test.dart
 // Pictures land in build/screens/.
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -313,7 +314,12 @@ void main() {
     ]));
     await _pump(tester, const BuddyScreen(tab: true), dark: false);
     await _shot(tester, '08_light_chat');
-    await tester.runAsync(() => BuddyHistory.clear());
+    // close the chat first: its check-in timers would keep the test waiting
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 10));
+    // a Hive write awaited inside runAsync here never returns (fake clock):
+    // clear without waiting, the next test starts from its own state anyway
+    unawaited(BuddyHistory.clear());
   });
 
   testWidgets('09 nav on overview', (tester) async {

@@ -9,6 +9,8 @@ import '../legal/legal_texts.dart';
 import '../services/account_service.dart';
 import '../services/buddy_memory.dart';
 import '../services/buddy_service.dart';
+import '../services/data_export.dart';
+import '../services/file_saver.dart';
 import '../services/db.dart';
 import '../services/plus_service.dart';
 import '../services/settings_service.dart';
@@ -72,6 +74,16 @@ class DataScreen extends StatelessWidget {
           const SizedBox(height: 18),
           Text(tr('Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.'),
               style: const TextStyle(fontWeight: FontWeight.w700, height: 1.4)),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            key: const Key('export-all'),
+            onPressed: () async {
+              final json = DataExport.build(status: status ?? current());
+              await saveTextFile('ahead_alle_meine_daten.json', json, text: tr('Alle meine Daten'));
+            },
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: Text(tr('Alle meine Daten herunterladen')),
+          ),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,

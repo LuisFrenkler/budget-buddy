@@ -1452,6 +1452,8 @@ const en = <String, String>{
   'Gerade aktiv': 'On right now',
   'Nur wenn du es nutzt': 'Only when you use it',
   'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.': 'We show no ads, use no tracking and sell no data.',
+  'Alle meine Daten': 'All my data',
+  'Alle meine Daten herunterladen': 'Download all my data',
   'Auf deinem Gerät': 'On your device',
   'Bei uns': 'With us',
   'Bei einem Partner': 'With a partner',

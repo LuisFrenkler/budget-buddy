@@ -6,16 +6,16 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Englische Texte im ganzen App-Durchlauf prüfen: Klick-Test erreicht die unteren Tabs noch nicht
-2. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
-3. Screenshot-Test „08 light mode chat“ hängt: Ursache finden (wartet vermutlich auf Netzwerk)
-4. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
-5. Abo-Spartipp auch als Hinweis, wenn ein Abo mit Tipp länger als 6 Monate läuft (einmal im Jahr)
-6. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
-7. Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern, damit der Plan ohne Nachfrage rechnet
-8. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
-9. Datenübersicht: Serverstandort eintragen, sobald der Server steht (LegalInfo + Datenschutzerklärung)
-10. Datenexport als ein Klick „Alle meine Daten“ (JSON) aus der Datenübersicht
+1. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
+2. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
+3. Abo-Spartipp auch als Hinweis, wenn ein Abo mit Tipp länger als 6 Monate läuft (einmal im Jahr)
+4. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
+5. Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern, damit der Plan ohne Nachfrage rechnet
+6. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
+7. Datenübersicht: Serverstandort eintragen, sobald der Server steht (LegalInfo + Datenschutzerklärung)
+8. Server-Export: Konto und Feedback vom Server mit in „Alle meine Daten“ (Endpunkt /account/export)
+9. Klick-Test auch für Deutsch und für die Unterseiten von Planen und Vermögen
+10. Chat-Verlauf: Sprachwechsel auch für Hinweise im Überblick („Buddy sagt“) sofort neu berechnen
 
 ## Erledigt
 - Zahlen-Check, verworfene Vorschläge, Kündigungsfristen
@@ -35,3 +35,4 @@ kurz berichten. Erledigtes wandert nach unten.
 - Plus-Kauf verlangt kein neues Konto mehr (Fix), Jahreszahlungen mit Rücklage, Ziel-Feier mit nächstem Schritt
 - Gehaltsabrechnungen im Monatsvergleich (Steuerklasse, Kirchensteuer, Krankenkasse, Betriebsrente), Schulden-Plan (Lawine)
 - Rücklage für Jahreszahlungen in der Prognose, Ratenkäufe mit Enddatum, „Wo deine Daten liegen“ (live, gegen die Datenschutzerklärung getestet), Chat folgt dem Sprachwechsel
+- Englisch-Klicktest durch alle Tabs und Profilseiten (keine deutschen Reste mehr), „Alle meine Daten“ als Datei, Screenshot-Test 08 hängt nicht mehr
