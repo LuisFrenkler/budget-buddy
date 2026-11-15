@@ -494,6 +494,17 @@ auf die restlichen Tage auf, nenn eine Summe bis Sonntag und was diese Woche sic
 Sparen: Fragt die Person, wo sie sparen kann, schau auch in „auffaelligkeiten“: doppelte
 Abbuchungen und Bankgebühren sind Geld, das ohne Verzicht zurückkommt.
 
+Leisten: Fragt die Person, ob sie sich etwas leisten kann, ruf „leisten“ mit Betrag (und Monat,
+falls genannt) und nenn die Ampel gleich im ersten Satz: Grün, Gelb oder Rot, mit dem Grund in
+einem Satz. Bei Gelb oder Rot sag, wie viele Monate Sparen es braucht, und biete das als
+Sparziel-Karte an. Kein Urteil über den Wunsch selbst.
+
+Notgroschen: Für jede Frage nach Notgroschen, Rücklage oder Puffer nimm „notgroschen“ statt
+einer Faustregel. Nenn den Betrag für einen Notfall-Monat, die Empfehlung und was fehlt.
+
+Buchungen erklären: Fragt die Person, was eine Abbuchung ist, nimm „buchung_erklaeren“ und
+erklär in zwei, drei Sätzen, was passiert ist und was sie tun kann (etwa Lastschrift zurückholen).
+
 Gehaltserhöhung: Ist das Gehalt gestiegen, empfiehl, etwa die Hälfte der Erhöhung sofort per
 Dauerauftrag zu sparen (zuerst Notgroschen, dann das wichtigste Ziel), die andere Hälfte darf
 das Leben schöner machen. Rechne mit „monatsverlauf“ nach, wie viel es wirklich ist.
@@ -781,6 +792,46 @@ oder Passwörter.''';
       },
     },
     {
+      'name': 'notgroschen',
+      'description': 'Rechnet aus, wie groß der Notgroschen sein sollte: aus den echten nötigen Fixkosten (Miete, '
+          'Versicherung, Handy, Strom) und dem Grundbedarf (Lebensmittel, Gesundheit, Mobilität) der letzten drei '
+          'Monate, mal drei Monate, bei schwankendem Einkommen mal sechs. Streaming und Ähnliches zählt nicht mit. '
+          'Gibt Vorhandenes, Lücke und eine Rate für 12 Monate zurück. Gibt es noch kein Notgroschen-Ziel, zeigt das '
+          'Werkzeug selbst eine Karte dafür. Für jede Frage nach Notgroschen, Rücklage oder Puffer.',
+      'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
+    },
+    {
+      'name': 'leisten',
+      'description': 'Ampel für „Kann ich mir X leisten?“: grün aus dem freien Geld mit 50 € Puffer, gelb nur mit '
+          'ausgesetzter Sparrate oder Ersparnissen über dem Notgroschen, rot ginge an den Notgroschen oder ins Minus. '
+          'Für einen späteren Monat zählt der übliche Überschuss bis dahin. Bei gelb oder rot kommt mit, wie viele '
+          'Monate Sparen es braucht. Nenn die Ampel in der Antwort und die Rechnung in einem Satz.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'required': ['betrag'],
+        'properties': {
+          'betrag': {'type': 'number', 'description': 'Euro'},
+          'was': {'type': 'string', 'description': 'z. B. Urlaub, Laptop'},
+          'monat': {'type': 'string', 'description': 'Monat des Kaufs JJJJ-MM, falls genannt', 'pattern': r'^\d{4}-\d{2}$'},
+        },
+      },
+    },
+    {
+      'name': 'buchung_erklaeren',
+      'description': 'Erklärt eine Buchung in Klartext: PayPal- und Klarna-Texte, SEPA-Lastschriften mit '
+          'Mandatsreferenz, Kontoabschluss, Auslandsgebühr, Rücklastschrift, Bargeld. Sucht die neueste Buchung, '
+          'deren Titel oder Banktext den Suchtext enthält. Für „Was ist das für eine Abbuchung?“.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'required': ['suchtext'],
+        'properties': {
+          'suchtext': {'type': 'string', 'description': 'Teil des Buchungstexts, z. B. PayPal oder Abschluss'},
+        },
+      },
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -852,6 +903,9 @@ oder Passwörter.''';
     'auffaelligkeiten': 'Auffälligkeiten',
     'steuer_schaetzung': 'deine Steuer',
     'zuruecklegen_vorschlagen': 'deine Sparrate',
+    'notgroschen': 'deinen Notgroschen',
+    'leisten': 'ob es passt',
+    'buchung_erklaeren': 'die Buchung',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',

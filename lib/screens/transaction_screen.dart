@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
 import '../services/bank_sync.dart';
+import '../services/booking_text.dart';
 import '../services/db.dart';
 import '../services/split_service.dart';
 import 'splits_screen.dart';
@@ -118,6 +119,7 @@ class TransactionScreen extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ]),
+              ..._explain(tx),
               ..._counterparty(context, tx, all),
               // ask Buddy about exactly this booking
               const SizedBox(height: 24),
@@ -355,6 +357,39 @@ class TransactionScreen extends StatelessWidget {
       content: Text(tr('Umsatz gelöscht')),
       action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.addTx(tx)),
     ));
+  }
+
+  // the bank's cryptic text in plain words
+  List<Widget> _explain(Transaction tx) {
+    final lines = BookingText.explain(raw: tx.raw, note: tx.note, income: tx.isIncome);
+    if (lines.isEmpty) return const [];
+    return [
+      const SizedBox(height: 16),
+      Semantics(
+        container: true,
+        child: Container(
+          key: const Key('booking-explain'),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const BuddyOrb(size: 18),
+              const SizedBox(width: 8),
+              Text(tr('Was ist das?'), style: const TextStyle(fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 8),
+            for (final l in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(l, style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5)),
+              ),
+            if (tx.raw != null && tx.raw!.trim().isNotEmpty)
+              Text(tr('Text der Bank: {x}', {'x': tx.raw!.trim()}),
+                  style: TextStyle(color: AppColors.textDim, fontSize: 11.5, height: 1.35)),
+          ]),
+        ),
+      ),
+    ];
   }
 
   // the question for Buddy that fits this booking

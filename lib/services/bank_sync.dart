@@ -210,6 +210,7 @@ class BankSync {
         isIncome: isIncome,
         note: title,
         accountId: target,
+        raw: _raw(b),
       ));
     }
 
@@ -327,6 +328,13 @@ class BankSync {
   // rails (PayPal/Karte) hide the real merchant in the purpose, surface that
   static String _title(BankTransaction b) =>
       Merchant.display(counterparty: b.counterparty, purpose: b.purpose);
+
+  // the bank text as it came, short enough to keep
+  static String? _raw(BankTransaction b) {
+    final t = '${b.counterparty} ${b.purpose}'.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (t.isEmpty) return null;
+    return t.length > 240 ? t.substring(0, 240) : t;
+  }
 
   static String _dayKey(DateTime d, int cents, bool income) =>
       '${d.year}-${d.month}-${d.day}|$cents|$income';

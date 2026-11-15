@@ -23,16 +23,19 @@ const evalCasesEn = <EvalCase>[
   EvalCase('en_z06', 'zahlen', 'How much do my subscriptions cost per month?', tools: _subs, lang: 'en'),
   EvalCase('en_z07', 'zahlen', 'How much did I spend at Lieferando in the last three months?', tools: _spend, lang: 'en'),
   EvalCase('en_z08', 'zahlen', "What's my savings rate over the last three months?", tools: {'monatsverlauf'}, lang: 'en'),
-  EvalCase('en_z09', 'zahlen', 'How far am I from my emergency fund goal?', tools: {'ziele_und_vermoegen'}, lang: 'en'),
+  EvalCase('en_z09', 'zahlen', 'How far am I from my emergency fund goal?', tools: {'ziele_und_vermoegen', 'notgroschen'}, lang: 'en'),
   EvalCase('en_z10', 'zahlen', 'When did my last salary come in and how much was it?', tools: {'buchungen_suchen', 'einnahmen'}, lang: 'en'),
 
   // --- tools ----------------------------------------------------------------
-  EvalCase('en_w01', 'werkzeuge', 'Can I afford a €1,200 holiday in July?', tools: _plan, lang: 'en'),
+  EvalCase('en_w01', 'werkzeuge', 'Can I afford a €1,200 holiday in July?', tools: {..._plan, 'leisten'}, lang: 'en'),
   EvalCase('en_w02', 'werkzeuge', 'What if I saved €150 more every month?', allTools: {'was_waere_wenn'}, lang: 'en'),
   EvalCase('en_w03', 'werkzeuge', 'How much do I need to save each month to have €2,000 by June?', tools: {'sparplan'}, lang: 'en'),
   EvalCase('en_w04', 'werkzeuge', 'Which subscriptions could I cancel?', tools: _subs, lang: 'en'),
   EvalCase('en_w05', 'werkzeuge', 'Has any subscription become more expensive?', tools: _subs, lang: 'en'),
   EvalCase('en_w06', 'werkzeuge', 'Give me a review of the last three months', allTools: {'monatsverlauf', 'diagramm'}, lang: 'en'),
+  EvalCase('en_w08', 'werkzeuge', 'Can I afford €250 headphones?', allTools: {'leisten'},
+      must: [r'[Gg]reen|[Yy]ellow|[Rr]ed'], lang: 'en'),
+  EvalCase('en_w09', 'werkzeuge', 'What is this PayPal charge on my account?', allTools: {'buchung_erklaeren'}, lang: 'en'),
   EvalCase('en_w07', 'werkzeuge', 'How long would my money last if I lost my job?',
       tools: {'konten', 'monatsverlauf', 'monatsprognose'}, lang: 'en'),
 

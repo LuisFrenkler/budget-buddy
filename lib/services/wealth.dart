@@ -3,7 +3,7 @@
 import 'package:hive/hive.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
-import 'contracts.dart';
+import 'emergency_plan.dart';
 import 'history.dart';
 import 'money_accounts.dart';
 import 'savings_rate.dart';
@@ -40,7 +40,7 @@ class Policy {
 }
 
 class EmergencyFund {
-  final int targetCents; // ~3× monthly fixed costs
+  final int targetCents; // 3 (or 6) lean months, see EmergencyPlan
   final int haveCents; // spar accounts + tagged cash
   final int fixedMonthlyCents;
   const EmergencyFund(
@@ -129,13 +129,10 @@ class Wealth {
   }
 
   static EmergencyFund emergency(List<Transaction> tx, {DateTime? now}) {
-    final fixed = Contracts.monthlyTotal(Contracts.detect(tx, now: now));
-    final rate = SavingsRate.months(tx, now: now).where((m) => !m.running);
-    final avgSpend = rate.isEmpty
-        ? 0
-        : rate.fold<int>(0, (s, m) => s + m.spent) ~/ rate.length;
-    final monthly = fixed > 0 ? fixed : avgSpend;
-    final target = monthly <= 0 ? 0 : monthly * 3;
+    // what a lean month really costs, times three (six with an unsteady income)
+    final plan = EmergencyPlan.compute(tx, now: now);
+    final monthly = plan.monthlyCents;
+    final target = plan.targetCents;
     // spar accounts count toward the cushion; main giro does not (day-to-day)
     var have = 0;
     final allTx = tx;
