@@ -289,14 +289,14 @@ class LocalBuddy {
 
     final tips = <String>[];
     for (final e in over.take(2)) {
-      tips.add(tr('**{x}** liegt {y} über einem üblichen Monat.',
+      tips.add(tr('**{y}** über einem üblichen Monat, bei {x}.',
           {'x': tr(e.key), 'y': _eur(e.value)}));
     }
     final subs =
         s.contracts.where((c) => c.category == 'Unterhaltung').toList();
     if (subs.isNotEmpty) {
       final sum = subs.fold<int>(0, (a, c) => a + c.monthlyCents);
-      tips.add(tr('**Abos** ({x}): {y} im Monat, {z} im Jahr. Brauchst du alle?',
+      tips.add(tr('**{y}** im Monat für Abos ({x}), {z} im Jahr. Brauchst du alle?',
           {
             'x': subs.map((c) => c.name).join(', '),
             'y': _eur(sum),
@@ -314,7 +314,7 @@ class LocalBuddy {
         return tr(
             'Dafür fehlt noch Verlauf. Ein paar Wochen Ausgaben reichen.');
       tips.add(tr(
-          '**{x}** ist der größte Posten, etwa {y} im Monat. 10 % weniger sind {z}.',
+          '**{y}** im Monat für {x}, der größte Posten. 10 % weniger sind {z}.',
           {
             'x': tr(top.first.key),
             'y': _eur(top.first.value),
