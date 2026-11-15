@@ -11,6 +11,7 @@ import 'forecast_service.dart';
 import 'goals_service.dart';
 import 'scenario_service.dart';
 import '../l10n/l10n.dart';
+import 'buddy_app_guide.dart';
 import 'affordability.dart';
 import 'insurance_check.dart';
 import 'net_salary.dart';
@@ -57,6 +58,8 @@ class LocalBuddy {
 
   static String answer(String question, FinanceSnapshot s,
       {List<({bool fromUser, String text})>? history}) {
+    final guide = BuddyAppGuide.answerOrNull(question);
+    if (guide != null) return guide;
     final q = question.toLowerCase().trim();
     final prior = _priorUser(history);
     final topic = _followUp(q) && prior != null ? prior.toLowerCase() : q;
