@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:budget_buddy/models/budget.dart';
 import 'package:budget_buddy/models/goal.dart';
 import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/services/finance_snapshot.dart';
@@ -55,14 +56,18 @@ void main() {
     expect(a, matches(_leads));
     expect(a, contains('Lebensmittel'));
     expect(a, contains('Netflix'));
+    expect(a, isNot(contains('Nächster Schritt')));
   });
 
-  test('affordability leads with a traffic light or a bold number', () {
+  test('affordability leads with a traffic light and the amount', () {
     final a = LocalBuddy.answer('Kann ich mir 800 € Urlaub leisten?', s);
     // past months: 3.000 € in, 1.213,99 € out
     expect(a, matches(_leads));
+    expect(a.split('\n').first, contains('800'));
+    expect(a.split('\n').first, matches(RegExp(r'^(🟢|🟡|🔴)')));
     expect(a, contains('1.786,01'));
     expect(a, contains('1 Monat'));
+    expect(a, isNot(contains('Vom Kontostand')));
   });
 
   test('month free cash leads with a bold number', () {
@@ -130,5 +135,40 @@ void main() {
     expect(chips.map((c) => c.text),
         contains('Wer schuldet mir noch Geld in WG?'));
     expect(chips.length, lessThanOrEqualTo(6));
+  });
+
+  test('a budget answer leads with the tight number', () {
+    final over = Budget(
+      category: 'Lebensmittel',
+      limitCents: 30000,
+      spentCents: 45000,
+      startDate: DateTime(2026, 10, 1),
+      endDate: DateTime(2026, 10, 31),
+    );
+    final snap = FinanceSnapshot.build(
+      tx: tx,
+      openingCents: 100000,
+      budgets: [over],
+      holdings: const [],
+      now: now,
+    );
+    final a = LocalBuddy.answer('Wie steht mein Budget?', snap);
+    expect(a, startsWith('**150,00'));
+    expect(a, endsWith('über Lebensmittel.'));
+    expect(a, isNot(contains('\n')));
+    expect(LocalBuddy.answer('Wie steht mein Budget?', s),
+        'Noch keine Budgets. Unter Budgets im Konto anlegen.');
+  });
+
+  test('an empty ledger gets one calm line', () {
+    final empty = FinanceSnapshot.build(
+      tx: const [],
+      openingCents: 0,
+      budgets: const [],
+      holdings: const [],
+      now: now,
+    );
+    expect(LocalBuddy.answer('Hallo', empty),
+        'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen.');
   });
 }

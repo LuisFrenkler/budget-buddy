@@ -321,7 +321,7 @@ class LocalBuddy {
             'z': _eur(top.first.value ~/ 10)
           }));
     }
-    return '${tips.join(' ')}\n\n${tr('Nächster Schritt: Budget für die größte Kategorie.')}';
+    return tips.join('\n');
   }
 
   static String _afford(String q, FinanceSnapshot s) {
@@ -333,36 +333,16 @@ class LocalBuddy {
     if (s.past.isEmpty)
       return tr('Dafür fehlt mindestens ein voller Monat Daten.');
     if (surplus <= 0) {
-      return tr('**{x} mehr** gehen im Schnitt raus, als reinkommt.',
+      return tr('🔴 **Rot:** **{x} mehr** gehen raus, als reinkommt.',
           {'x': _eur(-surplus)});
     }
-    final base = tr(
-        '**{x}** bleiben im Monat (rein {y}, raus {z}).',
-        {'x': _eur(surplus), 'y': _eur(s.avgIncome), 'z': _eur(s.avgExpenses)});
     if (target == null || target <= 0) {
-      return tr(
-          '{base}\n\nNenn einen Betrag, dann sage ich, wie lange es dauert.',
-          {'base': base});
+      return tr('**{x}** bleiben im Monat. Nenn einen Betrag.',
+          {'x': _eur(surplus)});
     }
     final cents = target * 100;
     final months = (cents / surplus).ceil();
-    final light = _light(cents, s);
-    final buffer = s.balanceCents - cents;
-    final lines = <String>[
-      if (light != null) light,
-      tr('{base} Für **{x}** etwa **{months} {y}**.', {
-        'base': base,
-        'x': _eur(cents),
-        'months': months,
-        'y': months == 1 ? tr('Monat') : tr('Monate')
-      }),
-      tr('Vom Kontostand blieben {x}{y}', {
-        'x': _eur(buffer),
-        'y': buffer < s.avgExpenses
-            ? tr(', weniger als ein Monat Ausgaben.')
-            : '.'
-      }),
-    ];
+    final y = months == 1 ? tr('Monat') : tr('Monate');
     // same formula as Monats-Simulator for this month
     final cmp = ScenarioService.compare(
       DB.getTx(),
@@ -371,38 +351,47 @@ class LocalBuddy {
       balanceCents: s.balanceCents,
       now: s.today,
     );
-    if (cmp != null) {
-      final free = cmp.sim.freeCents;
-      lines.add(free >= 0
-          ? tr('Diesen Monat danach noch **{x}** frei, etwa {y} am Tag.', {
-              'x': _eur(free),
-              'y': _eur(cmp.sim.perDayCents)
-            })
-          : tr('Diesen Monat **{x} über** dem Plan.', {'x': _eur(-free)}));
-    }
-    return lines.join('\n');
+    final tail = cmp == null
+        ? tr('**{x}** bleiben im Monat.', {'x': _eur(surplus)})
+        : cmp.sim.freeCents >= 0
+            ? tr('**{x}** bleiben im Monat. Danach noch **{free}** frei.', {
+                'x': _eur(surplus),
+                'free': _eur(cmp.sim.freeCents),
+              })
+            : tr(
+                '**{x}** bleiben im Monat. Diesen Monat **{over} über** dem Plan.',
+                {'x': _eur(surplus), 'over': _eur(-cmp.sim.freeCents)});
+    return '${_affordLead(cents, months, y, s)}\n$tail';
   }
 
-  // the same traffic light as the agent's „leisten“ tool, for this month
-  static String? _light(int cents, FinanceSnapshot s) {
+  // traffic light, the amount and the months: same check as the agent's „leisten“ tool
+  static String _affordLead(
+      int cents, int months, String y, FinanceSnapshot s) {
+    final amount = _eur(cents);
     final f = s.forecast;
-    if (f == null) return null;
-    final target = s.emergencyTargetCents;
+    if (f == null) {
+      return tr('**{x}** in etwa **{months} {y}**.',
+          {'x': amount, 'months': months, 'y': y});
+    }
+    final emergency = s.emergencyTargetCents;
     final r = Affordability.check(
       amountCents: cents,
       freeCents: f.freeCents,
       goalsMonthCents: f.goalsCents,
       surplusCents: s.avgIncome - s.avgExpenses,
-      spareSavingsCents: target == null
+      spareSavingsCents: emergency == null
           ? 0
-          : (s.emergencyHaveCents - target).clamp(0, 1 << 40),
+          : (s.emergencyHaveCents - emergency).clamp(0, 1 << 40),
     );
     return switch (r.light) {
-      'gruen' => tr(
-          '🟢 **Grün:** Das geht aus dem freien Geld, mit Puffer.'),
-      'gelb' =>
-          tr('🟡 **Gelb:** Nur mit weniger Sparen oder aus Erspartem.'),
-      _ => tr('🔴 **Rot:** Das ginge an den Notgroschen.'),
+      'gruen' => tr('🟢 **Grün:** **{x}** gehen, etwa **{months} {y}**.',
+          {'x': amount, 'months': months, 'y': y}),
+      'gelb' => tr(
+          '🟡 **Gelb:** **{x}** nur mit weniger Sparen, etwa **{months} {y}**.',
+          {'x': amount, 'months': months, 'y': y}),
+      _ => tr(
+          '🔴 **Rot:** **{x}** gingen an den Notgroschen, etwa **{months} {y}**.',
+          {'x': amount, 'months': months, 'y': y}),
     };
   }
 
@@ -427,8 +416,7 @@ class LocalBuddy {
 
   static String _budgets(FinanceSnapshot s) {
     if (s.budgets.isEmpty)
-      return tr(
-          'Noch keine Budgets.\n\nNächster Schritt: Unter Budgets im Konto eins anlegen.');
+      return tr('Noch keine Budgets. Unter Budgets im Konto anlegen.');
     final lines = [
       for (final b in s.budgets)
         tr('- {x}: {y} von {z}{a}', {
@@ -440,8 +428,25 @@ class LocalBuddy {
               : ' (${b.percentUsed} %)'
         })
     ];
-    return tr('Noch **{x}** Tage im Monat:\n{y}',
-        {'x': s.daysLeftInMonth, 'y': lines.join('\n')});
+    final over = s.budgets.where((b) => b.isOver).toList()
+      ..sort((a, b) =>
+          (b.spentCents - b.limitCents).compareTo(a.spentCents - a.limitCents));
+    final String lead;
+    if (over.isNotEmpty) {
+      final b = over.first;
+      lead = tr('**{x}** über {cat}.', {
+        'x': _eur(b.spentCents - b.limitCents),
+        'cat': tr(b.category),
+      });
+    } else {
+      final room = s.budgets.toList()
+        ..sort((a, b) => a.remainingCents.compareTo(b.remainingCents));
+      final b = room.first;
+      lead = tr('**{x}** noch bei {cat}.',
+          {'x': _eur(b.remainingCents), 'cat': tr(b.category)});
+    }
+    if (s.budgets.length < 2) return lead;
+    return '$lead\n${lines.join('\n')}';
   }
 
   static String _depot(FinanceSnapshot s) {
@@ -737,7 +742,7 @@ class LocalBuddy {
         m.income == 0 &&
         s.depotCents == 0) {
       return tr(
-          'Noch wenig Verlauf.\n\nNächster Schritt: Bank verbinden oder ein paar Ausgaben erfassen.');
+          'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen.');
     }
     return tr(
         '**{x}** auf dem Konto, Depot {y}. Diesen Monat {z} rein, {a} raus.', {
