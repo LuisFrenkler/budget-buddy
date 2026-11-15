@@ -11,6 +11,8 @@ import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/screens/tax_screen.dart';
 import 'package:budget_buddy/screens/transaction_screen.dart';
 import 'package:budget_buddy/screens/contracts_screen.dart';
+import 'package:budget_buddy/screens/data_screen.dart';
+import 'package:budget_buddy/legal/data_map.dart';
 import 'package:budget_buddy/screens/goals_screen.dart';
 import 'package:budget_buddy/models/goal.dart';
 import 'package:budget_buddy/services/goals_service.dart';
@@ -199,6 +201,11 @@ void main() {
     });
     await _pump(tester, const BuddyMemoryScreen());
     await _shot(tester, '05_memory');
+  });
+
+  testWidgets('23 where your data is', (tester) async {
+    await _pump(tester, const DataScreen(status: DataStatus(signedIn: true, bankLinked: true, aiConsent: true, memories: 2)));
+    await _shot(tester, '23_data');
   });
 
   testWidgets('22 goal reached', (tester) async {

@@ -22,7 +22,7 @@ class LegalInfo {
   static const authority =
       'Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg';
 
-  static const updated = 'Oktober 2026';
+  static const updated = 'November 2026';
 
   static String get address => '$street\n$city\n$country';
 

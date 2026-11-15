@@ -206,7 +206,11 @@ nicht drängeln.''';
       }
       // the app language; the prompt itself stays German so it caches
       if (lang == 'en' && role == 'user' && i == lastUser) {
-        text = '$text\n\n(Antworte auf Englisch. Schreib „Next step:“ statt „Nächster Schritt:“.)';
+        text = '$text\n\n(Antworte auf Englisch, auch wenn frühere Nachrichten deutsch sind. '
+            'Schreib „Next step:“ statt „Nächster Schritt:“.)';
+      } else if (lang == 'de' && role == 'user' && i == lastUser && history.any((h) => '${h['text']}'.contains('Next step:'))) {
+        // switched back from English: the earlier answers would pull the model along
+        text = '$text\n\n(Antworte auf Deutsch, auch wenn frühere Nachrichten englisch sind.)';
       }
       messages.add({'role': role, 'content': text});
     }

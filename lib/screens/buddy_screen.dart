@@ -42,6 +42,8 @@ import '../widgets/share_card.dart';
 import 'auth_screens.dart';
 import 'buddy_actions.dart';
 import 'buddy_log_screen.dart';
+import 'data_screen.dart';
+import '../legal/data_map.dart';
 import 'buddy_memory_screen.dart';
 import 'depot_screen.dart';
 import 'goals_screen.dart';
@@ -227,6 +229,34 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (!_guest && !onboarding && !_firstLook()) _checkIn();
     });
     if (widget.tab) BuddyScreen.ask.addListener(_asked);
+    _lang = L10n.lang.value;
+    L10n.lang.addListener(_languageChanged);
+  }
+
+  // the language of the chat as it is on screen
+  late String _lang;
+
+  // switching the language: the app's own texts in the chat (chips, fixed
+  // sentences) follow at once, and Buddy says in the new language that he
+  // answers in it from now on; what was said before stays as it was said
+  void _languageChanged() {
+    final from = _lang;
+    _lang = L10n.lang.value;
+    if (!mounted || from == _lang) return;
+    setState(() {
+      _messages.removeWhere((m) => m.langNote);
+      for (final m in _messages) {
+        if (!m.fromUser) m.text = retranslate(m.text, from);
+        m.followUps = [for (final f in m.followUps) retranslate(f, from)];
+      }
+      if (_messages.isNotEmpty) {
+        _messages.add(_Message(false, tr('Alles klar, ab jetzt antworte ich auf Deutsch.'))
+          ..checkIn = true
+          ..langNote = true);
+      }
+    });
+    _persist();
+    _scrollDown();
   }
 
   void _onFocus() {
@@ -263,6 +293,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   // "Was kannst du alles?": answered on the device, no question used up
+  void _privacy(String question) {
+    final answer = _Message(false, DataMap.answer(DataScreen.current()));
+    answer.followUps = [tr('Wie schalte ich Buddy mit KI aus?'), tr('Wie lösche ich mein Konto?')];
+    _input.clear();
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(answer);
+    });
+    _persist();
+    _scrollDown();
+  }
+
   void _help(String question) {
     _input.clear();
     final a = BuddyHelp.answer(guest: _guest);
@@ -374,6 +416,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     BuddyVoice.stop();
     _consentListenable.removeListener(_consentListener);
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
+    L10n.lang.removeListener(_languageChanged);
     _scroll.removeListener(_onScroll);
     _focus.removeListener(_onFocus);
     VoiceInput.listening.removeListener(_onFocus);
@@ -727,6 +770,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _spokenInput = false;
     HapticFeedback.selectionClick();
     if (_photo == null && BuddyHelp.matches(question)) return _help(question);
+    // privacy is answered from the app's own list, never improvised
+    if (_photo == null && DataMap.matches(question)) return _privacy(question);
     if (_guest) return _sendGuest(question);
     if (_photo == null && BuddyOnboarding.active && question.isNotEmpty && await _runOnboarding(question)) return;
     if (_photo == null && _rememberCommand(question)) return;
@@ -2447,6 +2492,7 @@ class _Message {
   final Map<int, String> applied = {}; // entry index -> what was done
   final Set<int> dismissed = {}; // entries the user waved away
   List<String> followUps = const [];
+  bool langNote = false; // "from now on in English": replaced by the next switch
   String? remember; // a fact Buddy suggests to keep
   String? rememberState; // saved, known, no
   Uint8List? image; // a photo the user sent

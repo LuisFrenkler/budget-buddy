@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:budget_buddy/screens/buddy_screen.dart';
+import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/screens/home_screen.dart';
 import 'package:budget_buddy/utils/theme.dart';
 import 'package:flutter/material.dart';
@@ -97,6 +98,30 @@ void main() {
     expect(mine, findsOneWidget);
     expect((tester.widget(mine) as Semantics).properties.hintOverrides?.onLongPressHint, 'Kopieren und mehr');
     handle.dispose();
+    await settle(tester);
+  });
+
+  testWidgets('switching the language switches the chat', (tester) async {
+    await pumpShell(tester);
+    BuddyScreen.ask.value = '';
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.enterText(find.byType(TextField), 'Was kannst du alles?');
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Senden'));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 300)));
+    await tester.pump(const Duration(seconds: 1));
+    L10n.lang.value = 'en';
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.textContaining("from now on I'll answer in English", findRichText: true), findsOneWidget);
+    // the chips under the answer are the app's own texts: they follow
+    expect(find.textContaining('Wie viel', findRichText: true), findsNothing);
+    L10n.lang.value = 'de';
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.textContaining('ab jetzt antworte ich auf Deutsch', findRichText: true, skipOffstage: false), findsOneWidget);
+    expect(find.textContaining("from now on I'll answer in English", findRichText: true, skipOffstage: false), findsNothing);
     await settle(tester);
   });
 }

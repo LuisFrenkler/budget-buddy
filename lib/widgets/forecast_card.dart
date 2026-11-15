@@ -129,6 +129,7 @@ class ForecastCard extends StatelessWidget {
             line(f.incomePreliminary ? tr('Einkommen (dieser Monat)') : tr('Übliches Einkommen'), f.incomeCents),
             line(tr('Fixkosten (Miete, Abos …)'), f.fixedCents, minus: true),
             if (f.goalsCents > 0) line(tr('Für deine Sparziele'), f.goalsCents, minus: true),
+            if (f.reserveCents > 0) line(tr('Rücklage für Jahreszahlungen'), f.reserveCents, minus: true),
             line(tr('Bisher ausgegeben'), f.spentCents, minus: true),
             Divider(color: AppColors.border, height: 20),
             line(tr('Noch frei'), f.freeCents, bold: true),

@@ -1,4 +1,5 @@
 // Payslips compared month to month, and a plan to pay debts off.
+import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/services/buddy_tools.dart';
 import 'package:budget_buddy/services/debt_plan.dart';
 import 'package:budget_buddy/services/payslip_check.dart';
@@ -79,5 +80,20 @@ void main() {
       final none = BuddyTools(tx: const [], snapshot: const {}, now: DateTime(2026, 11, 15)).run('schulden_plan', {});
       expect(none['hinweis'], contains('Zinssatz'));
     });
+  });
+
+  test('instalments with the rates still open get an end date', () {
+    final tx = [
+      for (final m in [9, 10, 11])
+        Transaction(
+            id: 'k$m', amountCents: 3330, category: 'Sonstiges', date: DateTime(2026, m, 5), isIncome: false,
+            note: 'Zalando', raw: 'Klarna Bank AB Ratenkauf Zalando'),
+    ];
+    final r = BuddyTools(tx: tx, snapshot: const {}, now: DateTime(2026, 11, 15)).run('schulden_plan', {
+      'offeneRaten': {'Zalando': 4}
+    });
+    expect((r['reihenfolge'] as List).single['frei'], 'nach 4 Monaten');
+    final unknown = BuddyTools(tx: tx, snapshot: const {}, now: DateTime(2026, 11, 15)).run('schulden_plan', {});
+    expect(unknown['hinweis'], contains('offeneRaten'));
   });
 }
