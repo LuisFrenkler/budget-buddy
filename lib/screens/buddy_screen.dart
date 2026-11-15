@@ -1788,7 +1788,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       child: RichMarkdown(text,
                               streaming: m.streaming,
                               onAsk: _send,
-                              lead: true,
+                              // chat stays body-size; lead size is for welcome marketing
+                              lead: false,
                               stepDone: m.stepDone,
                               onStepHelp: _guest || m.offline ? null : (step) => _send(tr('Hilf mir bei diesem Schritt: {x}', {'x': step})),
                               onStepDone: _guest
@@ -1801,6 +1802,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     ),
             ),
             ),
+            // tools mid-answer: show under the growing text, like ChatGPT tool status
+            if (m.streaming && !m.error && text.isNotEmpty) _toolStatusLine(),
             if (m.offline && text.isNotEmpty && !m.error && !m.streaming)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
@@ -1882,6 +1885,24 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ),
                 ]),
               ),
+            ),
+          );
+        },
+      );
+
+  // while tools run after text already started
+  Widget _toolStatusLine() => ValueListenableBuilder<String?>(
+        valueListenable: BuddyService.activity,
+        builder: (_, looking, __) {
+          if (looking == null || looking.trim().isEmpty) return const SizedBox.shrink();
+          final line = buddyToolLine(looking);
+          return Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Semantics(
+              liveRegion: true,
+              label: line,
+              child: Text(line,
+                  style: TextStyle(fontSize: 13, height: 1.3, color: AppColors.textDim, fontWeight: FontWeight.w500)),
             ),
           );
         },
