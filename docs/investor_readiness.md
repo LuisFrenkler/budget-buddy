@@ -1,6 +1,6 @@
 # Ahead — Investor-Readiness (ehrlich)
 
-Stand 15. Nov 2026. Quellen: `docs/launch.md`, `docs/buddy_backlog.md`, `docs/store_listing_de.md`, Plus-Code, Landing. Kein Pitch.
+Stand 15. Nov 2026. Quellen: `docs/launch.md`, `docs/buddy_backlog.md`, `docs/store_listing_de.md`, Plus-Code, Landing. Kein Pitch. Preis, Trial, Quotas und die Rechnung: `docs/business_model.md`.
 
 These: Das Produkt ist weiter als die Firma. YC finanziert Lernspeed an echten Nutzern, nicht Feature-Tiefe. Heute gibt es die Tiefe und null öffentliche Zahlen.
 
@@ -22,7 +22,7 @@ These: Das Produkt ist weiter als die Firma. YC finanziert Lernspeed an echten N
 6. **Metriken sind nicht instrumentiert.** Kein Cohort-Tool. Sentry und CI stehen unter SHOULD. Ohne vier Zähler ist jede Kurve erfunden.
 7. **Zahlungsbereitschaft unbekannt.** Plus verkauft mehr vom Gleichen, während der Kern gratis ist. 4,99 € ist App-Store-Commodity. Ob jemand nach Tag 7 zahlt, weißt du nicht.
 8. **Team-Satz fehlt.** „Ich habe es gebaut“ beantwortet nicht „wer holt die ersten 1.000 Weekly“. Kein unfairer Kanal (Audience, Community, Bank) ist dokumentiert.
-9. **Zwei Namen, zwei Quotas.** App und Landing: Ahead. Store-Listing: BudgetBuddy. `launch.md` sagt 5 Gratis-Fragen/Monat, der Code 30. Pitch eine Zahl, die in Produktion liegt.
+9. **Zwei Namen, zwei Quotas.** App und Landing: Ahead. Store-Listing: BudgetBuddy. `launch.md` sagt 5 Gratis-Fragen/Monat, der Code 30. Pitch eine Zahl, die in Produktion liegt. Kanonisch: `docs/business_model.md`.
 10. **Kein Weg zur Venture-Größe.** DE-Soft-Launch ist richtig. Ein Satz „DACH, dann stoppen oder weiter“ fehlt. TAM aus dem Hut ist schlimmer als die Lücke.
 
 YC nimmt das heute nicht. Ein Accelerator mit Produktfokus vielleicht als „komm wieder mit Weekly-Nutzern“. Vorher ist es ein Solo-Build, kein Case.
