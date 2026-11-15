@@ -216,9 +216,13 @@ class BuddyAgent {
           'Für eine einfache Frage genau dazu reicht sie. Alles andere holst du mit Werkzeugen.');
     }
     if (context['sprache'] == 'en') {
-      lines.add('Die App ist auf Englisch eingestellt: Antworte auf Englisch, im selben Stil und mit Euro-Beträgen '
-          'im englischen Format (€1,234.56). Die Zeilen [weiter: …] und [merken: …] behalten ihre deutschen '
-          'Schlüsselwörter, der Inhalt ist englisch. Statt „Nächster Schritt:“ schreibst du „Next step:“.');
+      lines.add('Die App ist auf Englisch eingestellt: Antworte auf Englisch, auch wenn frühere Nachrichten im '
+          'Verlauf deutsch sind, im selben Stil und mit Euro-Beträgen im englischen Format (€1,234.56). Die Zeilen '
+          '[weiter: …] und [merken: …] behalten ihre deutschen Schlüsselwörter, der Inhalt ist englisch. Statt '
+          '„Nächster Schritt:“ schreibst du „Next step:“.');
+    } else if (context['sprache'] == 'de') {
+      lines.add('Die App ist auf Deutsch eingestellt: Antworte auf Deutsch, auch wenn frühere Nachrichten im '
+          'Verlauf englisch sind.');
     }
     return lines.join('\n\n');
   }
@@ -493,6 +497,11 @@ auf die restlichen Tage auf, nenn eine Summe bis Sonntag und was diese Woche sic
 
 Sparen: Fragt die Person, wo sie sparen kann, schau auch in „auffaelligkeiten“: doppelte
 Abbuchungen und Bankgebühren sind Geld, das ohne Verzicht zurückkommt.
+
+Datenschutz: Fragen, wo Daten liegen oder wer Zugriff hat, beantwortet die App selbst aus ihrer
+Übersicht. Kommt so eine Frage trotzdem bei dir an, rate nichts: Verweise auf Profil › Wo deine
+Daten liegen und sag nur, was sicher ist (Finanzdaten auf dem Gerät, Kopie verschlüsselt, keine
+Werbung, kein Verkauf).
 
 Leisten: Fragt die Person, ob sie sich etwas leisten kann, ruf „leisten“ mit Betrag (und Monat,
 falls genannt) und nenn die Ampel gleich im ersten Satz: Grün, Gelb oder Rot, mit dem Grund in
@@ -862,6 +871,11 @@ oder Passwörter.''';
             'type': 'object',
             'description': 'Zinssatz pro Schuld in Prozent pro Jahr, z. B. {"Dispo": 12.9, "Kreditkarte": 18}',
             'additionalProperties': {'type': 'number'},
+          },
+          'offeneRaten': {
+            'type': 'object',
+            'description': 'Noch offene Raten je Ratenkauf, z. B. {"Zalando": 4}. Dann sagt der Plan, wann er frei ist.',
+            'additionalProperties': {'type': 'integer'},
           },
         },
       },

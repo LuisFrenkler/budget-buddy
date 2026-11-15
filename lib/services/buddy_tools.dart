@@ -658,6 +658,18 @@ class BuddyTools {
       for (final e in ((input['zinsen'] as Map?) ?? const {}).entries)
         if (e.value is num) '${e.key}'.toLowerCase(): (e.value as num).toDouble()
     };
+    final rest = <String, int>{
+      for (final e in ((input['offeneRaten'] as Map?) ?? const {}).entries)
+        if (e.value is num) '${e.key}'.toLowerCase(): (e.value as num).toInt()
+    };
+    int? restFor(String name) {
+      final n = name.toLowerCase();
+      for (final e in rest.entries) {
+        if (n.contains(e.key) || e.key.contains(n)) return e.value;
+      }
+      return null;
+    }
+
     double? rateFor(String name) {
       final n = name.toLowerCase();
       for (final e in rates.entries) {
@@ -669,10 +681,12 @@ class BuddyTools {
     final items = <DebtItem>[
       for (final d in (((snapshot['vermoegen'] as Map?)?['schulden'] as List?) ?? const []).whereType<Map>())
         DebtItem('${d['name']}', c(d['betrag']), ratePercent: rateFor('${d['name']}')),
-      // running instalments: their rate is the minimum, the rest is unknown
+      // running instalments: their rate is the minimum; with the number of
+      // rates still open (the person knows it from the app) they get an end
       for (final r in Installments.detect(tx, now: today))
         if (r.paidCount > 0)
-          DebtItem(r.shop == null ? r.provider : '${r.provider} (${r.shop})', 0,
+          DebtItem(r.shop == null ? r.provider : '${r.provider} (${r.shop})',
+              r.monthlyCents * (restFor(r.shop ?? r.provider) ?? restFor(r.provider) ?? 0),
               ratePercent: rateFor(r.provider), minCents: r.monthlyCents),
     ];
     final withAmount = items.where((d) => d.cents > 0).toList();
@@ -681,7 +695,8 @@ class BuddyTools {
         'schulden': const [],
         if (items.isNotEmpty) 'ratenOhneRestbetrag': [for (final d in items) {'name': d.name, 'proMonat': d.minCents / 100}],
         'hinweis': 'Keine Schulden mit Betrag gespeichert. Frag nach Betrag und Zinssatz (Dispo, Kreditkarte, Kredit) '
-            'oder biete an, sie unter Vermögen einzutragen.',
+            'oder biete an, sie unter Vermögen einzutragen. Bei Ratenkäufen: frag, wie viele Raten noch offen sind '
+            '(steht in der Klarna- oder PayPal-App), und gib das unter offeneRaten mit.',
       };
     }
     final extra = c(input['extraProMonat']);

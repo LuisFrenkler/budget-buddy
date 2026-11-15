@@ -546,8 +546,11 @@ class HintsService {
           'double-${d.second.id}',
           HintKind.doubleCharge,
           tr('{x} zweimal abgebucht?', {'x': d.merchant}),
-          tr('{x} am {y} und am {z}. War das zweimal gewollt?',
-              {'x': Money.format(d.cents), 'y': Dates.dayMonth(d.first.date), 'z': Dates.dayMonth(d.second.date)}),
+          _sameDay(d.first.date, d.second.date)
+              ? tr('{x} zweimal am {y}. War das zweimal gewollt?',
+                  {'x': Money.format(d.cents), 'y': Dates.dayMonth(d.first.date)})
+              : tr('{x} am {y} und am {z}. War das zweimal gewollt?',
+                  {'x': Money.format(d.cents), 'y': Dates.dayMonth(d.first.date), 'z': Dates.dayMonth(d.second.date)}),
           HintTarget.buddy,
           question: tr('{x} hat zweimal {y} abgebucht. Was mache ich, wenn das ein Fehler war?',
               {'x': d.merchant, 'y': Money.format(d.cents)})));
@@ -665,4 +668,6 @@ class HintsService {
     });
     return out;
   }
+
+  static bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
 }

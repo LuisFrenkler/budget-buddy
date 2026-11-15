@@ -18,6 +18,7 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
 import 'income_sources.dart';
+import 'periodic_payments.dart';
 
 enum ForecastPace { relaxed, tight, over }
 
@@ -60,6 +61,10 @@ class MonthForecast {
   final List<DueItem> due; // fixed costs still to come this month
   final bool limitedByBalance; // the account holds less than the plan says
   final bool incomePreliminary; // only this month's earnings so far (no 3-month avg yet)
+  // put aside each month for yearly and quarterly payments (car insurance,
+  // Rundfunkbeitrag), so the month they land in is not a shock
+  final int reserveCents;
+  final List<PeriodicPayment> periodic;
 
   const MonthForecast({
     required this.incomeCents,
@@ -72,12 +77,14 @@ class MonthForecast {
     required this.due,
     this.limitedByBalance = false,
     this.incomePreliminary = false,
+    this.reserveCents = 0,
+    this.periodic = const [],
   });
 
   int get perDayCents => daysLeft <= 0 ? freeCents : freeCents ~/ daysLeft;
 
   // the budget for variable spending this month
-  int get variableBudgetCents => incomeCents - fixedCents - goalsCents;
+  int get variableBudgetCents => incomeCents - fixedCents - goalsCents - reserveCents;
 
   double get usedShare => variableBudgetCents <= 0 ? 1 : (spentCents / variableBudgetCents).clamp(0.0, 1.0);
 
@@ -172,8 +179,20 @@ class ForecastService {
             .map((g) => g.monthlyCents > 0 ? g.monthlyCents : (g.monthlyNeeded(today) ?? 0))
             .fold<int>(0, (s, v) => s + v);
 
+    // yearly and quarterly payments: a monthly share instead of a shock; with
+    // a reserve goal of its own the goal already carries it
+    final periodic = PeriodicPayments.detect(tx, now: today);
+    final reserveGoal = goals.any((g) => !g.reached && RegExp(r'r[üu]cklage|jahreszahlung', caseSensitive: false).hasMatch(g.name));
+    final reserve = reserveGoal ? 0 : PeriodicPayments.monthly(periodic);
+    // the one that lands this month is paid from the reserve, not from the month
+    final periodicIds = {
+      for (final p in periodic)
+        for (final t in tx)
+          if (!t.isIncome && t.date == p.last && t.amountCents == p.cents) t.id
+    };
+
     final spent = tx
-            .where((t) => t.isSpending && !fixedIds.contains(t.id) && !t.date.isBefore(monthStart))
+            .where((t) => t.isSpending && !fixedIds.contains(t.id) && !periodicIds.contains(t.id) && !t.date.isBefore(monthStart))
             .fold<int>(0, (s, t) => s + t.spendCents) +
         o.oneTimeSpentCents.clamp(0, 1 << 30);
 
@@ -186,7 +205,7 @@ class ForecastService {
         .fold<int>(0, (s, t) => s + t.spendCents);
     final pace = recent * daysLeft ~/ known;
 
-    var free = income - fixed - goalsMonthly - spent;
+    var free = income - fixed - goalsMonthly - reserve - spent;
     var limited = false;
     if (balanceCents != null) {
       final available = balanceCents - due.fold<int>(0, (s, d) => s + d.cents);
@@ -207,6 +226,8 @@ class ForecastService {
       due: due,
       limitedByBalance: limited,
       incomePreliminary: incomePreliminary,
+      reserveCents: reserve,
+      periodic: periodic,
     );
   }
 }

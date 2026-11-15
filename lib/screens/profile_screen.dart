@@ -1,4 +1,5 @@
 import 'buddy_memory_screen.dart';
+import 'data_screen.dart';
 import 'invite_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -27,7 +28,6 @@ import '../services/bank_sync.dart';
 import '../services/depot_sync.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
-import 'about_screen.dart';
 import 'company_screen.dart';
 import 'account_screen.dart';
 import 'splits_screen.dart';
@@ -43,7 +43,6 @@ import '../widgets/settings_list.dart';
 import '../widgets/sync_pill.dart';
 import 'notification_settings_screen.dart';
 import '../legal/legal_info.dart';
-import '../legal/legal_texts.dart';
 import '../services/notification_service.dart';
 import '../services/buddy_service.dart';
 import '../l10n/l10n.dart';
@@ -263,9 +262,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SettingsRow(
                   icon: Icons.privacy_tip_outlined,
-                  title: tr('Was das Gerät verlässt'),
-                  subtitle: tr('Bank, Kopie, KI, Kurse'),
-                  onTap: _whatLeaves,
+                  title: tr('Wo deine Daten liegen'),
+                  subtitle: tr('Wer was lesen kann, und was gerade an ist'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen())),
                 ),
               ]),
 
@@ -625,42 +624,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _sendFeedback();
               },
               child: Text(tr('Feedback senden')),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  void _whatLeaves() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Was das Gerät verlässt'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            Text(
-              tr('Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.'),
-              style: TextStyle(color: AppColors.textDim, height: 1.45),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    this.context,
-                    MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy)),
-                  );
-                },
-                child: Text(tr('Datenschutzerklärung')),
-              ),
             ),
           ]),
         ),

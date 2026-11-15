@@ -38,6 +38,17 @@ class L10n {
 
 const _tables = <String, Map<String, String>>{'en': en};
 
+// English text back to its German key, built once when first needed
+Map<String, String>? _reverseEn;
+
+// A text shown in [from] in the current language, when it is one of the app's
+// own texts (a chip, a fixed sentence); other text comes back unchanged.
+String retranslate(String text, String from) {
+  if (from == L10n.lang.value) return text;
+  final key = from == 'de' ? text : (_reverseEn ??= {for (final e in en.entries) e.value: e.key})[text];
+  return key == null ? text : tr(key);
+}
+
 // Translates a German text. Placeholders are written {name} and filled from
 // args, so the translation can move them: tr('{n} im Jahr', {'n': x}).
 String tr(String de, [Map<String, Object?> args = const {}]) {

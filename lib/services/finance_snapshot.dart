@@ -407,6 +407,12 @@ class FinanceSnapshot {
       'ueblichesEinkommen': _eur(f.incomeCents),
       'fixkosten': _eur(f.fixedCents),
       'sparzieleMonat': _eur(f.goalsCents),
+      if (f.reserveCents > 0) ...{
+        'ruecklageJahreszahlungen': _eur(f.reserveCents),
+        'jahreszahlungen': [
+          for (final p in f.periodic.take(6)) {'name': p.name, 'betrag': _eur(p.cents), 'alleMonate': p.everyMonths}
+        ],
+      },
       'variabelAusgegeben': _eur(f.spentCents),
       'freiBisMonatsende': _eur(f.freeCents),
       'proTag': _eur(f.perDayCents),
