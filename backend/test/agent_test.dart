@@ -69,6 +69,32 @@ void main() {
       expect(done.content.single, {'type': 'text', 'text': '**312 €** diesen Monat.'});
     });
 
+    test('tokens, cost and the time to the first word are measured', () async {
+      final agent = BuddyAgent('key', client: () => MockClient.streaming((req, body) async {
+            final stream = _sse([
+              {
+                'type': 'message_start',
+                'message': {
+                  'usage': {'input_tokens': 1000, 'cache_read_input_tokens': 9000, 'cache_creation_input_tokens': 0, 'output_tokens': 1}
+                }
+              },
+              {'type': 'content_block_start', 'index': 0, 'content_block': {'type': 'text', 'text': ''}},
+              {'type': 'content_block_delta', 'index': 0, 'delta': {'type': 'text_delta', 'text': 'Hi'}},
+              {'type': 'content_block_stop', 'index': 0},
+              {'type': 'message_delta', 'delta': {'stop_reason': 'end_turn'}, 'usage': {'output_tokens': 200}},
+            ]);
+            return http.StreamedResponse(Stream.value(utf8.encode(stream)), 200);
+          }));
+      final done = (await agent.step([
+        {'role': 'user', 'content': 'Hi'}
+      ]).toList())
+          .last as AgentDone;
+      expect(done.usage, {'input': 1000, 'cacheRead': 9000, 'cacheWrite': 0, 'output': 200});
+      expect(done.firstTextMs, isNotNull);
+      // haiku: 1000 × 1 + 9000 × 0.1 + 200 × 5 per million
+      expect(done.costUsd, closeTo(0.0029, 1e-9));
+    });
+
     test('the last step may not call tools', () async {
       late Map<String, dynamic> sent;
       final agent = BuddyAgent('key', client: () => MockClient.streaming((req, body) async {

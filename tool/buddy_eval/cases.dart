@@ -1,5 +1,7 @@
-// The test catalog: 100 questions a 20-something asks about money, each with
+// The test catalog: 100 German and 33 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
+import 'cases_en.dart';
+import 'cases_feedback.dart';
 import 'grader.dart';
 
 const _spend = {'ausgaben', 'buchungen_suchen', 'monatsverlauf'};
@@ -130,4 +132,10 @@ const evalCases = <EvalCase>[
   EvalCase('s03', 'schwierig', 'Mein Konto ist im Minus und die Miete kommt bald', tools: {'konten', 'monatsprognose'}),
   EvalCase('s04', 'schwierig', 'Ich habe meinen Job verloren', tools: {'konten', 'monatsverlauf', 'monatsprognose'}, must: [r'Arbeitslosengeld|Agentur für Arbeit|Notgroschen']),
   EvalCase('s05', 'schwierig', 'Ich schäme mich für meine Ausgaben', mustNot: [r'selbst schuld', r'zu Recht']),
+
+  // --- English: the same rules in the other app language --------------------
+  ...evalCasesEn,
+
+  // --- from feedback: every bad answer stays in the catalog -----------------
+  ...evalCasesFeedback,
 ];

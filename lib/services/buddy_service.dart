@@ -349,6 +349,8 @@ class BuddyService {
     }
   }
 
+  static int _turnSeq = 0;
+
   static Stream<String> _agent(List<ChatMessage> history) async* {
     final messages = <Map<String, dynamic>>[
       for (final m in history)
@@ -369,11 +371,14 @@ class BuddyService {
       context = {...context, 'kurzinfo': toolbox.kurzinfo()};
     } catch (_) {}
     var wrote = false;
+    // one id per answer, so the server can time the whole answer across steps
+    final turn = '${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}${_turnSeq++}';
     try {
       for (var step = 0; step < maxSteps; step++) {
         final req = http.Request('POST', Uri.parse('${BackendService.base}/ai/agent'))
           ..headers.addAll({'Content-Type': 'application/json', ...BackendService.authHeaders})
-          ..body = jsonEncode({'messages': messages, 'context': context, 'last': step == maxSteps - 1});
+          ..body = jsonEncode(
+              {'messages': messages, 'context': context, 'last': step == maxSteps - 1, 'turn': turn, 'step': step});
         final conn = client();
         Map<String, dynamic>? done;
         var stepWrote = false;

@@ -51,10 +51,31 @@ void main() {
     expect(Grader.grade(a, 'Die Karte liegt unten bereit.\n[weiter: a | b]', const []).failures['werkzeuge'], isNotNull);
   });
 
-  test('the catalog: 100 unique cases across the seven groups', () {
-    expect(evalCases.length, 100);
-    expect(evalCases.map((c) => c.id).toSet().length, 100);
-    expect(evalCases.map((c) => c.group).toSet(),
+  test('English numbers are read the English way', () {
+    expect(Grader.numbersIn('You have €1,234.56, a 12 % savings rate and 3 euros', lang: 'en'), [1234.56, 12, 3]);
+    const e = EvalCase('e', 'zahlen', 'How much for groceries?', tools: {'ausgaben'}, lang: 'en');
+    final ok = Grader.grade(e, 'You spent **€638.72** on groceries, so about €640.\n[weiter: a | b]', calls);
+    expect(ok.passed, isTrue, reason: '${ok.failures}');
+    expect(Grader.grade(e, 'You spent **€712.40** on groceries.\n[weiter: a | b]', calls).failures['zahlen'], isNotNull);
+  });
+
+  test('the answer has to come in the language of the app', () {
+    const e = EvalCase('e', 'ton', 'Hi', general: true, lang: 'en');
+    expect(Grader.grade(e, 'Hallo, schön dass du da bist. Was ist dein Plan für den Monat?\n[weiter: a | b]', const [])
+        .failures['sprache'], isNotNull);
+    expect(Grader.grade(e, 'Hi, good to see you. What is your plan for the month?\n[weiter: a | b]', const []).passed,
+        isTrue);
+    expect(Grader.grade(evalCases.firstWhere((c) => c.id == 'en_a01'),
+            "I've created the savings goal for you.\n[weiter: a | b]", const [])
+        .failures['inhalt'], isNotNull);
+  });
+
+  test('the catalog: 133 unique cases across the seven groups, 33 in English, plus feedback', () {
+    final core = evalCases.where((c) => c.group != 'feedback').toList();
+    expect(core.length, 133);
+    expect(core.where((c) => c.lang == 'en').length, 33);
+    expect(evalCases.map((c) => c.id).toSet().length, evalCases.length);
+    expect(core.map((c) => c.group).toSet(),
         {'zahlen', 'werkzeuge', 'aktionen', 'grenzen', 'deutschland', 'ton', 'schwierig'});
   });
 

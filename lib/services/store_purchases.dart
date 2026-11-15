@@ -31,8 +31,8 @@ class StoreError implements Exception {
 class StorePurchases {
   // the same ids in App Store Connect and the Play Console
   static const ids = {
-    PlusPlan.monthly: 'budgetbuddy_plus_monthly',
-    PlusPlan.yearly: 'budgetbuddy_plus_yearly',
+    PlusPlan.monthly: 'ahead_plus_monthly',
+    PlusPlan.yearly: 'ahead_plus_yearly',
   };
 
   static bool get supported =>

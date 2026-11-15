@@ -116,7 +116,23 @@ class Growth {
 
   // the landing page: email in, a place and a personal link out. The same
   // email again gets its existing place back.
-  Future<Map<String, dynamic>> join(String email, {String? ref, DateTime? now}) async {
+  // the first [n] people of the waitlist, best place first: who gets the test
+  // version. Each with email, language, place and how many friends came.
+  List<Map<String, dynamic>> front(int n) {
+    final all = [
+      for (final e in _waitlist.values)
+        {
+          'email': e['email'],
+          'lang': e['lang'] ?? 'de',
+          'position': positionOf(e['code'] as String),
+          'friends': friendsOf(e['code'] as String),
+          'code': e['code'],
+        }
+    ]..sort((a, b) => (a['position'] as int).compareTo(b['position'] as int));
+    return all.take(n).toList();
+  }
+
+  Future<Map<String, dynamic>> join(String email, {String? ref, DateTime? now, String? lang}) async {
     final mail = email.trim().toLowerCase();
     if (mail.length > 200 || !_emailPattern.hasMatch(mail)) {
       throw const GrowthError(400, 'Bitte gib eine gültige E-Mail-Adresse ein.');
@@ -130,6 +146,7 @@ class Growth {
       'email': mail,
       'seq': ++_seq,
       'joinedAt': (now ?? DateTime.now()).toIso8601String(),
+      if (lang == 'en') 'lang': 'en',
     };
     final r = ref == null ? '' : normalize(ref);
     if (r.isNotEmpty && exists(r)) {

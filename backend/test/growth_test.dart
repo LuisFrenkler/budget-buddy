@@ -15,6 +15,18 @@ void main() {
 
   tearDown(() => dir.delete(recursive: true));
 
+  test('the front of the waitlist goes first, with language and friends', () async {
+    await g.join('a@x.de');
+    final b = await g.join('b@x.de', lang: 'en');
+    await g.join('c@x.de');
+    await g.join('d@x.de', ref: b['code'] as String);
+    final front = g.front(2);
+    expect(front.first['email'], 'b@x.de');
+    expect(front.first['lang'], 'en');
+    expect(front.first['friends'], 1);
+    expect(front.length, 2);
+  });
+
   test('joining gives a place in order and a code', () async {
     final a = await g.join('a@x.de');
     final b = await g.join('b@x.de');

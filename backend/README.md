@@ -207,8 +207,8 @@ Google promo codes, created in the consoles.
 
 | Product id | Price | Trial |
 |---|---|---|
-| `budgetbuddy_plus_monthly` | 4,99 € / month | 7 days free (introductory offer) |
-| `budgetbuddy_plus_yearly` | 39,99 € / year | 7 days free (introductory offer) |
+| `ahead_plus_monthly` | 4,99 € / month | 7 days free (introductory offer) |
+| `ahead_plus_yearly` | 39,99 € / year | 7 days free (introductory offer) |
 
 Keep the store prices equal to the web prices; the app shows the store's own
 price once it has loaded. Other ids: set `PLUS_PRODUCT_MONTHLY` /

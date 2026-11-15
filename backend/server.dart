@@ -28,7 +28,7 @@
 //                                    JSON key with access to the app in the Play Console.
 //                                    Without them purchases from that store are refused.
 //   PLUS_PRODUCT_MONTHLY, PLUS_PRODUCT_YEARLY  store product ids (default
-//                                    budgetbuddy_plus_monthly / budgetbuddy_plus_yearly)
+//                                    ahead_plus_monthly / ahead_plus_yearly)
 //   WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_VERIFY_TOKEN
 //                                    optional WhatsApp Cloud API (lib/whatsapp.dart).
 //                                    Without them the routes answer but send nothing.
@@ -695,7 +695,7 @@ Future<void> _handle(HttpRequest req) async {
       if (_waitlistLimit.blocked(ip)) throw AuthError.wait(_waitlistLimit.wait(ip));
       _waitlistLimit.hit(ip);
       final b = await _body(req);
-      return _json(req, 200, await _growth.join('${b['email'] ?? ''}', ref: b['ref'] as String?));
+      return _json(req, 200, await _growth.join('${b['email'] ?? ''}', ref: b['ref'] as String?, lang: b['lang'] as String?));
     // GET ?code= -> {code, position, total, friends}
     case '/waitlist/status':
       final ip = _clientIp(req);
@@ -1159,9 +1159,21 @@ Future<void> _aiAgent(HttpRequest req) async {
   final messages = BuddyAgent.clean(body['messages'] as List? ?? const []);
   if (messages.isEmpty) return _json(req, 400, {'error': 'Frage fehlt'});
   if (BuddyAgent.startsAnswer(messages)) _countAi(user);
+  final userId = '${user['id']}';
+  _aiCost.check(userId);
   final context = (body['context'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+  final turn = '${body['turn'] ?? ''}';
+  final stepNo = (body['step'] as num?)?.toInt() ?? 0;
+  _metrics.startStep(turn);
   final events = _agent.step(messages, context: context, lastStep: body['last'] == true);
-  return _streamEvents(req, events.map((e) => switch (e) {
+  return _streamEvents(req, events.map((e) {
+    if (e is AgentText) _metrics.text(turn);
+    if (e is AgentDone) {
+      _aiCost.add(userId, e.costUsd);
+      _metrics.done(userId, turn, stepNo, e);
+    }
+    return e;
+  }).map((e) => switch (e) {
         AgentText(:final text) => {'t': text},
         AgentDone d => {
             'step': {
@@ -1175,6 +1187,85 @@ Future<void> _aiAgent(HttpRequest req) async {
             }
           },
       }));
+}
+
+// --- what Buddy costs and how fast he is ------------------------------------
+
+// Daily spend per account: a safety net under the question limit, so a few
+// very long conversations can't eat the budget. AI_DAILY_COST_USD, default 0.50.
+final _aiCost = _CostGuard(double.tryParse(_env('AI_DAILY_COST_USD')) ?? 0.5);
+
+class _CostGuard {
+  final double limit;
+  final _spent = <String, double>{};
+  String _day = '';
+  _CostGuard(this.limit);
+
+  void _roll() {
+    final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+    if (today != _day) {
+      _day = today;
+      _spent.clear();
+    }
+  }
+
+  void check(String user) {
+    _roll();
+    if ((_spent[user] ?? 0) >= limit) {
+      throw const AuthError(429, 'Buddy hat für heute genug gerechnet. Morgen geht es weiter.');
+    }
+  }
+
+  void add(String user, double usd) {
+    _roll();
+    _spent[user] = (_spent[user] ?? 0) + usd;
+  }
+}
+
+// One line per agent step in .data/metrics.jsonl: model, tokens, cost and
+// timing. For the whole answer, "bisErstesWort" is the time from the first
+// step of an answer until its first word, tools in between included.
+// tool/buddy_eval/stats.dart turns the file into a short report.
+final _metrics = _Metrics(File('$_dataDir/metrics.jsonl'));
+
+class _Metrics {
+  final File file;
+  final _turnStart = <String, DateTime>{};
+  final _turnFirst = <String, int>{};
+  _Metrics(this.file);
+
+  void startStep(String turn) {
+    if (turn.isEmpty) return;
+    _turnStart.putIfAbsent(turn, DateTime.now);
+    // forget answers older than ten minutes
+    final old = DateTime.now().subtract(const Duration(minutes: 10));
+    _turnStart.removeWhere((k, v) => v.isBefore(old));
+    _turnFirst.removeWhere((k, _) => !_turnStart.containsKey(k));
+  }
+
+  void text(String turn) {
+    final start = _turnStart[turn];
+    if (start != null) _turnFirst.putIfAbsent(turn, () => DateTime.now().difference(start).inMilliseconds);
+  }
+
+  void done(String user, String turn, int step, AgentDone d) {
+    final line = {
+      'at': DateTime.now().toUtc().toIso8601String(),
+      'who': sha256.convert(utf8.encode(user)).toString().substring(0, 12),
+      'turn': turn,
+      'step': step,
+      'model': d.model,
+      'stop': d.stopReason,
+      'tools': [for (final c in d.toolCalls) c['name']],
+      ...d.usage,
+      'kostenUsd': double.parse(d.costUsd.toStringAsFixed(6)),
+      'ersteWortMs': d.firstTextMs,
+      'dauerMs': d.totalMs,
+      if (d.stopReason != 'tool_use' && _turnFirst[turn] != null) 'bisErstesWort': _turnFirst[turn],
+    };
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync('${jsonEncode(line)}\n', mode: FileMode.append);
+  }
 }
 
 // A thumbs up or down on one of Buddy's answers. Kept in a file the team
@@ -1396,8 +1487,8 @@ Future<void> _plusFromStore(HttpRequest req) async {
 // the stores whose credentials are set
 Future<StoreBilling> _storeBilling() async {
   final products = PlusProducts(
-    monthly: _env('PLUS_PRODUCT_MONTHLY').isNotEmpty ? _env('PLUS_PRODUCT_MONTHLY') : 'budgetbuddy_plus_monthly',
-    yearly: _env('PLUS_PRODUCT_YEARLY').isNotEmpty ? _env('PLUS_PRODUCT_YEARLY') : 'budgetbuddy_plus_yearly',
+    monthly: _env('PLUS_PRODUCT_MONTHLY').isNotEmpty ? _env('PLUS_PRODUCT_MONTHLY') : 'ahead_plus_monthly',
+    yearly: _env('PLUS_PRODUCT_YEARLY').isNotEmpty ? _env('PLUS_PRODUCT_YEARLY') : 'ahead_plus_yearly',
   );
   final appleKey = _env('APPLE_PRIVATE_KEY_PATH');
   final googleKey = _env('GOOGLE_SERVICE_ACCOUNT_PATH');

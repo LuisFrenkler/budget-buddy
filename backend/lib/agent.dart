@@ -9,6 +9,7 @@
 // of the model's head. The model chooses, reads and explains.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -32,7 +33,23 @@ class AgentDone extends AgentEvent {
   final List<Map<String, dynamic>> content;
   final String stopReason;
   final String model;
-  const AgentDone(this.content, this.stopReason, this.model);
+  // tokens of this step: input, output, cacheRead, cacheWrite
+  final Map<String, int> usage;
+  // milliseconds until the first word and until the step was done
+  final int? firstTextMs;
+  final int totalMs;
+  const AgentDone(this.content, this.stopReason, this.model,
+      {this.usage = const {}, this.firstTextMs, this.totalMs = 0});
+
+  // what the step cost in US dollars, from the prices per million tokens
+  double get costUsd {
+    final p = BuddyAgent.prices[model] ?? BuddyAgent.prices['default']!;
+    return ((usage['input'] ?? 0) * p.input +
+            (usage['cacheRead'] ?? 0) * p.input * 0.1 +
+            (usage['cacheWrite'] ?? 0) * p.input * 1.25 +
+            (usage['output'] ?? 0) * p.output) /
+        1e6;
+  }
 
   List<Map<String, dynamic>> get toolCalls => [
         for (final b in content)
@@ -41,6 +58,20 @@ class AgentDone extends AgentEvent {
 }
 
 class BuddyAgent {
+  // US dollars per million tokens. Check against the current price list and
+  // override with AI_PRICE_<MODEL>=input,output (e.g. AI_PRICE_CLAUDE_HAIKU_5_5=1,5).
+  static final Map<String, ({double input, double output})> prices = {
+    'claude-haiku-5-5': _price('claude-haiku-5-5', 1, 5),
+    'claude-sonnet-5-5': _price('claude-sonnet-5-5', 3, 15),
+    'default': _price('default', 3, 15),
+  };
+  static ({double input, double output}) _price(String model, double input, double output) {
+    final raw = Platform.environment['AI_PRICE_${model.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '_')}'];
+    final parts = raw?.split(',').map((s) => double.tryParse(s.trim())).toList();
+    if (parts != null && parts.length == 2 && parts.every((p) => p != null)) return (input: parts[0]!, output: parts[1]!);
+    return (input: input, output: output);
+  }
+
   static const _url = 'https://api.anthropic.com/v1/messages';
   static const _deadline = Duration(seconds: 90);
   // the loop gives up on tools after this many steps and asks for the answer
@@ -218,6 +249,8 @@ class BuddyAgent {
     final blocks = <int, Map<String, dynamic>>{};
     final json = <int, StringBuffer>{};
     var stop = 'end_turn';
+    final usage = <String, int>{};
+    int? firstText;
     try {
       final res = await client.send(req).timeout(_deadline);
       if (res.statusCode != 200) {
@@ -240,6 +273,7 @@ class BuddyAgent {
             switch (delta['type']) {
               case 'text_delta':
                 block['text'] = '${block['text'] ?? ''}${delta['text']}';
+                firstText ??= clock.elapsedMilliseconds;
                 yield AgentText(delta['text'] as String);
               case 'thinking_delta':
                 block['thinking'] = '${block['thinking'] ?? ''}${delta['thinking']}';
@@ -254,7 +288,17 @@ class BuddyAgent {
               final raw = buf.toString();
               blocks[i]!['input'] = raw.isEmpty ? <String, dynamic>{} : jsonDecode(raw);
             }
+          case 'message_start':
+            final u = event['message']?['usage'];
+            if (u is Map) {
+              usage['input'] = (u['input_tokens'] as num?)?.toInt() ?? 0;
+              usage['cacheRead'] = (u['cache_read_input_tokens'] as num?)?.toInt() ?? 0;
+              usage['cacheWrite'] = (u['cache_creation_input_tokens'] as num?)?.toInt() ?? 0;
+              usage['output'] = (u['output_tokens'] as num?)?.toInt() ?? 0;
+            }
           case 'message_delta':
+            final out = event['usage']?['output_tokens'];
+            if (out is num) usage['output'] = out.toInt();
             final reason = event['delta']?['stop_reason'];
             if (reason == 'refusal') throw const AiError('Dazu kann Buddy leider nichts sagen.');
             if (reason is String) stop = reason;
@@ -268,7 +312,8 @@ class BuddyAgent {
       client.close();
     }
     final keys = blocks.keys.toList()..sort();
-    yield AgentDone([for (final k in keys) blocks[k]!], stop, model);
+    yield AgentDone([for (final k in keys) blocks[k]!], stop, model,
+        usage: usage, firstTextMs: firstText, totalMs: clock.elapsedMilliseconds);
   }
 
   // --- the same step on Gemini (function calling) --------------------------
@@ -351,15 +396,23 @@ class BuddyAgent {
         });
       }
     }
+    final u = body['usageMetadata'];
+    int tokens(String k) => u is Map ? (u[k] as num?)?.toInt() ?? 0 : 0;
     return AgentDone([
       if (text.isNotEmpty) {'type': 'text', 'text': text.toString()},
       ...calls,
-    ], calls.isEmpty ? 'end_turn' : 'tool_use', model);
+    ], calls.isEmpty ? 'end_turn' : 'tool_use', model,
+        usage: {
+          'input': tokens('promptTokenCount') - tokens('cachedContentTokenCount'),
+          'cacheRead': tokens('cachedContentTokenCount'),
+          'output': tokens('candidatesTokenCount') + tokens('thoughtsTokenCount'),
+        });
   }
 
   Stream<AgentEvent> _geminiStep(List<Map<String, dynamic>> messages,
       {required Map<String, dynamic> context, required bool lastStep}) async* {
     final client = _client();
+    final clock = Stopwatch()..start();
     try {
       final res = await gemini!.geminiGenerate({
         'system_instruction': {
@@ -374,7 +427,10 @@ class BuddyAgent {
         },
       }, client: client);
       final body = jsonDecode(await res.stream.bytesToString()) as Map<String, dynamic>;
-      final done = geminiDone(body, model: gemini!.geminiModel);
+      final parsed = geminiDone(body, model: gemini!.geminiModel);
+      // Gemini answers in one piece: the first word comes with the whole step
+      final done = AgentDone(parsed.content, parsed.stopReason, parsed.model,
+          usage: parsed.usage, firstTextMs: clock.elapsedMilliseconds, totalMs: clock.elapsedMilliseconds);
       final text = done.content.where((b) => b['type'] == 'text').map((b) => b['text']).join();
       if (text.isNotEmpty) yield AgentText(text);
       if (text.isEmpty && done.toolCalls.isEmpty) {
