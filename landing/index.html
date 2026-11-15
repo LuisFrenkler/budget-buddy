@@ -313,7 +313,7 @@
         </div>
       </div>
       <ul class="trust" aria-label="Warum das trägt" data-en-aria-label="Why this holds">
-        <li data-en="Read-only bank">Bank nur lesend</li>
+        <li data-en="Bank later, read-only">Bank später, nur lesend</li>
         <li data-en="Doesn’t sell you funds">Verkauft dir keine Fonds</li>
         <li data-en="No account numbers to the AI">Keine Kontonummern an die KI</li>
       </ul>
@@ -376,7 +376,7 @@
       </div>
       <p class="punch" data-en="It’s never the coffee anyway. Usually it’s the gym.">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
       <div class="facts">
-        <span data-en="You sign in at your bank, not with us">Login bei deiner Bank, nicht bei uns</span>
+        <span data-en="Later you sign in at your bank, not with us">Login später bei deiner Bank, nicht bei uns</span>
         <span data-en="No ads, and we don’t sell your data">Keine Werbung, kein Datenverkauf</span>
         <span data-en="No account numbers to the AI">Keine Kontonummern an die KI</span>
         <span data-en="At most one notification a day">Höchstens eine Mitteilung am Tag</span>
@@ -439,8 +439,8 @@
   var lang = qLang === 'en' || qLang === 'de' ? qLang : store.get('ahead-lang') || ((navigator.language || 'de').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
   function L(de, en) { return lang === 'en' ? en : de; }
   var meta = {
-    de: { title: 'Ahead — der Geld-Coach', desc: 'Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank nur lesend. Du entscheidest.' },
-    en: { title: 'Ahead — the money coach', desc: 'Ahead is the money coach. Buddy names one next step from your numbers. Read-only bank. You decide.' }
+    de: { title: 'Ahead — der Geld-Coach', desc: 'Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank später, nur lesend. Du entscheidest.' },
+    en: { title: 'Ahead — the money coach', desc: 'Ahead is the money coach. Buddy names one next step from your numbers. Bank later, read-only. You decide.' }
   };
   function applyLang() {
     document.documentElement.lang = lang;
