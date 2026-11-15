@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ahead</title>
-<meta name="description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
+<meta name="description" content="Was mach ich mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen Zahlen und sagt den nächsten Schritt.">
 <meta property="og:title" content="Ahead">
-<meta property="og:description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
+<meta property="og:description" content="Was mach ich mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen Zahlen und sagt den nächsten Schritt.">
 <meta property="og:image" content="og.png">
 <meta name="theme-color" content="#8E4620">
 <!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server -->
@@ -234,7 +234,7 @@
   <div class="w hero">
    <div class="hero-text">
     <h1 data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
-    <p class="lead" data-en="Ask Buddy. He works with your real numbers, explains every term and tells you the next step. You decide.">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
+    <p class="lead" data-en="Ask Buddy. He works with your numbers and names one next step. You decide.">Frag Buddy. Er rechnet mit deinen Zahlen und sagt einen nächsten Schritt. Entscheiden tust du.</p>
     <div id="platz">
       <form class="join" novalidate>
         <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
@@ -267,7 +267,7 @@
   <section id="buddy">
     <div class="w rise">
       <h2 class="say-big" data-en="Less finance jargon. <span>More next step.</span>">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
-      <p class="sub" data-en="Buddy is your money coach. He sees what comes in and goes out, tells you in plain words and suggests exactly one next step.">Buddy ist dein Coach fürs Geld. Er sieht, was reinkommt und rausgeht, sagt es dir ohne Fachchinesisch und schlägt genau einen nächsten Schritt vor.</p>
+      <p class="sub" data-en="Buddy is your money coach. He sees what comes in and goes out, says it plainly, and names one next step.">Buddy ist dein Coach fürs Geld. Er sieht rein und raus, sagt es klar und nennt einen nächsten Schritt.</p>
     </div>
   </section>
 
@@ -290,12 +290,12 @@
   <div class="tiles" id="lebenslagen">
     <div class="tile t1 rise">
       <h3 data-en="Life stages, not menus.">Lebenslagen statt Menüs.</h3>
-      <p data-en="First job, first flat, moving in together. Buddy knows what matters right now and ticks off what’s done with you.">Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt mit dir ab, was erledigt ist.</p>
+      <p data-en="First job, first flat, moving in together. Buddy knows what matters now and ticks off what’s done.">Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt Erledigtes ab.</p>
       <div class="shot"><img src="app_welcome.jpg" data-en-src="app_welcome_en.jpg" data-en-alt="Buddy takes a first look at your numbers and suggests the next step." alt="Buddy begrüßt dich und zeigt die Lebenslage Erster Job mit dem nächsten Schritt: Notgroschen aufbauen." loading="lazy"></div>
     </div>
     <div class="tile t2 rise">
       <h3 data-en="He remembers what you tell him.">Er merkt sich, was du ihm sagst.</h3>
-      <p data-en="Salary arrives on the 28th? Noted. But it’s only saved when you tap Remember. Same for every booking.">Gehalt kommt am 28.? Notiert. Gespeichert wird aber erst, wenn du auf Merken tippst. Gilt auch für jede Buchung.</p>
+      <p data-en="Salary on the 28th? Noted — only when you tap Remember. Same for every booking.">Gehalt am 28.? Notiert — erst wenn du auf Merken tippst. Gilt für jede Buchung.</p>
       <div class="shot"><img src="app_coach.jpg" data-en-src="app_coach_en.jpg" data-en-alt="Buddy asks whether he should remember that your salary arrives on the 28th and suggests a savings goal you can apply or dismiss." alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
     </div>
   </div>
@@ -372,7 +372,7 @@
   function L(de, en) { return lang === 'en' ? en : de; }
   var meta = {
     de: { title: 'Ahead', desc: document.querySelector('meta[name="description"]').content },
-    en: { title: 'Ahead', desc: 'What do I do with my salary? Ask Buddy. He works with your real numbers and tells you the next step.' }
+    en: { title: 'Ahead', desc: 'What do I do with my salary? Ask Buddy. He works with your numbers and names the next step.' }
   };
   function applyLang() {
     document.documentElement.lang = lang;
@@ -487,7 +487,7 @@
     for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = L('Ich steh auf der Warteliste für Ahead, einen Buddy fürs Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ', 'I’m on the waitlist for Ahead, a money buddy that tells you what to do next. Join me: ') + link;
+    var text = L('Ich steh auf der Warteliste für Ahead. Buddy rechnet mit deinen Zahlen und sagt den nächsten Schritt. Komm mit: ', 'I’m on the Ahead waitlist. Buddy works with your numbers and names the next step. Join me: ') + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
@@ -549,13 +549,13 @@
   }
   function offline(q) {
     for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. With an account he works with your numbers.'));
-    show(q, L('Dafür brauche ich gerade die KI, und die ist nicht erreichbar oder für heute aufgebraucht.', 'For that I need the AI right now, and it’s not reachable or used up for today.'), L('Trag dich ein, dann rechnet Buddy in der App mit deinen echten Zahlen.', 'Sign up and Buddy works with your real numbers in the app.'));
+    show(q, L('Die KI ist gerade nicht da oder für heute aufgebraucht.', 'The AI is unavailable or used up for today.'), L('Auf die Warteliste: In der App rechnet Buddy mit deinen Zahlen.', 'Join the waitlist: in the app Buddy works with your numbers.'));
   }
   ask.addEventListener('submit', function (e) {
     e.preventDefault();
     var q = ask.q.value.trim() || ask.q.placeholder;
     var btn = ask.querySelector('button'); btn.disabled = true;
-    show(q, '<span style="color:var(--soft)">' + L('Buddy schreibt …', 'Buddy is typing …') + '</span>', '');
+    show(q, '<span style="color:var(--soft)">' + L('schreibt …', 'typing …') + '</span>', '');
     var acc = '';
     fetch(API + '/ai/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device: device, lang: lang, history: [{ role: 'user', text: q }] }) })
       .then(function (res) {
