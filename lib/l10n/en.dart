@@ -4,43 +4,66 @@ const en = <String, String>{
   'Deutsch': 'German',
   'Abrechnung': 'payslip',
   'deine Abrechnung': 'your payslip',
-  'Nachgerechnet mit den Regeln für 2026. Kleine Abweichungen sind normal.': 'Recomputed with the 2026 rules. Small differences are normal.',
+  'Nachgerechnet mit den Regeln für 2026. Kleine Abweichungen sind normal.':
+      'Recomputed with the 2026 rules. Small differences are normal.',
   'Notiert.': 'Noted.',
   'Was das Gerät verlässt': 'What leaves the device',
   'Bank, Kopie, KI, Kurse': 'Bank, copy, AI, prices',
-  'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.': 'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nBuddy only fetches the data he needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Buddy to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
-  'Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.': 'Ask Buddy. No sign-up, no bank. He explains every term and tells you the next step.',
-  'Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ': 'Your gym hasn\'t seen you since March. It still charges ',
+  'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.':
+      'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nBuddy only fetches the data he needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Buddy to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
+  'Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.':
+      'Ask Buddy. No sign-up, no bank. He explains every term and tells you the next step.',
+  'Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ':
+      'Your gym hasn\'t seen you since March. It still charges ',
   ' ab.': ' anyway.',
   'Offline: Grundlagen ohne KI': 'Offline: basics without AI',
-  'Buddy kann sich irren, keine Anlageberatung': 'Buddy can make mistakes, no investment advice',
-  'Schnell erfassen. Lange drücken für mehr.': 'Quick add. Long press for more.',
-  '**Im Vergleich zur letzten Abrechnung:**': '**Compared with the last payslip:**',
+  'Buddy kann sich irren, keine Anlageberatung':
+      'Buddy can make mistakes, no investment advice',
+  'Schnell erfassen. Lange drücken für mehr.':
+      'Quick add. Long press for more.',
+  '**Im Vergleich zur letzten Abrechnung:**':
+      '**Compared with the last payslip:**',
   'deinen Schulden-Plan': 'your debt plan',
   'deine Jahreszahlungen': 'your yearly payments',
   'deine Versicherungen': 'your insurance',
-  'Mein Konto rutscht heute ins Minus. Was kann ich jetzt noch tun?': 'My account dips below zero today. What can I still do?',
-  'Eine Gebühr, weil eine Rechnung zu spät bezahlt wurde. Ein Dauerauftrag oder eine Erinnerung verhindert das nächste Mal.': 'A fee because a bill was paid late. A standing order or a reminder prevents it next time.',
-  'Eine Zahlung an ein Inkassobüro. Prüf, ob die Forderung stimmt und ob die Gebühren angemessen sind; die Verbraucherzentrale hilft dabei.': 'A payment to a debt collection agency. Check whether the claim is right and the fees are reasonable; the consumer advice centre (Verbraucherzentrale) can help.',
+  'Mein Konto rutscht heute ins Minus. Was kann ich jetzt noch tun?':
+      'My account dips below zero today. What can I still do?',
+  'Eine Gebühr, weil eine Rechnung zu spät bezahlt wurde. Ein Dauerauftrag oder eine Erinnerung verhindert das nächste Mal.':
+      'A fee because a bill was paid late. A standing order or a reminder prevents it next time.',
+  'Eine Zahlung an ein Inkassobüro. Prüf, ob die Forderung stimmt und ob die Gebühren angemessen sind; die Verbraucherzentrale hilft dabei.':
+      'A payment to a debt collection agency. Check whether the claim is right and the fees are reasonable; the consumer advice centre (Verbraucherzentrale) can help.',
   'ausgeglichen': 'settled',
   'du bekommst {x}': 'you get {x}',
   'du schuldest {x}': 'you owe {x}',
   'deinen Notgroschen': 'your emergency fund',
   'ob es passt': 'whether it fits',
   'die Buchung': 'the booking',
-  'Bezahlt über PayPal{x}. PayPal holt das Geld per Lastschrift von deinem Konto, den eigentlichen Kauf siehst du in der PayPal-App.': 'Paid via PayPal{x}. PayPal collects the money from your account by direct debit; the actual purchase is in the PayPal app.',
-  'Bezahlt über Klarna{x}, auf Rechnung oder in Raten. Offene Raten siehst du in der Klarna-App.': 'Paid via Klarna{x}, on invoice or in instalments. Open instalments are in the Klarna app.',
-  'Kartenzahlung an einem kleinen Kartenterminal (SumUp, Zettle oder Square){x}. Der echte Laden steht meist direkt danach.': 'Card payment at a small card terminal (SumUp, Zettle or Square){x}. The actual shop is usually named right after it.',
-  'Eine Amazon-Bestellung. „Mktp“ heißt Marketplace: Verkauft hat ein anderer Händler über Amazon.': 'An Amazon order. "Mktp" means Marketplace: another seller sold it through Amazon.',
-  'Bezahlt mit dem Handy, technisch eine ganz normale Kartenzahlung.': 'Paid with your phone, technically a normal card payment.',
-  'Eine Lastschrift ging zurück, meist weil das Konto nicht gedeckt war oder du widersprochen hast. Das kostet oft Gebühren; melde dich beim Händler, bevor er mahnt.': 'A direct debit bounced, usually because the account was short or you objected to it. This often costs fees; contact the merchant before they send a reminder.',
-  'Eine Gebühr der Bank für eine Zahlung in fremder Währung oder im Ausland. Eine Karte ohne Auslandsgebühr spart das.': 'A bank fee for a payment in a foreign currency or abroad. A card without foreign fees avoids it.',
-  'Der Kontoabschluss der Bank: Gebühren für das Konto und Zinsen, etwa für den Dispo, für den letzten Zeitraum.': 'The bank\'s account statement: account fees and interest, for example on the overdraft, for the last period.',
-  'Zinsen dafür, dass das Konto im Minus war. Dispozinsen sind teuer; schon ein kleiner Puffer auf dem Konto vermeidet sie.': 'Interest because the account was in the red. Overdraft interest is expensive; even a small buffer in the account avoids it.',
-  'Ein Dauerauftrag: eine Überweisung, die du selbst eingerichtet hast und die jeden Monat von allein läuft.': 'A standing order: a transfer you set up yourself that runs on its own every month.',
-  'Bargeld am Automaten abgehoben. Wofür es ausgegeben wurde, weiß die App nicht.': 'Cash taken out at an ATM. The app doesn\'t know what it was spent on.',
-  'Eine Zahlung mit deiner Karte, an der Kasse oder online{x}.': 'A payment with your card, in a shop or online{x}.',
-  'Eine SEPA-Lastschrift: {y} zieht das Geld mit deiner Erlaubnis ein. Du kannst sie bis zu 8 Wochen lang ohne Grund bei deiner Bank zurückholen.': 'A SEPA direct debit: {y} collects the money with your permission. You can reclaim it through your bank for up to 8 weeks without giving a reason.',
+  'Bezahlt über PayPal{x}. PayPal holt das Geld per Lastschrift von deinem Konto, den eigentlichen Kauf siehst du in der PayPal-App.':
+      'Paid via PayPal{x}. PayPal collects the money from your account by direct debit; the actual purchase is in the PayPal app.',
+  'Bezahlt über Klarna{x}, auf Rechnung oder in Raten. Offene Raten siehst du in der Klarna-App.':
+      'Paid via Klarna{x}, on invoice or in instalments. Open instalments are in the Klarna app.',
+  'Kartenzahlung an einem kleinen Kartenterminal (SumUp, Zettle oder Square){x}. Der echte Laden steht meist direkt danach.':
+      'Card payment at a small card terminal (SumUp, Zettle or Square){x}. The actual shop is usually named right after it.',
+  'Eine Amazon-Bestellung. „Mktp“ heißt Marketplace: Verkauft hat ein anderer Händler über Amazon.':
+      'An Amazon order. "Mktp" means Marketplace: another seller sold it through Amazon.',
+  'Bezahlt mit dem Handy, technisch eine ganz normale Kartenzahlung.':
+      'Paid with your phone, technically a normal card payment.',
+  'Eine Lastschrift ging zurück, meist weil das Konto nicht gedeckt war oder du widersprochen hast. Das kostet oft Gebühren; melde dich beim Händler, bevor er mahnt.':
+      'A direct debit bounced, usually because the account was short or you objected to it. This often costs fees; contact the merchant before they send a reminder.',
+  'Eine Gebühr der Bank für eine Zahlung in fremder Währung oder im Ausland. Eine Karte ohne Auslandsgebühr spart das.':
+      'A bank fee for a payment in a foreign currency or abroad. A card without foreign fees avoids it.',
+  'Der Kontoabschluss der Bank: Gebühren für das Konto und Zinsen, etwa für den Dispo, für den letzten Zeitraum.':
+      'The bank\'s account statement: account fees and interest, for example on the overdraft, for the last period.',
+  'Zinsen dafür, dass das Konto im Minus war. Dispozinsen sind teuer; schon ein kleiner Puffer auf dem Konto vermeidet sie.':
+      'Interest because the account was in the red. Overdraft interest is expensive; even a small buffer in the account avoids it.',
+  'Ein Dauerauftrag: eine Überweisung, die du selbst eingerichtet hast und die jeden Monat von allein läuft.':
+      'A standing order: a transfer you set up yourself that runs on its own every month.',
+  'Bargeld am Automaten abgehoben. Wofür es ausgegeben wurde, weiß die App nicht.':
+      'Cash taken out at an ATM. The app doesn\'t know what it was spent on.',
+  'Eine Zahlung mit deiner Karte, an der Kasse oder online{x}.':
+      'A payment with your card, in a shop or online{x}.',
+  'Eine SEPA-Lastschrift: {y} zieht das Geld mit deiner Erlaubnis ein. Du kannst sie bis zu 8 Wochen lang ohne Grund bei deiner Bank zurückholen.':
+      'A SEPA direct debit: {y} collects the money with your permission. You can reclaim it through your bank for up to 8 weeks without giving a reason.',
   'deine Sparrate': 'your savings amount',
   'die Gehaltsrechnung': 'the salary maths',
   'deine Konten': 'your accounts',
@@ -142,17 +165,25 @@ const en = <String, String>{
   'Krypto': 'Crypto',
   'mehr': 'more',
   'weniger': 'less',
-  'Bitte gib den Code aus deiner Authenticator-App ein.': 'Please enter the code from your authenticator app.',
+  'Bitte gib den Code aus deiner Authenticator-App ein.':
+      'Please enter the code from your authenticator app.',
   'Dieses Gerät': 'This device',
   'Unbekanntes Gerät': 'Unknown device',
   'iPhone oder iPad': 'iPhone or iPad',
-  'Anmeldung ohne Sitzung, bitte App neu laden und noch einmal anmelden.': 'Signed in without a session. Please reload the app and sign in again.',
-  'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.': 'Can\'t reach the server. Please try again in a moment.',
-  'Der Server antwortet gerade nicht richtig. Bitte versuch es gleich noch einmal.': 'The server isn\'t responding properly right now. Please try again in a moment.',
-  'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.': 'Signing in didn\'t work. Please try again.',
-  'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.': 'Your session has expired. Please sign in again.',
-  'Der Server hat keinen Schlüssel geschickt.': 'The server didn\'t send a key.',
-  'Bitte melde dich neu an und versuch es noch einmal.': 'Please sign in again and try once more.',
+  'Anmeldung ohne Sitzung, bitte App neu laden und noch einmal anmelden.':
+      'Signed in without a session. Please reload the app and sign in again.',
+  'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.':
+      'Can\'t reach the server. Please try again in a moment.',
+  'Der Server antwortet gerade nicht richtig. Bitte versuch es gleich noch einmal.':
+      'The server isn\'t responding properly right now. Please try again in a moment.',
+  'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.':
+      'Signing in didn\'t work. Please try again.',
+  'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.':
+      'Your session has expired. Please sign in again.',
+  'Der Server hat keinen Schlüssel geschickt.':
+      'The server didn\'t send a key.',
+  'Bitte melde dich neu an und versuch es noch einmal.':
+      'Please sign in again and try once more.',
   'Das Passwort stimmt nicht.': 'That password is wrong.',
   'Löschen fehlgeschlagen ({x})': 'Deleting failed ({x})',
   'Face ID oder Code beim Öffnen': 'Face ID or passcode when opening',
@@ -161,15 +192,20 @@ const en = <String, String>{
   'Das ist kein gültiges Foto.': 'That isn\'t a valid photo.',
   'Das Foto konnte nicht gelesen werden.': 'The photo couldn\'t be read.',
   'Das Bild ist leer.': 'The image is empty.',
-  'Dein Gehalt oder Lohn, überwiesen vom Arbeitgeber.': 'Your salary or wages, paid by your employer.',
-  'Geld zurück, zum Beispiel eine Erstattung oder Rücksendung.': 'Money back, for example a refund or a return.',
-  'Geld von PayPal auf dein Konto, etwa eine Rückzahlung oder ein Guthaben, das du abgebucht hast.': 'Money from PayPal to your account, such as a refund or a balance you withdrew.',
+  'Dein Gehalt oder Lohn, überwiesen vom Arbeitgeber.':
+      'Your salary or wages, paid by your employer.',
+  'Geld zurück, zum Beispiel eine Erstattung oder Rücksendung.':
+      'Money back, for example a refund or a return.',
+  'Geld von PayPal auf dein Konto, etwa eine Rückzahlung oder ein Guthaben, das du abgebucht hast.':
+      'Money from PayPal to your account, such as a refund or a balance you withdrew.',
   ' an {m}': ' to {m}',
   'Der Empfänger': 'The recipient',
-  'Die langen Nummern (Mandatsreferenz, End-to-End-Referenz, Gläubiger-ID) sind Aktenzeichen für die Banken. Du brauchst sie nur, wenn du eine Lastschrift zurückholen oder reklamieren willst.': 'The long numbers (mandate reference, end-to-end reference, creditor ID) are file numbers for the banks. You only need them to reclaim or dispute a direct debit.',
+  'Die langen Nummern (Mandatsreferenz, End-to-End-Referenz, Gläubiger-ID) sind Aktenzeichen für die Banken. Du brauchst sie nur, wenn du eine Lastschrift zurückholen oder reklamieren willst.':
+      'The long numbers (mandate reference, end-to-end reference, creditor ID) are file numbers for the banks. You only need them to reclaim or dispute a direct debit.',
   '{label} keine': '{label} none',
   '{x} von {y} nach {z}': '{x} from {y} to {z}',
-  '{age} J. · Rente mit {retireAge} · {x} netto · {y} · {z} · {a}': '{age} y · retire at {retireAge} · {x} net · {y} · {z} · {a}',
+  '{age} J. · Rente mit {retireAge} · {x} netto · {y} · {z} · {a}':
+      '{age} y · retire at {retireAge} · {x} net · {y} · {z} · {a}',
   '{cents} Buchungen in {x}': '{cents} bookings in {x}',
   '{x} Händlern': '{x} merchants',
   '„{x}“ → {y} ({n}×)': '"{x}" → {y} ({n}×)',
@@ -186,39 +222,61 @@ const en = <String, String>{
   'Nichts geändert': 'Nothing changed',
   '1 Buchung sortiert': '1 booking sorted',
   '{n} Buchungen sortiert': '{n} bookings sorted',
-  'Konto gebucht · das Depot kommt über Parqet': 'Account booked · the portfolio comes via Parqet',
+  'Konto gebucht · das Depot kommt über Parqet':
+      'Account booked · the portfolio comes via Parqet',
   'Das Depot kommt über Parqet': 'The portfolio comes via Parqet',
   'Im Depot': 'In portfolio',
   'Position nicht gefunden': 'Position not found',
   'Aus dem Depot': 'Out of portfolio',
   'Mir fällt auf:': 'Here\'s what stands out:',
-  '**{name}** ist um {x} teurer geworden. Aufs Jahr sind das {y} mehr.': '**{name}** got {x} more expensive. That\'s {y} more a year.',
-  'Prüf, ob du {name} noch brauchst. Ich schreib dir die Kündigung, wenn nicht.': 'Check whether you still need {name}. I\'ll write the cancellation if not.',
+  '**{name}** ist um {x} teurer geworden. Aufs Jahr sind das {y} mehr.':
+      '**{name}** got {x} more expensive. That\'s {y} more a year.',
+  'Prüf, ob du {name} noch brauchst. Ich schreib dir die Kündigung, wenn nicht.':
+      'Check whether you still need {name}. I\'ll write the cancellation if not.',
   'Lohnt sich {name} noch für mich?': 'Is {name} still worth it for me?',
-  '**{cat}** lag letzten Monat bei {x}, sonst sind es etwa {y}.': '**{cat}** was {x} last month, usually it\'s about {y}.',
-  'Setz dir für {cat} ein Monatsbudget. Ich schlag dir eins vor.': 'Set a monthly budget for {cat}. I\'ll suggest one.',
+  '**{cat}** lag letzten Monat bei {x}, sonst sind es etwa {y}.':
+      '**{cat}** was {x} last month, usually it\'s about {y}.',
+  'Setz dir für {cat} ein Monatsbudget. Ich schlag dir eins vor.':
+      'Set a monthly budget for {cat}. I\'ll suggest one.',
   'Wie bekomme ich {cat} wieder runter?': 'How do I get {cat} back down?',
-  'Du legst im Schnitt **{r} %** deines Einkommens zurück. Das ist richtig gut.': 'On average you put aside **{r} %** of your income. That\'s really good.',
-  'Von deinem Einkommen bleiben im Schnitt nur **{r} %** übrig.': 'On average only **{r} %** of your income is left over.',
-  'In den letzten drei Monaten ging mehr raus als rein, im Schnitt {x} im Monat.': 'Over the last three months more went out than came in, on average {x} a month.',
-  'Richte einen Dauerauftrag direkt nach dem Gehalt ein, damit es so bleibt.': 'Set up a standing order right after payday so it stays that way.',
-  'Fang mit 5 % vom Gehalt an, per Dauerauftrag am Zahltag.': 'Start with 5 % of your salary, by standing order on payday.',
-  'Wie viel sollte ich jeden Monat sparen?': 'How much should I save each month?',
-  'Für {n} Verträge und Abos gehen jeden Monat **{x}** raus.': '{n} contracts and subscriptions cost you **{x}** every month.',
-  'Geh einmal deine Abos durch. Jedes, das du nicht nutzt, ist Geld fürs nächste Ziel.': 'Go through your subscriptions once. Every one you don\'t use is money for your next goal.',
+  'Du legst im Schnitt **{r} %** deines Einkommens zurück. Das ist richtig gut.':
+      'On average you put aside **{r} %** of your income. That\'s really good.',
+  'Von deinem Einkommen bleiben im Schnitt nur **{r} %** übrig.':
+      'On average only **{r} %** of your income is left over.',
+  'In den letzten drei Monaten ging mehr raus als rein, im Schnitt {x} im Monat.':
+      'Over the last three months more went out than came in, on average {x} a month.',
+  'Richte einen Dauerauftrag direkt nach dem Gehalt ein, damit es so bleibt.':
+      'Set up a standing order right after payday so it stays that way.',
+  'Fang mit 5 % vom Gehalt an, per Dauerauftrag am Zahltag.':
+      'Start with 5 % of your salary, by standing order on payday.',
+  'Wie viel sollte ich jeden Monat sparen?':
+      'How much should I save each month?',
+  'Für {n} Verträge und Abos gehen jeden Monat **{x}** raus.':
+      '{n} contracts and subscriptions cost you **{x}** every month.',
+  'Geh einmal deine Abos durch. Jedes, das du nicht nutzt, ist Geld fürs nächste Ziel.':
+      'Go through your subscriptions once. Every one you don\'t use is money for your next goal.',
   'Welche Abos könnte ich kündigen?': 'Which subscriptions could I cancel?',
-  'Bis Monatsende sind noch **{x}** frei, etwa {y} am Tag.': '**{x}** is still free until the end of the month, about {y} a day.',
-  'Bis Monatsende fehlen nach den festen Kosten etwa **{x}**.': 'After fixed costs you\'re about **{x}** short until the end of the month.',
-  'Behalte die {y} am Tag im Blick. Ich sag dir Bescheid, wenn es knapp wird.': 'Keep an eye on the {y} a day. I\'ll let you know if it gets tight.',
-  'Lass uns schauen, was bis Monatsende warten kann.': 'Let\'s see what can wait until the end of the month.',
-  'Wie komme ich gut bis Monatsende?': 'How do I get through to the end of the month?',
-  'Ohne Konto erkläre ich Begriffe und Regeln. Zum Beispiel:\n\n- **Brutto und Netto:** was vom Gehalt bleibt\n- **Erster Job:** Abrechnung, Notgroschen, Sparrate\n- **Begriffe:** ETF, Steuerklasse, Schufa, Dispo\n\nMit einem kostenlosen Konto rechne ich mit deinen Zahlen.\n\nNächster Schritt: Frag mich, was von 3.000 € brutto netto bleibt.': 'Without an account I explain terms and rules. For example:\n\n- **Gross and net:** what\'s left of your salary\n- **First job:** payslip, emergency fund, savings rate\n- **Terms:** ETF, tax class, Schufa, overdraft\n\nWith a free account I work with your numbers.\n\nNext step: Ask me what\'s left of €3,000 gross after tax.',
-  'Ich rechne mit deinen Zahlen. Zum Beispiel:\n\n- **Monat:** was bis Monatsende frei ist\n- **Sparen:** Ziele, Notgroschen, Sparrate\n- **Verträge:** Frist und Kündigung\n- **Gehalt:** Brutto-Netto, Abrechnung, Steuer\n- **Plan:** Woche, Monatsabschluss, Rente\n\nGespeichert wird erst, wenn du auf Übernehmen tippst.\n\nNächster Schritt: Frag mich, was diesen Monat noch frei ist.': 'I work with your numbers. For example:\n\n- **Month:** what\'s free until the end of the month\n- **Saving:** goals, emergency fund, savings rate\n- **Contracts:** notice period and cancellation\n- **Salary:** gross to net, payslip, tax\n- **Plan:** week, month in review, pension\n\nNothing is saved until you tap Apply.\n\nNext step: Ask me what\'s still free this month.',
-  'Was bleibt von 3.000 € brutto netto?': 'What\'s left of €3,000 gross after tax?',
+  'Bis Monatsende sind noch **{x}** frei, etwa {y} am Tag.':
+      '**{x}** is still free until the end of the month, about {y} a day.',
+  'Bis Monatsende fehlen nach den festen Kosten etwa **{x}**.':
+      'After fixed costs you\'re about **{x}** short until the end of the month.',
+  'Behalte die {y} am Tag im Blick. Ich sag dir Bescheid, wenn es knapp wird.':
+      'Keep an eye on the {y} a day. I\'ll let you know if it gets tight.',
+  'Lass uns schauen, was bis Monatsende warten kann.':
+      'Let\'s see what can wait until the end of the month.',
+  'Wie komme ich gut bis Monatsende?':
+      'How do I get through to the end of the month?',
+  'Ohne Konto erkläre ich Begriffe und Regeln. Zum Beispiel:\n\n- **Brutto und Netto:** was vom Gehalt bleibt\n- **Erster Job:** Abrechnung, Notgroschen, Sparrate\n- **Begriffe:** ETF, Steuerklasse, Schufa, Dispo\n\nMit einem kostenlosen Konto rechne ich mit deinen Zahlen.\n\nNächster Schritt: Frag mich, was von 3.000 € brutto netto bleibt.':
+      'Without an account I explain terms and rules. For example:\n\n- **Gross and net:** what\'s left of your salary\n- **First job:** payslip, emergency fund, savings rate\n- **Terms:** ETF, tax class, Schufa, overdraft\n\nWith a free account I work with your numbers.\n\nNext step: Ask me what\'s left of €3,000 gross after tax.',
+  'Ich rechne mit deinen Zahlen. Zum Beispiel:\n\n- **Monat:** was bis Monatsende frei ist\n- **Sparen:** Ziele, Notgroschen, Sparrate\n- **Verträge:** Frist und Kündigung\n- **Gehalt:** Brutto-Netto, Abrechnung, Steuer\n- **Plan:** Woche, Monatsabschluss, Rente\n\nGespeichert wird erst, wenn du auf Übernehmen tippst.\n\nNächster Schritt: Frag mich, was diesen Monat noch frei ist.':
+      'I work with your numbers. For example:\n\n- **Month:** what\'s free until the end of the month\n- **Saving:** goals, emergency fund, savings rate\n- **Contracts:** notice period and cancellation\n- **Salary:** gross to net, payslip, tax\n- **Plan:** week, month in review, pension\n\nNothing is saved until you tap Apply.\n\nNext step: Ask me what\'s still free this month.',
+  'Was bleibt von 3.000 € brutto netto?':
+      'What\'s left of €3,000 gross after tax?',
   'Wie viel Notgroschen brauche ich?': 'How big should my emergency fund be?',
   'Was ist ein ETF-Sparplan?': 'What is an ETF savings plan?',
   'Wie viel ist diesen Monat noch frei?': 'How much is still free this month?',
-  'Lohnt sich für mich eine Steuererklärung?': 'Is a tax return worth it for me?',
+  'Lohnt sich für mich eine Steuererklärung?':
+      'Is a tax return worth it for me?',
   'Das lässt sich nicht rückgängig machen.': 'This can\'t be undone.',
   'Rückgängig gemacht: {x}': 'Undone: {x}',
   'Geld und Termine': 'Money and dates',
@@ -226,37 +284,50 @@ const en = <String, String>{
   'Leben': 'Life',
   'Vorlieben': 'Preferences',
   'Später': 'Later',
-  'Schön, dass du da bist. Drei kurze Fragen, dann kann ich dir wirklich helfen. **Was passt gerade zu dir?**': 'Great to have you here. Three quick questions, then I can really help you. **What fits you right now?**',
+  'Schön, dass du da bist. Drei kurze Fragen, dann kann ich dir wirklich helfen. **Was passt gerade zu dir?**':
+      'Great to have you here. Three quick questions, then I can really help you. **What fits you right now?**',
   'Nichts davon': 'None of these',
-  '**Wann kommt dein Gehalt?** Dann sage ich dir zum richtigen Zeitpunkt, was frei ist.': '**When does your salary arrive?** Then I\'ll tell you at the right moment what\'s free.',
+  '**Wann kommt dein Gehalt?** Dann sage ich dir zum richtigen Zeitpunkt, was frei ist.':
+      '**When does your salary arrive?** Then I\'ll tell you at the right moment what\'s free.',
   'Am Monatsanfang': 'At the start of the month',
   'Um den 15.': 'Around the 15th',
   'Am Monatsende': 'At the end of the month',
   'Unterschiedlich': 'It varies',
-  '**Wofür willst du als Erstes sparen?**': '**What do you want to save for first?**',
+  '**Wofür willst du als Erstes sparen?**':
+      '**What do you want to save for first?**',
   'Notgroschen': 'Emergency fund',
   'Urlaub': 'Holiday',
   'Umzug': 'Moving',
   'Etwas anderes': 'Something else',
-  'Klar, jederzeit. Frag mich einfach, was dir gerade auf dem Herzen liegt.': 'Sure, any time. Just ask me whatever\'s on your mind.',
+  'Klar, jederzeit. Frag mich einfach, was dir gerade auf dem Herzen liegt.':
+      'Sure, any time. Just ask me whatever\'s on your mind.',
   'Alles klar.': 'Got it.',
-  '**{x}**, gut zu wissen. Ich hab dir die wichtigsten Schritte dafür bereitgelegt.': '**{x}**, good to know. I\'ve laid out the most important steps for it.',
-  'Gehalt kommt an unterschiedlichen Tagen.': 'Salary arrives on different days.',
-  'Gehalt kommt um den {d}. des Monats.': 'Salary arrives around day {d} of the month.',
-  'Wofür denn? Ein Wort reicht, zum Beispiel Auto oder Laptop.': 'For what? One word is enough, for example car or laptop.',
-  'Wie viel ungefähr? Eine Zahl reicht, zum Beispiel 1.500.': 'Roughly how much? A number is enough, for example 1,500.',
-  'Perfekt. Hier ist dein erstes Ziel. Tipp auf **Übernehmen**, dann rechne ich dir die Monatsrate aus.\n\nNächster Schritt: Verbinde dein Konto, damit ich mit deinen echten Zahlen rechne.': 'Perfect. Here\'s your first goal. Tap **Apply** and I\'ll work out the monthly amount.\n\nNext step: Connect your account so I can work with your real numbers.',
+  '**{x}**, gut zu wissen. Ich hab dir die wichtigsten Schritte dafür bereitgelegt.':
+      '**{x}**, good to know. I\'ve laid out the most important steps for it.',
+  'Gehalt kommt an unterschiedlichen Tagen.':
+      'Salary arrives on different days.',
+  'Gehalt kommt um den {d}. des Monats.':
+      'Salary arrives around day {d} of the month.',
+  'Wofür denn? Ein Wort reicht, zum Beispiel Auto oder Laptop.':
+      'For what? One word is enough, for example car or laptop.',
+  'Wie viel ungefähr? Eine Zahl reicht, zum Beispiel 1.500.':
+      'Roughly how much? A number is enough, for example 1,500.',
+  'Perfekt. Hier ist dein erstes Ziel. Tipp auf **Übernehmen**, dann rechne ich dir die Monatsrate aus.\n\nNächster Schritt: Verbinde dein Konto, damit ich mit deinen echten Zahlen rechne.':
+      'Perfect. Here\'s your first goal. Tap **Apply** and I\'ll work out the monthly amount.\n\nNext step: Connect your account so I can work with your real numbers.',
   'Was kannst du alles?': 'What can you do?',
   '**Wie viel brauchst du für {x}?**': '**How much do you need for {x}?**',
   'Budget für {x} steht.': 'Budget for {x} is set.',
   'Sparziel {x} ist angelegt.': 'Savings goal {x} is created.',
-  'Kündigung kopiert. Schick sie per Mail oder über das Kündigungsformular.': 'Cancellation copied. Send it by email or through the cancellation form.',
+  'Kündigung kopiert. Schick sie per Mail oder über das Kündigungsformular.':
+      'Cancellation copied. Send it by email or through the cancellation form.',
   'Neue Buchungen von {x} landen in {y}.': 'New bookings from {x} go to {y}.',
   '{n} Buchungen sind jetzt in {y}.': '{n} bookings are now in {y}.',
   'Notiert. Buddy erinnert dich.': 'Noted. Buddy will remind you.',
-  'Das Sparziel gibt es nicht mehr.': 'That savings goal doesn\'t exist any more.',
+  'Das Sparziel gibt es nicht mehr.':
+      'That savings goal doesn\'t exist any more.',
   '{x} ist schon voll.': '{x} is already full.',
-  '{x} auf {y} umgebucht. Richte die Überweisung bei deiner Bank genauso ein.': '{x} moved to {y}. Set up the same transfer at your bank.',
+  '{x} auf {y} umgebucht. Richte die Überweisung bei deiner Bank genauso ein.':
+      '{x} moved to {y}. Set up the same transfer at your bank.',
   '{x} für {y} zurückgelegt.': '{x} put aside for {y}.',
   'Budget {category}': 'Budget {category}',
   '{x} im Monat, ab diesem Monat': '{x} a month, starting this month',
@@ -264,422 +335,669 @@ const en = <String, String>{
   '{x} im Monat': '{x} a month',
   'Sparziel {x}': 'Savings goal {x}',
   'Kündigung {provider}': 'Cancel {provider}',
-  'Fertiger Text, fristgerecht zum nächstmöglichen Termin': 'Ready-made letter, on time for the earliest possible date',
+  'Fertiger Text, fristgerecht zum nächstmöglichen Termin':
+      'Ready-made letter, on time for the earliest possible date',
   'Alle Buchungen und neue in Zukunft': 'All bookings, and new ones in future',
   '{x} zurücklegen': 'Put aside for {x}',
   '{x} jetzt, danach fehlen noch {y}': '{x} now, then {y} to go',
   'ohne Datum': 'no date',
   'Erinnerung': 'Reminder',
-  'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.': 'Buddy didn\'t finish answering. Please try again.',
-  'Belege scannen geht mit einem kostenlosen Konto.': 'Scanning receipts works with a free account.',
-  'Belege scannen braucht „Buddy mit KI“ in den Einstellungen.': 'Scanning receipts needs "Buddy with AI" in settings.',
-  'Buddy ist gerade nicht erreichbar ({status}).': 'Buddy can\'t be reached right now ({status}).',
+  'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.':
+      'Buddy didn\'t finish answering. Please try again.',
+  'Belege scannen geht mit einem kostenlosen Konto.':
+      'Scanning receipts works with a free account.',
+  'Belege scannen braucht „Buddy mit KI“ in den Einstellungen.':
+      'Scanning receipts needs "Buddy with AI" in settings.',
+  'Buddy ist gerade nicht erreichbar ({status}).':
+      'Buddy can\'t be reached right now ({status}).',
   'Richte meine Vorsorge ein': 'Set up my retirement plan',
   'Zeig mein Nettovermögen': 'Show my net worth',
   'Was schuldet mir die WG?': 'What does my flatshare owe me?',
   'Kann ich mir 800 € Urlaub leisten?': 'Can I afford an €800 holiday?',
   'Wo kann ich sparen?': 'Where can I save?',
-  'Welche Abos und Verträge habe ich?': 'Which subscriptions and contracts do I have?',
+  'Welche Abos und Verträge habe ich?':
+      'Which subscriptions and contracts do I have?',
   'Sonstiges aufräumen': 'Tidy up Other',
   'Wer schuldet mir noch Geld in {x}?': 'Who still owes me money in {x}?',
-  'Wen muss ich in {x} noch ausgleichen?': 'Who do I still need to settle up with in {x}?',
+  'Wen muss ich in {x} noch ausgleichen?':
+      'Who do I still need to settle up with in {x}?',
   'Wie schließe ich meine Rentenlücke?': 'How do I close my pension gap?',
   'Wie ist mein Vermögen verteilt?': 'How is my wealth spread out?',
-  'Dein Budget für {x} ist um {y} überschritten.': 'Your budget for {x} is {y} over.',
-  'Wie bekomme ich mein Budget für {x} wieder in den Griff?': 'How do I get my budget for {x} back under control?',
-  'Noch {x} im Budget für {y}, und noch {days} Tage.': '{x} left in the budget for {y}, with {days} days to go.',
-  'Wie komme ich mit meinem Budget für {x} bis zum Monatsende hin?': 'How do I make my budget for {x} last until the end of the month?',
-  '{misc} Umsätze stecken in Sonstiges. Buddy hilft beim Einordnen.': '{misc} transactions are in Other. Buddy helps sort them.',
+  'Dein Budget für {x} ist um {y} überschritten.':
+      'Your budget for {x} is {y} over.',
+  'Wie bekomme ich mein Budget für {x} wieder in den Griff?':
+      'How do I get my budget for {x} back under control?',
+  'Noch {x} im Budget für {y}, und noch {days} Tage.':
+      '{x} left in the budget for {y}, with {days} days to go.',
+  'Wie komme ich mit meinem Budget für {x} bis zum Monatsende hin?':
+      'How do I make my budget for {x} last until the end of the month?',
+  '{misc} Umsätze stecken in Sonstiges. Buddy hilft beim Einordnen.':
+      '{misc} transactions are in Other. Buddy helps sort them.',
   '{x} ist teurer geworden.': '{x} got more expensive.',
   'Sollte ich {x} kündigen oder behalten?': 'Should I cancel {x} or keep it?',
-  'Noch {x} frei bis Monatsende, eher knapp.': '{x} free until the end of the month, rather tight.',
-  'Du warst diesen Monat {x}× bei {y}, zusammen {z}.': 'You were at {y} {x}× this month, {z} in total.',
-  'Dein Notgroschen steht bei {x} % von {y}.': 'Your emergency fund is at {x} % of {y}.',
-  'Rentenlücke grob {x} im Monat. Etwa {y} mehr sparen würde sie schließen.': 'Pension gap roughly {x} a month. Saving about {y} more would close it.',
-  'Du hast {x} laufende Verträge, zusammen {y} im Monat.': 'You have {x} running contracts, {y} a month in total.',
+  'Noch {x} frei bis Monatsende, eher knapp.':
+      '{x} free until the end of the month, rather tight.',
+  'Du warst diesen Monat {x}× bei {y}, zusammen {z}.':
+      'You were at {y} {x}× this month, {z} in total.',
+  'Dein Notgroschen steht bei {x} % von {y}.':
+      'Your emergency fund is at {x} % of {y}.',
+  'Rentenlücke grob {x} im Monat. Etwa {y} mehr sparen würde sie schließen.':
+      'Pension gap roughly {x} a month. Saving about {y} more would close it.',
+  'Du hast {x} laufende Verträge, zusammen {y} im Monat.':
+      'You have {x} running contracts, {y} a month in total.',
   'Einnahmen und Ausgaben': 'Income and spending',
   'Ausgaben nach Kategorie': 'Spending by category',
   'Sparplan bis {m} {y}': 'Savings plan until {m} {y}',
   'Rücklage Jahreszahlungen': 'Yearly payments reserve',
   'Das habe ich nicht verstanden.': 'I didn\'t understand that.',
   'Alles klar, ich ändere nichts.': 'All right, I won\'t change anything.',
-  'Sag z. B. „Lebensmittel“ oder „{x} → Essen & Trinken“.': 'Say e.g. "Groceries" or "{x} → Food & drink".',
-  '„{x}“ wird **{y}**. Übernehmen speichert für alle Buchungen.': '"{x}" becomes **{y}**. Applying saves it for all bookings.',
-  'Da gibt es mehrere: {names}. Welches meinst du?': 'There are several: {names}. Which one do you mean?',
-  '{label} habe ich nicht gefunden. Wie heißt es genau, oder nenn den Ticker?': 'I couldn\'t find {label}. What\'s it called exactly, or what\'s the ticker?',
-  'Den Kurs von {x} habe ich nicht bekommen. Was kostet ein Stück ungefähr, in Euro?': 'I didn\'t get the price of {x}. Roughly what does one share cost, in euros?',
+  'Sag z. B. „Lebensmittel“ oder „{x} → Essen & Trinken“.':
+      'Say e.g. "Groceries" or "{x} → Food & drink".',
+  '„{x}“ wird **{y}**. Übernehmen speichert für alle Buchungen.':
+      '"{x}" becomes **{y}**. Applying saves it for all bookings.',
+  'Da gibt es mehrere: {names}. Welches meinst du?':
+      'There are several: {names}. Which one do you mean?',
+  '{label} habe ich nicht gefunden. Wie heißt es genau, oder nenn den Ticker?':
+      'I couldn\'t find {label}. What\'s it called exactly, or what\'s the ticker?',
+  'Den Kurs von {x} habe ich nicht bekommen. Was kostet ein Stück ungefähr, in Euro?':
+      'I didn\'t get the price of {x}. Roughly what does one share cost, in euros?',
   '{x} Händler': '{x} merchants',
-  'Ich kann **{n}** Sonstiges-Buchungen bei {x} Händlern zuordnen. Übernehmen speichert, du kannst einzelne danach noch ändern.': 'I can sort **{n}** Other bookings from {x} merchants. Applying saves them, you can still change single ones afterwards.',
-  'Wohin gehört „{x}“? Schreib die Kategorie, z. B. Lebensmittel.': 'Where does "{x}" belong? Write the category, e.g. Groceries.',
+  'Ich kann **{n}** Sonstiges-Buchungen bei {x} Händlern zuordnen. Übernehmen speichert, du kannst einzelne danach noch ändern.':
+      'I can sort **{n}** Other bookings from {x} merchants. Applying saves them, you can still change single ones afterwards.',
+  'Wohin gehört „{x}“? Schreib die Kategorie, z. B. Lebensmittel.':
+      'Where does "{x}" belong? Write the category, e.g. Groceries.',
   'Gern. Wie alt bist du?': 'Sure. How old are you?',
-  'Mit welchem Alter willst du in Rente? 67 ist der Standard.': 'At what age do you want to retire? 67 is the default.',
-  'Welches Netto im Monat möchtest du dann? Zum Beispiel 2.000 €.': 'What monthly net income would you like then? For example €2,000.',
-  'Was erwartest du an gesetzlicher Rente im Monat? 0 zum Überspringen, „keine“ geht auch.': 'What state pension do you expect per month? 0 to skip, "none" works too.',
-  'Betriebsrente (bAV) im Monat? 0 zum Überspringen.': 'Company pension per month? 0 to skip.',
-  'Riester oder Rürup im Monat? 0 zum Überspringen.': 'Riester or Rürup per month? 0 to skip.',
-  'So richte ich den Rentenrechner ein. Erst der Tipp auf Übernehmen speichert.': 'This is how I\'d set up the pension calculator. Nothing is saved until you tap Apply.',
+  'Mit welchem Alter willst du in Rente? 67 ist der Standard.':
+      'At what age do you want to retire? 67 is the default.',
+  'Welches Netto im Monat möchtest du dann? Zum Beispiel 2.000 €.':
+      'What monthly net income would you like then? For example €2,000.',
+  'Was erwartest du an gesetzlicher Rente im Monat? 0 zum Überspringen, „keine“ geht auch.':
+      'What state pension do you expect per month? 0 to skip, "none" works too.',
+  'Betriebsrente (bAV) im Monat? 0 zum Überspringen.':
+      'Company pension per month? 0 to skip.',
+  'Riester oder Rürup im Monat? 0 zum Überspringen.':
+      'Riester or Rürup per month? 0 to skip.',
+  'So richte ich den Rentenrechner ein. Erst der Tipp auf Übernehmen speichert.':
+      'This is how I\'d set up the pension calculator. Nothing is saved until you tap Apply.',
   'Wie soll das Sparziel heißen?': 'What should the savings goal be called?',
-  'Du hast schon ein Ziel „{name}“. Übernehmen legt ein weiteres an.': 'You already have a goal "{name}". Applying creates another one.',
-  'So lege ich das Sparziel an. Erst der Tipp auf Übernehmen speichert.': 'This is how I\'d create the savings goal. Nothing is saved until you tap Apply.',
-  'Welches Wertpapier soll ins Depot? Zum Beispiel Apple oder AAPL.': 'Which security should go into the portfolio? For example Apple or AAPL.',
-  'Wie viele Stück {query} soll ich eintragen?': 'How many shares of {query} should I add?',
-  'So trage ich es ein, zum Live-Kurs. Erst der Tipp auf Übernehmen speichert.': 'This is how I\'d add it, at the live price. Nothing is saved until you tap Apply.',
-  'So trage ich es ein. Erst der Tipp auf Übernehmen speichert.': 'This is how I\'d add it. Nothing is saved until you tap Apply.',
-  'Schreib dein Alter als Zahl, zum Beispiel 34.': 'Write your age as a number, for example 34.',
-  'Ein Betrag in Euro, zum Beispiel 2.000.': 'An amount in euros, for example 2,000.',
+  'Du hast schon ein Ziel „{name}“. Übernehmen legt ein weiteres an.':
+      'You already have a goal "{name}". Applying creates another one.',
+  'So lege ich das Sparziel an. Erst der Tipp auf Übernehmen speichert.':
+      'This is how I\'d create the savings goal. Nothing is saved until you tap Apply.',
+  'Welches Wertpapier soll ins Depot? Zum Beispiel Apple oder AAPL.':
+      'Which security should go into the portfolio? For example Apple or AAPL.',
+  'Wie viele Stück {query} soll ich eintragen?':
+      'How many shares of {query} should I add?',
+  'So trage ich es ein, zum Live-Kurs. Erst der Tipp auf Übernehmen speichert.':
+      'This is how I\'d add it, at the live price. Nothing is saved until you tap Apply.',
+  'So trage ich es ein. Erst der Tipp auf Übernehmen speichert.':
+      'This is how I\'d add it. Nothing is saved until you tap Apply.',
+  'Schreib dein Alter als Zahl, zum Beispiel 34.':
+      'Write your age as a number, for example 34.',
+  'Ein Betrag in Euro, zum Beispiel 2.000.':
+      'An amount in euros, for example 2,000.',
   'Ein Betrag in Euro, oder „keine“.': 'An amount in euros, or "none".',
-  'Wie soll das Ziel heißen? Zum Beispiel Urlaub.': 'What should the goal be called? For example Holiday.',
-  'Wie viele Stück? Zum Beispiel 2 oder 0,5.': 'How many shares? For example 2 or 0.5.',
+  'Wie soll das Ziel heißen? Zum Beispiel Urlaub.':
+      'What should the goal be called? For example Holiday.',
+  'Wie viele Stück? Zum Beispiel 2 oder 0,5.':
+      'How many shares? For example 2 or 0.5.',
   'Ein Kurs in Euro, zum Beispiel 190.': 'A price in euros, for example 190.',
-  'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte und versuch es noch einmal.': 'Your account data couldn\'t be loaded yet. Please wait and try again.',
+  'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte und versuch es noch einmal.':
+      'Your account data couldn\'t be loaded yet. Please wait and try again.',
   'Sicherung nicht erreichbar ({x})': 'Backup not reachable ({x})',
-  'Vault-Schlüssel fehlt. Bitte Passwort erneut eingeben.': 'Vault key missing. Please enter your password again.',
-  'Sicherung lässt sich nicht öffnen. Stimmt das Passwort? ({e})': 'The backup can\'t be opened. Is the password right? ({e})',
-  'Sitzung hat gewechselt. Bitte noch einmal versuchen.': 'The session changed. Please try again.',
+  'Vault-Schlüssel fehlt. Bitte Passwort erneut eingeben.':
+      'Vault key missing. Please enter your password again.',
+  'Sicherung lässt sich nicht öffnen. Stimmt das Passwort? ({e})':
+      'The backup can\'t be opened. Is the password right? ({e})',
+  'Sitzung hat gewechselt. Bitte noch einmal versuchen.':
+      'The session changed. Please try again.',
   'Sicherung ist leer oder beschädigt.': 'The backup is empty or damaged.',
-  'Daten konnten lokal nicht geschrieben werden ({e})': 'Data couldn\'t be written locally ({e})',
-  'Sicherung konnte nicht hochgeladen werden.': 'The backup couldn\'t be uploaded.',
-  'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte kurz und versuch es noch einmal.': 'Your account data couldn\'t be loaded yet. Please wait a moment and try again.',
-  'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.': 'There\'s newer data on another device. Please choose which copy should count.',
-  'Sicherung konnte nicht hochgeladen werden ({x}). Bitte bleib online und versuch es noch einmal.': 'The backup couldn\'t be uploaded ({x}). Please stay online and try again.',
+  'Daten konnten lokal nicht geschrieben werden ({e})':
+      'Data couldn\'t be written locally ({e})',
+  'Sicherung konnte nicht hochgeladen werden.':
+      'The backup couldn\'t be uploaded.',
+  'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte kurz und versuch es noch einmal.':
+      'Your account data couldn\'t be loaded yet. Please wait a moment and try again.',
+  'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.':
+      'There\'s newer data on another device. Please choose which copy should count.',
+  'Sicherung konnte nicht hochgeladen werden ({x}). Bitte bleib online und versuch es noch einmal.':
+      'The backup couldn\'t be uploaded ({x}). Please stay online and try again.',
   'Brutto': 'Gross pay',
-  'Dein Gehalt, bevor Steuern und Sozialabgaben abgehen. Das steht im Arbeitsvertrag.': 'Your salary before tax and social contributions come off. It\'s what your employment contract says.',
+  'Dein Gehalt, bevor Steuern und Sozialabgaben abgehen. Das steht im Arbeitsvertrag.':
+      'Your salary before tax and social contributions come off. It\'s what your employment contract says.',
   'Netto': 'Net pay',
-  'Was nach Steuern und Sozialabgaben wirklich auf deinem Konto ankommt.': 'What actually lands in your account after tax and social contributions.',
+  'Was nach Steuern und Sozialabgaben wirklich auf deinem Konto ankommt.':
+      'What actually lands in your account after tax and social contributions.',
   'Steuerklasse': 'Tax class',
-  'Bestimmt, wie viel Lohnsteuer jeden Monat einbehalten wird. Ledige haben Klasse I. Was du am Ende wirklich zahlst, klärt die Steuererklärung.': 'Sets how much wage tax is withheld each month. Single people are in class I. What you really pay in the end is settled by your tax return.',
+  'Bestimmt, wie viel Lohnsteuer jeden Monat einbehalten wird. Ledige haben Klasse I. Was du am Ende wirklich zahlst, klärt die Steuererklärung.':
+      'Sets how much wage tax is withheld each month. Single people are in class I. What you really pay in the end is settled by your tax return.',
   'Lohnsteuer': 'Wage tax',
-  'Die Einkommensteuer, die dein Arbeitgeber jeden Monat direkt vom Gehalt abzieht und ans Finanzamt zahlt.': 'The income tax your employer takes straight from your salary each month and pays to the tax office.',
+  'Die Einkommensteuer, die dein Arbeitgeber jeden Monat direkt vom Gehalt abzieht und ans Finanzamt zahlt.':
+      'The income tax your employer takes straight from your salary each month and pays to the tax office.',
   'Sozialabgaben': 'Social contributions',
-  'Beiträge zur Renten-, Kranken-, Pflege- und Arbeitslosenversicherung. Als Angestellte oder Angestellter zahlst du davon grob ein Fünftel deines Bruttos, den Rest legt dein Arbeitgeber drauf.': 'Contributions to pension, health, care and unemployment insurance. As an employee you pay roughly a fifth of your gross pay, your employer adds the rest.',
+  'Beiträge zur Renten-, Kranken-, Pflege- und Arbeitslosenversicherung. Als Angestellte oder Angestellter zahlst du davon grob ein Fünftel deines Bruttos, den Rest legt dein Arbeitgeber drauf.':
+      'Contributions to pension, health, care and unemployment insurance. As an employee you pay roughly a fifth of your gross pay, your employer adds the rest.',
   'Zusatzbeitrag': 'Additional contribution',
-  'Der Teil des Krankenkassenbeitrags, den jede Kasse selbst festlegt. Er wird zwischen dir und dem Arbeitgeber geteilt. Ein Kassenwechsel kann sich lohnen.': 'The part of the health insurance contribution each insurer sets itself. It\'s split between you and your employer. Switching insurers can pay off.',
+  'Der Teil des Krankenkassenbeitrags, den jede Kasse selbst festlegt. Er wird zwischen dir und dem Arbeitgeber geteilt. Ein Kassenwechsel kann sich lohnen.':
+      'The part of the health insurance contribution each insurer sets itself. It\'s split between you and your employer. Switching insurers can pay off.',
   'Kirchensteuer': 'Church tax',
-  'Zahlen nur Kirchenmitglieder: 8 oder 9 Prozent der Lohnsteuer, je nach Bundesland.': 'Only church members pay it: 8 or 9 percent of wage tax, depending on the state.',
+  'Zahlen nur Kirchenmitglieder: 8 oder 9 Prozent der Lohnsteuer, je nach Bundesland.':
+      'Only church members pay it: 8 or 9 percent of wage tax, depending on the state.',
   'Solidaritätszuschlag': 'Solidarity surcharge',
-  'Ein Zuschlag auf die Einkommensteuer. Für die meisten Beschäftigten fällt er seit 2021 weg, bei Kapitalerträgen gibt es ihn weiter.': 'A surcharge on income tax. Since 2021 most employees no longer pay it, but it still applies to investment income.',
+  'Ein Zuschlag auf die Einkommensteuer. Für die meisten Beschäftigten fällt er seit 2021 weg, bei Kapitalerträgen gibt es ihn weiter.':
+      'A surcharge on income tax. Since 2021 most employees no longer pay it, but it still applies to investment income.',
   'Betriebsrente': 'Company pension',
-  'Altersvorsorge über deinen Arbeitgeber. Ein Teil des Bruttos fließt in einen Vertrag, oft mit Zuschuss vom Arbeitgeber. Wichtig sind die Kosten des Vertrags und was bei einem Jobwechsel passiert.': 'Retirement savings through your employer. Part of your gross pay goes into a plan, often with an employer top-up. What matters are the plan\'s costs and what happens when you change jobs.',
+  'Altersvorsorge über deinen Arbeitgeber. Ein Teil des Bruttos fließt in einen Vertrag, oft mit Zuschuss vom Arbeitgeber. Wichtig sind die Kosten des Vertrags und was bei einem Jobwechsel passiert.':
+      'Retirement savings through your employer. Part of your gross pay goes into a plan, often with an employer top-up. What matters are the plan\'s costs and what happens when you change jobs.',
   'Entgeltumwandlung': 'Salary conversion',
-  'Du wandelst einen Teil deines Bruttos in Betriebsrente um. Spart dein Arbeitgeber dadurch Sozialabgaben, muss er in der Regel 15 Prozent dazugeben.': 'You convert part of your gross pay into a company pension. If your employer saves social contributions that way, they usually have to add 15 percent.',
+  'Du wandelst einen Teil deines Bruttos in Betriebsrente um. Spart dein Arbeitgeber dadurch Sozialabgaben, muss er in der Regel 15 Prozent dazugeben.':
+      'You convert part of your gross pay into a company pension. If your employer saves social contributions that way, they usually have to add 15 percent.',
   'Vermögenswirksame Leistungen': 'Capital-forming benefits',
-  'Ein Zuschuss deines Arbeitgebers für einen Sparvertrag, oft bis zu 40 Euro im Monat, je nach Arbeits- oder Tarifvertrag. Wer nicht fragt, verschenkt ihn manchmal.': 'An employer contribution to a savings plan, often up to 40 euros a month, depending on your employment or collective agreement. People who don\'t ask sometimes miss out on it.',
-  'Geld für Unerwartetes, das du sofort erreichst, zum Beispiel auf einem Tagesgeldkonto. Faustregel: drei Monatsausgaben, bei unsicherem Job eher mehr.': 'Money for the unexpected that you can reach right away, for example in an instant-access savings account. Rule of thumb: three months of spending, more if your job is insecure.',
+  'Ein Zuschuss deines Arbeitgebers für einen Sparvertrag, oft bis zu 40 Euro im Monat, je nach Arbeits- oder Tarifvertrag. Wer nicht fragt, verschenkt ihn manchmal.':
+      'An employer contribution to a savings plan, often up to 40 euros a month, depending on your employment or collective agreement. People who don\'t ask sometimes miss out on it.',
+  'Geld für Unerwartetes, das du sofort erreichst, zum Beispiel auf einem Tagesgeldkonto. Faustregel: drei Monatsausgaben, bei unsicherem Job eher mehr.':
+      'Money for the unexpected that you can reach right away, for example in an instant-access savings account. Rule of thumb: three months of spending, more if your job is insecure.',
   'Tagesgeld': 'Instant-access savings',
-  'Ein Sparkonto mit Zinsen, von dem du jederzeit abheben kannst. Gut für den Notgroschen.': 'A savings account with interest that you can withdraw from at any time. Good for your emergency fund.',
+  'Ein Sparkonto mit Zinsen, von dem du jederzeit abheben kannst. Gut für den Notgroschen.':
+      'A savings account with interest that you can withdraw from at any time. Good for your emergency fund.',
   'Sparrate': 'Savings rate',
-  'Der feste Betrag, den du jeden Monat zur Seite legst, am besten direkt nach dem Gehaltseingang.': 'The fixed amount you put aside each month, ideally right after your salary arrives.',
+  'Der feste Betrag, den du jeden Monat zur Seite legst, am besten direkt nach dem Gehaltseingang.':
+      'The fixed amount you put aside each month, ideally right after your salary arrives.',
   'ETF': 'ETF',
-  'Ein börsengehandelter Fonds, der einen Index nachbildet, also viele Unternehmen auf einmal. Meist günstig und breit gestreut. Schwankungen gehören dazu.': 'An exchange-traded fund that tracks an index, so many companies at once. Usually cheap and broadly diversified. Ups and downs are part of it.',
+  'Ein börsengehandelter Fonds, der einen Index nachbildet, also viele Unternehmen auf einmal. Meist günstig und breit gestreut. Schwankungen gehören dazu.':
+      'An exchange-traded fund that tracks an index, so many companies at once. Usually cheap and broadly diversified. Ups and downs are part of it.',
   'TER': 'TER',
-  'Die laufenden Kosten eines Fonds pro Jahr, in Prozent. Je niedriger, desto mehr bleibt bei dir.': 'A fund\'s yearly running costs, in percent. The lower, the more stays with you.',
+  'Die laufenden Kosten eines Fonds pro Jahr, in Prozent. Je niedriger, desto mehr bleibt bei dir.':
+      'A fund\'s yearly running costs, in percent. The lower, the more stays with you.',
   'Sparplan': 'Savings plan',
-  'Du kaufst automatisch jeden Monat für einen festen Betrag Anteile, zum Beispiel an einem ETF.': 'You automatically buy shares for a fixed amount every month, for example in an ETF.',
+  'Du kaufst automatisch jeden Monat für einen festen Betrag Anteile, zum Beispiel an einem ETF.':
+      'You automatically buy shares for a fixed amount every month, for example in an ETF.',
   'Altersvorsorgedepot': 'Retirement savings depot',
-  'Ein geplantes, staatlich gefördertes Depot für die Altersvorsorge. Nach aktuellem Plan startet es am 1. Januar 2027, Details können sich noch ändern.': 'A planned, state-subsidised investment account for retirement. Under the current plan it starts on 1 January 2027, details may still change.',
+  'Ein geplantes, staatlich gefördertes Depot für die Altersvorsorge. Nach aktuellem Plan startet es am 1. Januar 2027, Details können sich noch ändern.':
+      'A planned, state-subsidised investment account for retirement. Under the current plan it starts on 1 January 2027, details may still change.',
   'Rentenlücke': 'Pension gap',
-  'Der Unterschied zwischen dem, was du im Alter brauchst, und dem, was die gesetzliche Rente voraussichtlich zahlt.': 'The difference between what you\'ll need in old age and what the state pension is likely to pay.',
+  'Der Unterschied zwischen dem, was du im Alter brauchst, und dem, was die gesetzliche Rente voraussichtlich zahlt.':
+      'The difference between what you\'ll need in old age and what the state pension is likely to pay.',
   'Zinseszins': 'Compound interest',
-  'Zinsen, die selbst wieder Zinsen bringen. Darum macht früh anfangen über viele Jahre so viel aus.': 'Interest that earns interest itself. That\'s why starting early makes such a difference over many years.',
+  'Zinsen, die selbst wieder Zinsen bringen. Darum macht früh anfangen über viele Jahre so viel aus.':
+      'Interest that earns interest itself. That\'s why starting early makes such a difference over many years.',
   'Inflation': 'Inflation',
-  'Steigende Preise. Geld, das nur herumliegt, kann dadurch jedes Jahr etwas weniger kaufen.': 'Rising prices. Money that just sits around can buy a little less every year.',
+  'Steigende Preise. Geld, das nur herumliegt, kann dadurch jedes Jahr etwas weniger kaufen.':
+      'Rising prices. Money that just sits around can buy a little less every year.',
   'Fixkosten': 'Fixed costs',
-  'Was jeden Monat sicher weggeht: Miete, Verträge, Versicherungen, Abos.': 'What surely goes out every month: rent, contracts, insurance, subscriptions.',
+  'Was jeden Monat sicher weggeht: Miete, Verträge, Versicherungen, Abos.':
+      'What surely goes out every month: rent, contracts, insurance, subscriptions.',
   'Dispo': 'Overdraft',
-  'Der Überziehungsrahmen deines Girokontos. Praktisch, aber teuer: die Zinsen sind meist deutlich höher als bei einem normalen Kredit.': 'Your current account\'s overdraft limit. Handy but expensive: the interest is usually much higher than on a normal loan.',
+  'Der Überziehungsrahmen deines Girokontos. Praktisch, aber teuer: die Zinsen sind meist deutlich höher als bei einem normalen Kredit.':
+      'Your current account\'s overdraft limit. Handy but expensive: the interest is usually much higher than on a normal loan.',
   'Schufa': 'Schufa',
-  'Eine Auskunftei, die speichert, ob du Rechnungen und Kredite zahlst. Vermieter und Banken fragen dort nach.': 'A credit agency that records whether you pay bills and loans. Landlords and banks check with it.',
+  'Eine Auskunftei, die speichert, ob du Rechnungen und Kredite zahlst. Vermieter und Banken fragen dort nach.':
+      'A credit agency that records whether you pay bills and loans. Landlords and banks check with it.',
   'Mietkaution': 'Rental deposit',
-  'Eine Sicherheit für den Vermieter, höchstens drei Monatskaltmieten. Du darfst sie in drei Raten zahlen.': 'Security for the landlord, at most three months\' base rent. You may pay it in three instalments.',
+  'Eine Sicherheit für den Vermieter, höchstens drei Monatskaltmieten. Du darfst sie in drei Raten zahlen.':
+      'Security for the landlord, at most three months\' base rent. You may pay it in three instalments.',
   'Nebenkosten': 'Service charges',
-  'Kosten rund um die Wohnung, die zur Kaltmiete dazukommen, etwa Heizung, Wasser und Müll. Einmal im Jahr wird abgerechnet.': 'Costs around the flat on top of the base rent, such as heating, water and rubbish. They\'re settled once a year.',
+  'Kosten rund um die Wohnung, die zur Kaltmiete dazukommen, etwa Heizung, Wasser und Müll. Einmal im Jahr wird abgerechnet.':
+      'Costs around the flat on top of the base rent, such as heating, water and rubbish. They\'re settled once a year.',
   'Werbungskosten': 'Work expenses',
-  'Ausgaben für deinen Job, die du in der Steuererklärung angibst, etwa Fahrtkosten oder Arbeitsmittel. Eine Pauschale bekommst du ohnehin.': 'Costs for your job that you claim in your tax return, such as commuting or work equipment. You get a flat allowance anyway.',
+  'Ausgaben für deinen Job, die du in der Steuererklärung angibst, etwa Fahrtkosten oder Arbeitsmittel. Eine Pauschale bekommst du ohnehin.':
+      'Costs for your job that you claim in your tax return, such as commuting or work equipment. You get a flat allowance anyway.',
   'Steuererklärung': 'Tax return',
-  'Damit rechnest du mit dem Finanzamt dein Jahr ab. Im ersten Job gibt es oft Geld zurück, weil im ersten Jahr meist nicht zwölf volle Monate gearbeitet werden.': 'It\'s how you settle your year with the tax office. In a first job you often get money back, because the first year usually isn\'t twelve full months of work.',
+  'Damit rechnest du mit dem Finanzamt dein Jahr ab. Im ersten Job gibt es oft Geld zurück, weil im ersten Jahr meist nicht zwölf volle Monate gearbeitet werden.':
+      'It\'s how you settle your year with the tax office. In a first job you often get money back, because the first year usually isn\'t twelve full months of work.',
   'Sparerpauschbetrag': 'Saver\'s allowance',
-  'Bis zu 1.000 Euro Kapitalerträge im Jahr bleiben steuerfrei (Paare 2.000 Euro). Dafür stellst du bei deiner Bank einen Freistellungsauftrag.': 'Up to 1,000 euros of investment income a year stays tax-free (couples 2,000 euros). For that you give your bank an exemption order.',
+  'Bis zu 1.000 Euro Kapitalerträge im Jahr bleiben steuerfrei (Paare 2.000 Euro). Dafür stellst du bei deiner Bank einen Freistellungsauftrag.':
+      'Up to 1,000 euros of investment income a year stays tax-free (couples 2,000 euros). For that you give your bank an exemption order.',
   'Abgeltungsteuer': 'Flat-rate withholding tax',
-  'Die Steuer auf Zinsen, Dividenden und Kursgewinne: 25 Prozent plus Soli und gegebenenfalls Kirchensteuer, nach dem Sparerpauschbetrag.': 'The tax on interest, dividends and price gains: 25 percent plus solidarity surcharge and church tax if applicable, after the saver\'s allowance.',
-  'Dein Polster steht. Als Nächstes kann Geld langfristig für dich arbeiten.': 'Your cushion is in place. Next, money can work for you long term.',
-  'Dein Polster steht. Die {x} im Monat können jetzt langfristig für dich arbeiten.': 'Your cushion is in place. The {x} a month can now work for you long term.',
-  'Mein Notgroschen ist voll. Wie lege ich jetzt langfristig an, und wie viel davon?': 'My emergency fund is full. How do I invest long term now, and how much?',
+  'Die Steuer auf Zinsen, Dividenden und Kursgewinne: 25 Prozent plus Soli und gegebenenfalls Kirchensteuer, nach dem Sparerpauschbetrag.':
+      'The tax on interest, dividends and price gains: 25 percent plus solidarity surcharge and church tax if applicable, after the saver\'s allowance.',
+  'Dein Polster steht. Als Nächstes kann Geld langfristig für dich arbeiten.':
+      'Your cushion is in place. Next, money can work for you long term.',
+  'Dein Polster steht. Die {x} im Monat können jetzt langfristig für dich arbeiten.':
+      'Your cushion is in place. The {x} a month can now work for you long term.',
+  'Mein Notgroschen ist voll. Wie lege ich jetzt langfristig an, und wie viel davon?':
+      'My emergency fund is full. How do I invest long term now, and how much?',
   'Als Nächstes: {x}.': 'Next up: {x}.',
-  'Die {x} im Monat laufen ab jetzt in {y}.': 'From now on the {x} a month go to {y}.',
-  '{x} ist geschafft. Wie schnell schaffe ich jetzt {y}, wenn ich die Rate dorthin lege?': '{x} is done. How fast can I reach {y} if I move the monthly amount there?',
-  'Was kommt als Nächstes? Buddy plant es mit dir.': 'What\'s next? Buddy plans it with you.',
-  '{x} ist geschafft. Was wäre ein gutes nächstes Sparziel für mich?': '{x} is done. What would be a good next savings goal for me?',
+  'Die {x} im Monat laufen ab jetzt in {y}.':
+      'From now on the {x} a month go to {y}.',
+  '{x} ist geschafft. Wie schnell schaffe ich jetzt {y}, wenn ich die Rate dorthin lege?':
+      '{x} is done. How fast can I reach {y} if I move the monthly amount there?',
+  'Was kommt als Nächstes? Buddy plant es mit dir.':
+      'What\'s next? Buddy plans it with you.',
+  '{x} ist geschafft. Was wäre ein gutes nächstes Sparziel für mich?':
+      '{x} is done. What would be a good next savings goal for me?',
   'Ziel erreicht.': 'Goal reached.',
-  'Datum vorbei, noch {x}. Neues Datum setzen.': 'Date passed, {x} to go. Set a new date.',
-  '{x}/Monat ist knapp, bis zum Datum bräuchtest du {y}.': '{x}/month is tight, to make the date you\'d need {y}.',
+  'Datum vorbei, noch {x}. Neues Datum setzen.':
+      'Date passed, {x} to go. Set a new date.',
+  '{x}/Monat ist knapp, bis zum Datum bräuchtest du {y}.':
+      '{x}/month is tight, to make the date you\'d need {y}.',
   '{x} im Monat, fertig in {months} {y}.': '{x} a month, done in {months} {y}.',
   'Monat': 'month',
   'Monaten': 'months',
-  'Mit Datum rechne ich dir einen Monatsplan aus.': 'With a date I\'ll work out a monthly plan for you.',
-  'Etwa {x} im Monat, fertig in {months} {y}.': 'About {x} a month, done in {months} {y}.',
-  '{x} im Monat passt in deinen Überschuss.': '{x} a month fits into your surplus.',
-  '{x} im Monat ist knapp, fast dein ganzer Überschuss.': '{x} a month is tight, almost your whole surplus.',
-  '{x}/Monat wären nötig. Datum verschieben oder Ziel senken.': '{x}/month would be needed. Move the date or lower the goal.',
+  'Mit Datum rechne ich dir einen Monatsplan aus.':
+      'With a date I\'ll work out a monthly plan for you.',
+  'Etwa {x} im Monat, fertig in {months} {y}.':
+      'About {x} a month, done in {months} {y}.',
+  '{x} im Monat passt in deinen Überschuss.':
+      '{x} a month fits into your surplus.',
+  '{x} im Monat ist knapp, fast dein ganzer Überschuss.':
+      '{x} a month is tight, almost your whole surplus.',
+  '{x}/Monat wären nötig. Datum verschieben oder Ziel senken.':
+      '{x}/month would be needed. Move the date or lower the goal.',
   'Buddy ist gerade nicht erreichbar.': 'Buddy can\'t be reached right now.',
-  'Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.': 'For that I need the AI right now, and without an account it\'s used up for today or not reachable.\n\nWhat I can do well offline:\n- **First job**: payslip, company pension, emergency fund, savings rate\n- **Moving** and **moving in together**\n- Explaining terms like ETF, tax class or emergency fund\n\nNext step: With a free account Buddy works with your real numbers.',
-  '**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.': '**{x}**: {y}\n\nNext step: With a free account I\'ll work this out with your own numbers.',
+  'Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.':
+      'For that I need the AI right now, and without an account it\'s used up for today or not reachable.\n\nWhat I can do well offline:\n- **First job**: payslip, company pension, emergency fund, savings rate\n- **Moving** and **moving in together**\n- Explaining terms like ETF, tax class or emergency fund\n\nNext step: With a free account Buddy works with your real numbers.',
+  '**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.':
+      '**{x}**: {y}\n\nNext step: With a free account I\'ll work this out with your own numbers.',
   'heute': 'today',
   'morgen': 'tomorrow',
   'in {d} Tagen': 'in {d} days',
   'Eine Woche später: {x}': 'One week later: {x}',
-  'Ist die Kündigung bestätigt? Ohne Bestätigung lieber nachhaken.': 'Has the cancellation been confirmed? Without a confirmation, better follow up.',
-  'Buddy schaut mit dir, ob das Budget passt oder angepasst werden sollte.': 'Buddy checks with you whether the budget fits or should change.',
-  'Buddy schaut mit dir, ob du im Plan bist.': 'Buddy checks with you whether you\'re on track.',
-  'Vor einer Woche habe ich gekündigt: {x}. Was mache ich, wenn keine Bestätigung kommt?': 'A week ago I cancelled: {x}. What do I do if no confirmation comes?',
-  'Wie läuft mein Budget seit einer Woche: {x}?': 'How has my budget gone this past week: {x}?',
-  'Wie komme ich voran seit letzter Woche: {x}?': 'How am I doing since last week: {x}?',
+  'Ist die Kündigung bestätigt? Ohne Bestätigung lieber nachhaken.':
+      'Has the cancellation been confirmed? Without a confirmation, better follow up.',
+  'Buddy schaut mit dir, ob das Budget passt oder angepasst werden sollte.':
+      'Buddy checks with you whether the budget fits or should change.',
+  'Buddy schaut mit dir, ob du im Plan bist.':
+      'Buddy checks with you whether you\'re on track.',
+  'Vor einer Woche habe ich gekündigt: {x}. Was mache ich, wenn keine Bestätigung kommt?':
+      'A week ago I cancelled: {x}. What do I do if no confirmation comes?',
+  'Wie läuft mein Budget seit einer Woche: {x}?':
+      'How has my budget gone this past week: {x}?',
+  'Wie komme ich voran seit letzter Woche: {x}?':
+      'How am I doing since last week: {x}?',
   '{x}: {y} {z}': '{x}: {y} {z}',
-  'Nicht jeden Monat, leicht vergessen. Ab jetzt {x} im Monat zurücklegen.': 'Not every month, easy to forget. Set aside {x} a month from now on.',
-  '{x} kommt bald mit {y}. Wie lege ich für solche Jahreszahlungen am besten zurück?': '{x} is coming soon with {y}. How do I best save up for payments like this?',
+  'Nicht jeden Monat, leicht vergessen. Ab jetzt {x} im Monat zurücklegen.':
+      'Not every month, easy to forget. Set aside {x} a month from now on.',
+  '{x} kommt bald mit {y}. Wie lege ich für solche Jahreszahlungen am besten zurück?':
+      '{x} is coming soon with {y}. How do I best save up for payments like this?',
   '{n} Ratenzahlungen: {x} im Monat': '{n} instalment plans: {x} a month',
-  'Jede einzeln ist klein, zusammen sind es {x} im Jahr. Buddy zeigt dir, welche zuerst weg sollte.': 'Each one is small, together they\'re {x} a year. Buddy shows you which to clear first.',
-  'Ich zahle {x} im Monat für Ratenkäufe. Wie werde ich die am schnellsten los?': 'I pay {x} a month for buy-now-pay-later. How do I get rid of them fastest?',
-  'Konto rutscht vor dem Gehalt ins Minus': 'Your account will dip below zero before payday',
-  'Bis zum Gehalt am {d} fehlen voraussichtlich {x}.{due} Jetzt umplanen ist billiger als Dispozinsen.': 'Until payday on {d} you\'ll likely be {x} short.{due} Replanning now is cheaper than overdraft interest.',
+  'Jede einzeln ist klein, zusammen sind es {x} im Jahr. Buddy zeigt dir, welche zuerst weg sollte.':
+      'Each one is small, together they\'re {x} a year. Buddy shows you which to clear first.',
+  'Ich zahle {x} im Monat für Ratenkäufe. Wie werde ich die am schnellsten los?':
+      'I pay {x} a month for buy-now-pay-later. How do I get rid of them fastest?',
+  'Konto rutscht vor dem Gehalt ins Minus':
+      'Your account will dip below zero before payday',
+  'Bis zum Gehalt am {d} fehlen voraussichtlich {x}.{due} Jetzt umplanen ist billiger als Dispozinsen.':
+      'Until payday on {d} you\'ll likely be {x} short.{due} Replanning now is cheaper than overdraft interest.',
   ' Vorher wird noch {x} abgebucht.': ' Before that, {x} still goes out.',
-  'Mein Konto rutscht vor dem Gehalt ins Minus. Wie komme ich ohne Dispo bis zum {d}?': 'My account will go below zero before payday. How do I get to {d} without the overdraft?',
+  'Mein Konto rutscht vor dem Gehalt ins Minus. Wie komme ich ohne Dispo bis zum {d}?':
+      'My account will go below zero before payday. How do I get to {d} without the overdraft?',
   'Zahlung an ein Inkassobüro': 'Payment to a debt collector',
   'Mahngebühr bei {x}': 'Late fee from {x}',
-  '{x} an {y}. Prüf die Forderung, bevor du weiter zahlst. Die Verbraucherzentrale hilft.': '{x} to {y}. Check the claim before you pay more. The consumer advice centre (Verbraucherzentrale) can help.',
-  '{x}, verspätete Zahlung. Offene Rechnung zahlen, bevor daraus Inkasso wird.': '{x}, a late payment. Pay the open bill before it goes to collections.',
-  'Ich habe Geld an ein Inkassobüro ({x}) gezahlt. Was muss ich jetzt prüfen?': 'I paid money to a debt collector ({x}). What do I need to check now?',
-  'Ich habe eine Mahngebühr von {x} bezahlt. Wie verhindere ich das in Zukunft?': 'I paid a late fee to {x}. How do I avoid that in future?',
+  '{x} an {y}. Prüf die Forderung, bevor du weiter zahlst. Die Verbraucherzentrale hilft.':
+      '{x} to {y}. Check the claim before you pay more. The consumer advice centre (Verbraucherzentrale) can help.',
+  '{x}, verspätete Zahlung. Offene Rechnung zahlen, bevor daraus Inkasso wird.':
+      '{x}, a late payment. Pay the open bill before it goes to collections.',
+  'Ich habe Geld an ein Inkassobüro ({x}) gezahlt. Was muss ich jetzt prüfen?':
+      'I paid money to a debt collector ({x}). What do I need to check now?',
+  'Ich habe eine Mahngebühr von {x} bezahlt. Wie verhindere ich das in Zukunft?':
+      'I paid a late fee to {x}. How do I avoid that in future?',
   'Dein Gehalt': 'Your salary',
   '{x} ist noch nicht da': '{x} hasn\'t arrived yet',
-  'Sonst kommt es um den {d}., meist {x}. Frag kurz beim Absender nach, bevor es knapp wird.': 'It usually comes around day {d} of the month, mostly {x}. Check with the sender before things get tight.',
-  '{x} ist diesen Monat noch nicht gekommen. Was mache ich, und reicht mein Geld bis dahin?': '{x} hasn\'t come this month yet. What do I do, and will my money last until then?',
+  'Sonst kommt es um den {d}., meist {x}. Frag kurz beim Absender nach, bevor es knapp wird.':
+      'It usually comes around day {d} of the month, mostly {x}. Check with the sender before things get tight.',
+  '{x} ist diesen Monat noch nicht gekommen. Was mache ich, und reicht mein Geld bis dahin?':
+      '{x} hasn\'t come this month yet. What do I do, and will my money last until then?',
   'Lastschrift von {x} ging zurück': 'Direct debit from {x} bounced',
-  '{x} sind zurück, die Rechnung bleibt offen. Oft folgt eine Mahnung mit Gebühr.': '{x} is back, the bill stays open. A reminder with a fee often follows.',
-  'Eine Lastschrift von {x} über {y} ist zurückgegangen. Was muss ich jetzt tun?': 'A direct debit from {x} for {y} bounced. What do I need to do now?',
+  '{x} sind zurück, die Rechnung bleibt offen. Oft folgt eine Mahnung mit Gebühr.':
+      '{x} is back, the bill stays open. A reminder with a fee often follows.',
+  'Eine Lastschrift von {x} über {y} ist zurückgegangen. Was muss ich jetzt tun?':
+      'A direct debit from {x} for {y} bounced. What do I need to do now?',
   '{x}: Budget überschritten': '{x}: budget exceeded',
-  '{x} drüber. Vielleicht das Limit anpassen?': '{x} over. Maybe adjust the limit?',
+  '{x} drüber. Vielleicht das Limit anpassen?':
+      '{x} over. Maybe adjust the limit?',
   '{x}: {y} % weg': '{x}: {y} % used',
-  'Noch {x} für {daysLeft} Tage, also etwa {y} am Tag.': '{x} left for {daysLeft} days, so about {y} a day.',
-  'Wie komme ich mit {x} bis Monatsende hin?': 'How do I make {x} last until the end of the month?',
+  'Noch {x} für {daysLeft} Tage, also etwa {y} am Tag.':
+      '{x} left for {daysLeft} days, so about {y} a day.',
+  'Wie komme ich mit {x} bis Monatsende hin?':
+      'How do I make {x} last until the end of the month?',
   'Dein Monatsabschluss': 'Your month in review',
-  '{m} ist vorbei. Zwei Minuten mit Buddy: was lief gut und was ist der Plan für {n}?': '{m} is over. Two minutes with Buddy: what went well and what\'s the plan for {n}?',
-  'Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?': 'Let\'s close {m}: what went well, what didn\'t, and what\'s the plan for {n}?',
-  'Nach deinen Angaben kommen rund {x} zurück. Abgeben geht kostenlos über ELSTER.': 'Based on your details, around {x} comes back. Filing is free via ELSTER.',
-  'Du hast {y} nur {n} Monate verdient. Dann kommt meist Lohnsteuer zurück.': 'You only earned for {n} months in {y}. Then wage tax usually comes back.',
+  '{m} ist vorbei. Zwei Minuten mit Buddy: was lief gut und was ist der Plan für {n}?':
+      '{m} is over. Two minutes with Buddy: what went well and what\'s the plan for {n}?',
+  'Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?':
+      'Let\'s close {m}: what went well, what didn\'t, and what\'s the plan for {n}?',
+  'Nach deinen Angaben kommen rund {x} zurück. Abgeben geht kostenlos über ELSTER.':
+      'Based on your details, around {x} comes back. Filing is free via ELSTER.',
+  'Du hast {y} nur {n} Monate verdient. Dann kommt meist Lohnsteuer zurück.':
+      'You only earned for {n} months in {y}. Then wage tax usually comes back.',
   'Steuererklärung {y}': 'Tax return {y}',
-  'Lohnt sich meine Steuererklärung für {y}, und was brauche ich dafür?': 'Is my tax return for {y} worth it, and what do I need for it?',
+  'Lohnt sich meine Steuererklärung für {y}, und was brauche ich dafür?':
+      'Is my tax return for {y} worth it, and what do I need for it?',
   'Budget {x} passt nicht': 'Budget {x} doesn\'t fit',
-  'Drei Monate über {x}, im Schnitt {y}. Ein Budget, das hält, motiviert mehr: etwa {z}.': 'Three months over {x}, {y} on average. A budget that holds motivates more: about {z}.',
-  'Mein Budget für {x} ({y}) passt seit drei Monaten nicht. Welcher Betrag ist realistisch, und wo kann ich trotzdem sparen?': 'My budget for {x} ({y}) hasn\'t fit for three months. What amount is realistic, and where can I still save?',
+  'Drei Monate über {x}, im Schnitt {y}. Ein Budget, das hält, motiviert mehr: etwa {z}.':
+      'Three months over {x}, {y} on average. A budget that holds motivates more: about {z}.',
+  'Mein Budget für {x} ({y}) passt seit drei Monaten nicht. Welcher Betrag ist realistisch, und wo kann ich trotzdem sparen?':
+      'My budget for {x} ({y}) hasn\'t fit for three months. What amount is realistic, and where can I still save?',
   'Dein Gehalt ist gestiegen: +{x}': 'Your salary went up: +{x}',
-  'Die Hälfte ({x} im Monat) sofort per Dauerauftrag zurücklegen.': 'Set aside half ({x} a month) right away with a standing order.',
-  'Mein Gehalt ist um {x} im Monat gestiegen. Wie viel davon sollte ich sparen und wofür?': 'My salary went up by {x} a month. How much of it should I save, and for what?',
+  'Die Hälfte ({x} im Monat) sofort per Dauerauftrag zurücklegen.':
+      'Set aside half ({x} a month) right away with a standing order.',
+  'Mein Gehalt ist um {x} im Monat gestiegen. Wie viel davon sollte ich sparen und wofür?':
+      'My salary went up by {x} a month. How much of it should I save, and for what?',
   'Dein Gehalt ist da': 'Your salary is in',
-  '{x} sind angekommen. Leg gleich einen Teil zur Seite, bevor der Monat ihn verteilt.': '{x} has arrived. Put part of it aside now, before the month spends it.',
-  'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?': 'My salary is in. How much of it should I put aside?',
+  '{x} sind angekommen. Leg gleich einen Teil zur Seite, bevor der Monat ihn verteilt.':
+      '{x} has arrived. Put part of it aside now, before the month spends it.',
+  'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?':
+      'My salary is in. How much of it should I put aside?',
   'Der Monat wird knapp': 'This month is getting tight',
-  'Nach den festen Kosten fehlen bis Monatsende etwa {x}. Buddy hat einen Plan.': 'After fixed costs you\'re about {x} short until the end of the month. Buddy has a plan.',
-  'Mein Monat wird knapp. Was kann ich jetzt tun?': 'My month is getting tight. What can I do now?',
+  'Nach den festen Kosten fehlen bis Monatsende etwa {x}. Buddy hat einen Plan.':
+      'After fixed costs you\'re about {x} short until the end of the month. Buddy has a plan.',
+  'Mein Monat wird knapp. Was kann ich jetzt tun?':
+      'My month is getting tight. What can I do now?',
   '{x} bucht trotz Kündigung ab': '{x} is still charging despite cancellation',
-  'Am {x} gekündigt, am {y} trotzdem {z}. Zurückfordern. Lastschrift 8 Wochen bei der Bank zurückgeben.': 'Cancelled on {x}, still {z} on {y}. Ask for it back. Reverse the direct debit at your bank within 8 weeks.',
+  'Am {x} gekündigt, am {y} trotzdem {z}. Zurückfordern. Lastschrift 8 Wochen bei der Bank zurückgeben.':
+      'Cancelled on {x}, still {z} on {y}. Ask for it back. Reverse the direct debit at your bank within 8 weeks.',
   '{x} ist teurer geworden': '{x} got more expensive',
-  '+{x} im Monat, jetzt {y}. Aufs Jahr sind das {z} mehr.': '+{x} a month, now {y}. That\'s {z} more a year.',
-  '{x} werden voraussichtlich am {y} abgebucht.': '{x} is expected to be debited on {y}.',
+  '+{x} im Monat, jetzt {y}. Aufs Jahr sind das {z} mehr.':
+      '+{x} a month, now {y}. That\'s {z} more a year.',
+  '{x} werden voraussichtlich am {y} abgebucht.':
+      '{x} is expected to be debited on {y}.',
   'Ungewöhnlich hohe Ausgabe': 'Unusually large expense',
-  '{x}: {y}, sonst meist {z}. Alles richtig so?': '{x}: {y}, usually about {z}. All correct?',
+  '{x}: {y}, sonst meist {z}. Alles richtig so?':
+      '{x}: {y}, usually about {z}. All correct?',
   'Deine Woche: {x} frei': 'Your week: {x} free',
-  'Bis Monatsende sind {x} frei, für diese Woche also etwa {y}.': '{x} is free until the end of the month, so about {y} for this week.',
-  'Plan meine Woche: Wie viel kann ich bis Sonntag ausgeben und worauf sollte ich achten?': 'Plan my week: how much can I spend until Sunday and what should I watch out for?',
+  'Bis Monatsende sind {x} frei, für diese Woche also etwa {y}.':
+      '{x} is free until the end of the month, so about {y} for this week.',
+  'Plan meine Woche: Wie viel kann ich bis Sonntag ausgeben und worauf sollte ich achten?':
+      'Plan my week: how much can I spend until Sunday and what should I watch out for?',
   '{x} zweimal abgebucht?': '{x} charged twice?',
-  '{x} zweimal am {y}. War das zweimal gewollt?': '{x} twice on {y}. Was that meant to be twice?',
-  '{x} am {y} und am {z}. War das zweimal gewollt?': '{x} on {y} and on {z}. Was that meant to be twice?',
-  '{x} hat zweimal {y} abgebucht. Was mache ich, wenn das ein Fehler war?': '{x} charged me {y} twice. What do I do if it was a mistake?',
+  '{x} zweimal am {y}. War das zweimal gewollt?':
+      '{x} twice on {y}. Was that meant to be twice?',
+  '{x} am {y} und am {z}. War das zweimal gewollt?':
+      '{x} on {y} and on {z}. Was that meant to be twice?',
+  '{x} hat zweimal {y} abgebucht. Was mache ich, wenn das ein Fehler war?':
+      '{x} charged me {y} twice. What do I do if it was a mistake?',
   'Bankgebühren: rund {x} im Jahr': 'Bank fees: around {x} a year',
-  'Dabei sind Dispozinsen. Die sind meist der teuerste Kredit, den es gibt.': 'That includes overdraft interest. It\'s usually the most expensive credit there is.',
-  'Viele Banken haben ein kostenloses Girokonto. Buddy rechnet mit dir nach.': 'Many banks offer a free current account. Buddy does the maths with you.',
-  'Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?': 'I pay around {x} in bank fees a year. How do I get that down?',
-  'Danach {x} {y}. Wenn du nicht weitermachen willst, kündige vorher.': 'After that {x} {y}. If you don\'t want to continue, cancel before then.',
+  'Dabei sind Dispozinsen. Die sind meist der teuerste Kredit, den es gibt.':
+      'That includes overdraft interest. It\'s usually the most expensive credit there is.',
+  'Viele Banken haben ein kostenloses Girokonto. Buddy rechnet mit dir nach.':
+      'Many banks offer a free current account. Buddy does the maths with you.',
+  'Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?':
+      'I pay around {x} in bank fees a year. How do I get that down?',
+  'Danach {x} {y}. Wenn du nicht weitermachen willst, kündige vorher.':
+      'After that {x} {y}. If you don\'t want to continue, cancel before then.',
   'im Jahr': 'a year',
   'im Monat': 'a month',
   'Bankverbindung abgelaufen': 'Bank connection expired',
   'Bankverbindung läuft {x} ab': 'Bank connection expires {x}',
-  'Einmal kurz bestätigen, dann kommen deine Umsätze weiter automatisch.': 'Confirm once and your transactions keep coming in automatically.',
+  'Einmal kurz bestätigen, dann kommen deine Umsätze weiter automatisch.':
+      'Confirm once and your transactions keep coming in automatically.',
   '{x} {y} ist erreicht': '{x} {y} reached',
-  '{x} zusammen. Stark. Was wird das nächste Ziel?': '{x} saved. Strong. What\'s the next goal?',
-  'Ich habe mein Sparziel {x} erreicht. Was wäre ein gutes nächstes Ziel?': 'I reached my savings goal {x}. What would be a good next goal?',
+  '{x} zusammen. Stark. Was wird das nächste Ziel?':
+      '{x} saved. Strong. What\'s the next goal?',
+  'Ich habe mein Sparziel {x} erreicht. Was wäre ein gutes nächstes Ziel?':
+      'I reached my savings goal {x}. What would be a good next goal?',
   '{x} {y} hängt hinterher': '{x} {y} is falling behind',
-  'Nach Plan wären jetzt etwa {x} zusammen, es sind {y}. Mit {z} im Monat schaffst du es noch.': 'By plan you\'d have about {x} by now, it\'s {y}. With {z} a month you\'ll still make it.',
-  'Mein Sparziel {x} hängt hinterher. Wie hole ich auf, ohne dass es weh tut?': 'My savings goal {x} is falling behind. How do I catch up without it hurting?',
+  'Nach Plan wären jetzt etwa {x} zusammen, es sind {y}. Mit {z} im Monat schaffst du es noch.':
+      'By plan you\'d have about {x} by now, it\'s {y}. With {z} a month you\'ll still make it.',
+  'Mein Sparziel {x} hängt hinterher. Wie hole ich auf, ohne dass es weh tut?':
+      'My savings goal {x} is falling behind. How do I catch up without it hurting?',
   '{x} {y}: noch {z}': '{x} {y}: {z} to go',
   'Neu in {x}': 'New in {x}',
   '{x}, {y} von {z}': '{x}, {y} from {z}',
-  '{x} neue Ausgaben, zuletzt {y} von {z}': '{x} new expenses, latest {y} from {z}',
-  'Bis heute gibst du {x} % {dir} aus als im Vormonat zur gleichen Zeit.': 'So far you\'re spending {x} % {dir} than last month at the same point.',
-  'Du hast {x} % {dir} ausgegeben als im Vormonat.': 'You spent {x} % {dir} than last month.',
-  'Deine Ausgaben sind etwa so hoch wie im Vormonat.': 'Your spending is about the same as last month.',
+  '{x} neue Ausgaben, zuletzt {y} von {z}':
+      '{x} new expenses, latest {y} from {z}',
+  'Bis heute gibst du {x} % {dir} aus als im Vormonat zur gleichen Zeit.':
+      'So far you\'re spending {x} % {dir} than last month at the same point.',
+  'Du hast {x} % {dir} ausgegeben als im Vormonat.':
+      'You spent {x} % {dir} than last month.',
+  'Deine Ausgaben sind etwa so hoch wie im Vormonat.':
+      'Your spending is about the same as last month.',
   'Größter Posten: {x} ({y}).': 'Biggest item: {x} ({y}).',
   '{incCat} ist um {x} gestiegen.': '{incCat} went up by {x}.',
-  'Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. {x}{link}': 'I use Ahead, a money buddy that works with your real numbers and tells you what to do next. {x}{link}',
+  'Ich nutze Ahead, einen Finanz-Buddy, der mit deinen echten Zahlen rechnet und sagt, was du als Nächstes tun kannst. {x}{link}':
+      'I use Ahead, a money buddy that works with your real numbers and tells you what to do next. {x}{link}',
   'Hier ist meine Einladung: ': 'Here\'s my invite: ',
   'Erster Job': 'First job',
-  'Gehalt, Betriebsrente, Notgroschen, Sparrate': 'Salary, company pension, emergency fund, savings rate',
+  'Gehalt, Betriebsrente, Notgroschen, Sparrate':
+      'Salary, company pension, emergency fund, savings rate',
   'Gehaltsabrechnung prüfen': 'Check your payslip',
-  'Stimmen Steuerklasse, Kasse und Abzüge?': 'Are tax class, health insurer and deductions right?',
-  'Hilf mir, meine erste Gehaltsabrechnung zu prüfen. Worauf muss ich achten?': 'Help me check my first payslip. What should I look out for?',
-  'Zuerst die **Steuerklasse**: ledig ist Klasse I, sonst frag in der Personalabteilung. Steuer-ID und Krankenkasse müssen stimmen, die Sozialabgaben liegen grob bei einem Fünftel vom Brutto. Vermögenswirksame Leistungen oder Betriebsrente nur, wenn vereinbart, und das **Netto** muss genau so ankommen.\n\nNächster Schritt: Schick mir ein Foto, dann gehe ich die Abrechnung mit dir durch.': 'Check the **tax class** first: single is class I, otherwise ask HR. Tax ID and health insurer must be right, and social contributions are roughly a fifth of your gross. Capital-forming benefits or a company pension only if they were agreed, and the **net pay** has to arrive as exactly that amount.\n\nNext step: Send me a photo and I\'ll go through the payslip with you.',
+  'Stimmen Steuerklasse, Kasse und Abzüge?':
+      'Are tax class, health insurer and deductions right?',
+  'Hilf mir, meine erste Gehaltsabrechnung zu prüfen. Worauf muss ich achten?':
+      'Help me check my first payslip. What should I look out for?',
+  'Zuerst die **Steuerklasse**: ledig ist Klasse I, sonst frag in der Personalabteilung. Steuer-ID und Krankenkasse müssen stimmen, die Sozialabgaben liegen grob bei einem Fünftel vom Brutto. Vermögenswirksame Leistungen oder Betriebsrente nur, wenn vereinbart, und das **Netto** muss genau so ankommen.\n\nNächster Schritt: Schick mir ein Foto, dann gehe ich die Abrechnung mit dir durch.':
+      'Check the **tax class** first: single is class I, otherwise ask HR. Tax ID and health insurer must be right, and social contributions are roughly a fifth of your gross. Capital-forming benefits or a company pension only if they were agreed, and the **net pay** has to arrive as exactly that amount.\n\nNext step: Send me a photo and I\'ll go through the payslip with you.',
   'Betriebsrente klären': 'Sort out the company pension',
   'Zuschuss vom Arbeitgeber mitnehmen': 'Take the employer top-up',
-  'Lohnt sich die Betriebsrente bei meinem ersten Job? Was sollte ich die Personalabteilung fragen?': 'Is the company pension worth it in my first job? What should I ask HR?',
-  'Bei der Betriebsrente fließt ein Teil des Bruttos über den Arbeitgeber in einen Vertrag. Spart er dabei Sozialabgaben, gibt er meist **15 Prozent** dazu, oft mehr. Frag nach Zuschuss, Kosten und was bei einem Jobwechsel passiert.\n\nNächster Schritt: Mit den drei Antworten rechnen wir, ob es sich lohnt.': 'With a company pension, part of your gross pay goes into a plan through your employer. If they save social contributions that way, they usually add **15 percent**, often more. Ask about the top-up, the costs, and what happens if you change jobs.\n\nNext step: With those three answers we can work out whether it\'s worth it.',
+  'Lohnt sich die Betriebsrente bei meinem ersten Job? Was sollte ich die Personalabteilung fragen?':
+      'Is the company pension worth it in my first job? What should I ask HR?',
+  'Bei der Betriebsrente fließt ein Teil des Bruttos über den Arbeitgeber in einen Vertrag. Spart er dabei Sozialabgaben, gibt er meist **15 Prozent** dazu, oft mehr. Frag nach Zuschuss, Kosten und was bei einem Jobwechsel passiert.\n\nNächster Schritt: Mit den drei Antworten rechnen wir, ob es sich lohnt.':
+      'With a company pension, part of your gross pay goes into a plan through your employer. If they save social contributions that way, they usually add **15 percent**, often more. Ask about the top-up, the costs, and what happens if you change jobs.\n\nNext step: With those three answers we can work out whether it\'s worth it.',
   'Notgroschen aufbauen': 'Build an emergency fund',
-  'Drei Monatsausgaben, sofort erreichbar': 'Three months of spending, ready at once',
-  'Wie hoch sollte mein Notgroschen sein und wie baue ich ihn auf?': 'How big should my emergency fund be and how do I build it?',
-  'Faustregel: **drei Monatsausgaben** auf dem Tagesgeld, bei 1.500 Euro Ausgaben also 4.500 Euro, und das vor jedem Investieren. Er fängt Waschmaschine, Umzug oder das Ende der Probezeit ab. Ein Dauerauftrag direkt nach dem Gehalt füllt ihn von allein.\n\nNächster Schritt: Sag „Sparziel Notgroschen 4500“, dann lege ich das Ziel an, sobald du bestätigst.': 'Rule of thumb: **three months of spending** in an instant-access account, so 4,500 euros at 1,500 euros of spending, and that comes before any investing. It catches a broken washing machine, a move or the end of probation. A standing order right after payday fills it on its own.\n\nNext step: Say "Savings goal emergency fund 4500" and I\'ll create the goal once you confirm.',
+  'Drei Monatsausgaben, sofort erreichbar':
+      'Three months of spending, ready at once',
+  'Wie hoch sollte mein Notgroschen sein und wie baue ich ihn auf?':
+      'How big should my emergency fund be and how do I build it?',
+  'Faustregel: **drei Monatsausgaben** auf dem Tagesgeld, bei 1.500 Euro Ausgaben also 4.500 Euro, und das vor jedem Investieren. Er fängt Waschmaschine, Umzug oder das Ende der Probezeit ab. Ein Dauerauftrag direkt nach dem Gehalt füllt ihn von allein.\n\nNächster Schritt: Sag „Sparziel Notgroschen 4500“, dann lege ich das Ziel an, sobald du bestätigst.':
+      'Rule of thumb: **three months of spending** in an instant-access account, so 4,500 euros at 1,500 euros of spending, and that comes before any investing. It catches a broken washing machine, a move or the end of probation. A standing order right after payday fills it on its own.\n\nNext step: Say "Savings goal emergency fund 4500" and I\'ll create the goal once you confirm.',
   'Sparrate festlegen': 'Set a savings rate',
-  'Ein fester Betrag direkt nach dem Gehalt': 'A fixed amount right after payday',
-  'Wie viel sollte ich von meinem Gehalt jeden Monat sparen?': 'How much of my salary should I save each month?',
-  'Start mit **10 bis 20 Prozent** vom Netto, per Dauerauftrag am Zahltag. Erst den Notgroschen, dann einen breit gestreuten ETF-Sparplan. Lieber klein anfangen und jährlich erhöhen, und von einer Gehaltserhöhung die Hälfte in die Sparrate.\n\nNächster Schritt: Mit Konto rechne ich aus deinen Ausgaben, was realistisch ist.': 'Start with **10 to 20 percent** of your net pay, by standing order on payday. Fill the emergency fund first, then a broadly diversified ETF savings plan. Better to start small and raise it each year, and put half of any raise into the savings rate.\n\nNext step: With an account I\'ll work out from your spending what\'s realistic.',
+  'Ein fester Betrag direkt nach dem Gehalt':
+      'A fixed amount right after payday',
+  'Wie viel sollte ich von meinem Gehalt jeden Monat sparen?':
+      'How much of my salary should I save each month?',
+  'Start mit **10 bis 20 Prozent** vom Netto, per Dauerauftrag am Zahltag. Erst den Notgroschen, dann einen breit gestreuten ETF-Sparplan. Lieber klein anfangen und jährlich erhöhen, und von einer Gehaltserhöhung die Hälfte in die Sparrate.\n\nNächster Schritt: Mit Konto rechne ich aus deinen Ausgaben, was realistisch ist.':
+      'Start with **10 to 20 percent** of your net pay, by standing order on payday. Fill the emergency fund first, then a broadly diversified ETF savings plan. Better to start small and raise it each year, and put half of any raise into the savings rate.\n\nNext step: With an account I\'ll work out from your spending what\'s realistic.',
   'Steuererklärung im ersten Jahr': 'Tax return in your first year',
   'Oft gibt es Geld zurück': 'Often you get money back',
-  'Lohnt sich für mich im ersten Jobjahr eine Steuererklärung?': 'Is a tax return worth it in my first year of work?',
-  'Im ersten Jahr lohnt sich die Steuererklärung oft, weil ohne volles Jahr meist zu viel Lohnsteuer abgezogen wurde. Fahrtkosten, Arbeitsmittel und ein Umzug für den Job zählen, und ELSTER ist kostenlos.\n\nNächster Schritt: Belege für Arbeitsweg und Arbeitsmittel ab jetzt sammeln.': 'In your first year a tax return is often worth it, because without a full year too much wage tax was usually withheld. Commuting, work equipment and a job-related move count, and ELSTER is free.\n\nNext step: From now on, collect receipts for commuting and work equipment.',
+  'Lohnt sich für mich im ersten Jobjahr eine Steuererklärung?':
+      'Is a tax return worth it in my first year of work?',
+  'Im ersten Jahr lohnt sich die Steuererklärung oft, weil ohne volles Jahr meist zu viel Lohnsteuer abgezogen wurde. Fahrtkosten, Arbeitsmittel und ein Umzug für den Job zählen, und ELSTER ist kostenlos.\n\nNächster Schritt: Belege für Arbeitsweg und Arbeitsmittel ab jetzt sammeln.':
+      'In your first year a tax return is often worth it, because without a full year too much wage tax was usually withheld. Commuting, work equipment and a job-related move count, and ELSTER is free.\n\nNext step: From now on, collect receipts for commuting and work equipment.',
   'Kaution, Umzugskosten, Verträge': 'Deposit, moving costs, contracts',
   'Kaution einplanen': 'Plan the deposit',
   'Höchstens drei Kaltmieten': 'At most three months\' base rent',
-  'Wie viel Geld brauche ich für die Kaution und den Umzug?': 'How much money do I need for the deposit and the move?',
-  'Die Kaution ist höchstens **drei Monatskaltmieten** und darf in drei Raten gezahlt werden. Dazu oft doppelte Miete, Transporter und Möbel, also ein Umzugsbudget, nicht den Notgroschen leeren.\n\nNächster Schritt: Sag „Sparziel Umzug 2000“, dann lege ich es an, sobald du bestätigst.': 'The deposit is at most **three months\' base rent** and may be paid in three instalments. On top there\'s often double rent, a van and furniture, so keep a moving budget and don\'t empty the emergency fund.\n\nNext step: Say "Savings goal move 2000" and I\'ll create it once you confirm.',
+  'Wie viel Geld brauche ich für die Kaution und den Umzug?':
+      'How much money do I need for the deposit and the move?',
+  'Die Kaution ist höchstens **drei Monatskaltmieten** und darf in drei Raten gezahlt werden. Dazu oft doppelte Miete, Transporter und Möbel, also ein Umzugsbudget, nicht den Notgroschen leeren.\n\nNächster Schritt: Sag „Sparziel Umzug 2000“, dann lege ich es an, sobald du bestätigst.':
+      'The deposit is at most **three months\' base rent** and may be paid in three instalments. On top there\'s often double rent, a van and furniture, so keep a moving budget and don\'t empty the emergency fund.\n\nNext step: Say "Savings goal move 2000" and I\'ll create it once you confirm.',
   'Verträge ummelden': 'Update contracts',
   'Strom, Internet, Versicherungen': 'Electricity, internet, insurance',
-  'Welche Verträge muss ich beim Umzug ummelden oder kündigen?': 'Which contracts do I need to update or cancel when I move?',
-  'Strom und Internet ummelden, oft mit Sonderkündigung, und Haftpflicht und Hausrat die neue Adresse und Wohnfläche geben. Rundfunkbeitrag, Bank und Arbeitgeber brauchen nur die neue Adresse.\n\nNächster Schritt: Unter Verträge zeige ich, was regelmäßig abgeht.': 'Report the move to electricity and internet, often with a special right to cancel, and give liability and contents insurance the new address and floor space. The broadcasting fee, your bank and your employer only need the new address.\n\nNext step: Under Contracts I\'ll show you what leaves regularly.',
+  'Welche Verträge muss ich beim Umzug ummelden oder kündigen?':
+      'Which contracts do I need to update or cancel when I move?',
+  'Strom und Internet ummelden, oft mit Sonderkündigung, und Haftpflicht und Hausrat die neue Adresse und Wohnfläche geben. Rundfunkbeitrag, Bank und Arbeitgeber brauchen nur die neue Adresse.\n\nNächster Schritt: Unter Verträge zeige ich, was regelmäßig abgeht.':
+      'Report the move to electricity and internet, often with a special right to cancel, and give liability and contents insurance the new address and floor space. The broadcasting fee, your bank and your employer only need the new address.\n\nNext step: Under Contracts I\'ll show you what leaves regularly.',
   'Zusammenziehen': 'Moving in together',
   'Kosten fair teilen': 'Share costs fairly',
   'Kosten fair aufteilen': 'Split costs fairly',
   'Hälfte oder nach Einkommen': 'Half each or by income',
-  'Wie teilen wir gemeinsame Kosten fair auf, wenn wir zusammenziehen?': 'How do we split shared costs fairly when we move in together?',
-  '**Halbe-halbe** passt bei ähnlichem Einkommen. Bei großem Unterschied trägt, wer mehr verdient, anteilig mehr, das fühlt sich oft fairer an.\n\nNächster Schritt: Unter Geteilt eine Gruppe anlegen, dann rechne ich mit, wer wem was schuldet.': '**Half and half** fits similar incomes. When incomes differ a lot, whoever earns more pays proportionally more, which often feels fairer.\n\nNext step: Create a group under Shared, then I\'ll keep track of who owes whom.',
+  'Wie teilen wir gemeinsame Kosten fair auf, wenn wir zusammenziehen?':
+      'How do we split shared costs fairly when we move in together?',
+  '**Halbe-halbe** passt bei ähnlichem Einkommen. Bei großem Unterschied trägt, wer mehr verdient, anteilig mehr, das fühlt sich oft fairer an.\n\nNächster Schritt: Unter Geteilt eine Gruppe anlegen, dann rechne ich mit, wer wem was schuldet.':
+      '**Half and half** fits similar incomes. When incomes differ a lot, whoever earns more pays proportionally more, which often feels fairer.\n\nNext step: Create a group under Shared, then I\'ll keep track of who owes whom.',
   'Gemeinsames Konto?': 'Joint account?',
   'Für Miete und Einkäufe': 'For rent and groceries',
-  'Brauchen wir ein Gemeinschaftskonto, wenn wir zusammenziehen?': 'Do we need a joint account when we move in together?',
-  'Ein Gemeinschaftskonto für Miete, Strom und Einkäufe hält den Rest getrennt. Jeder zahlt einen festen Betrag ein.\n\nNächster Schritt: Gemeinsame Kosten und Monatsbetrag festlegen.': 'A joint account for rent, electricity and groceries keeps the rest separate. Each of you pays in a fixed amount.\n\nNext step: Agree which costs are shared and the monthly amount.',
+  'Brauchen wir ein Gemeinschaftskonto, wenn wir zusammenziehen?':
+      'Do we need a joint account when we move in together?',
+  'Ein Gemeinschaftskonto für Miete, Strom und Einkäufe hält den Rest getrennt. Jeder zahlt einen festen Betrag ein.\n\nNächster Schritt: Gemeinsame Kosten und Monatsbetrag festlegen.':
+      'A joint account for rent, electricity and groceries keeps the rest separate. Each of you pays in a fixed amount.\n\nNext step: Agree which costs are shared and the monthly amount.',
   'Neu ab 2027, früh vorbereiten': 'New from 2027, prepare early',
   'Was ist das?': 'What is it?',
   'Gefördert für die Rente sparen': 'Save for retirement with state support',
-  'Was ist das Altersvorsorgedepot und lohnt es sich für mich?': 'What is the retirement savings depot and is it worth it for me?',
-  'Geplantes, staatlich gefördertes Depot — Start laut Plan **1. Januar 2027**. Details können sich noch ändern.\n\nNächster Schritt: Mit „Vorsorge einrichten“ die Rentenlücke grob rechnen.': 'A planned, state-subsidised depot — under the current plan it starts on **1 January 2027**. Details may still change.\n\nNext step: Use "Set up retirement plan" to rough out the pension gap.',
+  'Was ist das Altersvorsorgedepot und lohnt es sich für mich?':
+      'What is the retirement savings depot and is it worth it for me?',
+  'Geplantes, staatlich gefördertes Depot — Start laut Plan **1. Januar 2027**. Details können sich noch ändern.\n\nNächster Schritt: Mit „Vorsorge einrichten“ die Rentenlücke grob rechnen.':
+      'A planned, state-subsidised depot — under the current plan it starts on **1 January 2027**. Details may still change.\n\nNext step: Use "Set up retirement plan" to rough out the pension gap.',
   'Rentenlücke berechnen': 'Work out your pension gap',
   'Wie viel fehlt im Alter?': 'How much will be missing in old age?',
   'Vorsorge einrichten': 'Set up retirement plan',
-  'Mit „Vorsorge einrichten“ rechne ich aus Alter, Netto und Wunschrente eine grobe Lücke. Orientierung, keine Rentenberatung.': 'With "Set up retirement plan" I work out a rough gap from age, net pay and the pension you want. Guidance, not pension advice.',
-  'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n\n- Lohnsteuer: {tax}{soli}\n- Sozialabgaben: {social} (Rente, Arbeitslosen-, Kranken- und Pflegeversicherung)\n\nGerechnet für Steuerklasse {cls}, gesetzlich versichert mit durchschnittlichem Zusatzbeitrag, Lohnsteuer 2026. Deine Abrechnung kann um ein paar Euro abweichen.\n\nNächster Schritt: Leg deine erste Abrechnung daneben und vergleich Steuerklasse und Netto.': 'From **{gross}** gross, about **{net}** net is left each month.\n\n- Wage tax: {tax}{soli}\n- Social contributions: {social} (pension, unemployment, health and care insurance)\n\nCalculated for tax class {cls}, statutory health insurance with the average additional contribution, wage tax 2026. Your payslip may differ by a few euros.\n\nNext step: Put your first payslip next to it and compare tax class and net pay.',
+  'Mit „Vorsorge einrichten“ rechne ich aus Alter, Netto und Wunschrente eine grobe Lücke. Orientierung, keine Rentenberatung.':
+      'With "Set up retirement plan" I work out a rough gap from age, net pay and the pension you want. Guidance, not pension advice.',
+  'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n\n- Lohnsteuer: {tax}{soli}\n- Sozialabgaben: {social} (Rente, Arbeitslosen-, Kranken- und Pflegeversicherung)\n\nGerechnet für Steuerklasse {cls}, gesetzlich versichert mit durchschnittlichem Zusatzbeitrag, Lohnsteuer 2026. Deine Abrechnung kann um ein paar Euro abweichen.\n\nNächster Schritt: Leg deine erste Abrechnung daneben und vergleich Steuerklasse und Netto.':
+      'From **{gross}** gross, about **{net}** net is left each month.\n\n- Wage tax: {tax}{soli}\n- Social contributions: {social} (pension, unemployment, health and care insurance)\n\nCalculated for tax class {cls}, statutory health insurance with the average additional contribution, wage tax 2026. Your payslip may differ by a few euros.\n\nNext step: Put your first payslip next to it and compare tax class and net pay.',
   ' plus {x} Soli': ' plus {x} solidarity surcharge',
-  'Alles sauber kategorisiert, kein Sonstiges offen.': 'Everything is neatly categorised, nothing left in Other.',
-  '**{n}** Buchungen stecken noch in Sonstiges.': '**{n}** bookings are still in Other.',
-  'So würde ich zuordnen. Sag **„Sonstiges aufräumen“**:': 'This is how I\'d sort them. Say **"Tidy up Other"**:',
-  'Unklar, sag z. B. „{x} → Lebensmittel“:': 'Unclear, say e.g. "{x} → Groceries":',
-  'Diesen Monat hast du noch keine Ausgaben erfasst.': 'You haven\'t recorded any expenses this month yet.',
-  '\n\nAm meisten Geld ging an **{x}** ({y}).': '\n\nMost money went to **{x}** ({y}).',
-  'Diesen Monat hast du bisher **{x}** ausgegeben, vor allem für:\n{y}{merchant}': 'So far this month you\'ve spent **{x}**, mainly on:\n{y}{merchant}',
-  '- **{x}**: {y} mehr als sonst in einem Monat': '- **{x}**: {y} more than in a usual month',
-  '- **Abos**: {x} kosten zusammen {y} im Monat ({z} im Jahr). Brauchst du alle?': '- **Subscriptions**: {x} cost {y} a month together ({z} a year). Do you need them all?',
-  'Dafür brauche ich noch etwas mehr Verlauf. Erfasse ein paar Wochen deine Ausgaben.': 'I need a bit more history for that. Record your spending for a few weeks.',
-  '- Dein größter Posten ist **{x}** mit etwa {y} im Monat. Schon 10 % weniger sind {z} im Monat.': '- Your biggest item is **{x}** at about {y} a month. Just 10 % less is {z} a month.',
-  'Hier steckt Sparpotenzial:\n{x}\n\nTipp: Leg dir für die größte Kategorie ein Budget an, dann warnt dich die App rechtzeitig.': 'Here\'s where you could save:\n{x}\n\nTip: Set a budget for the biggest category and the app will warn you in time.',
-  'Dafür brauche ich mindestens einen vollen Monat an Daten.': 'I need at least one full month of data for that.',
-  'Im Schnitt gibst du gerade **{x} mehr aus**, als reinkommt. Bevor du sparst, lohnt ein Blick auf deine größten Kategorien.': 'On average you\'re currently **spending {x} more** than comes in. Before saving, look at your biggest categories.',
-  'Im Schnitt bleiben dir **{x} pro Monat** übrig (Einnahmen {y}, Ausgaben {z}).': 'On average you have **{x} a month** left (income {y}, spending {z}).',
-  '{base}\n\nNenn mir einen Betrag, dann rechne ich aus, wie schnell du ihn zusammen hast.': '{base}\n\nName an amount and I\'ll work out how fast you\'ll have it together.',
-  '- Für **{x}** brauchst du etwa **{months} {y}**.': '- For **{x}** you need about **{months} {y}**.',
+  'Alles sauber kategorisiert, kein Sonstiges offen.':
+      'Everything is neatly categorised, nothing left in Other.',
+  '**{n}** Buchungen stecken noch in Sonstiges.':
+      '**{n}** bookings are still in Other.',
+  'So würde ich zuordnen. Sag **„Sonstiges aufräumen“**:':
+      'This is how I\'d sort them. Say **"Tidy up Other"**:',
+  'Unklar, sag z. B. „{x} → Lebensmittel“:':
+      'Unclear, say e.g. "{x} → Groceries":',
+  'Diesen Monat hast du noch keine Ausgaben erfasst.':
+      'You haven\'t recorded any expenses this month yet.',
+  '\n\nAm meisten Geld ging an **{x}** ({y}).':
+      '\n\nMost money went to **{x}** ({y}).',
+  'Diesen Monat hast du bisher **{x}** ausgegeben, vor allem für:\n{y}{merchant}':
+      'So far this month you\'ve spent **{x}**, mainly on:\n{y}{merchant}',
+  '- **{x}**: {y} mehr als sonst in einem Monat':
+      '- **{x}**: {y} more than in a usual month',
+  '- **Abos**: {x} kosten zusammen {y} im Monat ({z} im Jahr). Brauchst du alle?':
+      '- **Subscriptions**: {x} cost {y} a month together ({z} a year). Do you need them all?',
+  'Dafür brauche ich noch etwas mehr Verlauf. Erfasse ein paar Wochen deine Ausgaben.':
+      'I need a bit more history for that. Record your spending for a few weeks.',
+  '- Dein größter Posten ist **{x}** mit etwa {y} im Monat. Schon 10 % weniger sind {z} im Monat.':
+      '- Your biggest item is **{x}** at about {y} a month. Just 10 % less is {z} a month.',
+  'Hier steckt Sparpotenzial:\n{x}\n\nTipp: Leg dir für die größte Kategorie ein Budget an, dann warnt dich die App rechtzeitig.':
+      'Here\'s where you could save:\n{x}\n\nTip: Set a budget for the biggest category and the app will warn you in time.',
+  'Dafür brauche ich mindestens einen vollen Monat an Daten.':
+      'I need at least one full month of data for that.',
+  'Im Schnitt gibst du gerade **{x} mehr aus**, als reinkommt. Bevor du sparst, lohnt ein Blick auf deine größten Kategorien.':
+      'On average you\'re currently **spending {x} more** than comes in. Before saving, look at your biggest categories.',
+  'Im Schnitt bleiben dir **{x} pro Monat** übrig (Einnahmen {y}, Ausgaben {z}).':
+      'On average you have **{x} a month** left (income {y}, spending {z}).',
+  '{base}\n\nNenn mir einen Betrag, dann rechne ich aus, wie schnell du ihn zusammen hast.':
+      '{base}\n\nName an amount and I\'ll work out how fast you\'ll have it together.',
+  '- Für **{x}** brauchst du etwa **{months} {y}**.':
+      '- For **{x}** you need about **{months} {y}**.',
   'Monate': 'months',
-  '- Aus dem Kontostand bezahlt blieben dir {x}{y}': '- Paid from your balance, you\'d have {x} left{y}',
-  ', weniger als ein Monat Ausgaben. Lieber ansparen.': ', less than one month of spending. Better to save up.',
+  '- Aus dem Kontostand bezahlt blieben dir {x}{y}':
+      '- Paid from your balance, you\'d have {x} left{y}',
+  ', weniger als ein Monat Ausgaben. Lieber ansparen.':
+      ', less than one month of spending. Better to save up.',
   '. Das passt.': '. That works.',
-  '- Diesen Monat blieben danach noch **{x}** frei, etwa {y} am Tag.': '- This month you\'d still have **{x}** free afterwards, about {y} a day.',
-  '- Diesen Monat wärst du **{x} über** dem Plan.': '- This month you\'d be **{x} over** plan.',
-  '🟢 **Grün:** Das geht aus dem freien Geld dieses Monats, mit Puffer.': '🟢 **Green:** This fits into this month\'s free money, with a buffer.',
-  '🟡 **Gelb:** Das geht nur, wenn du diesen Monat weniger sparst oder an Erspartes gehst.': '🟡 **Yellow:** This only works if you save less this month or use savings.',
-  '🔴 **Rot:** Diesen Monat ginge das an deinen Notgroschen. Lieber ansparen.': '🔴 **Red:** This month it would cut into your emergency fund. Better to save up for it.',
-  'Ich habe noch keine festen Verträge erkannt. Dafür brauche ich drei Monate gleiche Zahlungen.': 'I haven\'t spotted any fixed contracts yet. I need three months of the same payments for that.',
-  'Du hast **{x} feste Zahlungen** über **{y} im Monat** ({z} im Jahr):\n{a}': 'You have **{x} fixed payments** totalling **{y} a month** ({z} a year):\n{a}',
-  'Du hast für diesen Monat noch keine Budgets. Leg im Konto unter „Budgets“ eins an.': 'You have no budgets for this month yet. Create one under "Budgets" in your account.',
+  '- Diesen Monat blieben danach noch **{x}** frei, etwa {y} am Tag.':
+      '- This month you\'d still have **{x}** free afterwards, about {y} a day.',
+  '- Diesen Monat wärst du **{x} über** dem Plan.':
+      '- This month you\'d be **{x} over** plan.',
+  '🟢 **Grün:** Das geht aus dem freien Geld dieses Monats, mit Puffer.':
+      '🟢 **Green:** This fits into this month\'s free money, with a buffer.',
+  '🟡 **Gelb:** Das geht nur, wenn du diesen Monat weniger sparst oder an Erspartes gehst.':
+      '🟡 **Yellow:** This only works if you save less this month or use savings.',
+  '🔴 **Rot:** Diesen Monat ginge das an deinen Notgroschen. Lieber ansparen.':
+      '🔴 **Red:** This month it would cut into your emergency fund. Better to save up for it.',
+  'Ich habe noch keine festen Verträge erkannt. Dafür brauche ich drei Monate gleiche Zahlungen.':
+      'I haven\'t spotted any fixed contracts yet. I need three months of the same payments for that.',
+  'Du hast **{x} feste Zahlungen** über **{y} im Monat** ({z} im Jahr):\n{a}':
+      'You have **{x} fixed payments** totalling **{y} a month** ({z} a year):\n{a}',
+  'Du hast für diesen Monat noch keine Budgets. Leg im Konto unter „Budgets“ eins an.':
+      'You have no budgets for this month yet. Create one under "Budgets" in your account.',
   '- {x}: {y} von {z}{a}': '- {x}: {y} of {z}{a}',
   ' – **überschritten**': ' – **exceeded**',
-  'So stehen deine Budgets, noch {x} Tage im Monat:\n{y}': 'Here\'s how your budgets stand, {x} days left in the month:\n{y}',
-  'Du hast noch keine Positionen im Depot.': 'You don\'t have any positions in your portfolio yet.',
-  'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz.\n\n- Größte Position: {b} ({c} %)\n- Faustregel: breit gestreut und langfristig, und vorher drei Monatsausgaben als Notgroschen.': 'Your portfolio is worth **{x}**, {y} of {z} on {a} invested.\n\n- Largest position: {b} ({c} %)\n- Rule of thumb: broadly diversified and long term, and three months of spending as an emergency fund first.',
+  'So stehen deine Budgets, noch {x} Tage im Monat:\n{y}':
+      'Here\'s how your budgets stand, {x} days left in the month:\n{y}',
+  'Du hast noch keine Positionen im Depot.':
+      'You don\'t have any positions in your portfolio yet.',
+  'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz.\n\n- Größte Position: {b} ({c} %)\n- Faustregel: breit gestreut und langfristig, und vorher drei Monatsausgaben als Notgroschen.':
+      'Your portfolio is worth **{x}**, {y} of {z} on {a} invested.\n\n- Largest position: {b} ({c} %)\n- Rule of thumb: broadly diversified and long term, and three months of spending as an emergency fund first.',
   'ein Plus': 'a gain',
   'ein Minus': 'a loss',
-  'Du hast noch keine Sparziele. Leg eins unter Sparziele an, dann rechne ich den Plan.': 'You don\'t have any savings goals yet. Create one under Savings goals and I\'ll work out the plan.',
+  'Du hast noch keine Sparziele. Leg eins unter Sparziele an, dann rechne ich den Plan.':
+      'You don\'t have any savings goals yet. Create one under Savings goals and I\'ll work out the plan.',
   '- {x} {y}: {z} von {a} ({b} %). {c}': '- {x} {y}: {z} of {a} ({b} %). {c}',
   'Deine Sparziele:\n{x}': 'Your savings goals:\n{x}',
-  '- Nettovermögen: **{x}** (Konten {y}, Depot {z}{a})': '- Net worth: **{x}** (accounts {y}, portfolio {z}{a})',
+  '- Nettovermögen: **{x}** (Konten {y}, Depot {z}{a})':
+      '- Net worth: **{x}** (accounts {y}, portfolio {z}{a})',
   ', Schulden {x}': ', debts {x}',
-  '- Sparquote der letzten vollen Monate: {x} %': '- Savings rate over the last full months: {x} %',
+  '- Sparquote der letzten vollen Monate: {x} %':
+      '- Savings rate over the last full months: {x} %',
   '- Notgroschen: {x} von {y}': '- Emergency fund: {x} of {y}',
   '- Auf Sparkonten: {x}': '- In savings accounts: {x}',
   '- Schulden: {x}': '- Debts: {x}',
   '- Versicherungen: {x} ({y} im Monat)': '- Insurance: {x} ({y} a month)',
-  '- Reichweite: etwa {x} Monate bei deinem üblichen Verbrauch': '- Runway: about {x} months at your usual spending',
+  '- Reichweite: etwa {x} Monate bei deinem üblichen Verbrauch':
+      '- Runway: about {x} months at your usual spending',
   'Vermögen:\n{x}': 'Wealth:\n{x}',
-  'Altersvorsorge ist noch nicht eingerichtet. Trag unter Vorsorge deine Rente ein, dann rechne ich die Lücke. Das ist eine Orientierung, keine Beratung.': 'Retirement planning isn\'t set up yet. Enter your pension under Retirement and I\'ll work out the gap. It\'s guidance, not advice.',
-  'Orientierung, keine Beratung: Deine Wunschrente von {x} im Monat ist mit den eingetragenen Bausteinen gedeckt.': 'Guidance, not advice: your desired pension of {x} a month is covered by the parts you entered.',
-  'Orientierung, keine Beratung: Bis {x} sind es **{y} Jahre**. Dir fehlen etwa **{z} im Monat**. Dafür wären ungefähr {a} im Monat extra nötig (gesetzlich {b}, Kapital {c}).': 'Guidance, not advice: there are **{y} years** until {x}. You\'re about **{z} a month** short. That would take roughly {a} a month extra (state {b}, capital {c}).',
-  'Du hast noch keine geteilten Ausgaben.': 'You don\'t have any shared expenses yet.',
+  'Altersvorsorge ist noch nicht eingerichtet. Trag unter Vorsorge deine Rente ein, dann rechne ich die Lücke. Das ist eine Orientierung, keine Beratung.':
+      'Retirement planning isn\'t set up yet. Enter your pension under Retirement and I\'ll work out the gap. It\'s guidance, not advice.',
+  'Orientierung, keine Beratung: Deine Wunschrente von {x} im Monat ist mit den eingetragenen Bausteinen gedeckt.':
+      'Guidance, not advice: your desired pension of {x} a month is covered by the parts you entered.',
+  'Orientierung, keine Beratung: Bis {x} sind es **{y} Jahre**. Dir fehlen etwa **{z} im Monat**. Dafür wären ungefähr {a} im Monat extra nötig (gesetzlich {b}, Kapital {c}).':
+      'Guidance, not advice: there are **{y} years** until {x}. You\'re about **{z} a month** short. That would take roughly {a} a month extra (state {b}, capital {c}).',
+  'Du hast noch keine geteilten Ausgaben.':
+      'You don\'t have any shared expenses yet.',
   'Splits:\n{x}': 'Splits:\n{x}',
-  'Du hast keine aktiven wiederkehrenden Buchungen.': 'You have no active recurring bookings.',
+  'Du hast keine aktiven wiederkehrenden Buchungen.':
+      'You have no active recurring bookings.',
   '- {x}: {y} {z}{a} · nächstes {b}': '- {x}: {y} {z}{a} · next {b}',
   ' (Einnahme)': ' (income)',
   'Wiederkehrend:\n{x}': 'Recurring:\n{x}',
   '- Kontostand: **{x}**': '- Balance: **{x}**',
   '\n\nLetzte Buchungen:\n{x}': '\n\nRecent bookings:\n{x}',
   'Konten:\n{x}': 'Accounts:\n{x}',
-  'Dafür brauche ich ein paar volle Monate mit Einnahmen.': 'For that I need a few full months with income.',
+  'Dafür brauche ich ein paar volle Monate mit Einnahmen.':
+      'For that I need a few full months with income.',
   'ohne **{x}** ({y}/Monat)': 'without **{x}** ({y}/month)',
   'mit einem Kauf von **{x}**': 'with a purchase of **{x}**',
-  'Sag z. B. „Was wäre ohne {x}?“ oder nenn einen Betrag.\nErkannte Abos: {tip}.': 'Say e.g. "What if I drop {x}?" or name an amount.\nSubscriptions found: {tip}.',
-  'Abos habe ich noch keine erkannt. Frag zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“': 'I haven\'t spotted any subscriptions yet. Ask for example: "What if I spend €200?"',
-  'Am freien Betrag ändert sich nichts.': 'Nothing changes in your free amount.',
-  'Das wären **{x} mehr** frei ({y}/Tag).': 'That would be **{x} more** free ({y}/day).',
-  'Das wären **{x} weniger** frei ({y}/Tag).': 'That would be **{x} less** free ({y}/day).',
-  'Heute bleiben **{x}**.\nSzenario {label}: **{y}**.\n{delta}': 'Left today: **{x}**.\nScenario {label}: **{y}**.\n{delta}',
+  'Sag z. B. „Was wäre ohne {x}?“ oder nenn einen Betrag.\nErkannte Abos: {tip}.':
+      'Say e.g. "What if I drop {x}?" or name an amount.\nSubscriptions found: {tip}.',
+  'Abos habe ich noch keine erkannt. Frag zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“':
+      'I haven\'t spotted any subscriptions yet. Ask for example: "What if I spend €200?"',
+  'Am freien Betrag ändert sich nichts.':
+      'Nothing changes in your free amount.',
+  'Das wären **{x} mehr** frei ({y}/Tag).':
+      'That would be **{x} more** free ({y}/day).',
+  'Das wären **{x} weniger** frei ({y}/Tag).':
+      'That would be **{x} less** free ({y}/day).',
+  'Heute bleiben **{x}**.\nSzenario {label}: **{y}**.\n{delta}':
+      'Left today: **{x}**.\nScenario {label}: **{y}**.\n{delta}',
   'entspannt': 'relaxed',
   'knapp': 'tight',
   'über dem Plan': 'over plan',
   ' Noch fällig: {x}.': ' Still due: {x}.',
-  'Bis Monatsende bleiben dir **{x}**, etwa {y} am Tag. Das Tempo ist {tempo}.{due}': 'You have **{x}** left until the end of the month, about {y} a day. Your pace is {tempo}.{due}',
+  'Bis Monatsende bleiben dir **{x}**, etwa {y} am Tag. Das Tempo ist {tempo}.{due}':
+      'You have **{x}** left until the end of the month, about {y} a day. Your pace is {tempo}.{due}',
   ' Testphase bis {x}.': ' Trial until {x}.',
   ' Gekündigt, nutzbar bis {x}.': ' Cancelled, usable until {x}.',
-  '**Plus ist aktiv** ({x}).{trial}{end}': '**Plus is active** ({x}).{trial}{end}',
-  'Noch {x} Gratis-Fragen und {y} Beleg-Scans in diesem Monat. ': '{x} free questions and {y} receipt scans left this month. ',
-  'Plus ist nicht aktiv. {left}Ein Sparziel ist gratis, weitere mit Plus.': 'Plus isn\'t active. {left}One savings goal is free, more with Plus.',
-  'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben, dann kann ich konkret rechnen.\n\nDu kannst trotzdem fragen, z. B. **„Wo kann ich sparen?“** oder **„Wie lege ich ein Sparziel an?“**': 'There\'s little history here yet. Connect your bank or record a few expenses and I can do real maths.\n\nYou can still ask, e.g. **"Where can I save?"** or **"How do I create a savings goal?"**',
-  'Dein Überblick:\n- Kontostand: **{x}**\n- Depot: {y}\n- Diesen Monat: {z} rein, {a} raus\n\nFrag mich zum Beispiel zu Ausgaben, Sparzielen, Depot, Vermögen, Rente oder Splits.': 'Your overview:\n- Balance: **{x}**\n- Portfolio: {y}\n- This month: {z} in, {a} out\n\nAsk me about spending, savings goals, portfolio, wealth, retirement or splits, for example.',
+  '**Plus ist aktiv** ({x}).{trial}{end}':
+      '**Plus is active** ({x}).{trial}{end}',
+  'Noch {x} Gratis-Fragen und {y} Beleg-Scans in diesem Monat. ':
+      '{x} free questions and {y} receipt scans left this month. ',
+  'Plus ist nicht aktiv. {left}Ein Sparziel ist gratis, weitere mit Plus.':
+      'Plus isn\'t active. {left}One savings goal is free, more with Plus.',
+  'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben, dann kann ich konkret rechnen.\n\nDu kannst trotzdem fragen, z. B. **„Wo kann ich sparen?“** oder **„Wie lege ich ein Sparziel an?“**':
+      'There\'s little history here yet. Connect your bank or record a few expenses and I can do real maths.\n\nYou can still ask, e.g. **"Where can I save?"** or **"How do I create a savings goal?"**',
+  'Dein Überblick:\n- Kontostand: **{x}**\n- Depot: {y}\n- Diesen Monat: {z} rein, {a} raus\n\nFrag mich zum Beispiel zu Ausgaben, Sparzielen, Depot, Vermögen, Rente oder Splits.':
+      'Your overview:\n- Balance: **{x}**\n- Portfolio: {y}\n- This month: {z} in, {a} out\n\nAsk me about spending, savings goals, portfolio, wealth, retirement or splits, for example.',
   'Budgets & Ausgaben': 'Budgets & spending',
   'Verträge & Abbuchungen': 'Contracts & debits',
-  'Budget überschritten, ungewöhnliche Ausgaben, Sparziele': 'Budget exceeded, unusual spending, savings goals',
-  'Preiserhöhungen und große Abbuchungen am Tag vorher': 'Price rises and large debits the day before',
+  'Budget überschritten, ungewöhnliche Ausgaben, Sparziele':
+      'Budget exceeded, unusual spending, savings goals',
+  'Preiserhöhungen und große Abbuchungen am Tag vorher':
+      'Price rises and large debits the day before',
   'Jeden Sonntag um 18 Uhr': 'Every Sunday at 6 pm',
   'Gehalt ist da, Ziel erreicht': 'Salary arrived, goal reached',
-  'Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.': 'This browser doesn\'t support notifications. They work in the iPhone and Android app.',
-  'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen {x} für Ahead erlauben.': 'Notifications are turned off. You can allow them for Ahead in the settings {x}.',
+  'Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.':
+      'This browser doesn\'t support notifications. They work in the iPhone and Android app.',
+  'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen {x} für Ahead erlauben.':
+      'Notifications are turned off. You can allow them for Ahead in the settings {x}.',
   'deines Geräts': 'of your device',
   'Buddy meldet sich ab jetzt': 'Buddy will check in from now on',
-  'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.': 'Only when it matters. You can change this any time in your profile.',
-  'Hinweise, Erinnerungen und Wochenbericht': 'Alerts, reminders and weekly report',
+  'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.':
+      'Only when it matters. You can change this any time in your profile.',
+  'Hinweise, Erinnerungen und Wochenbericht':
+      'Alerts, reminders and weekly report',
   'Dein Wochenbericht ist da': 'Your weekly report is here',
   'Erinnerung von Buddy': 'Reminder from Buddy',
   'Heute rutscht dein Konto ins Minus': 'Your account dips below zero today',
-  'Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.': 'After today\'s debits your balance probably won\'t cover it. Buddy shows you how to get through without the overdraft.',
-  'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.': 'Buddy has reviewed your week: what went well and where there\'s room.',
+  'Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.':
+      'After today\'s debits your balance probably won\'t cover it. Buddy shows you how to get through without the overdraft.',
+  'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.':
+      'Buddy has reviewed your week: what went well and where there\'s room.',
   'Dein Gratis-Test endet in 2 Tagen': 'Your free trial ends in 2 days',
-  'Ab {x} kostet Plus {y}. Wenn du nicht weitermachen willst, kündige vorher.': 'From {x} Plus costs {y}. If you don\'t want to continue, cancel before then.',
+  'Ab {x} kostet Plus {y}. Wenn du nicht weitermachen willst, kündige vorher.':
+      'From {x} Plus costs {y}. If you don\'t want to continue, cancel before then.',
   'Bankverbindung läuft in 3 Tagen ab': 'Bank connection expires in 3 days',
-  'Einmal kurz bestätigen, dann kommen deine Umsätze weiter.': 'Confirm once and your transactions keep coming in.',
+  'Einmal kurz bestätigen, dann kommen deine Umsätze weiter.':
+      'Confirm once and your transactions keep coming in.',
   '{x} {y}: noch eine Woche': '{x} {y}: one week to go',
-  'Die Abrechnung konnte ich gerade nicht lesen.': 'I couldn\'t read the payslip just now.',
-  'Das sieht nicht nach einer Gehaltsabrechnung aus.': 'That doesn\'t look like a payslip.',
-  'Steht nicht auf dem Foto. Ledig ist Klasse I.': 'Not on the photo. Single people are in class I.',
-  'Klasse VI ist für einen Zweitjob. Ist das dein einziger Job, frag die Personalabteilung.': 'Class VI is for a second job. If this is your only job, ask HR.',
+  'Die Abrechnung konnte ich gerade nicht lesen.':
+      'I couldn\'t read the payslip just now.',
+  'Das sieht nicht nach einer Gehaltsabrechnung aus.':
+      'That doesn\'t look like a payslip.',
+  'Steht nicht auf dem Foto. Ledig ist Klasse I.':
+      'Not on the photo. Single people are in class I.',
+  'Klasse VI ist für einen Zweitjob. Ist das dein einziger Job, frag die Personalabteilung.':
+      'Class VI is for a second job. If this is your only job, ask HR.',
   'Klasse {x}.': 'Class {x}.',
   'Rentenversicherung': 'Pension insurance',
   '{x}, das sind 9,3 % vom Brutto.': '{x}, that\'s 9.3 % of gross.',
@@ -687,139 +1005,228 @@ const en = <String, String>{
   'Arbeitslosenversicherung': 'Unemployment insurance',
   '{x}, passt.': '{x}, fits.',
   'Krankenversicherung': 'Health insurance',
-  '{x}. Deine Kasse nimmt etwa {z} % Zusatzbeitrag, der Schnitt sind 2,9 %. Ein Wechsel spart dir rund {y} im Jahr.': '{x}. Your insurer charges about {z} % additional contribution, the average is 2.9 %. Switching saves you around {y} a year.',
-  '{x}, passt zu einem üblichen Zusatzbeitrag.': '{x}, fits a usual additional contribution.',
+  '{x}. Deine Kasse nimmt etwa {z} % Zusatzbeitrag, der Schnitt sind 2,9 %. Ein Wechsel spart dir rund {y} im Jahr.':
+      '{x}. Your insurer charges about {z} % additional contribution, the average is 2.9 %. Switching saves you around {y} a year.',
+  '{x}, passt zu einem üblichen Zusatzbeitrag.':
+      '{x}, fits a usual additional contribution.',
   'Pflegeversicherung': 'Care insurance',
-  '{x}, mit 0,6 % Zuschlag für Kinderlose ab 23.': '{x}, with the 0.6 % surcharge for childless people over 23.',
-  '{x}, erwartet wären etwa {y}. Bei Kindern gibt es Abschläge, die müssen der Kasse bekannt sein.': '{x}, about {y} would be expected. With children there are reductions, your insurer needs to know about them.',
+  '{x}, mit 0,6 % Zuschlag für Kinderlose ab 23.':
+      '{x}, with the 0.6 % surcharge for childless people over 23.',
+  '{x}, erwartet wären etwa {y}. Bei Kindern gibt es Abschläge, die müssen der Kasse bekannt sein.':
+      '{x}, about {y} would be expected. With children there are reductions, your insurer needs to know about them.',
   '{x}, passt zu Klasse {c}.': '{x}, fits class {c}.',
-  '{x}, erwartet wären etwa {y}. Zu viel Lohnsteuer kommt mit der Steuererklärung zurück, prüf aber Steuerklasse und Freibeträge.': '{x}, about {y} would be expected. Too much wage tax comes back with your tax return, but check your tax class and allowances.',
-  '{x}, erwartet wären etwa {y}. Vielleicht ist ein Freibetrag eingetragen.': '{x}, about {y} would be expected. Maybe an allowance is registered.',
-  '{x}. Wer nicht Mitglied einer Kirche ist, sollte hier 0 haben.': '{x}. If you\'re not a church member, this should be 0.',
+  '{x}, erwartet wären etwa {y}. Zu viel Lohnsteuer kommt mit der Steuererklärung zurück, prüf aber Steuerklasse und Freibeträge.':
+      '{x}, about {y} would be expected. Too much wage tax comes back with your tax return, but check your tax class and allowances.',
+  '{x}, erwartet wären etwa {y}. Vielleicht ist ein Freibetrag eingetragen.':
+      '{x}, about {y} would be expected. Maybe an allowance is registered.',
+  '{x}. Wer nicht Mitglied einer Kirche ist, sollte hier 0 haben.':
+      '{x}. If you\'re not a church member, this should be 0.',
   '{x}, die Rechnung geht auf.': '{x}, the maths adds up.',
-  '{x}, aus Brutto minus Abzügen ergeben sich {y}. Vielleicht gibt es weitere Posten.': '{x}, gross minus deductions gives {y}. There may be other items.',
-  '{x} gehen in die Betriebsrente. Das senkt Steuer und Abgaben, darum rechne ich die Zeilen hier nicht nach.': '{x} go into the company pension. That lowers tax and contributions, so I don\'t recompute those lines here.',
-  '{x} im Monat. Prüf, ob sie wirklich in einen Sparvertrag fließen.': '{x} a month. Check that it really goes into a savings contract.',
-  'Auf dem Foto finde ich kein Brutto. Probier ein schärferes Foto der ganzen Seite.': 'I can\'t find a gross amount on the photo. Try a sharper photo of the whole page.',
-  '**Deine Abrechnung sieht stimmig aus.** Brutto {b}, ausgezahlt {n}.': '**Your payslip looks right.** Gross {b}, paid out {n}.',
-  '**{n} Punkte solltest du dir ansehen.** Brutto {b}, ausgezahlt {a}.': '**{n} points are worth a look.** Gross {b}, paid out {a}.',
-  'Nächster Schritt: Leg die Abrechnung digital ab, die brauchst du für die Steuererklärung.': 'Next step: File the payslip digitally, you\'ll need it for your tax return.',
-  'Nächster Schritt: Frag die Personalabteilung nach {x}.': 'Next step: Ask HR about {x}.',
-  'Steuerklasse von {a} auf {b} geändert. War das gewollt, etwa nach einer Heirat?': 'Tax class changed from {a} to {b}. Was that intended, for example after a wedding?',
-  'Neu ist Kirchensteuer: {x}. Stimmt die Religionszugehörigkeit beim Arbeitgeber?': 'New: church tax of {x}. Is your religious affiliation right with your employer?',
-  'Zusatzbeitrag der Krankenkasse von {a} % auf {b} %. Ein Wechsel kann sich lohnen, wenn er gestiegen ist.': 'Health insurance additional rate from {a} % to {b} %. Switching can pay off if it went up.',
-  'Neu: Betriebsrente mit {x} im Monat aus dem Brutto.': 'New: company pension with {x} a month from your gross pay.',
-  'Die Betriebsrente fehlt diesen Monat. Absichtlich beendet?': 'The company pension is missing this month. Did you end it on purpose?',
-  'Neu: vermögenswirksame Leistungen, {x}.': 'New: capital-forming benefits (VL), {x}.',
-  'Brutto {x} mehr als in der letzten Abrechnung.': 'Gross {x} more than on the last payslip.',
-  'Brutto {x} weniger als in der letzten Abrechnung. Krank, unbezahlter Urlaub oder ein Fehler?': 'Gross {x} less than on the last payslip. Sick leave, unpaid leave or a mistake?',
-  'Gleiches Brutto, aber {x} weniger ausgezahlt. Frag nach, welcher Abzug neu ist.': 'Same gross, but {x} less paid out. Ask which deduction is new.',
-  '**Im Vergleich zur letzten Abrechnung:** nichts Auffälliges geändert.': '**Compared with the last payslip:** nothing unusual changed.',
+  '{x}, aus Brutto minus Abzügen ergeben sich {y}. Vielleicht gibt es weitere Posten.':
+      '{x}, gross minus deductions gives {y}. There may be other items.',
+  '{x} gehen in die Betriebsrente. Das senkt Steuer und Abgaben, darum rechne ich die Zeilen hier nicht nach.':
+      '{x} go into the company pension. That lowers tax and contributions, so I don\'t recompute those lines here.',
+  '{x} im Monat. Prüf, ob sie wirklich in einen Sparvertrag fließen.':
+      '{x} a month. Check that it really goes into a savings contract.',
+  'Auf dem Foto finde ich kein Brutto. Probier ein schärferes Foto der ganzen Seite.':
+      'I can\'t find a gross amount on the photo. Try a sharper photo of the whole page.',
+  '**Deine Abrechnung sieht stimmig aus.** Brutto {b}, ausgezahlt {n}.':
+      '**Your payslip looks right.** Gross {b}, paid out {n}.',
+  '**{n} Punkte solltest du dir ansehen.** Brutto {b}, ausgezahlt {a}.':
+      '**{n} points are worth a look.** Gross {b}, paid out {a}.',
+  'Nächster Schritt: Leg die Abrechnung digital ab, die brauchst du für die Steuererklärung.':
+      'Next step: File the payslip digitally, you\'ll need it for your tax return.',
+  'Nächster Schritt: Frag die Personalabteilung nach {x}.':
+      'Next step: Ask HR about {x}.',
+  'Steuerklasse von {a} auf {b} geändert. War das gewollt, etwa nach einer Heirat?':
+      'Tax class changed from {a} to {b}. Was that intended, for example after a wedding?',
+  'Neu ist Kirchensteuer: {x}. Stimmt die Religionszugehörigkeit beim Arbeitgeber?':
+      'New: church tax of {x}. Is your religious affiliation right with your employer?',
+  'Zusatzbeitrag der Krankenkasse von {a} % auf {b} %. Ein Wechsel kann sich lohnen, wenn er gestiegen ist.':
+      'Health insurance additional rate from {a} % to {b} %. Switching can pay off if it went up.',
+  'Neu: Betriebsrente mit {x} im Monat aus dem Brutto.':
+      'New: company pension with {x} a month from your gross pay.',
+  'Die Betriebsrente fehlt diesen Monat. Absichtlich beendet?':
+      'The company pension is missing this month. Did you end it on purpose?',
+  'Neu: vermögenswirksame Leistungen, {x}.':
+      'New: capital-forming benefits (VL), {x}.',
+  'Brutto {x} mehr als in der letzten Abrechnung.':
+      'Gross {x} more than on the last payslip.',
+  'Brutto {x} weniger als in der letzten Abrechnung. Krank, unbezahlter Urlaub oder ein Fehler?':
+      'Gross {x} less than on the last payslip. Sick leave, unpaid leave or a mistake?',
+  'Gleiches Brutto, aber {x} weniger ausgezahlt. Frag nach, welcher Abzug neu ist.':
+      'Same gross, but {x} less paid out. Ask which deduction is new.',
+  '**Im Vergleich zur letzten Abrechnung:** nichts Auffälliges geändert.':
+      '**Compared with the last payslip:** nothing unusual changed.',
   'Kredit- oder Debitkarte': 'Credit or debit card',
-  'Plus-Status gerade nicht abrufbar.': 'Plus status can\'t be fetched right now.',
-  'Der {storeName} ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.': 'The {storeName} can\'t be reached right now. Please try again in a moment.',
-  'Plus ist im {storeName} gerade nicht verfügbar.': 'Plus isn\'t available in the {storeName} right now.',
+  'Plus-Status gerade nicht abrufbar.':
+      'Plus status can\'t be fetched right now.',
+  'Der {storeName} ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.':
+      'The {storeName} can\'t be reached right now. Please try again in a moment.',
+  'Plus ist im {storeName} gerade nicht verfügbar.':
+      'Plus isn\'t available in the {storeName} right now.',
   'Der Kauf hat nicht geklappt.': 'The purchase didn\'t work.',
   'Der Kauf kam ohne Kennung zurück.': 'The purchase came back without an ID.',
-  'Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden. Er wird automatisch nachgeholt.': 'Your purchase arrived but couldn\'t be confirmed yet. It will be completed automatically.',
+  'Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden. Er wird automatisch nachgeholt.':
+      'Your purchase arrived but couldn\'t be confirmed yet. It will be completed automatically.',
   'Bei {x} geht es oft günstiger: {y}.': '{x} often has cheaper options: {y}.',
   'ein Abo mit Werbung': 'a plan with ads',
   'jährlich statt monatlich zahlen': 'paying yearly instead of monthly',
   'ein Familien- oder Duo-Abo teilen': 'sharing a family or duo plan',
   'ein Studierenden-Tarif': 'a student plan',
-  'Über 4.500 € Fahrtkosten zählen nur mit eigenem Auto.': 'Commuting costs above €4,500 only count with your own car.',
-  'Nur {n} Monate gearbeitet: Ein Teil der Lohnsteuer kommt deshalb sowieso zurück.': 'Only {n} months worked: part of the wage tax comes back anyway.',
-  'Unter dem Pauschbetrag von 1.230 €: Die Kosten selbst bringen nichts extra, die Erklärung kann sich trotzdem lohnen.': 'Below the €1,230 allowance: the costs themselves add nothing, but the return can still be worth it.',
+  'Über 4.500 € Fahrtkosten zählen nur mit eigenem Auto.':
+      'Commuting costs above €4,500 only count with your own car.',
+  'Nur {n} Monate gearbeitet: Ein Teil der Lohnsteuer kommt deshalb sowieso zurück.':
+      'Only {n} months worked: part of the wage tax comes back anyway.',
+  'Unter dem Pauschbetrag von 1.230 €: Die Kosten selbst bringen nichts extra, die Erklärung kann sich trotzdem lohnen.':
+      'Below the €1,230 allowance: the costs themselves add nothing, but the return can still be worth it.',
   'Nettovermögen +{x} seit letzter Woche': 'Net worth +{x} since last week',
   'Konto +{x} seit letzter Woche': 'Account +{x} since last week',
-  'Sparquote letzten Monat: {last} %, höher als im Monat davor': 'Savings rate last month: {last} %, higher than the month before',
+  'Sparquote letzten Monat: {last} %, höher als im Monat davor':
+      'Savings rate last month: {last} %, higher than the month before',
   'Deine erste Woche im Blick': 'Your first week at a glance',
   'Sparsame Woche': 'A thrifty week',
   'Eine teure Woche': 'An expensive week',
   'Eine ganz normale Woche': 'A perfectly normal week',
-  'Du hast {x} ausgegeben. Ab nächster Woche vergleiche ich mit deinem Schnitt.': 'You spent {x}. From next week I\'ll compare with your average.',
+  'Du hast {x} ausgegeben. Ab nächster Woche vergleiche ich mit deinem Schnitt.':
+      'You spent {x}. From next week I\'ll compare with your average.',
   '{x} ausgegeben, genau dein Schnitt.': 'You spent {x}, exactly your average.',
-  '{x} ausgegeben, {y} {z} als in einer üblichen Woche.': 'You spent {x}, {y} {z} than in a usual week.',
-  '{x} lag {y} über deinem Schnitt. Schaffst du nächste Woche wieder {z}, sind das aufs Jahr rund {a} mehr für dich.': '{x} was {y} above your average. If you get back to {z} next week, that\'s about {a} more for you over a year.',
-  '{x} kleine Käufe bei {y}, zusammen {z}. Halb so oft wären {a} im Jahr.': '{x} small purchases at {y}, {z} in total. Half as often would be {a} a year.',
-  'Du lagst {x} unter deinem Schnitt. Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.': 'You were {x} below your average. Move that amount to a savings goal right away, then it\'s safe.',
-  'Setz dir für deine größte Kategorie ein Wochenlimit. Buddy sagt dir Bescheid, bevor es knapp wird.': 'Set a weekly limit for your biggest category. Buddy will tell you before it gets tight.',
-  'Umsätze, Budgets, Sparziele, Verträge, Depot, Einstellungen': 'Transactions, budgets, savings goals, contracts, portfolio, settings',
-  'Nur auf diesem Gerät, im geschützten Speicher der App': 'Only on this device, in the app\'s protected storage',
+  '{x} ausgegeben, {y} {z} als in einer üblichen Woche.':
+      'You spent {x}, {y} {z} than in a usual week.',
+  '{x} lag {y} über deinem Schnitt. Schaffst du nächste Woche wieder {z}, sind das aufs Jahr rund {a} mehr für dich.':
+      '{x} was {y} above your average. If you get back to {z} next week, that\'s about {a} more for you over a year.',
+  '{x} kleine Käufe bei {y}, zusammen {z}. Halb so oft wären {a} im Jahr.':
+      '{x} small purchases at {y}, {z} in total. Half as often would be {a} a year.',
+  'Du lagst {x} unter deinem Schnitt. Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.':
+      'You were {x} below your average. Move that amount to a savings goal right away, then it\'s safe.',
+  'Setz dir für deine größte Kategorie ein Wochenlimit. Buddy sagt dir Bescheid, bevor es knapp wird.':
+      'Set a weekly limit for your biggest category. Buddy will tell you before it gets tight.',
+  'Umsätze, Budgets, Sparziele, Verträge, Depot, Einstellungen':
+      'Transactions, budgets, savings goals, contracts, portfolio, settings',
+  'Nur auf diesem Gerät, im geschützten Speicher der App':
+      'Only on this device, in the app\'s protected storage',
   'Nur du. Wir haben keinen Zugriff.': 'Only you. We have no access.',
-  'Profil › Erweitert › App zurücksetzen, oder die App löschen': 'Profile › Advanced › Reset app, or delete the app',
+  'Profil › Erweitert › App zurücksetzen, oder die App löschen':
+      'Profile › Advanced › Reset app, or delete the app',
   'Name, E-Mail, Passwort': 'Name, email, password',
-  'Unser Server. Das Passwort nur als Hash (bcrypt), nicht lesbar.': 'Our server. The password only as a hash (bcrypt), not readable.',
-  'Wir, um dein Konto zu führen. Das Passwort kennt niemand außer dir.': 'Us, to run your account. Nobody but you knows the password.',
-  'Profil › Mein Konto › Konto löschen': 'Profile › My account › Delete account',
-  'Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Buddy sich merken darf': 'Copy of your transactions, budgets, goals, splits, portfolio positions and what Buddy may remember',
-  'Unser Server, vorher auf deinem Gerät verschlüsselt (AES-256) mit einem Schlüssel aus deinem Passwort': 'Our server, encrypted on your device first (AES-256) with a key from your password',
-  'Nur du. Wir sehen nur verschlüsselten Text und können ihn nicht öffnen.': 'Only you. We only see encrypted text and cannot open it.',
+  'Unser Server. Das Passwort nur als Hash (bcrypt), nicht lesbar.':
+      'Our server. The password only as a hash (bcrypt), not readable.',
+  'Wir, um dein Konto zu führen. Das Passwort kennt niemand außer dir.':
+      'Us, to run your account. Nobody but you knows the password.',
+  'Profil › Mein Konto › Konto löschen':
+      'Profile › My account › Delete account',
+  'Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Buddy sich merken darf':
+      'Copy of your transactions, budgets, goals, splits, portfolio positions and what Buddy may remember',
+  'Unser Server, vorher auf deinem Gerät verschlüsselt (AES-256) mit einem Schlüssel aus deinem Passwort':
+      'Our server, encrypted on your device first (AES-256) with a key from your password',
+  'Nur du. Wir sehen nur verschlüsselten Text und können ihn nicht öffnen.':
+      'Only you. We only see encrypted text and cannot open it.',
   'Wird mit dem Konto gelöscht': 'Deleted together with the account',
-  'Kontostand und Umsätze deines Girokontos': 'Balance and transactions of your current account',
-  'Enable Banking Oy (Finnland), zugelassener Kontoinformationsdienst nach PSD2': 'Enable Banking Oy (Finland), a licensed account information service under PSD2',
-  'Enable Banking leitet sie an die App weiter. Deine Bank-Zugangsdaten sehen weder wir noch die App.': 'Enable Banking passes them to the app. Neither we nor the app see your bank login.',
-  'Gilt höchstens 180 Tage. Trennen unter Profil › Banken & Depots oder bei deiner Bank.': 'Valid for at most 180 days. Disconnect under Profile › Banks & portfolios or at your bank.',
-  'Depot-Positionen, Stückzahlen und Kurse, nur lesend': 'Portfolio positions, quantities and prices, read-only',
+  'Kontostand und Umsätze deines Girokontos':
+      'Balance and transactions of your current account',
+  'Enable Banking Oy (Finnland), zugelassener Kontoinformationsdienst nach PSD2':
+      'Enable Banking Oy (Finland), a licensed account information service under PSD2',
+  'Enable Banking leitet sie an die App weiter. Deine Bank-Zugangsdaten sehen weder wir noch die App.':
+      'Enable Banking passes them to the app. Neither we nor the app see your bank login.',
+  'Gilt höchstens 180 Tage. Trennen unter Profil › Banken & Depots oder bei deiner Bank.':
+      'Valid for at most 180 days. Disconnect under Profile › Banks & portfolios or at your bank.',
+  'Depot-Positionen, Stückzahlen und Kurse, nur lesend':
+      'Portfolio positions, quantities and prices, read-only',
   'Parqet Fintech GmbH (Deutschland)': 'Parqet Fintech GmbH (Germany)',
-  'Parqet gibt sie an die App. Deine Zugangsdaten sehen weder wir noch die App.': 'Parqet passes them to the app. Neither we nor the app see your login.',
-  'Trennen unter Profil › Banken & Depots oder bei Parqet unter Integrationen': 'Disconnect under Profile › Banks & portfolios or at Parqet under Integrations',
-  'Deine Frage und eine Zusammenfassung deiner Finanzen, ohne Kontonummern': 'Your question and a summary of your finances, without account numbers',
+  'Parqet gibt sie an die App. Deine Zugangsdaten sehen weder wir noch die App.':
+      'Parqet passes them to the app. Neither we nor the app see your login.',
+  'Trennen unter Profil › Banken & Depots oder bei Parqet unter Integrationen':
+      'Disconnect under Profile › Banks & portfolios or at Parqet under Integrations',
+  'Deine Frage und eine Zusammenfassung deiner Finanzen, ohne Kontonummern':
+      'Your question and a summary of your finances, without account numbers',
   'Google (Gemini) erzeugt die Antwort': 'Google (Gemini) writes the answer',
-  'Anthropic, PBC (USA) erzeugt die Antwort mit Claude': 'Anthropic, PBC (USA) writes the answer with Claude',
-  'Google, um zu antworten. Im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung nutzen.': 'Google, to answer. On the free Gemini plan Google may use it to improve its services.',
-  'Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.': 'Anthropic, only to answer. By contract not for training.',
-  'Schalter „Buddy mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Buddy dann auf dem Gerät.': 'The "Buddy with AI" switch under Profile › Privacy & AI. Buddy then answers simple questions on the device.',
+  'Anthropic, PBC (USA) erzeugt die Antwort mit Claude':
+      'Anthropic, PBC (USA) writes the answer with Claude',
+  'Google, um zu antworten. Im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung nutzen.':
+      'Google, to answer. On the free Gemini plan Google may use it to improve its services.',
+  'Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.':
+      'Anthropic, only to answer. By contract not for training.',
+  'Schalter „Buddy mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Buddy dann auf dem Gerät.':
+      'The "Buddy with AI" switch under Profile › Privacy & AI. Buddy then answers simple questions on the device.',
   '{n} Dinge, die Buddy sich merken darf': '{n} things Buddy may remember',
   'Was Buddy sich merken darf': 'What Buddy may remember',
-  'Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Buddy-Frage mit.': 'On the device and in your encrypted copy. Sent along with every Buddy question.',
-  'Du, und der KI-Anbieter für die Antwort': 'You, and the AI provider for the answer',
+  'Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Buddy-Frage mit.':
+      'On the device and in your encrypted copy. Sent along with every Buddy question.',
+  'Du, und der KI-Anbieter für die Antwort':
+      'You, and the AI provider for the answer',
   'Profil › Was Buddy weiß': 'Profile › What Buddy knows',
-  'Kurze Notizen zu deinen letzten Fragen und Werte geprüfter Gehaltsabrechnungen (ohne Foto)': 'Short notes on your recent questions and the numbers of checked payslips (no photo)',
-  'Nur auf diesem Gerät, Notizen 60 Tage lang': 'Only on this device, notes for 60 days',
-  'Nur du. Die letzten Notizen gehen als Kontext mit an den KI-Anbieter.': 'Only you. The latest notes go to the AI provider as context.',
-  'Profil › Was Buddy weiß › Alles vergessen': 'Profile › What Buddy knows › Forget everything',
-  'Frage, Antwort und Grund, wenn du eine Antwort bewertest': 'Question, answer and reason when you rate an answer',
+  'Kurze Notizen zu deinen letzten Fragen und Werte geprüfter Gehaltsabrechnungen (ohne Foto)':
+      'Short notes on your recent questions and the numbers of checked payslips (no photo)',
+  'Nur auf diesem Gerät, Notizen 60 Tage lang':
+      'Only on this device, notes for 60 days',
+  'Nur du. Die letzten Notizen gehen als Kontext mit an den KI-Anbieter.':
+      'Only you. The latest notes go to the AI provider as context.',
+  'Profil › Was Buddy weiß › Alles vergessen':
+      'Profile › What Buddy knows › Forget everything',
+  'Frage, Antwort und Grund, wenn du eine Antwort bewertest':
+      'Question, answer and reason when you rate an answer',
   'Unser Server, ohne deinen Namen': 'Our server, without your name',
-  'Wir, um Buddy zu verbessern. Nicht zum Training von KI-Modellen.': 'Us, to improve Buddy. Not for training AI models.',
+  'Wir, um Buddy zu verbessern. Nicht zum Training von KI-Modellen.':
+      'Us, to improve Buddy. Not for training AI models.',
   'Schreib uns, dann löschen wir es': 'Write to us and we delete it',
   'Zahlungsdaten für Plus': 'Payment details for Plus',
-  'Apple (App Store), Google Play oder Stripe (Irland), je nachdem wo du kaufst': 'Apple (App Store), Google Play or Stripe (Ireland), depending on where you buy',
-  'Nur der Zahlungsanbieter. Wir sehen nur, ob Plus aktiv ist, und eine gekürzte Zahlungsart.': 'Only the payment provider. We only see whether Plus is active and a shortened payment method.',
-  'Kündigen im Store oder unter Profil › Mein Abo': 'Cancel in the store or under Profile › My subscription',
+  'Apple (App Store), Google Play oder Stripe (Irland), je nachdem wo du kaufst':
+      'Apple (App Store), Google Play or Stripe (Ireland), depending on where you buy',
+  'Nur der Zahlungsanbieter. Wir sehen nur, ob Plus aktiv ist, und eine gekürzte Zahlungsart.':
+      'Only the payment provider. We only see whether Plus is active and a shortened payment method.',
+  'Kündigen im Store oder unter Profil › Mein Abo':
+      'Cancel in the store or under Profile › My subscription',
   'Börsenkürzel für aktuelle Kurse': 'Ticker symbols for current prices',
-  'Yahoo Finance über unseren Server, Krypto direkt bei CoinGecko': 'Yahoo Finance via our server, crypto directly at CoinGecko',
-  'Nur das Kürzel, keine Angaben zu deinem Depot. CoinGecko sieht deine IP-Adresse.': 'Only the symbol, nothing about your portfolio. CoinGecko sees your IP address.',
-  'Keine Positionen im Depot, keine Abfrage': 'No positions in the portfolio, no request',
-  'Wochenbericht und Erinnerungen per WhatsApp': 'Weekly report and reminders via WhatsApp',
-  'Meta (WhatsApp). Unser Server speichert nur einen Hash deiner Nummer.': 'Meta (WhatsApp). Our server only stores a hash of your number.',
+  'Yahoo Finance über unseren Server, Krypto direkt bei CoinGecko':
+      'Yahoo Finance via our server, crypto directly at CoinGecko',
+  'Nur das Kürzel, keine Angaben zu deinem Depot. CoinGecko sieht deine IP-Adresse.':
+      'Only the symbol, nothing about your portfolio. CoinGecko sees your IP address.',
+  'Keine Positionen im Depot, keine Abfrage':
+      'No positions in the portfolio, no request',
+  'Wochenbericht und Erinnerungen per WhatsApp':
+      'Weekly report and reminders via WhatsApp',
+  'Meta (WhatsApp). Unser Server speichert nur einen Hash deiner Nummer.':
+      'Meta (WhatsApp). Our server only stores a hash of your number.',
   'Meta stellt die Nachricht zu': 'Meta delivers the message',
-  'Profil › Mitteilungen, oder „Stop“ in WhatsApp': 'Profile › Notifications, or "Stop" in WhatsApp',
-  'Deine Sprache, wenn du mit Buddy sprichst': 'Your voice, when you talk to Buddy',
-  'Die Spracherkennung deines Geräts, je nach System beim Hersteller (Apple oder Google)': 'Your device\'s speech recognition, depending on the system at the maker (Apple or Google)',
-  'Der Hersteller wandelt sie in Text um, wir bekommen nur den Text': 'The maker turns it into text, we only get the text',
+  'Profil › Mitteilungen, oder „Stop“ in WhatsApp':
+      'Profile › Notifications, or "Stop" in WhatsApp',
+  'Deine Sprache, wenn du mit Buddy sprichst':
+      'Your voice, when you talk to Buddy',
+  'Die Spracherkennung deines Geräts, je nach System beim Hersteller (Apple oder Google)':
+      'Your device\'s speech recognition, depending on the system at the maker (Apple or Google)',
+  'Der Hersteller wandelt sie in Text um, wir bekommen nur den Text':
+      'The maker turns it into text, we only get the text',
   'Einfach tippen statt sprechen': 'Just type instead of speaking',
-  '**Hier liegen deine Daten gerade, und wer sie lesen kann:**': '**Where your data is right now, and who can read it:**',
+  '**Hier liegen deine Daten gerade, und wer sie lesen kann:**':
+      '**Where your data is right now, and who can read it:**',
   'Aus oder nicht genutzt: {x}.': 'Off or not used: {x}.',
-  'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten. Alles im Detail unter Profil › Wo deine Daten liegen.': 'We show no ads, use no tracking and sell no data. All the details under Profile › Where your data is.',
-  'Nächster Schritt: Schau dir die Übersicht an und schalte ab, was du nicht brauchst.': 'Next step: look through the overview and switch off what you don\'t need.',
+  'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten. Alles im Detail unter Profil › Wo deine Daten liegen.':
+      'We show no ads, use no tracking and sell no data. All the details under Profile › Where your data is.',
+  'Nächster Schritt: Schau dir die Übersicht an und schalte ab, was du nicht brauchst.':
+      'Next step: look through the overview and switch off what you don\'t need.',
   'Heute': 'Today',
   'Gestern': 'Yesterday',
-  'Das hat gerade nicht geklappt. Versuch es gleich noch einmal.': 'That didn\'t work just now. Please try again in a moment.',
-  'Keine Verbindung. Prüfe dein Internet und versuch es noch einmal.': 'No connection. Check your internet and try again.',
-  'Das dauert zu lange. Versuch es gleich noch einmal.': 'That\'s taking too long. Please try again in a moment.',
+  'Das hat gerade nicht geklappt. Versuch es gleich noch einmal.':
+      'That didn\'t work just now. Please try again in a moment.',
+  'Keine Verbindung. Prüfe dein Internet und versuch es noch einmal.':
+      'No connection. Check your internet and try again.',
+  'Das dauert zu lange. Versuch es gleich noch einmal.':
+      'That\'s taking too long. Please try again in a moment.',
   'Schreib uns an {email}': 'Write to us at {email}',
   'Über Ahead': 'About Ahead',
   'Version {appVersion}': 'Version {appVersion}',
-  'Dein Buddy für Geld und Zukunft. Die Cloud-Kopie ist passwortverschlüsselt.': 'Your buddy for money and the future. The cloud copy is encrypted with your password.',
-  'Vor der Veröffentlichung noch: {x}. Nur in Test-Versionen sichtbar.': 'Before release still: {x}. Only visible in test builds.',
+  'Dein Buddy für Geld und Zukunft. Die Cloud-Kopie ist passwortverschlüsselt.':
+      'Your buddy for money and the future. The cloud copy is encrypted with your password.',
+  'Vor der Veröffentlichung noch: {x}. Nur in Test-Versionen sichtbar.':
+      'Before release still: {x}. Only visible in test builds.',
   'Anbieter-Angaben': 'Provider details',
   'Hilfe': 'Help',
   'Support kontaktieren': 'Contact support',
   'Wir antworten meist innerhalb eines Tages': 'We usually reply within a day',
   'Ahead Support': 'Ahead support',
   'Idee vorschlagen': 'Suggest an idea',
-  'Was würde Ahead für dich besser machen?': 'What would make Ahead better for you?',
+  'Was würde Ahead für dich besser machen?':
+      'What would make Ahead better for you?',
   'Idee für Ahead': 'Idea for Ahead',
   'Wichtige Hinweise': 'Important notes',
   'Keine Anlageberatung, Kurse, KI': 'No investment advice, prices, AI',
@@ -838,25 +1245,31 @@ const en = <String, String>{
   'Umsätze': 'Transactions',
   'Budgets': 'Budgets',
   'Analyse': 'Analysis',
-  'Budgets gelten für alle Konten zusammen.': 'Budgets apply to all accounts together.',
-  'Analyse gilt für alle Konten zusammen.': 'Analysis covers all accounts together.',
+  'Budgets gelten für alle Konten zusammen.':
+      'Budgets apply to all accounts together.',
+  'Analyse gilt für alle Konten zusammen.':
+      'Analysis covers all accounts together.',
   'Alle': 'All',
   'Konto hinzufügen': 'Add account',
   'Sonstiges · {misc} {x}': 'Other · {misc} {x}',
   'Buchung': 'booking',
   'Buchungen': 'bookings',
-  'Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.': 'Tap a booking or ask Buddy "Tidy up Other".',
+  'Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.':
+      'Tap a booking or ask Buddy "Tidy up Other".',
   'Suchen': 'Search',
   'Keine Treffer': 'No results',
-  'Andere Suche oder Filter zurücksetzen.': 'Try another search or reset the filters.',
+  'Andere Suche oder Filter zurücksetzen.':
+      'Try another search or reset the filters.',
   'Filter zurücksetzen': 'Reset filters',
   'Rewe, 23,75, über 100, Oktober …': 'Rewe, 23.75, over 100, October …',
   'Ausgaben': 'Spending',
   'Einnahmen': 'Income',
   'Noch keine Umsätze sichtbar': 'No transactions visible yet',
   'Noch keine Umsätze': 'No transactions yet',
-  'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren oder erfasse etwas von Hand, bis die ersten Buchungen da sind.': 'Your bank is connected. Pull down to refresh or add something by hand until the first bookings arrive.',
-  'Verbinde deine Bank oder tippe die erste Ausgabe.': 'Connect your bank or type in your first expense.',
+  'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren oder erfasse etwas von Hand, bis die ersten Buchungen da sind.':
+      'Your bank is connected. Pull down to refresh or add something by hand until the first bookings arrive.',
+  'Verbinde deine Bank oder tippe die erste Ausgabe.':
+      'Connect your bank or type in your first expense.',
   'Jetzt synchronisieren': 'Sync now',
   'Bank verbinden': 'Connect bank',
   'Ausgabe manuell erfassen': 'Add expense manually',
@@ -866,7 +1279,8 @@ const en = <String, String>{
   'Bank gerade nicht erreichbar': 'Bank not reachable right now',
   'Mein Konto': 'My account',
   'Nicht angemeldet': 'Not signed in',
-  'Melde dich an, um Bank und Depot zu verbinden und deine Daten zu sichern.': 'Sign in to connect your bank and portfolio and back up your data.',
+  'Melde dich an, um Bank und Depot zu verbinden und deine Daten zu sichern.':
+      'Sign in to connect your bank and portfolio and back up your data.',
   'Anmelden': 'Sign in',
   'Konto erstellen': 'Create account',
   'Profilbild ändern': 'Change profile picture',
@@ -877,32 +1291,42 @@ const en = <String, String>{
   'E-Mail geändert': 'Email changed',
   'Sicherheit': 'Security',
   'Zwei-Faktor': 'Two-factor',
-  'Aktiv · Code aus der Authenticator-App': 'On · code from your authenticator app',
+  'Aktiv · Code aus der Authenticator-App':
+      'On · code from your authenticator app',
   'Optional · schützt die Anmeldung': 'Optional · protects sign-in',
   'Zwei-Faktor ist aus.': 'Two-factor is off.',
-  'Zwei-Faktor ist aktiv. Andere Geräte sind abgemeldet.': 'Two-factor is on. Other devices are signed out.',
+  'Zwei-Faktor ist aktiv. Andere Geräte sind abgemeldet.':
+      'Two-factor is on. Other devices are signed out.',
   'Angemeldete Geräte': 'Signed-in devices',
   'Einzeln abmelden oder alle': 'Sign out one by one or all at once',
   'Passwort ändern': 'Change password',
   'Meldet alle anderen Geräte ab': 'Signs out all other devices',
-  'Passwort geändert. Andere Geräte sind abgemeldet.': 'Password changed. Other devices are signed out.',
+  'Passwort geändert. Andere Geräte sind abgemeldet.':
+      'Password changed. Other devices are signed out.',
   'Abmelden': 'Sign out',
   'Konto löschen': 'Delete account',
-  'Mit allen Bankverbindungen, endgültig': 'With all bank connections, permanently',
-  'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, Ahead kann sie nicht lesen. Die App-Sperre schützt nur die Anzeige auf diesem Gerät.': 'Transactions in the cloud are encrypted with your password, Ahead can\'t read them. The app lock only protects the display on this device.',
+  'Mit allen Bankverbindungen, endgültig':
+      'With all bank connections, permanently',
+  'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, Ahead kann sie nicht lesen. Die App-Sperre schützt nur die Anzeige auf diesem Gerät.':
+      'Transactions in the cloud are encrypted with your password, Ahead can\'t read them. The app lock only protects the display on this device.',
   'Foto wählen': 'Choose photo',
   'Entfernen': 'Remove',
   'Profilbild entfernt': 'Profile picture removed',
   'Profilbild gespeichert': 'Profile picture saved',
   'Abbrechen': 'Cancel',
   'Abmelden?': 'Sign out?',
-  'Auf diesem Gerät werden die Finanzdaten gelöscht. Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück, sonst sind nur die Daten auf anderen Geräten noch da.': 'Your financial data is deleted from this device. If the cloud backup worked, you\'ll get it back with your next sign-in, otherwise only the data on other devices remains.',
-  '\n\nDein Plus-Abo läuft über {storeName} und endet nicht von selbst. Kündige es dort in den Abo-Einstellungen.': '\n\nYour Plus subscription runs through {storeName} and doesn\'t end by itself. Cancel it there in the subscription settings.',
-  '\n\nDein Plus-Abo wird mit dem Konto gekündigt.': '\n\nYour Plus subscription is cancelled along with the account.',
-  'Dein Konto, alle Bankverbindungen und die Sicherung in der Cloud werden dauerhaft gelöscht, auch die Umsätze auf diesem Gerät.{plusNote}': 'Your account, all bank connections and the cloud backup will be deleted permanently, including the transactions on this device.{plusNote}',
+  'Auf diesem Gerät werden die Finanzdaten gelöscht. Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück, sonst sind nur die Daten auf anderen Geräten noch da.':
+      'Your financial data is deleted from this device. If the cloud backup worked, you\'ll get it back with your next sign-in, otherwise only the data on other devices remains.',
+  '\n\nDein Plus-Abo läuft über {storeName} und endet nicht von selbst. Kündige es dort in den Abo-Einstellungen.':
+      '\n\nYour Plus subscription runs through {storeName} and doesn\'t end by itself. Cancel it there in the subscription settings.',
+  '\n\nDein Plus-Abo wird mit dem Konto gekündigt.':
+      '\n\nYour Plus subscription is cancelled along with the account.',
+  'Dein Konto, alle Bankverbindungen und die Sicherung in der Cloud werden dauerhaft gelöscht, auch die Umsätze auf diesem Gerät.{plusNote}':
+      'Your account, all bank connections and the cloud backup will be deleted permanently, including the transactions on this device.{plusNote}',
   'Konto löschen?': 'Delete account?',
   'Weiter': 'Continue',
-  'Löschen hat nicht geklappt, keine Verbindung. Gleich noch einmal versuchen.': 'Could not delete, no connection. Try again in a moment.',
+  'Löschen hat nicht geklappt, keine Verbindung. Gleich noch einmal versuchen.':
+      'Could not delete, no connection. Try again in a moment.',
   'Passwort bestätigen': 'Confirm password',
   'Aktuelles Passwort': 'Current password',
   'Endgültig löschen': 'Delete permanently',
@@ -914,38 +1338,50 @@ const en = <String, String>{
   'Aktuell: {email}': 'Current: {email}',
   'Neue E-Mail': 'New email',
   'Passwort zur Bestätigung': 'Password to confirm',
-  'Das neue Passwort braucht mindestens 8 Zeichen.': 'The new password needs at least 8 characters.',
-  'Die beiden neuen Passwörter stimmen nicht überein.': 'The two new passwords don\'t match.',
-  'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung. Vergisst du es, ist die Kopie nicht mehr lesbar.': 'You\'ll stay signed in here, all other devices will be signed out. Remember the new password well: it encrypts the cloud backup. If you forget it, the copy can\'t be read any more.',
+  'Das neue Passwort braucht mindestens 8 Zeichen.':
+      'The new password needs at least 8 characters.',
+  'Die beiden neuen Passwörter stimmen nicht überein.':
+      'The two new passwords don\'t match.',
+  'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung. Vergisst du es, ist die Kopie nicht mehr lesbar.':
+      'You\'ll stay signed in here, all other devices will be signed out. Remember the new password well: it encrypts the cloud backup. If you forget it, the copy can\'t be read any more.',
   'Neues Passwort': 'New password',
   'Min. 8 Zeichen': 'Min. 8 characters',
   'Neues Passwort wiederholen': 'Repeat new password',
   'Passwörter zeigen': 'Show passwords',
   'Passwörter verbergen': 'Hide passwords',
-  'Face ID, Fingerabdruck oder Gerätecode': 'Face ID, fingerprint or device passcode',
-  'Auf diesem Gerät gibt es keine Biometrie und keinen Gerätecode.': 'This device has no biometrics and no device passcode.',
+  'Face ID, Fingerabdruck oder Gerätecode':
+      'Face ID, fingerprint or device passcode',
+  'Auf diesem Gerät gibt es keine Biometrie und keinen Gerätecode.':
+      'This device has no biometrics and no device passcode.',
   'App-Sperre aktivieren': 'Turn on app lock',
   'App-Sperre': 'App lock',
   '{hint} · nur dieses Gerät': '{hint} · this device only',
   'Der Code hat 6 Ziffern.': 'The code has 6 digits.',
   'Aktivieren': 'Turn on',
-  'Der Code schützt nur die Anmeldung. Umsätze auf dem Gerät und in der Cloud bleiben mit deinem Passwort verschlüsselt. Ohne den Code kommst du nicht mehr rein. Ein Zurücksetzen per E-Mail gibt es noch nicht.': 'The code only protects sign-in. Transactions on the device and in the cloud stay encrypted with your password. Without the code you can\'t get back in. There\'s no email reset yet.',
-  'Trag den Schlüssel in deine Authenticator-App ein (Konto manuell hinzufügen) und gib den ersten Code ein. Andere Geräte werden abgemeldet.': 'Add the key to your authenticator app (add account manually) and enter the first code. Other devices will be signed out.',
+  'Der Code schützt nur die Anmeldung. Umsätze auf dem Gerät und in der Cloud bleiben mit deinem Passwort verschlüsselt. Ohne den Code kommst du nicht mehr rein. Ein Zurücksetzen per E-Mail gibt es noch nicht.':
+      'The code only protects sign-in. Transactions on the device and in the cloud stay encrypted with your password. Without the code you can\'t get back in. There\'s no email reset yet.',
+  'Trag den Schlüssel in deine Authenticator-App ein (Konto manuell hinzufügen) und gib den ersten Code ein. Andere Geräte werden abgemeldet.':
+      'Add the key to your authenticator app (add account manually) and enter the first code. Other devices will be signed out.',
   'Schlüssel kopiert': 'Key copied',
   'Schlüssel kopieren': 'Copy key',
   'Code aus der App': 'Code from the app',
-  'Passwort und den 6-stelligen Code, bitte.': 'Password and the 6-digit code, please.',
+  'Passwort und den 6-stelligen Code, bitte.':
+      'Password and the 6-digit code, please.',
   'Zwei-Faktor ausschalten': 'Turn off two-factor',
   'Ausschalten': 'Turn off',
-  'Danach reicht wieder das Passwort für die Anmeldung.': 'After that your password is enough to sign in again.',
+  'Danach reicht wieder das Passwort für die Anmeldung.':
+      'After that your password is enough to sign in again.',
   'Passwort': 'Password',
   'Angemeldet': 'Signed in',
   'Gerät abmelden?': 'Sign out device?',
-  'Die Anmeldung auf „{label}“ wird beendet.': 'The session on "{label}" will end.',
+  'Die Anmeldung auf „{label}“ wird beendet.':
+      'The session on "{label}" will end.',
   'Alle Geräte abmelden?': 'Sign out all devices?',
-  'Jede Anmeldung endet, auch auf diesem Gerät. Die Daten hier werden gelöscht; die verschlüsselte Sicherung holst du mit dem nächsten Login zurück.': 'Every session ends, including this device. The data here will be deleted; you\'ll get the encrypted backup back with your next sign-in.',
+  'Jede Anmeldung endet, auch auf diesem Gerät. Die Daten hier werden gelöscht; die verschlüsselte Sicherung holst du mit dem nächsten Login zurück.':
+      'Every session ends, including this device. The data here will be deleted; you\'ll get the encrypted backup back with your next sign-in.',
   'Alle abmelden': 'Sign out all',
-  'Eine gestohlene Sitzung bleibt gültig, bis du sie hier beendest oder das Passwort änderst.': 'A stolen session stays valid until you end it here or change your password.',
+  'Eine gestohlene Sitzung bleibt gültig, bis du sie hier beendest oder das Passwort änderst.':
+      'A stolen session stays valid until you end it here or change your password.',
   '{label} · dieses Gerät': '{label} · this device',
   'Alle Geräte abmelden': 'Sign out all devices',
   'Position bearbeiten': 'Edit position',
@@ -957,10 +1393,12 @@ const en = <String, String>{
   'Kaufpreis': 'Purchase price',
   '€ / Stück': '€ / share',
   'Aktueller Kurs': 'Current price',
-  'Kaufpreis ist der aktuelle Kurs. Änder ihn, wenn du einen anderen Preis gezahlt hast.': 'The buy price starts as the current price. Change it if you paid something else.',
+  'Kaufpreis ist der aktuelle Kurs. Änder ihn, wenn du einen anderen Preis gezahlt hast.':
+      'The buy price starts as the current price. Change it if you paid something else.',
   'Symbol (optional)': 'Symbol (optional)',
   'z. B. SAP.DE, AAPL oder BTC': 'e.g. SAP.DE, AAPL or BTC',
-  'Damit holt Ahead den Kurs automatisch.': 'With it, Ahead fetches the price automatically.',
+  'Damit holt Ahead den Kurs automatisch.':
+      'With it, Ahead fetches the price automatically.',
   'Depot (optional)': 'Portfolio (optional)',
   'z. B. Trade Republic, Scalable': 'e.g. Trade Republic, Scalable',
   'Depot wählen': 'Choose portfolio',
@@ -970,7 +1408,8 @@ const en = <String, String>{
   'Wert': 'Value',
   'Gewinn': 'Gain',
   'Bitte ein Wertpapier wählen': 'Please choose a security',
-  'Speichern hat nicht geklappt. Bitte prüf die Eingaben.': 'Saving didn\'t work. Please check your entries.',
+  'Speichern hat nicht geklappt. Bitte prüf die Eingaben.':
+      'Saving didn\'t work. Please check your entries.',
   'Bearbeiten': 'Edit',
   'Neuer Umsatz': 'New transaction',
   'Löschen': 'Delete',
@@ -984,53 +1423,68 @@ const en = <String, String>{
   'Ab wann?': 'Starting when?',
   'Umsatz gelöscht': 'Transaction deleted',
   '{count} Umsätze nachtragen?': 'Add {count} past transactions?',
-  'Beginn liegt in der Vergangenheit. Ahead trägt jeden {interval}en Termin bis heute nach: {count} Umsätze, zusammen {x}.': 'The start is in the past. Ahead fills in every {interval} date up to today: {count} transactions, {x} in total.',
+  'Beginn liegt in der Vergangenheit. Ahead trägt jeden {interval}en Termin bis heute nach: {count} Umsätze, zusammen {x}.':
+      'The start is in the past. Ahead fills in every {interval} date up to today: {count} transactions, {x} in total.',
   'Datum ändern': 'Change date',
   'Nachtragen': 'Add them',
-  'Speichern hat nicht geklappt. Bitte versuch es noch einmal.': 'Saving didn\'t work. Please try again.',
+  'Speichern hat nicht geklappt. Bitte versuch es noch einmal.':
+      'Saving didn\'t work. Please try again.',
   'Ahead entsperren': 'Unlock Ahead',
   'Ahead ist gesperrt': 'Ahead is locked',
-  'Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.': 'Unlock the app with Face ID, fingerprint or your passcode.',
-  'Biometrie klappt gerade nicht. Nochmal auf Entsperren, oder ohne Sperre weiter (sie bleibt in den Einstellungen an).': 'Biometrics are not working right now. Tap Unlock again, or continue without the lock (it stays on in settings).',
+  'Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.':
+      'Unlock the app with Face ID, fingerprint or your passcode.',
+  'Biometrie klappt gerade nicht. Nochmal auf Entsperren, oder ohne Sperre weiter (sie bleibt in den Einstellungen an).':
+      'Biometrics are not working right now. Tap Unlock again, or continue without the lock (it stays on in settings).',
   'Entsperren': 'Unlock',
   'Erneut versuchen': 'Try again',
   'Ohne Biometrie fortfahren': 'Continue without biometrics',
-  'Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.': 'Account created. The backup follows as soon as there\'s a connection.',
-  'Damit sind deine Bankverbindungen nur für dich sichtbar.': 'This keeps your bank connections visible only to you.',
+  'Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.':
+      'Account created. The backup follows as soon as there\'s a connection.',
+  'Damit sind deine Bankverbindungen nur für dich sichtbar.':
+      'This keeps your bank connections visible only to you.',
   'Vorname': 'First name',
   'Passwort zeigen': 'Show password',
   'Passwort verbergen': 'Hide password',
-  'Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.': 'Important: your password encrypts the cloud backup. If you forget it, nobody, not even we, can restore your data.',
+  'Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.':
+      'Important: your password encrypts the cloud backup. If you forget it, nobody, not even we, can restore your data.',
   'Ich akzeptiere die ': 'I accept the ',
   ' und habe die ': ' and have read the ',
   ' gelesen.': '.',
   'Ich habe schon ein Konto': 'I already have an account',
-  'Sicherung gerade nicht geladen. Schreib noch nichts. Tipp auf den roten Hinweis zum erneuten Versuch.': 'The backup did not load just now. Do not type anything yet. Tap the red notice to try again.',
+  'Sicherung gerade nicht geladen. Schreib noch nichts. Tipp auf den roten Hinweis zum erneuten Versuch.':
+      'The backup did not load just now. Do not type anything yet. Tap the red notice to try again.',
   'Willkommen zurück': 'Welcome back',
   'Code eingeben': 'Enter code',
   'Melde dich mit deiner E-Mail an.': 'Sign in with your email.',
-  'Der Authenticator-Code schützt nur die Anmeldung. Umsätze bleiben auf dem Gerät.': 'The authenticator code only protects sign-in. Transactions stay on the device.',
+  'Der Authenticator-Code schützt nur die Anmeldung. Umsätze bleiben auf dem Gerät.':
+      'The authenticator code only protects sign-in. Transactions stay on the device.',
   '6-stelliger Code': '6-digit code',
   'Passwort vergessen?': 'Forgot password?',
   'Code prüfen': 'Check code',
   'Neu hier? Konto erstellen': 'New here? Create account',
   'Zurück zum Passwort': 'Back to password',
   'Passwort vergessen': 'Forgot password',
-  'Kein Reset-Link. Das Passwort ist der Schlüssel zur Cloud. Niemand kann es ersetzen, auch wir nicht.': 'No reset link. The password is the key to the cloud. Nobody can replace it, including us.',
-  'Was du tun kannst:\n• Passwort noch einmal in Ruhe versuchen\n• Neues Konto anlegen, lokal neu starten\n• Zur Kontolöschung uns schreiben': 'What you can do:\n• Try the password again, taking your time\n• Create a new account and start fresh on this device\n• Write to us about deleting the account',
+  'Kein Reset-Link. Das Passwort ist der Schlüssel zur Cloud. Niemand kann es ersetzen, auch wir nicht.':
+      'No reset link. The password is the key to the cloud. Nobody can replace it, including us.',
+  'Was du tun kannst:\n• Passwort noch einmal in Ruhe versuchen\n• Neues Konto anlegen, lokal neu starten\n• Zur Kontolöschung uns schreiben':
+      'What you can do:\n• Try the password again, taking your time\n• Create a new account and start fresh on this device\n• Write to us about deleting the account',
   'Verstanden': 'Got it',
   'Schreib an {email}': 'Write to {email}',
   'E-Mail an Support': 'Email support',
   'Schön, dass du da bist, {name}.': 'Great to have you here, {name}.',
   'Schön, dass du da bist.': 'Great to have you here.',
-  'Wie starten wir? Am schnellsten mit mir im Chat. Die Bank kannst du später verbinden.': 'How do we start? Fastest is with me in chat. You can connect the bank later.',
+  'Wie starten wir? Am schnellsten mit mir im Chat. Die Bank kannst du später verbinden.':
+      'How do we start? Fastest is with me in chat. You can connect the bank later.',
   'Mit Buddy loslegen': 'Get started with Buddy',
-  'Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.': 'Tell Buddy what\'s coming up. Add numbers if you like, or snap a receipt.',
+  'Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.':
+      'Tell Buddy what\'s coming up. Add numbers if you like, or snap a receipt.',
   'Empfohlen': 'Recommended',
   'Bankkonto verbinden': 'Connect bank account',
-  'Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.': 'Sign-in only at your bank, read-only access. Balance and transactions come in automatically.',
+  'Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.':
+      'Sign-in only at your bank, read-only access. Balance and transactions come in automatically.',
   'Mit Beispieldaten testen': 'Try with sample data',
-  'Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.': 'Try it with sample data. Clearly marked and removable any time.',
+  'Mit Beispieldaten ausprobieren. Klar markiert und jederzeit entfernbar.':
+      'Try it with sample data. Clearly marked and removable any time.',
   'Verträge & Abos ansehen': 'View contracts & subscriptions',
   'Rentenrechner öffnen': 'Open pension calculator',
   'Position hinzufügen': 'Add position',
@@ -1046,68 +1500,95 @@ const en = <String, String>{
   'Splits öffnen': 'Open splits',
   'Budget für {target} anlegen': 'Create budget for {target}',
   'Was Buddy getan hat': 'What Buddy did',
-  'Buddy macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.': 'Buddy only does what you confirm. This lists what he created or changed. Almost all of it can be undone.',
-  'Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Buddy, steht es hier.': 'Nothing yet. When you take a budget, goal or reminder from Buddy, it shows up here.',
+  'Buddy macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.':
+      'Buddy only does what you confirm. This lists what he created or changed. Almost all of it can be undone.',
+  'Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Buddy, steht es hier.':
+      'Nothing yet. When you take a budget, goal or reminder from Buddy, it shows up here.',
   'Zurückgenommen': 'Taken back',
   'Alles vergessen?': 'Forget everything?',
-  'Buddy vergisst alles Gemerkte. Buchungen und Ziele bleiben.': 'Buddy forgets everything he stored. Bookings and goals stay.',
+  'Buddy vergisst alles Gemerkte. Buchungen und Ziele bleiben.':
+      'Buddy forgets everything he stored. Bookings and goals stay.',
   'Alles vergessen': 'Forget everything',
   'Was Buddy weiß': 'What Buddy knows',
-  'Ich merke mir nur, was du bestätigst, dann muss ich nicht neu fragen. Alles hier kannst du löschen.': 'I only remember what you confirm, so I do not have to ask again. You can delete everything here.',
+  'Ich merke mir nur, was du bestätigst, dann muss ich nicht neu fragen. Alles hier kannst du löschen.':
+      'I only remember what you confirm, so I do not have to ask again. You can delete everything here.',
   'Lebenslage': 'Life stage',
   '{done} von {all} Schritten erledigt': '{done} of {all} steps done',
   'Gemerkt': 'Remembered',
-  'Noch nichts. Sag Buddy z. B. „Merk dir: im Oktober fängt mein erster Job an“.': 'Nothing yet. Tell Buddy, for example: remember that my first job starts in October.',
+  'Noch nichts. Sag Buddy z. B. „Merk dir: im Oktober fängt mein erster Job an“.':
+      'Nothing yet. Tell Buddy, for example: remember that my first job starts in October.',
   'Gemerkt am {date}': 'Remembered on {date}',
   'Worüber ihr gesprochen habt': 'What you talked about',
-  'Damit Buddy später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.': 'So Buddy can pick up later. Only the question and the next step, kept 60 days.',
-  'Ist „Buddy mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.': 'If Buddy with AI is on, these points go to the AI with your finance summary, only when you ask.',
+  'Damit Buddy später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.':
+      'So Buddy can pick up later. Only the question and the next step, kept 60 days.',
+  'Ist „Buddy mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.':
+      'If Buddy with AI is on, these points go to the AI with your finance summary, only when you ask.',
   'Buddy mit KI nutzen?': 'Use Buddy with AI?',
-  'Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}': 'Buddy only fetches the data he needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Buddy to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
+  'Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}':
+      'Buddy only fetches the data he needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Buddy to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
   'Google (Gemini)': 'Google (Gemini)',
   'Anthropic': 'Anthropic',
-  'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.': 'On the free Gemini tier, Google may use the data to improve its services.',
-  'Anthropic nutzt die Daten nicht zum Training.': 'Anthropic doesn\'t use the data for training.',
+  'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.':
+      'On the free Gemini tier, Google may use the data to improve its services.',
+  'Anthropic nutzt die Daten nicht zum Training.':
+      'Anthropic doesn\'t use the data for training.',
   'Datenschutzerklärung lesen': 'Read privacy policy',
   'KI einschalten': 'Turn on AI',
   'Nur offline antworten': 'Only answer offline',
-  'Wie prüfe ich meine erste Gehaltsabrechnung?': 'How do I check my first payslip?',
+  'Wie prüfe ich meine erste Gehaltsabrechnung?':
+      'How do I check my first payslip?',
   'Lohnt sich die Betriebsrente?': 'Is the company pension worth it?',
-  'Alles klar, ab jetzt antworte ich auf Deutsch.': 'Got it, from now on I\'ll answer in English.',
+  'Alles klar, ab jetzt antworte ich auf Deutsch.':
+      'Got it, from now on I\'ll answer in English.',
   'Wie schalte ich Buddy mit KI aus?': 'How do I turn off Buddy with AI?',
   'Wie lösche ich mein Konto?': 'How do I delete my account?',
-  'Kurz von mir: **{title}**. {text}': 'Quick note from me: **{title}**. {text}',
+  'Kurz von mir: **{title}**. {text}':
+      'Quick note from me: **{title}**. {text}',
   'Was kann ich da tun?': 'What can I do about it?',
   'Wie wirkt sich das auf den Monat aus?': 'How does this affect the month?',
-  'Spracheingabe geht hier gerade nicht. Erlaube das Mikrofon oder tipp deine Frage.': 'Voice input doesn\'t work here right now. Allow the microphone or type your question.',
-  'Fotos lesen kann ich mit einem kostenlosen Konto.': 'I can read photos with a free account.',
-  'Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.': 'I can\'t read photos right now, the AI isn\'t reachable.',
-  'Auf dem Bild habe ich nichts zum Buchen gefunden.': 'I didn\'t find anything to book in the picture.',
+  'Spracheingabe geht hier gerade nicht. Erlaube das Mikrofon oder tipp deine Frage.':
+      'Voice input doesn\'t work here right now. Allow the microphone or type your question.',
+  'Fotos lesen kann ich mit einem kostenlosen Konto.':
+      'I can read photos with a free account.',
+  'Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.':
+      'I can\'t read photos right now, the AI isn\'t reachable.',
+  'Auf dem Bild habe ich nichts zum Buchen gefunden.':
+      'I didn\'t find anything to book in the picture.',
   'Das habe ich erkannt:': 'Here\'s what I recognised:',
   'So würde ich das buchen:': 'This is how I\'d book it:',
-  'Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:': 'The AI is busy right now. Without it I\'d book it like this:',
-  'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.': 'Free scans used up. With Plus you capture any receipt in seconds.',
+  'Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:':
+      'The AI is busy right now. Without it I\'d book it like this:',
+  'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.':
+      'Free scans used up. With Plus you capture any receipt in seconds.',
   'Meine Gehaltsabrechnung': 'My payslip',
   'Was bedeutet meine Steuerklasse?': 'What does my tax class mean?',
-  'Lohnt sich eine Steuererklärung für mich?': 'Is a tax return worth it for me?',
+  'Lohnt sich eine Steuererklärung für mich?':
+      'Is a tax return worth it for me?',
   'Abrechnung prüfen': 'Check payslip',
-  'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.': 'You already have an active savings goal. Plus = as many goals as you like.',
-  '{done}. Buddy merkt sich die Regel für künftige Buchungen.': '{done}. Buddy remembers the rule for future bookings.',
+  'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.':
+      'You already have an active savings goal. Plus = as many goals as you like.',
+  '{done}. Buddy merkt sich die Regel für künftige Buchungen.':
+      '{done}. Buddy remembers the rule for future bookings.',
   'Rentenrechner gespeichert': 'Pension calculator saved',
   'Sparziel angelegt': 'Savings goal created',
   'Ging nicht. {x}': 'Didn\'t work. {x}',
   'Öffnen': 'Open',
-  'Soll ich mir das merken? Dann muss ich nicht jedes Mal neu fragen.': 'Shall I remember this? Then I don\'t have to ask every time.',
-  'Das merke ich mir lieber nicht. Gesundheit, Glaube, Politik und Zugangsdaten bleiben bei dir.': 'I\'d rather not remember that. Health, faith, politics and login details stay with you.',
-  'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.': 'Free questions used up. With Plus Buddy answers as often as you like. Without Plus Buddy keeps answering offline from your data.',
+  'Soll ich mir das merken? Dann muss ich nicht jedes Mal neu fragen.':
+      'Shall I remember this? Then I don\'t have to ask every time.',
+  'Das merke ich mir lieber nicht. Gesundheit, Glaube, Politik und Zugangsdaten bleiben bei dir.':
+      'I\'d rather not remember that. Health, faith, politics and login details stay with you.',
+  'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.':
+      'Free questions used up. With Plus Buddy answers as often as you like. Without Plus Buddy keeps answering offline from your data.',
   'Noch 1 Gratis-Frage diesen Monat': '1 free question left this month',
-  'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.': 'Buddy can\'t be reached right now. Check your connection and ask again in a moment.',
+  'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.':
+      'Buddy can\'t be reached right now. Check your connection and ask again in a moment.',
   'Kopieren': 'Copy',
   'Kopiert': 'Copied',
   'Als Karte teilen': 'Share as card',
   'Beträge kannst du vorher ausblenden': 'You can hide amounts first',
   'Frag Buddy': 'Ask Buddy',
-  '{q} Buddy von Ahead hat mir das in Sekunden ausgerechnet.': '{q} Buddy from Ahead worked this out for me in seconds.',
+  '{q} Buddy von Ahead hat mir das in Sekunden ausgerechnet.':
+      '{q} Buddy from Ahead worked this out for me in seconds.',
   'Zur neuesten Nachricht': 'To the latest message',
   'Buddy': 'Buddy',
   'schreibt …': 'typing …',
@@ -1126,22 +1607,27 @@ const en = <String, String>{
   'KI an': 'AI on',
   'KI aus · tippen zum Einschalten': 'AI off · tap to turn on',
   'Ohne KI': 'Without AI',
-  'KI für heute aufgebraucht, Grundlagen gehen weiter': 'AI used up for today, basics still work',
+  'KI für heute aufgebraucht, Grundlagen gehen weiter':
+      'AI used up for today, basics still work',
   'Noch 1 KI-Antwort heute': '1 AI answer left today',
   'Noch {n} KI-Antworten heute': '{n} AI answers left today',
   'Gratis-KI-Fragen aufgebraucht': 'Free AI questions used up',
   'Noch 1 Gratis-KI-Frage diesen Monat': '1 free AI question left this month',
-  'Noch {left} von {x} Gratis-KI-Fragen': '{left} of {x} free AI questions left',
-  'Hey {name}. Bis Monatsende sind noch': 'Hey {name}. Until the end of the month you still have',
+  'Noch {left} von {x} Gratis-KI-Fragen':
+      '{left} of {x} free AI questions left',
+  'Hey {name}. Bis Monatsende sind noch':
+      'Hey {name}. Until the end of the month you still have',
   'Bis Monatsende sind noch': 'Until the end of the month you still have',
   'frei. Das sind etwa {x} pro Tag.': 'free. That\'s about {x} a day.',
   'Hey {name}, was steht an?': 'Hey {name}, what\'s up?',
   'Hey, was steht an?': 'Hey, what\'s up?',
-  'Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.': 'I\'ll tell you what you can do now, with your real numbers.',
+  'Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.':
+      'I\'ll tell you what you can do now, with your real numbers.',
   'Wo stehst du gerade?': 'Where are you right now?',
   'Andere Lebenslagen': 'Other life stages',
   'Oder frag einfach': 'Or just ask',
-  'Soll ich mich melden, wenn dein Gehalt da ist, ein Budget kippt oder ein Abo teurer wird? Sonntags gibt es einen kurzen Rückblick. Höchstens einmal am Tag.': 'Shall I check in when your salary arrives, a budget tips over or a subscription gets pricier? On Sundays there\'s a short review. At most once a day.',
+  'Soll ich mich melden, wenn dein Gehalt da ist, ein Budget kippt oder ein Abo teurer wird? Sonntags gibt es einen kurzen Rückblick. Höchstens einmal am Tag.':
+      'Shall I check in when your salary arrives, a budget tips over or a subscription gets pricier? On Sundays there\'s a short review. At most once a day.',
   'Lieber nicht': 'Rather not',
   'Ja, gern': 'Yes, please',
   'Noch offen': 'Still open',
@@ -1152,10 +1638,14 @@ const en = <String, String>{
   'Als Nächstes': 'Up next',
   'Loslegen': 'Get started',
   'Alles erledigt. Stark.': 'All done. Strong.',
-  'Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Mit Konto rechnet Buddy mit deinen echten Zahlen.': 'Without an account only your questions go to the AI, no financial data. With an account Buddy works with your real numbers.',
-  'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.': 'Offline mode: Buddy calculates on your device. AI answers need internet and "AI on".',
-  'Buddy bereitet vor, du entscheidest. Nichts wird gespeichert, bevor du es bestätigst.': 'Buddy prepares, you decide. Nothing is saved before you confirm it.',
-  'KI ist aus. Buddy antwortet offline aus deinen Daten.': 'AI is off. Buddy answers offline from your data.',
+  'Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Mit Konto rechnet Buddy mit deinen echten Zahlen.':
+      'Without an account only your questions go to the AI, no financial data. With an account Buddy works with your real numbers.',
+  'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.':
+      'Offline mode: Buddy calculates on your device. AI answers need internet and "AI on".',
+  'Buddy bereitet vor, du entscheidest. Nichts wird gespeichert, bevor du es bestätigst.':
+      'Buddy prepares, you decide. Nothing is saved before you confirm it.',
+  'KI ist aus. Buddy antwortet offline aus deinen Daten.':
+      'AI is off. Buddy answers offline from your data.',
   'Einschalten': 'Turn on',
   'Du': 'You',
   'Kopieren und mehr': 'Copy and more',
@@ -1163,9 +1653,12 @@ const en = <String, String>{
   'Buddy denkt nach': 'Buddy is thinking',
   'schaut in {x} …': 'looking at {x} …',
   'Prüft {x}…': 'Checking {x}…',
-  'KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen': 'AI not available right now · answer from Buddy\'s basic knowledge',
-  'KI gerade ausgelastet · Antwort offline aus deinen Daten': 'AI busy right now · answer offline from your data',
-  'Ohne KI · aus Buddys Grundwissen': 'Without AI · from Buddy\'s basic knowledge',
+  'KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen':
+      'AI not available right now · answer from Buddy\'s basic knowledge',
+  'KI gerade ausgelastet · Antwort offline aus deinen Daten':
+      'AI busy right now · answer offline from your data',
+  'Ohne KI · aus Buddys Grundwissen':
+      'Without AI · from Buddy\'s basic knowledge',
   'Ohne KI berechnet aus deinen Daten': 'Calculated from your data without AI',
   'Buddy hat eine Zahl nachgeprüft': 'Buddy double-checked a number',
   'Stopp': 'Stop',
@@ -1175,8 +1668,10 @@ const en = <String, String>{
   'Gute Antwort': 'Good answer',
   'Schlechte Antwort': 'Bad answer',
   'Was war nicht gut?': 'What wasn\'t good?',
-  'Was hättest du erwartet? (optional)': 'What would you have expected? (optional)',
-  'Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.': 'The question and the answer go to Ahead so Buddy can improve. Nothing else.',
+  'Was hättest du erwartet? (optional)':
+      'What would you have expected? (optional)',
+  'Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.':
+      'The question and the answer go to Ahead so Buddy can improve. Nothing else.',
   'Senden': 'Send',
   'Passiert erst, wenn du bestätigst': 'Only happens once you confirm',
   'Erledigt: {x}': 'Done: {x}',
@@ -1193,7 +1688,8 @@ const en = <String, String>{
   'Ansehen': 'View',
   'Mit deinen Zahlen rechnen?': 'Work with your numbers?',
   'Schließen': 'Close',
-  'Kostenloses Konto. Ich sehe deine Ausgaben und was bis Monatsende bleibt.': 'Free account. I see your spending and what\'s left until month end.',
+  'Kostenloses Konto. Ich sehe deine Ausgaben und was bis Monatsende bleibt.':
+      'Free account. I see your spending and what\'s left until month end.',
   'Kostenlos starten': 'Start for free',
   'Foto entfernen': 'Remove photo',
   'Foto senden': 'Send photo',
@@ -1208,12 +1704,15 @@ const en = <String, String>{
   '„{x}“': '"{x}"',
   'Budget hinzufügen': 'Add budget',
   'Noch keine Budgets': 'No budgets yet',
-  'Lege ein Limit pro Kategorie fest und behalte es im Blick.': 'Set a limit per category and keep an eye on it.',
-  'Aus deinen Ausgaben vorgeschlagen. Ein Tippen reicht.': 'Suggested from your spending. One tap is enough.',
+  'Lege ein Limit pro Kategorie fest und behalte es im Blick.':
+      'Set a limit per category and keep an eye on it.',
+  'Aus deinen Ausgaben vorgeschlagen. Ein Tippen reicht.':
+      'Suggested from your spending. One tap is enough.',
   'Vorschläge übernehmen': 'Apply suggestions',
   'Erstes Budget anlegen': 'Create first budget',
   'Budgets vorschlagen': 'Suggest budgets',
-  'Etwas unter deinem Schnitt der letzten Monate, damit es greift.': 'A bit below your average of recent months, so it has an effect.',
+  'Etwas unter deinem Schnitt der letzten Monate, damit es greift.':
+      'A bit below your average of recent months, so it has an effect.',
   '{x} / Monat': '{x} / month',
   '1 Budget angelegt': '1 budget created',
   '{n} Budgets angelegt': '{n} budgets created',
@@ -1228,24 +1727,33 @@ const en = <String, String>{
   '{spent} · etwa {x} pro Tag{x2}': '{spent} · about {x} a day{x2}',
   ' · schneller als geplant': ' · faster than planned',
   'Budget {category} gelöscht': 'Budget {category} deleted',
-  'Neues Limit für {category}: {x} im Monat': 'New limit for {category}: {x} a month',
-  'Budget für {category} steht. Es gilt jeden Monat, bis du es löschst.': 'Budget for {category} is set. It applies every month until you delete it.',
+  'Neues Limit für {category}: {x} im Monat':
+      'New limit for {category}: {x} a month',
+  'Budget für {category} steht. Es gilt jeden Monat, bis du es löschst.':
+      'Budget for {category} is set. It applies every month until you delete it.',
   'Limit für {category}': 'Limit for {category}',
   'Monatsbudget': 'Monthly budget',
-  'Gilt ab sofort und in den nächsten Monaten.': 'Applies from now on and in the coming months.',
-  'Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.': 'One monthly limit per category. Buddy warns you before it gets tight.',
-  'Diesen Monat hat jede Kategorie ein Limit. Tippe eins zum Anpassen.': 'Every category already has a limit this month. Tap one to change it.',
+  'Gilt ab sofort und in den nächsten Monaten.':
+      'Applies from now on and in the coming months.',
+  'Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.':
+      'One monthly limit per category. Buddy warns you before it gets tight.',
+  'Diesen Monat hat jede Kategorie ein Limit. Tippe eins zum Anpassen.':
+      'Every category already has a limit this month. Tap one to change it.',
   '€ im Monat': '€ a month',
-  'Du gibst dafür im Schnitt {x} im Monat aus.': 'On average you spend {x} a month on this.',
+  'Du gibst dafür im Schnitt {x} im Monat aus.':
+      'On average you spend {x} a month on this.',
   'Budget anlegen': 'Create budget',
   'Limit eingeben': 'Enter limit',
   'Vorschau: hier wird nicht bezahlt': 'Preview: no payment here',
-  'In der App läuft Plus über den App Store oder Google Play. Hier testest du Plus gratis, nur auf diesem Gerät.': 'In the app, Plus runs through the App Store or Google Play. Here you try Plus for free, on this device only.',
+  'In der App läuft Plus über den App Store oder Google Play. Hier testest du Plus gratis, nur auf diesem Gerät.':
+      'In the app, Plus runs through the App Store or Google Play. Here you try Plus for free, on this device only.',
   'Plus in der Vorschau testen': 'Try Plus in the preview',
   'Gerade nicht erreichbar': 'Not reachable right now',
   'Erst ein Konto': 'Account first',
-  'Unser Server antwortet nicht. Zahlung gleich noch einmal versuchen.': 'Our server is not responding. Try the payment again in a moment.',
-  'Plus hängt an deinem Konto: auf jedem Gerät, jederzeit kündbar.': 'Plus stays with your account: on every device, cancel any time.',
+  'Unser Server antwortet nicht. Zahlung gleich noch einmal versuchen.':
+      'Our server is not responding. Try the payment again in a moment.',
+  'Plus hängt an deinem Konto: auf jedem Gerät, jederzeit kündbar.':
+      'Plus stays with your account: on every device, cancel any time.',
   'Kartennummer prüfen': 'Check card number',
   '3–4 Ziffern': '3–4 digits',
   'Name des Kontoinhabers': 'Account holder name',
@@ -1254,35 +1762,49 @@ const en = <String, String>{
   'Lastschrift {x}': 'Direct debit {x}',
   'PayPal · {x}': 'PayPal · {x}',
   'Diesen Code kennen wir nicht': 'We don\'t know this code',
-  'Der Kauf wartet noch auf eine Bestätigung. Plus kommt, sobald sie da ist.': 'The purchase is still waiting for confirmation. Plus arrives as soon as it\'s there.',
+  'Der Kauf wartet noch auf eine Bestätigung. Plus kommt, sobald sie da ist.':
+      'The purchase is still waiting for confirmation. Plus arrives as soon as it\'s there.',
   'Plus starten': 'Start Plus',
   'Zahlungsmethode': 'Payment method',
   'Bezahlt wird über': 'Paid via',
   'Wie möchtest du zahlen?': 'How would you like to pay?',
-  'Testmodus: nichts abgebucht, nichts an einen Zahlungsanbieter.': 'Test mode: nothing is charged and nothing is sent to a payment provider.',
-  'Den Gratis-Zeitraum gibt es einmal pro {x}. Die genauen Bedingungen zeigt dir der {storeName} vor dem Kauf.': 'The free period is available once per {x}. The {storeName} shows you the exact terms before you buy.',
+  'Testmodus: nichts abgebucht, nichts an einen Zahlungsanbieter.':
+      'Test mode: nothing is charged and nothing is sent to a payment provider.',
+  'Den Gratis-Zeitraum gibt es einmal pro {x}. Die genauen Bedingungen zeigt dir der {storeName} vor dem Kauf.':
+      'The free period is available once per {x}. The {storeName} shows you the exact terms before you buy.',
   'Apple-ID': 'Apple ID',
   'Google-Konto': 'Google account',
-  'Demo-Zahlung über den Server: Es wird nichts abgebucht.': 'Demo payment via the server: nothing is charged.',
+  'Demo-Zahlung über den Server: Es wird nichts abgebucht.':
+      'Demo payment via the server: nothing is charged.',
   'So kannst du zahlen': 'How you can pay',
-  'Als Nächstes die sichere Zahlungsseite von Stripe. Ahead sieht Karten- und Kontodaten nie.': 'Next is the secure Stripe payment page. Ahead never sees card or account details.',
-  'Zahlung im neuen Fenster abschließen': 'Complete the payment in the new window',
-  'Sobald sie bestätigt ist, geht es hier von selbst weiter.': 'As soon as it\'s confirmed, things continue here by themselves.',
+  'Als Nächstes die sichere Zahlungsseite von Stripe. Ahead sieht Karten- und Kontodaten nie.':
+      'Next is the secure Stripe payment page. Ahead never sees card or account details.',
+  'Zahlung im neuen Fenster abschließen':
+      'Complete the payment in the new window',
+  'Sobald sie bestätigt ist, geht es hier von selbst weiter.':
+      'As soon as it\'s confirmed, things continue here by themselves.',
   'Erneut öffnen': 'Open again',
   'Jährlich': 'Yearly',
   'Monatlich': 'Monthly',
   'im Jahr · {yearlyPerMonth}/Monat': 'a year · {yearlyPerMonth}/month',
   'Heute fällig': 'Due today',
-  'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.': 'Everything in Plus is unlocked right away. You\'ve already had the free trial.',
+  'Alles von Plus ist sofort freigeschaltet. Den Gratis-Test hattest du schon.':
+      'Everything in Plus is unlocked right away. You\'ve already had the free trial.',
   'Danach': 'After that',
   '{price}, bis du kündigst': '{price}, until you cancel',
-  'Alles von Plus ist sofort freigeschaltet.': 'Everything in Plus is unlocked right away.',
+  'Alles von Plus ist sofort freigeschaltet.':
+      'Everything in Plus is unlocked right away.',
   'Bis {x}': 'Until {x}',
-  'Gratis testen. Kündigst du vorher, zahlst du nichts.': 'Try it free. If you cancel before then, you pay nothing.',
-  '{promoApplied}: {extraDays} Tage extra gratis': '{promoApplied}: {extraDays} extra days free',
-  'Preis und ggf. Testzeitraum siehst du im Store vor dem Kauf.': 'You\'ll see the price and any trial period in the store before you buy.',
-  'Mit deiner Apple-ID, kündbar in den Einstellungen': 'With your Apple ID, cancel in Settings',
-  'Mit deinem Google-Konto, kündbar im Play Store': 'With your Google account, cancel in the Play Store',
+  'Gratis testen. Kündigst du vorher, zahlst du nichts.':
+      'Try it free. If you cancel before then, you pay nothing.',
+  '{promoApplied}: {extraDays} Tage extra gratis':
+      '{promoApplied}: {extraDays} extra days free',
+  'Preis und ggf. Testzeitraum siehst du im Store vor dem Kauf.':
+      'You\'ll see the price and any trial period in the store before you buy.',
+  'Mit deiner Apple-ID, kündbar in den Einstellungen':
+      'With your Apple ID, cancel in Settings',
+  'Mit deinem Google-Konto, kündbar im Play Store':
+      'With your Google account, cancel in the Play Store',
   'Mit Face ID oder Touch ID bestätigen': 'Confirm with Face ID or Touch ID',
   'Mit deinem Google-Konto bestätigen': 'Confirm with your Google account',
   'Schnell und mit Käuferschutz': 'Fast and with buyer protection',
@@ -1294,13 +1816,18 @@ const en = <String, String>{
   'Prüfnummer': 'Security code',
   'Kontoinhaber': 'Account holder',
   'Vor- und Nachname': 'First and last name',
-  'Ich ermächtige Ahead, Zahlungen von meinem Konto per Lastschrift einzuziehen (SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.': 'I authorise Ahead to collect payments from my account by direct debit (SEPA Direct Debit mandate). I can request a refund within eight weeks.',
+  'Ich ermächtige Ahead, Zahlungen von meinem Konto per Lastschrift einzuziehen (SEPA-Lastschriftmandat). Ich kann innerhalb von acht Wochen die Erstattung verlangen.':
+      'I authorise Ahead to collect payments from my account by direct debit (SEPA Direct Debit mandate). I can request a refund within eight weeks.',
   'PayPal-E-Mail': 'PayPal email',
   'du@beispiel.de': 'you@example.com',
-  'Zum Bestätigen wirst du kurz zu PayPal weitergeleitet.': 'You\'ll be briefly redirected to PayPal to confirm.',
-  'Klarna schickt dir nach dem Test eine Rechnung. Du hast 30 Tage Zeit.': 'Klarna sends you an invoice after the trial. You have 30 days.',
-  'Beim Start fragt dein Gerät nach der Bestätigung. Keine Kartendaten nötig.': 'When you start, your device asks for confirmation. No card details needed.',
-  'Abrechnung, Kündigung und Erstattung laufen über den Store.': 'Billing, cancellation and refunds go through the store.',
+  'Zum Bestätigen wirst du kurz zu PayPal weitergeleitet.':
+      'You\'ll be briefly redirected to PayPal to confirm.',
+  'Klarna schickt dir nach dem Test eine Rechnung. Du hast 30 Tage Zeit.':
+      'Klarna sends you an invoice after the trial. You have 30 days.',
+  'Beim Start fragt dein Gerät nach der Bestätigung. Keine Kartendaten nötig.':
+      'When you start, your device asks for confirmation. No card details needed.',
+  'Abrechnung, Kündigung und Erstattung laufen über den Store.':
+      'Billing, cancellation and refunds go through the store.',
   'Gutscheincode einlösen': 'Redeem voucher code',
   'Gutscheincode': 'Voucher code',
   'Einlösen': 'Redeem',
@@ -1311,10 +1838,12 @@ const en = <String, String>{
   'Mit Google Pay gratis starten': 'Start free with Google Pay',
   'Weiter mit PayPal': 'Continue with PayPal',
   '{x} Tage gratis starten': 'Start {x} days free',
-  'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit in den Abos {x}. Mit dem Start akzeptierst du die Nutzungsbedingungen.': 'Renews automatically until you cancel. You can cancel any time in the subscriptions {x}. By starting you accept the terms of use.',
+  'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit in den Abos {x}. Mit dem Start akzeptierst du die Nutzungsbedingungen.':
+      'Renews automatically until you cancel. You can cancel any time in the subscriptions {x}. By starting you accept the terms of use.',
   'deiner Apple-ID': 'of your Apple ID',
   'bei Google Play': 'on Google Play',
-  'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. Mit dem Start akzeptierst du die Nutzungsbedingungen.': 'Renews automatically until you cancel. You can cancel any time under Profile › My subscription. By starting you accept the terms of use.',
+  'Verlängert sich automatisch, bis du kündigst. Kündigen geht jederzeit unter Profil › Mein Abo. Mit dem Start akzeptierst du die Nutzungsbedingungen.':
+      'Renews automatically until you cancel. You can cancel any time under Profile › My subscription. By starting you accept the terms of use.',
   'Zahlungsseite wird geöffnet …': 'Opening payment page …',
   'Plus wird freigeschaltet …': 'Unlocking Plus …',
   'Wird gespeichert …': 'Saving …',
@@ -1329,48 +1858,67 @@ const en = <String, String>{
   'Sparziele öffnen': 'Open savings goals',
   'Buddy öffnen': 'Open Buddy',
   'Willkommen bei Plus': 'Welcome to Plus',
-  'Gratis-Test bis {x}. Bis dahin 0 €, jederzeit kündbar.': 'Free trial until {x}. 0 € until then, cancel any time.',
-  'Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.': 'Plus is active. You can cancel any time under Profile › My subscription.',
+  'Gratis-Test bis {x}. Bis dahin 0 €, jederzeit kündbar.':
+      'Free trial until {x}. 0 € until then, cancel any time.',
+  'Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.':
+      'Plus is active. You can cancel any time under Profile › My subscription.',
   'Buddy beantwortet jetzt jede Frage': 'Buddy now answers every question',
   'Belege scannen ohne Limit': 'Scan receipts without limits',
   'So viele Sparziele, wie du willst': 'As many savings goals as you like',
-  'Das war der Grund. Probier es gleich aus.': 'That was the reason. Try it right away.',
+  'Das war der Grund. Probier es gleich aus.':
+      'That was the reason. Try it right away.',
   'Fertig': 'Done',
   'Unternehmen & Vertrauen': 'Company & trust',
-  'Ahead hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.': 'Ahead helps you understand everyday money: what comes in, what regularly goes out, and what\'s left for goals or rough retirement planning. The app doesn\'t hold an account, pays nothing out and doesn\'t replace advice.',
+  'Ahead hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.':
+      'Ahead helps you understand everyday money: what comes in, what regularly goes out, and what\'s left for goals or rough retirement planning. The app doesn\'t hold an account, pays nothing out and doesn\'t replace advice.',
   'Für Nutzer': 'For users',
-  'Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. Keine Werbung, kein Tracking, kein Verkauf von Daten.': 'The app is built privacy-first. Transactions, budgets, goals and portfolio live on your device first. With an account there\'s also a copy that your device encrypts before uploading, we can\'t read it. No ads, no tracking, no selling of data.',
+  'Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. Keine Werbung, kein Tracking, kein Verkauf von Daten.':
+      'The app is built privacy-first. Transactions, budgets, goals and portfolio live on your device first. With an account there\'s also a copy that your device encrypts before uploading, we can\'t read it. No ads, no tracking, no selling of data.',
   'Für Investoren': 'For investors',
-  'Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Buddy bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Buddy holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.': 'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Buddy prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Buddy only fetches the data he needs for a question, and only with consent.',
+  'Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Buddy bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Buddy holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.':
+      'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Buddy prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Buddy only fetches the data he needs for a question, and only with consent.',
   'Karriere & Weiterbildung': 'Careers & learning',
-  'Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze, woran du arbeiten willst, reichen.': 'We build the app ourselves and are open to working students, internships and people who take product, Flutter or the backend seriously. A few sentences on what you\'d like to work on are enough.',
+  'Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze, woran du arbeiten willst, reichen.':
+      'We build the app ourselves and are open to working students, internships and people who take product, Flutter or the backend seriously. A few sentences on what you\'d like to work on are enough.',
   'Mitarbeit anfragen': 'Ask about working with us',
   'Transparenz': 'Transparency',
-  'Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. Auf dem Gerät schützt zusätzlich die App-Sperre.\n\nDie Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App sehen deine Zugangsdaten.\n\nBuddy mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit sie dort möglich ist.': 'We only store passwords as bcrypt hashes. Optionally you can turn on an authenticator app as a second factor under My account → Security; signed-in devices can be revoked one by one or all at once. On the device, the app lock adds protection.\n\nThe bank connection runs through Enable Banking. You confirm access at your bank (strong customer authentication). Neither we nor the app see your login details.\n\nBuddy with AI only sends a summary without account numbers after you agree. Without consent the answer stays on the device, as far as possible there.',
-  'Vor Store-Release noch ausfüllen: {x}. Nur in Test-Versionen sichtbar.': 'Still to fill in before store release: {x}. Only visible in test builds.',
+  'Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. Auf dem Gerät schützt zusätzlich die App-Sperre.\n\nDie Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App sehen deine Zugangsdaten.\n\nBuddy mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit sie dort möglich ist.':
+      'We only store passwords as bcrypt hashes. Optionally you can turn on an authenticator app as a second factor under My account → Security; signed-in devices can be revoked one by one or all at once. On the device, the app lock adds protection.\n\nThe bank connection runs through Enable Banking. You confirm access at your bank (strong customer authentication). Neither we nor the app see your login details.\n\nBuddy with AI only sends a summary without account numbers after you agree. Without consent the answer stays on the device, as far as possible there.',
+  'Vor Store-Release noch ausfüllen: {x}. Nur in Test-Versionen sichtbar.':
+      'Still to fill in before store release: {x}. Only visible in test builds.',
   'Hilfe & Lizenzen': 'Help & licences',
   'Support und Open Source': 'Support and open source',
   'Verbindungen': 'Connections',
-  'Kontostand, Umsätze und Depot automatisch aktuell, ohne Abtippen.': 'Balance, transactions and portfolio up to date automatically, no typing.',
+  'Kontostand, Umsätze und Depot automatisch aktuell, ohne Abtippen.':
+      'Balance, transactions and portfolio up to date automatically, no typing.',
   'Depot': 'Portfolio',
   'Weitere Bank verbinden': 'Connect another bank',
   'Demo': 'Demo',
   'Aktiv': 'Active',
-  'Wird beim nächsten Aktualisieren geladen': 'Will be loaded at the next refresh',
+  'Wird beim nächsten Aktualisieren geladen':
+      'Will be loaded at the next refresh',
   'Trennen': 'Disconnect',
-  'Die Freigabe wird widerrufen. Umsätze und Konten dieser Bank verschwinden aus der App.': 'Access will be revoked. Transactions and accounts from this bank disappear from the app.',
-  'Nur Lesezugriff, Überweisungen sind nicht möglich': 'Read-only access, no transfers possible',
-  'Login direkt bei deiner Bank, Ahead sieht keine Zugangsdaten': 'Sign in directly at your bank, Ahead sees no login details',
-  'Jederzeit trennbar, Freigabe gilt bis zu 180 Tage': 'Disconnect any time, access lasts up to 180 days',
-  'Auch dein Trade-Republic-Konto: Guthaben, Kartenzahlungen und Zinsen': 'Your Trade Republic account too: balance, card payments and interest',
+  'Die Freigabe wird widerrufen. Umsätze und Konten dieser Bank verschwinden aus der App.':
+      'Access will be revoked. Transactions and accounts from this bank disappear from the app.',
+  'Nur Lesezugriff, Überweisungen sind nicht möglich':
+      'Read-only access, no transfers possible',
+  'Login direkt bei deiner Bank, Ahead sieht keine Zugangsdaten':
+      'Sign in directly at your bank, Ahead sees no login details',
+  'Jederzeit trennbar, Freigabe gilt bis zu 180 Tage':
+      'Disconnect any time, access lasts up to 180 days',
+  'Auch dein Trade-Republic-Konto: Guthaben, Kartenzahlungen und Zinsen':
+      'Your Trade Republic account too: balance, card payments and interest',
   'Bank auswählen': 'Choose bank',
   'Depot verbinden': 'Connect portfolio',
-  'Dafür brauchst du ein kostenloses Konto. So bleibt deine {x} nur für dich sichtbar.': 'You need a free account for this. That way your {x} stays visible only to you.',
+  'Dafür brauchst du ein kostenloses Konto. So bleibt deine {x} nur für dich sichtbar.':
+      'You need a free account for this. That way your {x} stays visible only to you.',
   'Depotverbindung': 'portfolio connection',
   'Bankverbindung': 'bank connection',
   'Warte auf deine Freigabe …': 'Waiting for your approval …',
-  'Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.': 'Sign in to your bank in the window that opened. Then things continue here automatically. After 10 minutes without approval Ahead cancels.',
-  'Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.': 'Connecting cancelled. You can try again any time.',
+  'Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.':
+      'Sign in to your bank in the window that opened. Then things continue here automatically. After 10 minutes without approval Ahead cancels.',
+  'Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.':
+      'Connecting cancelled. You can try again any time.',
   'Abgelaufen': 'Expired',
   'Läuft ab': 'Expires',
   'Noch nicht aktualisiert': 'Not updated yet',
@@ -1383,99 +1931,138 @@ const en = <String, String>{
   'über Parqet · {positions} {x}': 'via Parqet · {positions} {x}',
   'Position': 'position',
   'Positionen': 'positions',
-  'Ahead liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, bis du sie löschst.': 'Ahead will no longer read this portfolio. The positions stay in the app until you delete them.',
-  'Trade Republic, Scalable, ING und mehr': 'Trade Republic, Scalable, ING and more',
-  'Verbinde dein Depot einmal mit Parqet': 'Connect your portfolio to Parqet once',
-  'Kostenlos, Parqet hält es dann automatisch aktuell': 'Free, Parqet then keeps it up to date automatically',
+  'Ahead liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, bis du sie löschst.':
+      'Ahead will no longer read this portfolio. The positions stay in the app until you delete them.',
+  'Trade Republic, Scalable, ING und mehr':
+      'Trade Republic, Scalable, ING and more',
+  'Verbinde dein Depot einmal mit Parqet':
+      'Connect your portfolio to Parqet once',
+  'Kostenlos, Parqet hält es dann automatisch aktuell':
+      'Free, Parqet then keeps it up to date automatically',
   'Gib es hier für Ahead frei': 'Share it with Ahead here',
-  'Nur Lesezugriff, deine Broker-Zugangsdaten sieht Ahead nie': 'Read-only access, Ahead never sees your broker login',
+  'Nur Lesezugriff, deine Broker-Zugangsdaten sieht Ahead nie':
+      'Read-only access, Ahead never sees your broker login',
   'Mit Parqet verbinden': 'Connect with Parqet',
-  'Noch kein Parqet? Hier kostenlos anlegen': 'No Parqet yet? Create one here for free',
-  'Ohne Parqet: Exportiere deine Umsätze bei Trade Republic als CSV und lade sie unter Profil → Import, Export & Backup → Depot importieren.': 'Without Parqet: export your Trade Republic transactions as CSV and upload them under Profile → Import, export & backup → Import portfolio.',
-  'Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.': 'Sign in to Parqet in the window that opened and allow access. Then things continue here automatically. After 10 minutes without approval Ahead cancels.',
+  'Noch kein Parqet? Hier kostenlos anlegen':
+      'No Parqet yet? Create one here for free',
+  'Ohne Parqet: Exportiere deine Umsätze bei Trade Republic als CSV und lade sie unter Profil → Import, Export & Backup → Depot importieren.':
+      'Without Parqet: export your Trade Republic transactions as CSV and upload them under Profile → Import, export & backup → Import portfolio.',
+  'Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.':
+      'Sign in to Parqet in the window that opened and allow access. Then things continue here automatically. After 10 minutes without approval Ahead cancels.',
   'über Parqet · {synced} {x}': 'via Parqet · {synced} {x}',
   'Depotwert': 'Portfolio value',
-  'Weitere Depots wie Scalable oder ING fügst du in Parqet hinzu. Beim nächsten Aktualisieren erscheinen sie hier, jedes für sich.': 'Add more portfolios like Scalable or ING in Parqet. At the next refresh they\'ll show up here, each on its own.',
-  'Keine Verbindung zum Server. Verbinden ist gerade nicht möglich.': 'No connection to the server. Connecting isn\'t possible right now.',
-  'Von Hand erfassen und CSV-Import (Profil → Import, Export & Backup) gehen weiterhin.': 'Adding by hand and CSV import (Profile → Import, export & backup) still work.',
+  'Weitere Depots wie Scalable oder ING fügst du in Parqet hinzu. Beim nächsten Aktualisieren erscheinen sie hier, jedes für sich.':
+      'Add more portfolios like Scalable or ING in Parqet. At the next refresh they\'ll show up here, each on its own.',
+  'Keine Verbindung zum Server. Verbinden ist gerade nicht möglich.':
+      'No connection to the server. Connecting isn\'t possible right now.',
+  'Von Hand erfassen und CSV-Import (Profil → Import, Export & Backup) gehen weiterhin.':
+      'Adding by hand and CSV import (Profile → Import, export & backup) still work.',
   'Zum Import': 'To import',
   'Verbindung wird geprüft …': 'Checking connection …',
-  'Gerade nicht erreichbar · Erneut versuchen': 'Not reachable right now · Try again',
-  'Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten': 'Demo mode: sample bank and sample portfolio, no real data',
+  'Gerade nicht erreichbar · Erneut versuchen':
+      'Not reachable right now · Try again',
+  'Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten':
+      'Demo mode: sample bank and sample portfolio, no real data',
   'Verbunden · {x} im Demo-Modus': 'Connected · {x} in demo mode',
   'Bank': 'Bank',
   'Sicher verbunden': 'Securely connected',
   'Verbindung erneut prüfen': 'Check connection again',
-  'Starte den Ahead-Server auf deinem Rechner:': 'Start the Ahead server on your computer:',
-  'Gerade keine Verbindung. Bitte versuch es gleich noch einmal.': 'No connection right now. Please try again in a moment.',
+  'Starte den Ahead-Server auf deinem Rechner:':
+      'Start the Ahead server on your computer:',
+  'Gerade keine Verbindung. Bitte versuch es gleich noch einmal.':
+      'No connection right now. Please try again in a moment.',
   'gerade eben': 'just now',
   'vor {inMinutes} Min.': '{inMinutes} min ago',
   'vor {inHours} Std.': '{inHours} h ago',
   'am {x}': 'on {x}',
-  'Keine Freigabe von der Bank erhalten. Du kannst es jederzeit noch einmal versuchen.': 'No approval received from the bank. You can try again any time.',
+  'Keine Freigabe von der Bank erhalten. Du kannst es jederzeit noch einmal versuchen.':
+      'No approval received from the bank. You can try again any time.',
   'Nicht verbunden: {error}': 'Not connected: {error}',
   'Verbindung abgelaufen': 'Connection expired',
   'Aktualisieren hat nicht geklappt. {x}': 'Refreshing didn\'t work. {x}',
-  'Deine Umsätze sind da. Auf dem Start siehst du, was diesen Monat noch frei ist.': 'Your transactions are in. On Home you can see what\'s still free this month.',
-  '{added} {x} übernommen. Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.': '{added} {x} imported. On Home Buddy works out what\'s still free this month.',
+  'Deine Umsätze sind da. Auf dem Start siehst du, was diesen Monat noch frei ist.':
+      'Your transactions are in. On Home you can see what\'s still free this month.',
+  '{added} {x} übernommen. Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.':
+      '{added} {x} imported. On Home Buddy works out what\'s still free this month.',
   'Umsatz': 'transaction',
-  '\n\nAbos und Miete erkennt Buddy unter Verträge.': '\n\nBuddy spots subscriptions and rent under Contracts.',
+  '\n\nAbos und Miete erkennt Buddy unter Verträge.':
+      '\n\nBuddy spots subscriptions and rent under Contracts.',
   'Hier bleiben': 'Stay here',
   'Verträge': 'Contracts',
   'Zum Start': 'To Home',
-  'Die Freigabe wird widerrufen. Übernommene Bank-Umsätze verschwinden aus der App.': 'Access will be revoked. Imported bank transactions disappear from the app.',
-  'Die Freigabe wird widerrufen. Eine weitere Bank bleibt verbunden; deren Umsätze bleiben.': 'Access will be revoked. Another bank stays connected; its transactions remain.',
-  'Keine Freigabe vom Depot erhalten. Du kannst es jederzeit noch einmal versuchen.': 'No approval received from the portfolio. You can try again any time.',
-  'Depot verbunden · {count} {x} übernommen': 'Portfolio connected · {count} {x} imported',
+  'Die Freigabe wird widerrufen. Übernommene Bank-Umsätze verschwinden aus der App.':
+      'Access will be revoked. Imported bank transactions disappear from the app.',
+  'Die Freigabe wird widerrufen. Eine weitere Bank bleibt verbunden; deren Umsätze bleiben.':
+      'Access will be revoked. Another bank stays connected; its transactions remain.',
+  'Keine Freigabe vom Depot erhalten. Du kannst es jederzeit noch einmal versuchen.':
+      'No approval received from the portfolio. You can try again any time.',
+  'Depot verbunden · {count} {x} übernommen':
+      'Portfolio connected · {count} {x} imported',
   'Depot aktualisiert': 'Portfolio updated',
   'Depot trennen?': 'Disconnect portfolio?',
-  'Ahead liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.': 'Ahead will no longer read your portfolio. The imported positions stay in the app until you delete them. In Parqet you can remove the access completely under Integrations.',
+  'Ahead liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.':
+      'Ahead will no longer read your portfolio. The imported positions stay in the app until you delete them. In Parqet you can remove the access completely under Integrations.',
   'Depot getrennt': 'Portfolio disconnected',
   'z. B. ING, DKB, Sparkasse Köln': 'e.g. ING, DKB, Sparkasse Köln',
   'Keine Banken geladen': 'No banks loaded',
-  'Keine Bank zu „{x}“ gefunden. Versuch einen anderen Namen.': 'No bank found for "{x}". Try another name.',
+  'Keine Bank zu „{x}“ gefunden. Versuch einen anderen Namen.':
+      'No bank found for "{x}". Try another name.',
   'Verträge & Abos': 'Contracts & subscriptions',
   'Pro Monat': 'Per month',
   '{x} · {x2}': '{x} · {x2}',
   '1 Vertrag': '1 contract',
   '{n} Verträge': '{n} contracts',
   '{x} im Jahr': '{x} a year',
-  'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.': 'Spotted from regular payments of the same amount to the same recipient.',
-  '{name} kostet seit der letzten Zahlung {x} mehr.': '{name} costs {x} more since the last payment.',
-  '{raised} Verträge sind teurer geworden, z. B. {name} (+{x}).': '{raised} contracts got more expensive, e.g. {name} (+{x}).',
+  'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.':
+      'Spotted from regular payments of the same amount to the same recipient.',
+  '{name} kostet seit der letzten Zahlung {x} mehr.':
+      '{name} costs {x} more since the last payment.',
+  '{raised} Verträge sind teurer geworden, z. B. {name} (+{x}).':
+      '{raised} contracts got more expensive, e.g. {name} (+{x}).',
   'Gekündigt am {x}': 'Cancelled on {x}',
   'Monatlich · nächste am {x}': 'Monthly · next on {x}',
   'Noch keine Verträge erkannt': 'No contracts spotted yet',
-  'Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. Mit verbundenem Bankkonto geht das automatisch.': 'As soon as a payment is the same three months in a row, it shows up here. With a connected bank account this happens automatically.',
+  'Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. Mit verbundenem Bankkonto geht das automatisch.':
+      'As soon as a payment is the same three months in a row, it shows up here. With a connected bank account this happens automatically.',
   '[Dein Name]': '[Your name]',
-  'Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.': 'Noted. Over the next weeks Buddy checks whether {name} really stops.',
-  'Kündigung kopiert. Füg sie beim Anbieter ein.': 'Cancellation copied. Paste it at the provider.',
-  '„{name}“ wird nicht mehr als Vertrag gezählt': '"{name}" is no longer counted as a contract',
+  'Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.':
+      'Noted. Over the next weeks Buddy checks whether {name} really stops.',
+  'Kündigung kopiert. Füg sie beim Anbieter ein.':
+      'Cancellation copied. Paste it at the provider.',
+  '„{name}“ wird nicht mehr als Vertrag gezählt':
+      '"{name}" is no longer counted as a contract',
   '{x} im Monat · {x2} im Jahr': '{x} a month · {x2} a year',
   'Alle Zahlungen': 'All payments',
   'Alle {payments} Zahlungen': 'All {payments} payments',
-  'Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.': 'Cancelled on {x}. If another debit comes after that, Buddy will let you know.',
+  'Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.':
+      'Cancelled on {x}. If another debit comes after that, Buddy will let you know.',
   'Kündigung zurücknehmen': 'Undo cancellation',
   '{name} kündigen': 'Cancel {name}',
   'Dein Kündigungsschreiben': 'Your cancellation letter',
   'Kundennummer (optional)': 'Customer number (optional)',
-  'Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.': 'Many providers have a "Cancel contracts here" button. You can paste the text there.',
+  'Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.':
+      'Many providers have a "Cancel contracts here" button. You can paste the text there.',
   'Per E-Mail': 'By email',
   'Ich habe sie abgeschickt': 'I\'ve sent it',
   'Kein Vertrag? Nicht mehr mitzählen': 'Not a contract? Stop counting it',
   'Abo-Check': 'Subscription check',
-  'Buddy hat {n} {x} gefunden: {y} im Jahr.': 'Buddy found {n} {x}: {y} a year.',
+  'Buddy hat {n} {x} gefunden: {y} im Jahr.':
+      'Buddy found {n} {x}: {y} a year.',
   'Abo': 'subscription',
   'Abos und Verträge': 'subscriptions and contracts',
   '- **{x}**: {y} im Monat': '- **{x}**: {y} a month',
   '- und {n} weitere': '- and {n} more',
-  'Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.': 'Next step: Go through once and see what you really use.',
-  'Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?': 'Buddy from Ahead found {n} subscriptions and contracts on my account. How many do you have?',
+  'Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.':
+      'Next step: Go through once and see what you really use.',
+  'Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?':
+      'Buddy from Ahead found {n} subscriptions and contracts on my account. How many do you have?',
   'Wo deine Daten liegen': 'Where your data is',
-  'Pro Datenart: wo sie liegen, wer sie sieht und wie du sie stoppst. Was an ist, steht oben.': 'For each kind of data: where it lives, who can see it, and how you stop it. What is on is listed above.',
+  'Pro Datenart: wo sie liegen, wer sie sieht und wie du sie stoppst. Was an ist, steht oben.':
+      'For each kind of data: where it lives, who can see it, and how you stop it. What is on is listed above.',
   'Gerade aktiv': 'On right now',
   'Nur wenn du es nutzt': 'Only when you use it',
-  'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.': 'We show no ads, use no tracking and sell no data.',
+  'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.':
+      'We show no ads, use no tracking and sell no data.',
   'Alle meine Daten': 'All my data',
   'Alle meine Daten herunterladen': 'Download all my data',
   'Auf deinem Gerät': 'On your device',
@@ -1486,25 +2073,33 @@ const en = <String, String>{
   'Stoppen': 'Stop',
   'Weitere Positionen': 'More positions',
   'Noch kein Depot': 'No portfolio yet',
-  'Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.': 'Connect your portfolio and positions and prices come in by themselves.',
-  'Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.': 'Or add the first position yourself. The current price is prefilled.',
+  'Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.':
+      'Connect your portfolio and positions and prices come in by themselves.',
+  'Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.':
+      'Or add the first position yourself. The current price is prefilled.',
   'Erste Position eintragen': 'Add first position',
   'Kurse von Hand eingegeben': 'Prices entered by hand',
   'Kurse: Stand {x}{x2}': 'Prices: as of {x}{x2}',
-  '{text}\nVerlauf mit heutigem Bestand': '{text}\nHistory with today\'s holdings',
+  '{text}\nVerlauf mit heutigem Bestand':
+      '{text}\nHistory with today\'s holdings',
   'Investiert (Ø)': 'Invested (avg.)',
   'Gewinn/Verlust': 'Gain/loss',
   'Rendite': 'Return',
-  'Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.': 'Invested at average price, your broker may differ slightly.',
+  'Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.':
+      'Invested at average price, your broker may differ slightly.',
   'Gesamt': 'Total',
   '{x} Stück{x2}': '{x} shares{x2}',
   'Alle Kurse aktuell': 'All prices up to date',
-  '{live} {x} aktualisiert · für {failed} gerade kein Live-Kurs, dort gilt der letzte Stand': '{live} {x} updated · no live price for {failed} right now, the last known one applies there',
+  '{live} {x} aktualisiert · für {failed} gerade kein Live-Kurs, dort gilt der letzte Stand':
+      '{live} {x} updated · no live price for {failed} right now, the last known one applies there',
   'Kurs': 'price',
   'Kurse': 'prices',
-  'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.': 'No live prices reachable right now. The last known prices apply.',
-  'Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.': 'Prices couldn\'t be loaded just now. Please try again in a moment.',
-  'Deine erste Position steht. {name} ist im Depot.': 'Your first position is in. {name} is in the portfolio.',
+  'Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.':
+      'No live prices reachable right now. The last known prices apply.',
+  'Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.':
+      'Prices couldn\'t be loaded just now. Please try again in a moment.',
+  'Deine erste Position steht. {name} ist im Depot.':
+      'Your first position is in. {name} is in the portfolio.',
   'Hinzugefügt': 'Added',
   'Aktualisiert': 'Updated',
   '{name} gelöscht': '{name} deleted',
@@ -1512,7 +2107,8 @@ const en = <String, String>{
   'Neues Ziel': 'New goal',
   'Schon zurückgelegt': 'Already put aside',
   'Worauf sparst du?': 'What are you saving for?',
-  'Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Ohne Sparkonto trägst du den Stand manuell ein.': 'Create a goal. Transfer to your savings account at the bank, after sync it counts here. Without a savings account you enter the amount by hand.',
+  'Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Ohne Sparkonto trägst du den Stand manuell ein.':
+      'Create a goal. Transfer to your savings account at the bank, after sync it counts here. Without a savings account you enter the amount by hand.',
   'Erstes Ziel anlegen': 'Create first goal',
   'Wie lege ich ein Sparziel an?': 'How do I create a savings goal?',
   'Mit Buddy planen': 'Plan with Buddy',
@@ -1524,7 +2120,8 @@ const en = <String, String>{
   'Ziel löschen': 'Delete goal',
   'Geld zurücklegen': 'Put money aside',
   'Automatisch sparen': 'Save automatically',
-  'Autopilot: Aufrunden & Monatsbeträge, zählt in der App mit': 'Autopilot: round-ups & monthly amounts, counted in the app',
+  'Autopilot: Aufrunden & Monatsbeträge, zählt in der App mit':
+      'Autopilot: round-ups & monthly amounts, counted in the app',
   'Aufrunden': 'Round up',
   'Autopilot pausiert (Plus)': 'Autopilot paused (Plus)',
   'Automatisch: {x}': 'Automatic: {x}',
@@ -1534,11 +2131,13 @@ const en = <String, String>{
   'Aus {name} entnehmen': 'Take out of {name}',
   'Für {name} zurücklegen': 'Put aside for {name}',
   'Betrag': 'Amount',
-  'Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.': 'With a savings account in the app, the transfer counts by itself after sync.',
+  'Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.':
+      'With a savings account in the app, the transfer counts by itself after sync.',
   'Von {name} zurück auf {name2}': 'From {name} back to {name2}',
   'Von {name} auf {name2}': 'From {name} to {name2}',
   'Zurück auf': 'Back to',
-  'Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.': 'Without a savings account only the amount here. With instant-access savings the bank transfer counts after sync.',
+  'Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.':
+      'Without a savings account only the amount here. With instant-access savings the bank transfer counts after sync.',
   'Entnehmen': 'Take out',
   '{x} von {x2} zurück': '{x} back from {x2}',
   '{x} aus {y} entnommen': '{x} taken out of {y}',
@@ -1555,25 +2154,32 @@ const en = <String, String>{
   'Bis wann? (optional)': 'By when? (optional)',
   'Ohne Datum': 'No date',
   'Geld landet auf': 'Money goes to',
-  'Gib dem Ziel einen Namen oder wähle eine Idee oben.': 'Give the goal a name or pick an idea above.',
+  'Gib dem Ziel einen Namen oder wähle eine Idee oben.':
+      'Give the goal a name or pick an idea above.',
   'Trag ein, wie viel du ansparen willst.': 'Enter how much you want to save.',
   'Ziel anlegen': 'Create goal',
   '{name} spart jetzt automatisch{x}': '{name} now saves automatically{x}',
   ' · {x} schon dazu': ' · {x} added already',
   'Automatisches Sparen aus': 'Automatic saving off',
   '{emoji} {name} automatisch füllen': 'Fill {emoji} {name} automatically',
-  'Die App zählt mit, überwiesen wird nichts.': 'The app keeps count, nothing is transferred.',
+  'Die App zählt mit, überwiesen wird nichts.':
+      'The app keeps count, nothing is transferred.',
   'Jeden Monat': 'Every month',
   '€ am Monatsanfang': '€ at the start of the month',
   'Buddy schlägt {suggested} € vor': 'Buddy suggests € {suggested}',
   'Zählt ab dem {x}.': 'Counts from {x}.',
   'Ausgaben aufrunden': 'Round up spending',
-  'Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.{x}{x2}': 'A €3.20 coffee adds €0.80 to the goal.{x}{x2}',
-  ' Bei dir wären das etwa {x} im Monat.': ' For you that would be about {x} a month.',
-  ' Rundet bisher für „{name}“, das hört dann auf.': ' Currently rounds up for "{name}", that will stop.',
-  'Ahead zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.': 'Ahead keeps count but doesn\'t move any money. For the monthly amount, best set up a standing order to your savings account.',
+  'Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.{x}{x2}':
+      'A €3.20 coffee adds €0.80 to the goal.{x}{x2}',
+  ' Bei dir wären das etwa {x} im Monat.':
+      ' For you that would be about {x} a month.',
+  ' Rundet bisher für „{name}“, das hört dann auf.':
+      ' Currently rounds up for "{name}", that will stop.',
+  'Ahead zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.':
+      'Ahead keeps count but doesn\'t move any money. For the monthly amount, best set up a standing order to your savings account.',
   'Position gelöscht': 'Position deleted',
-  'Diese Position gibt es hier nicht mehr.': 'This position doesn\'t exist here any more.',
+  'Diese Position gibt es hier nicht mehr.':
+      'This position doesn\'t exist here any more.',
   'Zurück': 'Back',
   'seit Kauf': 'since purchase',
   'Für heute liegen noch keine Kurse vor': 'No prices for today yet',
@@ -1588,17 +2194,20 @@ const en = <String, String>{
   'eingegeben, nicht live': 'entered, not live',
   'Nachrichten': 'News',
   'Ohne Börsen-Symbol keine Nachrichten.': 'No news without a ticker symbol.',
-  'Gerade keine Schlagzeilen zu {symbol}.': 'No headlines for {symbol} right now.',
+  'Gerade keine Schlagzeilen zu {symbol}.':
+      'No headlines for {symbol} right now.',
   'Position löschen?': 'Delete position?',
   'Daten unterscheiden sich': 'Data differs',
-  'Hier sind Änderungen, im Konto eine neuere Sicherung von einem anderen Gerät.\n\nKein Zusammenführen: eine Kopie gewinnt (Buchungen, Budgets, Depot), die andere ist weg.': 'There are changes here, and the account has a newer backup from another device.\n\nNo merge: one copy wins (transactions, budgets, portfolio), the other is gone.',
+  'Hier sind Änderungen, im Konto eine neuere Sicherung von einem anderen Gerät.\n\nKein Zusammenführen: eine Kopie gewinnt (Buchungen, Budgets, Depot), die andere ist weg.':
+      'There are changes here, and the account has a newer backup from another device.\n\nNo merge: one copy wins (transactions, budgets, portfolio), the other is gone.',
   'Kontodaten laden': 'Load account data',
   'Gerätedaten behalten': 'Keep device data',
   'Überblick': 'Overview',
   'Neu': 'New',
   'Schnell': 'Quick',
   'Schnell erfassen': 'Quick add',
-  'Eintippen wie „Döner 8,50 gestern“': 'Type something like "Kebab 8.50 yesterday"',
+  'Eintippen wie „Döner 8,50 gestern“':
+      'Type something like "Kebab 8.50 yesterday"',
   'Beleg scannen': 'Scan receipt',
   'Foto vom Kassenbon genügt': 'A photo of the receipt is enough',
   'Umsatz erfassen': 'Add transaction',
@@ -1608,35 +2217,45 @@ const en = <String, String>{
   'Einrichten': 'Set up',
   'Bank verbinden oder von Hand': 'Connect bank or by hand',
   'Depot hinzufügen': 'Add portfolio',
-  'Trade Republic & Co. oder Position von Hand': 'Trade Republic & co. or a position by hand',
+  'Trade Republic & Co. oder Position von Hand':
+      'Trade Republic & co. or a position by hand',
   'Limit für eine Kategorie': 'Limit for one category',
   'Ausgabe teilen': 'Split an expense',
   'WG, Paar, Urlaub': 'Flatshare, couple, holiday',
   'Link kopiert': 'Link copied',
   'Freunde einladen': 'Invite friends',
   'Zu dritt ist Geld weniger nervig.': 'Money is less annoying with friends.',
-  'Lad bis zu drei Leute ein. Pro Person, die mitmacht: {n} Buddy-Fragen mehr im Monat.': 'Invite up to three people. For each person who joins: {n} extra Buddy questions a month.',
+  'Lad bis zu drei Leute ein. Pro Person, die mitmacht: {n} Buddy-Fragen mehr im Monat.':
+      'Invite up to three people. For each person who joins: {n} extra Buddy questions a month.',
   'Dabei': 'Joined',
   'Frei': 'Free',
   'Schon {n} Fragen extra im Monat.': 'Already {n} extra questions a month.',
-  'Einladungslink lädt nicht. Verbindung prüfen und gleich noch einmal.': 'The invite link is not loading. Check the connection and try again in a moment.',
+  'Einladungslink lädt nicht. Verbindung prüfen und gleich noch einmal.':
+      'The invite link is not loading. Check the connection and try again in a moment.',
   'Dein Code': 'Your code',
   'Link kopieren': 'Copy link',
   'Einladung senden': 'Send invite',
   'Weiter einladen': 'Keep inviting',
-  'Über deinen Link sieht niemand deinen Vornamen oder deine Daten. Wir zählen nur, dass jemand mitmacht.': 'People using your link do not see your first name or your data. We only count that someone joined.',
+  'Über deinen Link sieht niemand deinen Vornamen oder deine Daten. Wir zählen nur, dass jemand mitmacht.':
+      'People using your link do not see your first name or your data. We only count that someone joined.',
   'WhatsApp': 'WhatsApp',
   'Gerade nicht erreichbar.': 'Not reachable right now.',
   'Mitteilungen': 'Notifications',
-  'Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.': 'Buddy only speaks up when it matters: at most once a day, three times a week. No spam, no ads.',
+  'Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.':
+      'Buddy only speaks up when it matters: at most once a day, three times a week. No spam, no ads.',
   'Mitteilungen erlauben': 'Allow notifications',
   'Hier gerade nicht möglich': 'Not possible here right now',
-  'Dein Browser blockiert Mitteilungen. Änder das in den Website-Einstellungen (Schloss neben der Adresse). Hinweise in der App bleiben.': 'Your browser blocks notifications. Change that in the site settings (the lock next to the address). In-app notices stay.',
-  'Erlaube Mitteilungen für Ahead in den Geräteeinstellungen. Hinweise in der App bleiben.': 'Allow notifications for Ahead in the device settings. Notices in the app stay.',
+  'Dein Browser blockiert Mitteilungen. Änder das in den Website-Einstellungen (Schloss neben der Adresse). Hinweise in der App bleiben.':
+      'Your browser blocks notifications. Change that in the site settings (the lock next to the address). In-app notices stay.',
+  'Erlaube Mitteilungen für Ahead in den Geräteeinstellungen. Hinweise in der App bleiben.':
+      'Allow notifications for Ahead in the device settings. Notices in the app stay.',
   'Worüber Buddy Bescheid sagt': 'What Buddy tells you about',
-  'Im Browser nur, solange Ahead offen ist. Geplante Erinnerungen (Wochenbericht, Bank-Freigabe) gibt es in der App.': 'In the browser, only while Ahead is open. Scheduled reminders (weekly report, bank access) are in the app.',
-  'Erinnerungen plant dein Gerät. Dafür gehen keine Daten an einen Server.': 'Your device schedules the reminders. No data goes to a server for that.',
-  'Aus, bis du zustimmst. Versand über WhatsApp (Meta): Wochenbericht, Budget-Warnung, Split-Erinnerung. Kein Spam. Nummer nur als Hash. Abmelden per Schalter oder „Stop“.': 'Off until you agree. Sent via WhatsApp (Meta): weekly report, budget alert, split reminder. No spam. Your number is stored only as a hash. Unsubscribe with the switch or Stop.',
+  'Im Browser nur, solange Ahead offen ist. Geplante Erinnerungen (Wochenbericht, Bank-Freigabe) gibt es in der App.':
+      'In the browser, only while Ahead is open. Scheduled reminders (weekly report, bank access) are in the app.',
+  'Erinnerungen plant dein Gerät. Dafür gehen keine Daten an einen Server.':
+      'Your device schedules the reminders. No data goes to a server for that.',
+  'Aus, bis du zustimmst. Versand über WhatsApp (Meta): Wochenbericht, Budget-Warnung, Split-Erinnerung. Kein Spam. Nummer nur als Hash. Abmelden per Schalter oder „Stop“.':
+      'Off until you agree. Sent via WhatsApp (Meta): weekly report, budget alert, split reminder. No spam. Your number is stored only as a hash. Unsubscribe with the switch or Stop.',
   'Mitteilungen per WhatsApp': 'Notifications via WhatsApp',
   'An, jederzeit abmeldbar': 'On, unsubscribe any time',
   'Aus': 'Off',
@@ -1651,15 +2270,21 @@ const en = <String, String>{
   '{x} · Stand {time}': '{x} · as of {time}',
   'sync incomplete': 'sync incomplete',
   'Wie viel hast du gerade?': 'How much do you have right now?',
-  'Einmal eintragen, dann stimmt der Überblick.': 'Enter it once and the overview is right.',
+  'Einmal eintragen, dann stimmt der Überblick.':
+      'Enter it once and the overview is right.',
   'Du siehst Beispieldaten': 'You\'re looking at sample data',
   'Beispieldaten entfernen?': 'Remove sample data?',
-  'Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. Was du selbst eingetragen hast, bleibt.': 'All sample transactions, budgets, goals and the sample portfolio disappear. What you entered yourself stays.',
-  'Für „noch frei“ brauchst du eine Einnahme (z. B. Gehalt).': 'For "still free" you need some income (e.g. salary).',
-  '**{x}** sind bis Monatsende noch frei, etwa {y} pro Tag.': '**{x}** is still free until the end of the month, about {y} a day.',
-  'Diesen Monat wird es knapp: **{x}** fehlen bis Monatsende.': 'This month is getting tight: you\'re **{x}** short until the end of the month.',
+  'Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. Was du selbst eingetragen hast, bleibt.':
+      'All sample transactions, budgets, goals and the sample portfolio disappear. What you entered yourself stays.',
+  'Für „noch frei“ brauchst du eine Einnahme (z. B. Gehalt).':
+      'For "still free" you need some income (e.g. salary).',
+  '**{x}** sind bis Monatsende noch frei, etwa {y} pro Tag.':
+      '**{x}** is still free until the end of the month, about {y} a day.',
+  'Diesen Monat wird es knapp: **{x}** fehlen bis Monatsende.':
+      'This month is getting tight: you\'re **{x}** short until the end of the month.',
   'Wie komme ich diesen Monat noch hin?': 'How do I get through this month?',
-  'Frag mich, was du dir diesen Monat leisten kannst.': 'Ask me what you can afford this month.',
+  'Frag mich, was du dir diesen Monat leisten kannst.':
+      'Ask me what you can afford this month.',
   'Buddy sagt': 'Buddy says',
   'Polster einrichten': 'Set up a cushion',
   'Polster steht': 'Cushion is in place',
@@ -1669,14 +2294,16 @@ const en = <String, String>{
   'Buchungen einordnen': 'Sort bookings',
   '{misc} in Sonstiges · Händler antippen': '{misc} in Other · tap a merchant',
   'Sparziel anlegen': 'Create savings goal',
-  '1 Ziel gratis · Autopilot später mit Plus': '1 goal free · autopilot later with Plus',
+  '1 Ziel gratis · Autopilot später mit Plus':
+      '1 goal free · autopilot later with Plus',
   'Abos teurer geworden': 'Subscriptions got pricier',
   '{raised} {x} mit Preisanstieg': '{raised} {x} with a price rise',
   'Vertrag': 'contract',
   'Geteilte Ausgaben': 'Shared expenses',
   'Du bekommst {x}': 'You get {x}',
   'Du schuldest {x}': 'You owe {x}',
-  'Aus deinen Ausgaben · {suggestions} Kategorien': 'From your spending · {suggestions} categories',
+  'Aus deinen Ausgaben · {suggestions} Kategorien':
+      'From your spending · {suggestions} categories',
   'Budgets knapp': 'Budgets tight',
   '{tight} {x} knapp oder drüber': '{tight} {x} tight or over',
   'Kategorien': 'Categories',
@@ -1689,8 +2316,10 @@ const en = <String, String>{
   'Transfer': 'Transfer',
   'Nettovermögen': 'Net worth',
   'Gesamtvermögen': 'Total wealth',
-  'Konto + Depot − {x} Schulden · tippen': 'Account + portfolio − {x} debts · tap',
-  'Konto + Depot · Vermögen & Absicherung': 'Account + portfolio · wealth & protection',
+  'Konto + Depot − {x} Schulden · tippen':
+      'Account + portfolio − {x} debts · tap',
+  'Konto + Depot · Vermögen & Absicherung':
+      'Account + portfolio · wealth & protection',
   '{x} im {y}': '{x} in {y}',
   'Eintragen': 'Enter',
   'Kontostand fehlt noch': 'Balance still missing',
@@ -1700,7 +2329,8 @@ const en = <String, String>{
   'Letzte Umsätze': 'Recent transactions',
   'Dein Überblick': 'Your overview',
   'Hallo {name}': 'Hello {name}',
-  'Bank verbinden oder erste Ausgabe erfassen.': 'Connect your bank or add your first expense.',
+  'Bank verbinden oder erste Ausgabe erfassen.':
+      'Connect your bank or add your first expense.',
   'Login nur bei deiner Bank': 'Sign-in only at your bank',
   'Jetzt verbinden': 'Connect now',
   'Oder Ausgabe manuell erfassen': 'Or add an expense manually',
@@ -1710,29 +2340,37 @@ const en = <String, String>{
   'Belege ohne Limit': 'Receipts without limits',
   'Fotografieren statt abtippen': 'Snap instead of typing',
   'Unbegrenzte Sparziele': 'Unlimited savings goals',
-  'Beliebig viele, mit Aufrunden und Monatsbetrag': 'As many as you like, with round-ups and monthly amounts',
+  'Beliebig viele, mit Aufrunden und Monatsbetrag':
+      'As many as you like, with round-ups and monthly amounts',
   'Du unterstützt Ahead': 'You support Ahead',
   'Ohne Werbung, ohne Datenverkauf': 'No ads, no selling of data',
   'Dein Plus-Abo ist wieder aktiv': 'Your Plus subscription is active again',
-  'Kein Abo gefunden, das wiederhergestellt werden kann': 'No subscription found that can be restored',
+  'Kein Abo gefunden, das wiederhergestellt werden kann':
+      'No subscription found that can be restored',
   'Plus ist aktiv': 'Plus is active',
-  'Buddy, Belege und Sparziele laufen ohne Limit.': 'Buddy, receipts and savings goals run without limits.',
+  'Buddy, Belege und Sparziele laufen ohne Limit.':
+      'Buddy, receipts and savings goals run without limits.',
   'Mein Abo verwalten': 'Manage my subscription',
   'Ahead Plus': 'Ahead Plus',
-  '7 Tage gratis testen · danach jederzeit kündbar': 'Try 7 days free · cancel any time after',
+  '7 Tage gratis testen · danach jederzeit kündbar':
+      'Try 7 days free · cancel any time after',
   'Jederzeit kündbar · ohne Werbung': 'Cancel any time · no ads',
-  'Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.': 'Always free: account & portfolio, budgets, monthly forecast, contracts including cancellation, emergency fund & retirement guidance, alerts, groups and your monthly review.',
+  'Immer gratis: Konto & Depot, Budgets, Monatsprognose, Verträge samt Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, Gruppen und dein Monatsrückblick.':
+      'Always free: account & portfolio, budgets, monthly forecast, contracts including cancellation, emergency fund & retirement guidance, alerts, groups and your monthly review.',
   '7 Tage gratis testen': 'Try 7 days free',
-  'Danach {x} {x2}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar {x3}.': 'Then {x} {x2}, renews automatically. €0 today, cancel any time {x3}.',
+  'Danach {x} {x2}, verlängert sich automatisch. Heute 0 €, jederzeit kündbar {x3}.':
+      'Then {x} {x2}, renews automatically. €0 today, cancel any time {x3}.',
   'im {x}': 'in the {x}',
   'unter Profil › Mein Abo': 'under Profile › My subscription',
-  '{x} {x2}, verlängert sich automatisch, jederzeit kündbar {x3}.': '{x} {x2}, renews automatically, cancel any time {x3}.',
+  '{x} {x2}, verlängert sich automatisch, jederzeit kündbar {x3}.':
+      '{x} {x2}, renews automatically, cancel any time {x3}.',
   'Datenschutz': 'Privacy',
   'Wird gesucht …': 'Searching …',
   'Käufe wiederherstellen': 'Restore purchases',
   'nur {yearlyPerMonth} im Monat': 'only {yearlyPerMonth} a month',
   'monatlich kündbar': 'cancel monthly',
-  'ING, Sparkasse, Trade Republic & Co. verbinden': 'Connect ING, Sparkasse, Trade Republic & co.',
+  'ING, Sparkasse, Trade Republic & Co. verbinden':
+      'Connect ING, Sparkasse, Trade Republic & co.',
   'Tippen für Konto-Einstellungen': 'Tap for account settings',
   'Sparquote': 'Savings rate',
   'Wie viel vom Einkommen übrig bleibt': 'How much of your income is left over',
@@ -1756,11 +2394,15 @@ const en = <String, String>{
   'Privatsphäre & KI': 'Privacy & AI',
   'Buddy mit KI': 'Buddy with AI',
   'Nur mit deiner Zustimmung': 'Only with your consent',
-  'Nur was du bestätigt hast, jederzeit löschbar': 'Only what you confirmed, delete any time',
-  'Wer was lesen kann, und was gerade an ist': 'Who can read what, and what\'s on right now',
-  'Mehr Buddy-Fragen für jede Person, die mitmacht': 'More Buddy questions for every person who joins',
+  'Nur was du bestätigt hast, jederzeit löschbar':
+      'Only what you confirmed, delete any time',
+  'Wer was lesen kann, und was gerade an ist':
+      'Who can read what, and what\'s on right now',
+  'Mehr Buddy-Fragen für jede Person, die mitmacht':
+      'More Buddy questions for every person who joins',
   'Feedback zur Testversion': 'Feedback on the test version',
-  'Was hakt, was fehlt, was gefällt': 'What\'s stuck, what\'s missing, what you like',
+  'Was hakt, was fehlt, was gefällt':
+      'What\'s stuck, what\'s missing, what you like',
   'Soft-Launch Tipps': 'Soft-launch tips',
   'Was du als Tester ausprobieren kannst': 'What you can try as a tester',
   'Rechtliches & Kontakt': 'Legal & contact',
@@ -1769,28 +2411,34 @@ const en = <String, String>{
   'Vorsorge': 'Retirement',
   'Rentenlücke grob schätzen': 'Roughly estimate your pension gap',
   'Steuer {y}': 'Tax {y}',
-  'Was mit der Steuererklärung zurückkommt': 'What comes back with your tax return',
+  'Was mit der Steuererklärung zurückkommt':
+      'What comes back with your tax return',
   'Import, Export & Backup': 'Import, export & backup',
   'CSV und Sicherung': 'CSV and backup',
   'App zurücksetzen': 'Reset app',
   'Alle Daten auf diesem Gerät': 'All data on this device',
   'Endgültig': 'Permanent',
   'Ahead {appVersion}': 'Ahead {appVersion}',
-  'Gratis: {x} KI-Fragen, {x2} Belege, 1 Sparziel{x3}': 'Free: {x} AI questions, {x2} receipts, 1 savings goal{x3}',
+  'Gratis: {x} KI-Fragen, {x2} Belege, 1 Sparziel{x3}':
+      'Free: {x} AI questions, {x2} receipts, 1 savings goal{x3}',
   ' · 7 Tage Plus testen': ' · try Plus for 7 days',
   ' · Plus ohne Limit': ' · Plus without limits',
   'Gekündigt · aktiv bis {x}': 'Cancelled · active until {x}',
-  'Gratis-Test bis {x} · Abo verwalten': 'Free trial until {x} · manage subscription',
-  'Nächste Zahlung {x} · Abo verwalten': 'Next payment {x} · manage subscription',
+  'Gratis-Test bis {x} · Abo verwalten':
+      'Free trial until {x} · manage subscription',
+  'Nächste Zahlung {x} · Abo verwalten':
+      'Next payment {x} · manage subscription',
   'Plus-Status unklar': 'Plus status unclear',
   'Mein Abo · Plus': 'My subscription · Plus',
   'Profilbild wählen': 'Choose profile picture',
   'Profilbild entfernen': 'Remove profile picture',
   'Importieren': 'Import',
   'Umsätze importieren': 'Import transactions',
-  'CSV deiner Bank, in ein Konto deiner Wahl': 'Your bank\'s CSV, into an account of your choice',
+  'CSV deiner Bank, in ein Konto deiner Wahl':
+      'Your bank\'s CSV, into an account of your choice',
   'Depot importieren': 'Import portfolio',
-  'CSV oder Trade-Republic-Export, in ein Depot': 'CSV or Trade Republic export, into a portfolio',
+  'CSV oder Trade-Republic-Export, in ein Depot':
+      'CSV or Trade Republic export, into a portfolio',
   'Sichern': 'Back up',
   'Als CSV exportieren': 'Export as CSV',
   'Für Excel oder die Steuer': 'For Excel or taxes',
@@ -1798,88 +2446,117 @@ const en = <String, String>{
   'Alle Daten als eine Datei': 'All data as one file',
   'Backup wiederherstellen': 'Restore backup',
   'Ersetzt die Daten auf diesem Gerät': 'Replaces the data on this device',
-  'Deine Daten liegen auf diesem Gerät. Ein Backup hilft, wenn du das Handy wechselst.': 'Your data lives on this device. A backup helps when you change phones.',
+  'Deine Daten liegen auf diesem Gerät. Ein Backup hilft, wenn du das Handy wechselst.':
+      'Your data lives on this device. A backup helps when you change phones.',
   'Bank {x}': 'Bank {x}',
   'Depot {x}': 'Portfolio {x}',
   'Kontokopie ausstehend': 'Account copy pending',
   'Kontokopie verschlüsselt': 'Account copy encrypted',
   'Kontokopie mit einem Konto': 'Account copy with an account',
-  'Nichts zu synchronisieren. Verbinde eine Bank oder erstelle ein Konto.': 'Nothing to sync. Connect a bank or create an account.',
-  'Bank, Depot und Kontokopie wurden angestoßen.': 'Bank, portfolio and account copy were triggered.',
-  'Bank und Depot wurden angestoßen. Die Kontokopie braucht ein Konto.': 'Bank and portfolio were triggered. The account copy needs an account.',
-  'Kurz durchklicken, Feedback wenn etwas hakt:\n\n1. Konto anlegen, erneut anmelden\n2. Bank verbinden (oder Demo), Sync ziehen\n3. Buddy fragen, Sonstiges aufräumen (Start)\n4. 1 Sparziel gratis · Autopilot braucht Plus\n5. Wochenbericht öffnen, „Mit Buddy weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein. Echte Freigaben kommen mit der öffentlichen Version.': 'Click through and send feedback if something sticks:\n\n1. Create an account and sign in again\n2. Connect a bank (or demo) and pull to sync\n3. Ask Buddy, tidy Miscellaneous (Home)\n4. 1 free savings goal · Autopilot needs Plus\n5. Open the weekly report, then Keep talking with Buddy\n6. Test a shared expense with a code\n\nThe bank can still be a demo. Real access comes with the public version.',
+  'Nichts zu synchronisieren. Verbinde eine Bank oder erstelle ein Konto.':
+      'Nothing to sync. Connect a bank or create an account.',
+  'Bank, Depot und Kontokopie wurden angestoßen.':
+      'Bank, portfolio and account copy were triggered.',
+  'Bank und Depot wurden angestoßen. Die Kontokopie braucht ein Konto.':
+      'Bank and portfolio were triggered. The account copy needs an account.',
+  'Kurz durchklicken, Feedback wenn etwas hakt:\n\n1. Konto anlegen, erneut anmelden\n2. Bank verbinden (oder Demo), Sync ziehen\n3. Buddy fragen, Sonstiges aufräumen (Start)\n4. 1 Sparziel gratis · Autopilot braucht Plus\n5. Wochenbericht öffnen, „Mit Buddy weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein. Echte Freigaben kommen mit der öffentlichen Version.':
+      'Click through and send feedback if something sticks:\n\n1. Create an account and sign in again\n2. Connect a bank (or demo) and pull to sync\n3. Ask Buddy, tidy Miscellaneous (Home)\n4. 1 free savings goal · Autopilot needs Plus\n5. Open the weekly report, then Keep talking with Buddy\n6. Test a shared expense with a code\n\nThe bank can still be a demo. Real access comes with the public version.',
   'Feedback senden': 'Send feedback',
   'Erweitert': 'Advanced',
   'Einklappen': 'Collapse',
   'Backup, Zurücksetzen, Konto': 'Backup, reset, account',
   'Sparquote: {rate} %': 'Savings rate: {rate} %',
-  'Was vom Einkommen übrig bleibt, über die letzten drei vollen Monate. Der laufende Monat zählt erst danach, sonst verzerrt das Gehalt die Zahl.': 'What is left of your income, across the last three full months. The current month counts only afterwards, or salary skews the figure.',
+  'Was vom Einkommen übrig bleibt, über die letzten drei vollen Monate. Der laufende Monat zählt erst danach, sonst verzerrt das Gehalt die Zahl.':
+      'What is left of your income, across the last three full months. The current month counts only afterwards, or salary skews the figure.',
   'kein Einkommen': 'no income',
-  'Gut sind 10 bis 20 %. Sparziele zählen mit, solange das Geld auf dem Konto bleibt.': '10 to 20% is a solid range. Savings goals count while the money stays in the account.',
+  'Gut sind 10 bis 20 %. Sparziele zählen mit, solange das Geld auf dem Konto bleibt.':
+      '10 to 20% is a solid range. Savings goals count while the money stays in the account.',
   'Keine Biometrie/PIN auf diesem Gerät': 'No biometrics/PIN on this device',
   'Keine Daten zum Exportieren': 'No data to export',
   'Ahead Export': 'Ahead export',
   'Ahead Backup': 'Ahead backup',
   'Wiederherstellen?': 'Restore?',
-  'Ersetzt alle aktuellen Daten durch das Backup.': 'Replaces all current data with the backup.',
+  'Ersetzt alle aktuellen Daten durch das Backup.':
+      'Replaces all current data with the backup.',
   'Wiederherstellen': 'Restore',
   'Datei konnte nicht gelesen werden': 'The file couldn\'t be read',
   'Wiederhergestellt': 'Restored',
   'App zurücksetzen?': 'Reset app?',
-  'Alle Umsätze, Budgets, Depot-Positionen und Einstellungen auf diesem Gerät werden gelöscht. {x}': 'All transactions, budgets, portfolio positions and settings on this device will be deleted. {x}',
-  'Du wirst abgemeldet, dein Konto bleibt bestehen. ': 'You\'ll be signed out, your account stays. ',
+  'Alle Umsätze, Budgets, Depot-Positionen und Einstellungen auf diesem Gerät werden gelöscht. {x}':
+      'All transactions, budgets, portfolio positions and settings on this device will be deleted. {x}',
+  'Du wirst abgemeldet, dein Konto bleibt bestehen. ':
+      'You\'ll be signed out, your account stays. ',
   '{x}Das lässt sich nicht rückgängig machen.': '{x}This can\'t be undone.',
-  'Dein Plus-Abo läuft im {storeName} weiter; hol es danach mit „Käufe wiederherstellen“ zurück. ': 'Your Plus subscription continues in the {storeName}; get it back afterwards with "Restore purchases". ',
+  'Dein Plus-Abo läuft im {storeName} weiter; hol es danach mit „Käufe wiederherstellen“ zurück. ':
+      'Your Plus subscription continues in the {storeName}; get it back afterwards with "Restore purchases". ',
   'Zurücksetzen': 'Reset',
   'Mein {monthName} mit Ahead:': 'My {monthName} with Ahead:',
   '{x} % für {topCategory}': '{x} % on {topCategory}',
   'Dein {monthName}': 'Your {monthName}',
   'Dein Rückblick': 'Your review',
   '{monthName}\nin Zahlen.': '{monthName}\nin numbers.',
-  '{bookings} Buchungen. Mal sehen, was dahintersteckt.': '{bookings} bookings. Let\'s see what\'s behind them.',
+  '{bookings} Buchungen. Mal sehen, was dahintersteckt.':
+      '{bookings} bookings. Let\'s see what\'s behind them.',
   'Ausgegeben hast du': 'You spent',
   'Genauso viel wie im {prevName}.': 'Exactly as much as in {prevName}.',
   '{x} % weniger als im {prevName}.': '{x} % less than in {prevName}.',
   '{change} % mehr als im {prevName}.': '{change} % more than in {prevName}.',
-  'Neben Miete & Abos ging am meisten an': 'Besides rent & subscriptions, most went to',
-  '{x}, das sind {x2} % deiner Alltagsausgaben.': '{x}, that\'s {x2} % of your everyday spending.',
+  'Neben Miete & Abos ging am meisten an':
+      'Besides rent & subscriptions, most went to',
+  '{x}, das sind {x2} % deiner Alltagsausgaben.':
+      '{x}, that\'s {x2} % of your everyday spending.',
   'Dein Lieblingsort': 'Your favourite place',
-  '{x}-mal warst du da, zusammen {x2}.': 'You were there {x} times, {x2} in total.',
+  '{x}-mal warst du da, zusammen {x2}.':
+      'You were there {x} times, {x2} in total.',
   'Gespart hast du': 'You saved',
   '{x} sind übrig geblieben.': '{x} was left over.',
   'Dieser Monat war teuer': 'This month was expensive',
   'Mehr ausgegeben als eingenommen.': 'Spent more than came in.',
   'Dein teuerster Tag': 'Your most expensive day',
-  'Am {x} gingen {x2} raus, Miete und Abos nicht mitgezählt.': 'On {x}, {x2} went out, not counting rent and subscriptions.',
+  'Am {x} gingen {x2} raus, Miete und Abos nicht mitgezählt.':
+      'On {x}, {x2} went out, not counting rent and subscriptions.',
   'Das war dein': 'That was your',
-  'Teil deinen Monat als Story, ohne Beträge, nur Prozente.': 'Share your month as a story, without amounts, only percentages.',
+  'Teil deinen Monat als Story, ohne Beträge, nur Prozente.':
+      'Share your month as a story, without amounts, only percentages.',
   'Als Story teilen': 'Share as story',
   'Wiederkehrend': 'Recurring',
-  'Wische nach links zum Löschen. Bereits gebuchte Umsätze bleiben erhalten.': 'Swipe left to delete. Transactions already booked stay.',
+  'Wische nach links zum Löschen. Bereits gebuchte Umsätze bleiben erhalten.':
+      'Swipe left to delete. Transactions already booked stay.',
   'Fixkosten pro Monat': 'Fixed costs per month',
-  'Feste Einnahmen {x} · frei verfügbar {x2}': 'Fixed income {x} · freely available {x2}',
+  'Feste Einnahmen {x} · frei verfügbar {x2}':
+      'Fixed income {x} · freely available {x2}',
   'Noch keine festen Einnahmen': 'No fixed income yet',
   'Noch nichts Wiederkehrendes': 'Nothing recurring yet',
-  'Wähle beim Erfassen eines Umsatzes eine Wiederholung, z. B. „monatlich“.': 'When adding a transaction, choose a repeat, e.g. "monthly".',
+  'Wähle beim Erfassen eines Umsatzes eine Wiederholung, z. B. „monatlich“.':
+      'When adding a transaction, choose a repeat, e.g. "monthly".',
   'Dauerauftrag ändern': 'Change standing order',
-  'Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.': 'Applies from the next booking. What\'s already booked stays.',
+  'Gilt ab der nächsten Buchung. Was schon gebucht ist, bleibt.':
+      'Applies from the next booking. What\'s already booked stays.',
   'Bezeichnung': 'Label',
   'Kaffee 3,20': 'Coffee 3.20',
   'Tanken 65 gestern': 'Fuel 65 yesterday',
   'Gehalt 2.850 am 1.10.': 'Salary 2,850 on 1 Oct',
   'Kino 24 Freitag': 'Cinema 24 Friday',
   'Konto für Beleg-Scan': 'Account for receipt scan',
-  'Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.': 'Buddy reads receipts online, which needs a free account. Typing still works without one.',
+  'Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.':
+      'Buddy reads receipts online, which needs a free account. Typing still works without one.',
   'Buddy liest deinen Beleg …': 'Buddy is reading your receipt …',
-  'Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.': 'Buddy couldn\'t read the receipt just now. Check your connection and try again.',
+  'Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.':
+      'Buddy couldn\'t read the receipt just now. Check your connection and try again.',
   '{x} · {y} gespeichert': '{x} · {y} saved',
-  'Damit „noch frei“ stimmt: Kontostand einmal eintragen.': 'For "still free" to be right: enter your balance once.',
-  'Schreib es so, wie du es sagen würdest, oder fotografiere den Beleg.': 'Write it the way you\'d say it, or take a photo of the receipt.',
+  'Damit „noch frei“ stimmt: Kontostand einmal eintragen.':
+      'For "still free" to be right: enter your balance once.',
+  'Schreib es so, wie du es sagen würdest, oder fotografiere den Beleg.':
+      'Write it the way you\'d say it, or take a photo of the receipt.',
   'z. B. Döner 8,50 gestern': 'e.g. Kebab 8.50 yesterday',
-  'Ich brauche mindestens einen Betrag, zum Beispiel „Kaffee 3,20“.': 'I need at least an amount, for example "Coffee 3.20".',
-  'Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter': 'Free receipt scans used up · typing still works',
-  'Noch {x} von {x2} Gratis-Beleg-Scans diesen Monat': '{x} of {x2} free receipt scans left this month',
-  'Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal. Sobald du wieder online bist, tippe auf Aktualisieren.': 'Offline right now or server not reachable. The group stays local. Once you\'re back online, tap Refresh.',
+  'Ich brauche mindestens einen Betrag, zum Beispiel „Kaffee 3,20“.':
+      'I need at least an amount, for example "Coffee 3.20".',
+  'Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter':
+      'Free receipt scans used up · typing still works',
+  'Noch {x} von {x2} Gratis-Beleg-Scans diesen Monat':
+      '{x} of {x2} free receipt scans left this month',
+  'Gerade offline oder Server nicht erreichbar. Die Gruppe bleibt lokal. Sobald du wieder online bist, tippe auf Aktualisieren.':
+      'Offline right now or server not reachable. The group stays local. Once you\'re back online, tap Refresh.',
   'Mit Code beitreten': 'Join with code',
   'Neue Gruppe': 'New group',
   'Alles ausgeglichen': 'All settled',
@@ -1887,13 +2564,16 @@ const en = <String, String>{
   'Du schuldest insgesamt': 'You owe in total',
   'Quitt': 'Even',
   'Ausgaben teilen,\nohne Rechnerei': 'Split expenses,\nno maths needed',
-  'Lege eine Gruppe an. Freunde einladen geht danach.': 'Create a group. You can invite friends afterwards.',
+  'Lege eine Gruppe an. Freunde einladen geht danach.':
+      'Create a group. You can invite friends afterwards.',
   'Erste Gruppe': 'First group',
   'Ich habe einen Einladungscode': 'I have an invite code',
-  '{members} Personen · {expenses} Ausgaben{x}': '{members} people · {expenses} expenses{x}',
+  '{members} Personen · {expenses} Ausgaben{x}':
+      '{members} people · {expenses} expenses{x}',
   'bekommst du': 'you get',
   'schuldest du': 'you owe',
-  'Zum Beitreten brauchst du ein kostenloses Konto.': 'You need a free account to join.',
+  'Zum Beitreten brauchst du ein kostenloses Konto.':
+      'You need a free account to join.',
   'Wer bist du in der Gruppe?': 'Who are you in the group?',
   'schon dabei': 'already in',
   'WG': 'Flatshare',
@@ -1906,7 +2586,8 @@ const en = <String, String>{
   'Name hinzufügen': 'Add name',
   'Gruppe anlegen': 'Create group',
   'Wer ist neu dabei?': 'Who\'s new?',
-  '{name} ist jetzt dabei, ab der nächsten Ausgabe': '{name} is in now, from the next expense',
+  '{name} ist jetzt dabei, ab der nächsten Ausgabe':
+      '{name} is in now, from the next expense',
   '{x} (du)': '{x} (you)',
   'Neuer Name': 'New name',
   '\n\nDu bekommst noch {x}.': '\n\nYou still get {x}.',
@@ -1915,11 +2596,14 @@ const en = <String, String>{
   'Gruppe verlassen?': 'Leave group?',
   'Gruppe löschen?': 'Delete group?',
   '{x}{open}': '{x}{open}',
-  'Alle Mitglieder verlieren „{name}“ mit allen Ausgaben.': 'All members lose "{name}" with all its expenses.',
-  'Alle Ausgaben in „{name}“ sind dann von diesem Gerät weg.': 'All expenses in "{name}" will then be gone from this device.',
+  'Alle Mitglieder verlieren „{name}“ mit allen Ausgaben.':
+      'All members lose "{name}" with all its expenses.',
+  'Alle Ausgaben in „{name}“ sind dann von diesem Gerät weg.':
+      'All expenses in "{name}" will then be gone from this device.',
   'Verlassen': 'Leave',
   'Gerade keine Verbindung': 'No connection right now',
-  'Die anderen sehen das erst, wenn du wieder online bist. Nur hier entfernen?': 'The others only see this once you are back online. Remove it on this device only?',
+  'Die anderen sehen das erst, wenn du wieder online bist. Nur hier entfernen?':
+      'The others only see this once you are back online. Remove it on this device only?',
   'Nur hier entfernen': 'Remove here only',
   '„{x}“ entfernt': '"{x}" removed',
   'Buddy für die Gruppe': 'Buddy for the group',
@@ -1930,50 +2614,67 @@ const en = <String, String>{
   'Gruppe verlassen': 'Leave group',
   'Gruppe löschen': 'Delete group',
   'Live mit der Gruppe · Code {code}': 'Live with the group · code {code}',
-  'Offline, letzter Stand. Zum Teilen brauchst du Verbindung.': 'Offline, last known state. You need a connection to share.',
-  'Nur auf diesem Gerät · Einladen synchronisiert mit anderen': 'Only on this device · inviting syncs with others',
+  'Offline, letzter Stand. Zum Teilen brauchst du Verbindung.':
+      'Offline, last known state. You need a connection to share.',
+  'Nur auf diesem Gerät · Einladen synchronisiert mit anderen':
+      'Only on this device · inviting syncs with others',
   'Jetzt einladen': 'Invite now',
   'Ihr seid quitt': 'You\'re even',
   'Du bekommst': 'You get',
   'Du schuldest': 'You owe',
   'Stand in der Gruppe': 'Group balance',
   'So gleicht ihr aus': 'How to settle up',
-  'Markiere eine Zahlung, sobald das Geld geflossen ist.': 'Mark a payment as soon as the money has moved.',
+  'Markiere eine Zahlung, sobald das Geld geflossen ist.':
+      'Mark a payment as soon as the money has moved.',
   ' zahlt an ': ' pays ',
   'Erinnern': 'Remind',
   'Überwiesen': 'Transferred',
   'Erhalten': 'Received',
-  'Sind alle Ausgaben drin, siehst du hier, wer wem wie viel schuldet.': 'Once every expense is in, you see here who owes whom how much.',
+  'Sind alle Ausgaben drin, siehst du hier, wer wem wie viel schuldet.':
+      'Once every expense is in, you see here who owes whom how much.',
   'Noch keine Ausgaben': 'No expenses yet',
-  'Supermarkt, Miete, Urlaub: Wer was bezahlt hat, trägst du hier ein.': 'Supermarket, rent, holiday: enter here who paid for what.',
+  'Supermarkt, Miete, Urlaub: Wer was bezahlt hat, trägst du hier ein.':
+      'Supermarket, rent, holiday: enter here who paid for what.',
   'Erste Ausgabe': 'First expense',
   'Ausgeglichen': 'Settled',
   'Als überwiesen markieren?': 'Mark as transferred?',
   'Zahlung erhalten?': 'Payment received?',
-  '{x} {x2} überwiesen oder bar gegeben? Dann wird der offene Betrag kleiner.': 'Transferred or handed {x} {x2} in cash? The open amount gets smaller.',
-  '{x} hat dir {x2} gegeben? Damit wird der offene Betrag in der Gruppe kleiner.': '{x} gave you {x2}? That reduces the open amount in the group.',
+  '{x} {x2} überwiesen oder bar gegeben? Dann wird der offene Betrag kleiner.':
+      'Transferred or handed {x} {x2} in cash? The open amount gets smaller.',
+  '{x} hat dir {x2} gegeben? Damit wird der offene Betrag in der Gruppe kleiner.':
+      '{x} gave you {x2}? That reduces the open amount in the group.',
   'Ja, bestätigen': 'Yes, confirm',
   'Gemeinsam rechnen': 'Calculate together',
-  'Damit alle denselben Stand sehen, braucht jeder ein kostenloses Ahead-Konto.': 'So everyone sees the same numbers, each person needs a free Ahead account.',
-  'Komm in unsere Gruppe „{name}“ bei Ahead, dann sehen wir alle, wer wem was schuldet. {x}Code: {code}': 'Join our group "{name}" on Ahead, then we all see who owes whom. {x}Code: {code}',
+  'Damit alle denselben Stand sehen, braucht jeder ein kostenloses Ahead-Konto.':
+      'So everyone sees the same numbers, each person needs a free Ahead account.',
+  'Komm in unsere Gruppe „{name}“ bei Ahead, dann sehen wir alle, wer wem was schuldet. {x}Code: {code}':
+      'Join our group "{name}" on Ahead, then we all see who owes whom. {x}Code: {code}',
   'Einfach hier tippen: {link}\n': 'Just tap here: {link}\n',
   'Leute einladen': 'Invite people',
-  'Die anderen: kostenloses Konto, unter Geteilt auf „Mit Code beitreten“, dann den Namen wählen.': 'The others need a free account, then under Shared tap Join with a code and pick their name.',
+  'Die anderen: kostenloses Konto, unter Geteilt auf „Mit Code beitreten“, dann den Namen wählen.':
+      'The others need a free account, then under Shared tap Join with a code and pick their name.',
   'Per E-Mail suchen': 'Search by email',
   'Code kopieren': 'Copy code',
-  'Hallo {found}, komm in unsere Gruppe „{name}“ bei Ahead. {x}Code: {code}. Dann wähl deinen Namen „{found2}“.': 'Hi {found}, join our group "{name}" on Ahead. {x}Code: {code}. Then pick your name "{found2}".',
+  'Hallo {found}, komm in unsere Gruppe „{name}“ bei Ahead. {x}Code: {code}. Dann wähl deinen Namen „{found2}“.':
+      'Hi {found}, join our group "{name}" on Ahead. {x}Code: {code}. Then pick your name "{found2}".',
   'Tipp hier: {link}\n': 'Tap here: {link}\n',
-  'Platz „{found}“ steht bereit. Code: {code}. Beim Beitreten den Namen „{found2}“ wählen.': 'Seat {found} is ready. Code: {code}. On joining, pick the name {found2}.',
-  'Hey {x}, kleine Erinnerung: Aus „{name}“ bekomme ich noch {x2} von dir. Danke dir.': 'Hey {x}, quick reminder: from "{name}" I still get {x2} from you. Thanks!',
+  'Platz „{found}“ steht bereit. Code: {code}. Beim Beitreten den Namen „{found2}“ wählen.':
+      'Seat {found} is ready. Code: {code}. On joining, pick the name {found2}.',
+  'Hey {x}, kleine Erinnerung: Aus „{name}“ bekomme ich noch {x2} von dir. Danke dir.':
+      'Hey {x}, quick reminder: from "{name}" I still get {x2} from you. Thanks!',
   'Nachricht kopiert': 'Message copied',
-  'Bitte gib eine gültige E-Mail-Adresse ein.': 'Please enter a valid email address.',
-  'Das bist du, such jemand anderen aus der Gruppe.': 'That\'s you, pick someone else from the group.',
+  'Bitte gib eine gültige E-Mail-Adresse ein.':
+      'Please enter a valid email address.',
+  'Das bist du, such jemand anderen aus der Gruppe.':
+      'That\'s you, pick someone else from the group.',
   'Kein Ahead-Konto mit dieser E-Mail.': 'No Ahead account with this email.',
   'Person suchen': 'Find person',
-  'Genau die E-Mail ihres Ahead-Kontos. Keine öffentliche Namenssuche.': 'Exactly the email of their Ahead account. No public name search.',
+  'Genau die E-Mail ihres Ahead-Kontos. Keine öffentliche Namenssuche.':
+      'Exactly the email of their Ahead account. No public name search.',
   'Suche…': 'Searching…',
   'Je {x}–{x2} (Rest verteilt)': '{x}–{x2} each (rest distributed)',
-  'Bitte für jede Person einen Betrag eingeben.': 'Please enter an amount for each person.',
+  'Bitte für jede Person einen Betrag eingeben.':
+      'Please enter an amount for each person.',
   'Anteile ({x}) müssen {x2} ergeben.': 'Shares ({x}) must add up to {x2}.',
   '{name} (nur hier)': '{name} (only here)',
   'Ausgabe aktualisiert': 'Expense updated',
@@ -1994,22 +2695,27 @@ const en = <String, String>{
   '{x}: {x2} Einnahmen, {x3} Ausgaben': '{x}: {x2} income, {x3} spending',
   'Auffälligkeiten': 'Stand-outs',
   'Noch keine Analyse': 'No analysis yet',
-  'Sobald Umsätze da sind, per Bank oder Erfassen, siehst du hier die Auswertung.': 'As soon as there are transactions, via bank or adding them, you\'ll see the analysis here.',
+  'Sobald Umsätze da sind, per Bank oder Erfassen, siehst du hier die Auswertung.':
+      'As soon as there are transactions, via bank or adding them, you\'ll see the analysis here.',
   'Bilanz': 'Balance sheet',
   'Weitere': 'More',
   'Keine Daten': 'No data',
   'Einnahmen nach Kategorie': 'Income by category',
   'Mein Abo': 'My subscription',
   'Du nutzt Ahead gratis': 'You\'re using Ahead for free',
-  'Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Sparziel gratis, mit Plus unbegrenzt.': 'Free: {x} AI questions, {x2} receipts, {freeGoals} savings goal free, unlimited with Plus.',
+  'Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Sparziel gratis, mit Plus unbegrenzt.':
+      'Free: {x} AI questions, {x2} receipts, {freeGoals} savings goal free, unlimited with Plus.',
   'Plus entdecken': 'Discover Plus',
   'Immer gratis': 'Always free',
-  'Konto & Depot, Budgets, Monatsprognose, Verträge inkl. Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, geteilte Ausgaben und dein Monatsrückblick.': 'Account & portfolio, budgets, monthly forecast, contracts incl. cancellation, emergency fund & retirement guidance, alerts, shared expenses and your monthly review.',
+  'Konto & Depot, Budgets, Monatsprognose, Verträge inkl. Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, geteilte Ausgaben und dein Monatsrückblick.':
+      'Account & portfolio, budgets, monthly forecast, contracts incl. cancellation, emergency fund & retirement guidance, alerts, shared expenses and your monthly review.',
   'Was ist gratis?': 'What\'s free?',
   'Gekündigt · läuft bis {x}': 'Cancelled · runs until {x}',
   'Gratis-Test · noch {x}': 'Free trial · {x} left',
-  'Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.': 'You keep everything until the end. After that it continues for free, your data stays.',
-  'Erste Zahlung am {x}: {x2}. Vorher kündigen kostet nichts.': 'First payment on {x}: {x2}. Cancelling before then costs nothing.',
+  'Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.':
+      'You keep everything until the end. After that it continues for free, your data stays.',
+  'Erste Zahlung am {x}: {x2}. Vorher kündigen kostet nichts.':
+      'First payment on {x}: {x2}. Cancelling before then costs nothing.',
   'Nächste Zahlung am {x}: {x2}.': 'Next payment on {x}: {x2}.',
   'Sparen': 'Save',
   'Endet am': 'Ends on',
@@ -2017,11 +2723,15 @@ const en = <String, String>{
   'Zahlungsmethode gespeichert': 'Payment method saved',
   'Rechnungen': 'Invoices',
   'Rechnungen ansehen': 'View invoices',
-  'Die Kaufbelege schickt dir {storeName} per E-Mail': '{storeName} emails you the receipts',
+  'Die Kaufbelege schickt dir {storeName} per E-Mail':
+      '{storeName} emails you the receipts',
   'Als PDF im Kundenportal von Stripe': 'As PDF in Stripe\'s customer portal',
-  'Keine. Bei einer Kündigung im Test zahlst du nichts.': 'None. If you cancel during the trial you pay nothing.',
-  'Noch keine. Die erste kommt am {x}.': 'None yet. The first one comes on {x}.',
-  'Nach einem neuen Gerät oder einer Neuinstallation': 'After a new device or a reinstall',
+  'Keine. Bei einer Kündigung im Test zahlst du nichts.':
+      'None. If you cancel during the trial you pay nothing.',
+  'Noch keine. Die erste kommt am {x}.':
+      'None yet. The first one comes on {x}.',
+  'Nach einem neuen Gerät oder einer Neuinstallation':
+      'After a new device or a reinstall',
   'Dein Plus-Abo ist aktiv': 'Your Plus subscription is active',
   'Kein Abo gefunden': 'No subscription found',
   'Abo fortsetzen': 'Continue subscription',
@@ -2031,19 +2741,27 @@ const en = <String, String>{
   'Vertrag hier kündigen': 'Cancel contract here',
   'Erstattung anfragen': 'Request refund',
   'Vertrag widerrufen': 'Withdraw from contract',
-  'Über Erstattungen von Käufen im {storeName} entscheidet der Store': 'The store decides on refunds for purchases in the {storeName}',
-  'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen': 'Within 14 days of purchase, without giving reasons',
-  'Gekauft über {storeName}. Zahlung, Kündigung und Belege laufen über {x}.': 'Bought via {storeName}. Payment, cancellation and receipts go through {x}.',
+  'Über Erstattungen von Käufen im {storeName} entscheidet der Store':
+      'The store decides on refunds for purchases in the {storeName}',
+  'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen':
+      'Within 14 days of purchase, without giving reasons',
+  'Gekauft über {storeName}. Zahlung, Kündigung und Belege laufen über {x}.':
+      'Bought via {storeName}. Payment, cancellation and receipts go through {x}.',
   'deine Apple-ID': 'your Apple ID',
   'dein Google-Konto': 'your Google account',
-  'Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. Deine Zahlungsdaten liegen nur dort.': 'Payment and invoices run through our payment provider Stripe. Your payment details are only stored there.',
-  'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.': 'Test mode: nothing was or will be charged. In the store release, payment and invoices run through the App Store, Google Play or our payment provider.',
+  'Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. Deine Zahlungsdaten liegen nur dort.':
+      'Payment and invoices run through our payment provider Stripe. Your payment details are only stored there.',
+  'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.':
+      'Test mode: nothing was or will be charged. In the store release, payment and invoices run through the App Store, Google Play or our payment provider.',
   '1 Tag': '1 day',
   '{days} Tage': '{days} days',
-  'Kundenportal gerade nicht erreichbar.': 'Customer portal not reachable right now.',
+  'Kundenportal gerade nicht erreichbar.':
+      'Customer portal not reachable right now.',
   'Plan wechseln': 'Switch plan',
-  'Der neue Preis gilt ab der nächsten Zahlung.': 'The new price applies from the next payment.',
-  'Nur {yearlyPerMonth} im Monat, du sparst 33 %': 'Only {yearlyPerMonth} a month, you save 33 %',
+  'Der neue Preis gilt ab der nächsten Zahlung.':
+      'The new price applies from the next payment.',
+  'Nur {yearlyPerMonth} im Monat, du sparst 33 %':
+      'Only {yearlyPerMonth} a month, you save 33 %',
   'Monatlich kündbar': 'Cancel monthly',
   'Jährlich: du sparst ab jetzt 33 %': 'Yearly: you save 33 % from now on',
   'Ab der nächsten Zahlung monatlich': 'Monthly from the next payment',
@@ -2054,22 +2772,29 @@ const en = <String, String>{
   'Testmodus: nicht abgebucht': 'Test mode: not charged',
   '{x} Tage gratis gutgeschrieben.': '{x} free days credited.',
   'Vertrag widerrufen?': 'Withdraw from contract?',
-  'Plus endet sofort. Bereits gezahlte Beträge erstatten wir dir binnen 14 Tagen, abzüglich des Anteils für die Zeit, in der du Plus schon genutzt hast.': 'Plus ends immediately. We\'ll refund amounts already paid within 14 days, minus the share for the time you\'ve already used Plus.',
-  'Plus endet sofort. Es entstehen keine Kosten.': 'Plus ends immediately. There are no costs.',
+  'Plus endet sofort. Bereits gezahlte Beträge erstatten wir dir binnen 14 Tagen, abzüglich des Anteils für die Zeit, in der du Plus schon genutzt hast.':
+      'Plus ends immediately. We\'ll refund amounts already paid within 14 days, minus the share for the time you\'ve already used Plus.',
+  'Plus endet sofort. Es entstehen keine Kosten.':
+      'Plus ends immediately. There are no costs.',
   'Jetzt widerrufen': 'Withdraw now',
-  'Widerruf bestätigt. Plus ist beendet.': 'Withdrawal confirmed. Plus has ended.',
+  'Widerruf bestätigt. Plus ist beendet.':
+      'Withdrawal confirmed. Plus has ended.',
   'Plus kündigen?': 'Cancel Plus?',
-  'Du zahlst nichts. Plus bleibt bis {x} aktiv.': 'You pay nothing. Plus stays active until {x}.',
-  'Plus bleibt bis {x} aktiv, danach wird nichts mehr abgebucht.': 'Plus stays active until {x}, nothing more is charged after that.',
+  'Du zahlst nichts. Plus bleibt bis {x} aktiv.':
+      'You pay nothing. Plus stays active until {x}.',
+  'Plus bleibt bis {x} aktiv, danach wird nichts mehr abgebucht.':
+      'Plus stays active until {x}, nothing more is charged after that.',
   'Danach gilt wieder': 'After that, back to',
   '{x} Fragen an Buddy im Monat': '{x} questions to Buddy a month',
   '{x} Belege im Monat': '{x} receipts a month',
   '{freeGoals} Sparziel': '{freeGoals} savings goal',
-  'Lieber jährlich: nur {yearlyPerMonth} im Monat': 'Rather yearly: only {yearlyPerMonth} a month',
+  'Lieber jährlich: nur {yearlyPerMonth} im Monat':
+      'Rather yearly: only {yearlyPerMonth} a month',
   'Plus behalten': 'Keep Plus',
   'Jetzt kündigen': 'Cancel now',
   'Gekündigt. Plus läuft noch bis {x}.': 'Cancelled. Plus runs until {x}.',
-  'Buddy sammelt übers Jahr, was du absetzen kannst, und schätzt die Erstattung. Schätzung, keine Steuerberatung.': 'Over the year Buddy collects what you can deduct and estimates the refund. An estimate, not tax advice.',
+  'Buddy sammelt übers Jahr, was du absetzen kannst, und schätzt die Erstattung. Schätzung, keine Steuerberatung.':
+      'Over the year Buddy collects what you can deduct and estimates the refund. An estimate, not tax advice.',
   'Dein Jahr': 'Your year',
   'Brutto pro Monat': 'Gross per month',
   'Monate gearbeitet in {y}': 'Months worked in {y}',
@@ -2078,15 +2803,19 @@ const en = <String, String>{
   'Bürotage / Woche': 'Office days / week',
   'Homeoffice / Woche': 'Home office / week',
   'Belege aus deinen Buchungen': 'Receipts from your bookings',
-  'Noch nichts. Fachbücher, Kurse, Arbeitsmittel, Gewerkschaft, Bewerbung und Umzug zum Job erscheinen hier, sobald gebucht.': 'Nothing yet. Books, courses, work tools, the union, job applications and a move for the job show up here once they are booked.',
-  'Geh mit mir meine Steuererklärung {y} durch: Was kommt zurück und was fehlt noch?': 'Go through my {y} tax return with me: what comes back and what\'s still missing?',
+  'Noch nichts. Fachbücher, Kurse, Arbeitsmittel, Gewerkschaft, Bewerbung und Umzug zum Job erscheinen hier, sobald gebucht.':
+      'Nothing yet. Books, courses, work tools, the union, job applications and a move for the job show up here once they are booked.',
+  'Geh mit mir meine Steuererklärung {y} durch: Was kommt zurück und was fehlt noch?':
+      'Go through my {y} tax return with me: what comes back and what\'s still missing?',
   'Mit Buddy durchgehen': 'Go through it with Buddy',
-  'Regeln {y}: Pendlerpauschale 0,38 €/km ab dem 1. km, Homeoffice 6 €/Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €. Abgeben kostenlos über ELSTER.': 'Rules {y}: commuting allowance 0.38 €/km from km 1, home office 6 €/day up to 210 days, employee lump sum 1,230 €. File for free via ELSTER.',
+  'Regeln {y}: Pendlerpauschale 0,38 €/km ab dem 1. km, Homeoffice 6 €/Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €. Abgeben kostenlos über ELSTER.':
+      'Rules {y}: commuting allowance 0.38 €/km from km 1, home office 6 €/day up to 210 days, employee lump sum 1,230 €. File for free via ELSTER.',
   'Fortbildung': 'Training',
   'Arbeitsmittel': 'Work equipment',
   'Gewerkschaft': 'Union',
   'Bewerbung': 'Application',
-  'Trag dein Brutto ein, dann rechnet Buddy die Erstattung aus.': 'Enter your gross pay and Buddy works out the refund.',
+  'Trag dein Brutto ein, dann rechnet Buddy die Erstattung aus.':
+      'Enter your gross pay and Buddy works out the refund.',
   'Kommt voraussichtlich zurück': 'Expected back',
   'Voraussichtlich keine Erstattung': 'Probably no refund',
   'Fahrten zur Arbeit': 'Commuting',
@@ -2097,39 +2826,52 @@ const en = <String, String>{
   'Lohnsteuer einbehalten': 'Wage tax withheld',
   'Steuer fürs Jahr': 'Tax for the year',
   'Buchung gelöscht': 'Booking deleted',
-  'Diese Buchung gibt es hier nicht mehr.': 'This booking doesn\'t exist here any more.',
+  'Diese Buchung gibt es hier nicht mehr.':
+      'This booking doesn\'t exist here any more.',
   'Art': 'Type',
   'Quelle': 'Source',
   '{x} · Girokonto': '{x} · current account',
   'Manuell erfasst': 'Added manually',
   'Geteilt · noch einmal teilen': 'Shared · share again',
   'Mit anderen teilen': 'Share with others',
-  'Betrag und Datum kommen von der Bank. Die Kategorie kannst du ändern, Ahead merkt sie sich.': 'Amount and date come from the bank. You can change the category, and Ahead remembers it.',
+  'Betrag und Datum kommen von der Bank. Die Kategorie kannst du ändern, Ahead merkt sie sich.':
+      'Amount and date come from the bank. You can change the category, and Ahead remembers it.',
   'Bei {x}': 'At {x}',
   'in 3 Monaten': 'in 3 months',
   'im Schnitt': 'on average',
   'Erstattung, z. B. eine Rücksendung': 'Refund, e.g. a return',
-  'Zählt gegen die Ausgaben dieser Kategorie, nicht als Einnahme.': 'Counts against spending in this category, not as income.',
+  'Zählt gegen die Ausgaben dieser Kategorie, nicht als Einnahme.':
+      'Counts against spending in this category, not as income.',
   'Kategorie: {picked}': 'Category: {picked}',
-  'Ahead merkt sich {name} als {picked}, auch bei Bank-Sync und Schnellerfassung.': 'Ahead remembers {name} as {picked}, also for bank sync and quick add.',
-  '{others} ältere {x} liegen noch woanders. Standard: merken und alle anpassen. Künftige {name}-Buchungen gehen zu {picked}.': '{others} older {x} are still filed elsewhere. Default: remember this and update all of them. Future {name} bookings go to {picked}.',
+  'Ahead merkt sich {name} als {picked}, auch bei Bank-Sync und Schnellerfassung.':
+      'Ahead remembers {name} as {picked}, also for bank sync and quick add.',
+  '{others} ältere {x} liegen noch woanders. Standard: merken und alle anpassen. Künftige {name}-Buchungen gehen zu {picked}.':
+      '{others} older {x} are still filed elsewhere. Default: remember this and update all of them. Future {name} bookings go to {picked}.',
   'Buchung steht': 'booking is',
   'Buchungen stehen': 'bookings are',
   'Merken & alle {x} ändern': 'Remember & change all {x}',
-  'Nur diese · künftige trotzdem {picked}': 'Only this one · future ones still {picked}',
-  '{name} merken · {x} {y} jetzt {picked}': 'Remembering {name} · {x} {y} now {picked}',
-  'Nur diese Buchung geändert · {name} merken wir uns als {picked}': 'Only this booking changed · we\'ll remember {name} as {picked}',
-  '{name} merken als {picked} · ältere Buchungen unverändert': 'Remembering {name} as {picked} · older bookings unchanged',
+  'Nur diese · künftige trotzdem {picked}':
+      'Only this one · future ones still {picked}',
+  '{name} merken · {x} {y} jetzt {picked}':
+      'Remembering {name} · {x} {y} now {picked}',
+  'Nur diese Buchung geändert · {name} merken wir uns als {picked}':
+      'Only this booking changed · we\'ll remember {name} as {picked}',
+  '{name} merken als {picked} · ältere Buchungen unverändert':
+      'Remembering {name} as {picked} · older bookings unchanged',
   'Text der Bank: {x}': 'Bank text: {x}',
-  'Ich habe {x} von {y} bekommen. Was mache ich am besten damit?': 'I got {x} from {y}. What\'s the best thing to do with it?',
-  'Ich habe am {d} {x} bei {y} ausgegeben. Wie passt das in meinen Monat, und kann ich mir das öfter leisten?': 'On {d} I spent {x} at {y}. How does that fit my month, and can I afford it more often?',
+  'Ich habe {x} von {y} bekommen. Was mache ich am besten damit?':
+      'I got {x} from {y}. What\'s the best thing to do with it?',
+  'Ich habe am {d} {x} bei {y} ausgegeben. Wie passt das in meinen Monat, und kann ich mir das öfter leisten?':
+      'On {d} I spent {x} at {y}. How does that fit my month, and can I afford it more often?',
   'Buddy fragen, was ich damit mache': 'Ask Buddy what to do with it',
   'Kann ich mir das leisten?': 'Can I afford this?',
   'So rechnet Buddy': 'How Buddy calculates',
   'Orientierung, keine Beratung': 'Guidance, not advice',
-  'Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.': 'Buddy estimates the monthly gap. Your DRV statement is what counts. No tax, inflation or product tip.',
+  'Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.':
+      'Buddy estimates the monthly gap. Your DRV statement is what counts. No tax, inflation or product tip.',
   'Dein Plan': 'Your plan',
-  'Gewünschtes Netto im Alter / Monat': 'Desired net income in retirement / month',
+  'Gewünschtes Netto im Alter / Monat':
+      'Desired net income in retirement / month',
   'Erwartete gesetzliche Rente / Monat': 'Expected state pension / month',
   'Aus der DRV-Auskunft': 'From the DRV statement',
   'Ungefähr aus Netto-Gehalt schätzen': 'Roughly estimate from net salary',
@@ -2138,58 +2880,82 @@ const en = <String, String>{
   'Kapital in der App': 'Capital in the app',
   'Offene Sparziele mitzählen': 'Include open savings goals',
   'Notgroschen bleibt außen vor': 'Emergency fund is left out',
-  'Davon als monatliche Rente (25 Jahre, 0 %)': 'Of which as monthly pension (25 years, 0 %)',
-  'Reicht meine Altersvorsorge so aus?': 'Is my retirement planning enough like this?',
-  'Wie schließe ich eine Rentenlücke von {x} im Monat?': 'How do I close a pension gap of {x} a month?',
+  'Davon als monatliche Rente (25 Jahre, 0 %)':
+      'Of which as monthly pension (25 years, 0 %)',
+  'Reicht meine Altersvorsorge so aus?':
+      'Is my retirement planning enough like this?',
+  'Wie schließe ich eine Rentenlücke von {x} im Monat?':
+      'How do I close a pension gap of {x} a month?',
   'Mit Buddy besprechen': 'Discuss with Buddy',
   'Rentenlücke noch offen': 'Pension gap still open',
-  'Trag unten deine gesetzliche Rente ein, am besten aus der DRV-Auskunft. Sonst grob aus dem Netto schätzen.': 'Enter your state pension below, ideally from the DRV statement. Otherwise estimate it roughly from your net pay.',
-  'Danach siehst du hier eine grobe monatliche Lücke (ohne Steuern und Inflation).': 'Then you\'ll see a rough monthly gap here (without taxes and inflation).',
+  'Trag unten deine gesetzliche Rente ein, am besten aus der DRV-Auskunft. Sonst grob aus dem Netto schätzen.':
+      'Enter your state pension below, ideally from the DRV statement. Otherwise estimate it roughly from your net pay.',
+  'Danach siehst du hier eine grobe monatliche Lücke (ohne Steuern und Inflation).':
+      'Then you\'ll see a rough monthly gap here (without taxes and inflation).',
   'Rente aus Netto schätzen': 'Estimate pension from net pay',
   'Orientierung: Lücke geschlossen': 'Guidance: gap closed',
   'Orientierung: monatliche Lücke': 'Guidance: monthly gap',
   'Im groben Plan': 'In the rough plan',
-  'Gedeckt ca. {x} von {x2} · ohne Steuern/Inflation.': 'Covers about {x} of {x2} · without taxes/inflation.',
-  'Gedeckt ca. {x}. Zum Schließen grob {x2}/Monat extra ({yearsLeft} Jahre, ~{x3} % real). Ohne Kaufkraft und Steuern.': 'Covered about {x}. Closing the gap takes roughly {x2} a month extra ({yearsLeft} years, ~{x3}% real). Purchasing power and tax are not included.',
-  '• Kapital (Depot, Sparziele ohne Notgroschen) teilt sich auf {drawYears} Jahre ohne Rendite auf.\n\n• „Extra sparen“ rechnet mit ~{x} % Realrendite bis zur Rente (Faustformel, kein Versprechen).\n\n• Gesetzliche Rente: etwa {x2} % deines Nettos, nur ein Platzhalter. Ersetze ihn mit der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.': '• Capital (portfolio, savings goals except the emergency fund) is split over {drawYears} years with no return.\n\n• Extra saving assumes ~{x}% real return until retirement (a rule of thumb, not a promise).\n\n• State pension: about {x2}% of your net pay, only a placeholder. Replace it with the DRV statement.\n\n• No tax, social contributions or inflation. No investment or pension advice.',
+  'Gedeckt ca. {x} von {x2} · ohne Steuern/Inflation.':
+      'Covers about {x} of {x2} · without taxes/inflation.',
+  'Gedeckt ca. {x}. Zum Schließen grob {x2}/Monat extra ({yearsLeft} Jahre, ~{x3} % real). Ohne Kaufkraft und Steuern.':
+      'Covered about {x}. Closing the gap takes roughly {x2} a month extra ({yearsLeft} years, ~{x3}% real). Purchasing power and tax are not included.',
+  '• Kapital (Depot, Sparziele ohne Notgroschen) teilt sich auf {drawYears} Jahre ohne Rendite auf.\n\n• „Extra sparen“ rechnet mit ~{x} % Realrendite bis zur Rente (Faustformel, kein Versprechen).\n\n• Gesetzliche Rente: etwa {x2} % deines Nettos, nur ein Platzhalter. Ersetze ihn mit der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.':
+      '• Capital (portfolio, savings goals except the emergency fund) is split over {drawYears} years with no return.\n\n• Extra saving assumes ~{x}% real return until retirement (a rule of thumb, not a promise).\n\n• State pension: about {x2}% of your net pay, only a placeholder. Replace it with the DRV statement.\n\n• No tax, social contributions or inflation. No investment or pension advice.',
   'Alter heute': 'Age today',
   'Rente ab': 'Retire at',
   'Netto-Gehalt / Monat': 'Net salary / month',
-  'Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.': 'Buddy assumes about {x}% as the state pension (mid-career). Replace it later with the DRV statement.',
+  'Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.':
+      'Buddy assumes about {x}% as the state pension (mid-career). Replace it later with the DRV statement.',
   'Schätzen': 'Estimate',
   'Vom Alltag zum Polster': 'From everyday money to a cushion',
-  'Hier siehst du, was hinter dem Start-Vermögen steckt und was noch fehlt.': 'Here you see what\'s behind the wealth on Home and what\'s still missing.',
-  'Nach ein paar Monaten mit Einnahmen und Ausgaben erscheint hier dein Anteil.': 'After a few months of income and spending, your share shows up here.',
-  'Einnahmen minus Ausgaben · letzte drei volle Monate (ohne laufenden Monat).': 'Income minus spending · last three full months (excluding the current month).',
-  'Sparziel „Notgroschen“ existiert schon': 'Savings goal "Emergency fund" already exists',
+  'Hier siehst du, was hinter dem Start-Vermögen steckt und was noch fehlt.':
+      'Here you see what\'s behind the wealth on Home and what\'s still missing.',
+  'Nach ein paar Monaten mit Einnahmen und Ausgaben erscheint hier dein Anteil.':
+      'After a few months of income and spending, your share shows up here.',
+  'Einnahmen minus Ausgaben · letzte drei volle Monate (ohne laufenden Monat).':
+      'Income minus spending · last three full months (excluding the current month).',
+  'Sparziel „Notgroschen“ existiert schon':
+      'Savings goal "Emergency fund" already exists',
   'Schulden': 'Debts',
-  'Dispo, Kreditkarte, Ratenkredit: Sie senken dein Nettovermögen auf dem Start.': 'Overdraft, credit card, instalment loan: they lower your net worth on Home.',
+  'Dispo, Kreditkarte, Ratenkredit: Sie senken dein Nettovermögen auf dem Start.':
+      'Overdraft, credit card, instalment loan: they lower your net worth on Home.',
   'Noch keine Schulden': 'No debts yet',
-  'Dispo, Kreditkarte oder Ratenkredit. Nur der Betrag, den du noch schuldest.': 'Overdraft, credit card or instalment loan. Only the amount you still owe.',
+  'Dispo, Kreditkarte oder Ratenkredit. Nur der Betrag, den du noch schuldest.':
+      'Overdraft, credit card or instalment loan. Only the amount you still owe.',
   'Schuld hinzufügen': 'Add debt',
   'Versicherungen': 'Insurance',
-  'Nur Inventar, keine Vermittlung. Damit du und Buddy Fixkosten siehst.': 'Inventory only, no brokerage. So you and Buddy see fixed costs.',
+  'Nur Inventar, keine Vermittlung. Damit du und Buddy Fixkosten siehst.':
+      'Inventory only, no brokerage. So you and Buddy see fixed costs.',
   'Noch keine Versicherungen': 'No insurance yet',
-  'Nur dein Inventar, z. B. Haftpflicht, Hausrat, BU. Keine Vermittlung.': 'Just your inventory, e.g. liability, contents, disability. No brokerage.',
+  'Nur dein Inventar, z. B. Haftpflicht, Hausrat, BU. Keine Vermittlung.':
+      'Just your inventory, e.g. liability, contents, disability. No brokerage.',
   'Zusammen {x} / Monat': '{x} / month in total',
   'Versicherung hinzufügen': 'Add insurance',
   'Wie baue ich einen Notgroschen auf?': 'How do I build an emergency fund?',
-  'Wie stehe ich bei Absicherung und Schulden da?': 'How am I doing on protection and debts?',
+  'Wie stehe ich bei Absicherung und Schulden da?':
+      'How am I doing on protection and debts?',
   'Vermögensbilanz': 'Wealth balance',
   'Konten': 'Accounts',
-  'Runway: Kontostand deckt kaum eine Monatsausgabe.': 'Runway: your balance barely covers one month of spending.',
-  'Runway: ca. {runway} {x} übliche Ausgaben auf dem Konto.': 'Runway: about {runway} {x} of usual spending in the account.',
+  'Runway: Kontostand deckt kaum eine Monatsausgabe.':
+      'Runway: your balance barely covers one month of spending.',
+  'Runway: ca. {runway} {x} übliche Ausgaben auf dem Konto.':
+      'Runway: about {runway} {x} of usual spending in the account.',
   'Kontostand aktualisieren': 'Update balance',
   'Kontostand eintragen': 'Enter balance',
-  'Gleiche Berechnung wie auf Start (Konto + Depot − Schulden).': 'Same calculation as on Home (account + portfolio − debts).',
+  'Gleiche Berechnung wie auf Start (Konto + Depot − Schulden).':
+      'Same calculation as on Home (account + portfolio − debts).',
   'Jetzt hinzufügen': 'Add now',
-  'Sind Fixkosten oder Ausgaben erkennbar, schlägt Buddy einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.': 'Once fixed costs or spending show up, Buddy suggests an emergency fund (about 3× monthly spending). Savings accounts count, the current account does not.',
+  'Sind Fixkosten oder Ausgaben erkennbar, schlägt Buddy einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.':
+      'Once fixed costs or spending show up, Buddy suggests an emergency fund (about 3× monthly spending). Savings accounts count, the current account does not.',
   'Noch {x}': '{x} to go',
   'Anpassen': 'Adjust',
   'Ziel {x} · auf Sparkonto {x2}': 'Goal {x} · in savings account {x2}',
-  'Richtwert: 3× {x} Fix-/Monatskosten.': 'Guideline: 3× {x} fixed/monthly costs.',
+  'Richtwert: 3× {x} Fix-/Monatskosten.':
+      'Guideline: 3× {x} fixed/monthly costs.',
   'Zusätzliches Polster': 'Extra cushion',
-  'Bargeld / Tagesgeld außerhalb der App': 'Cash / instant-access savings outside the app',
+  'Bargeld / Tagesgeld außerhalb der App':
+      'Cash / instant-access savings outside the app',
   'Schuld bearbeiten': 'Edit debt',
   'Restschuld': 'Remaining debt',
   'Schuld löschen?': 'Delete debt?',
@@ -2197,13 +2963,17 @@ const en = <String, String>{
   'Beitrag / Monat': 'Premium / month',
   'Eintrag löschen?': 'Delete entry?',
   'Meine Woche mit Ahead: {headline}': 'My week with Ahead: {headline}',
-  'Meine Woche: {pct} % {x} als sonst · Ahead': 'My week: {pct} % {x} than usual · Ahead',
-  'Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.': 'No day-to-day spending this week yet. Once there is some, Buddy adds it up.',
+  'Meine Woche: {pct} % {x} als sonst · Ahead':
+      'My week: {pct} % {x} than usual · Ahead',
+  'Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.':
+      'No day-to-day spending this week yet. Once there is some, Buddy adds it up.',
   'Ausgabe erfassen': 'Add expense',
-  'Alltagsausgaben · ohne Miete & Abos': 'Everyday spending · without rent & subscriptions',
+  'Alltagsausgaben · ohne Miete & Abos':
+      'Everyday spending · without rent & subscriptions',
   'wie üblich': 'as usual',
   '{x}{x2} % zum Schnitt': '{x}{x2} % vs. average',
-  'Wie kann ich nächste Woche weniger ausgeben als diese?': 'How can I spend less next week than this week?',
+  'Wie kann ich nächste Woche weniger ausgeben als diese?':
+      'How can I spend less next week than this week?',
   'Mit Buddy weiterreden': 'Keep talking with Buddy',
   'teuerster Tag': 'most expensive day',
   'Tag ohne Ausgaben': 'day without spending',
@@ -2215,11 +2985,15 @@ const en = <String, String>{
   'wie immer': 'as always',
   '{count}× diese Woche': '{count}× this week',
   'Nächster Bericht: Sonntag, 18 Uhr': 'Next report: Sunday, 6 pm',
-  'Buddy erinnert dich jeden Sonntag um 18 Uhr': 'Buddy reminds you every Sunday at 6 pm',
+  'Buddy erinnert dich jeden Sonntag um 18 Uhr':
+      'Buddy reminds you every Sunday at 6 pm',
   'Jeden Sonntag erinnern': 'Remind me every Sunday',
-  'Gib dem Konto einen Namen, z. B. Tagesgeld': 'Give the account a name, e.g. Savings',
-  'Bitte einen Betrag eingeben, z. B. 1.250,40': 'Please enter an amount, e.g. 1,250.40',
-  'Buchungen wandern aufs Hauptkonto. Kein Umsatz geht verloren.': 'Bookings move to your main account. No transaction is lost.',
+  'Gib dem Konto einen Namen, z. B. Tagesgeld':
+      'Give the account a name, e.g. Savings',
+  'Bitte einen Betrag eingeben, z. B. 1.250,40':
+      'Please enter an amount, e.g. 1,250.40',
+  'Buchungen wandern aufs Hauptkonto. Kein Umsatz geht verloren.':
+      'Bookings move to your main account. No transaction is lost.',
   'Lieber mit der Bank verbinden': 'Rather connect with the bank',
   'Wird über {x} abgeglichen.': 'Matched via {x}.',
   'deine Bank': 'your bank',
@@ -2227,20 +3001,28 @@ const en = <String, String>{
   'Kontostand heute': 'Balance today',
   'Konto anlegen': 'Create account',
   'Konto entfernen': 'Remove account',
-  'ING, Sparkasse, DKB, N26 und viele mehr': 'ING, Sparkasse, DKB, N26 and many more',
+  'ING, Sparkasse, DKB, N26 und viele mehr':
+      'ING, Sparkasse, DKB, N26 and many more',
   'Weiteres Depot hinzufügen': 'Add another portfolio',
-  'Trade Republic, Scalable und andere, über Parqet': 'Trade Republic, Scalable and others, via Parqet',
+  'Trade Republic, Scalable und andere, über Parqet':
+      'Trade Republic, Scalable and others, via Parqet',
   'Position von Hand': 'Position by hand',
   'Konto von Hand': 'Account by hand',
-  'Aktie, ETF oder Krypto selbst eintragen': 'Enter a stock, ETF or crypto yourself',
-  'Bargeld oder ein Konto ohne Verbindung': 'Cash or an account without connection',
+  'Aktie, ETF oder Krypto selbst eintragen':
+      'Enter a stock, ETF or crypto yourself',
+  'Bargeld oder ein Konto ohne Verbindung':
+      'Cash or an account without connection',
   'Aus Datei importieren': 'Import from file',
-  'CSV aus Excel oder Trade-Republic-Export': 'CSV from Excel or Trade Republic export',
-  'CSV-Export deiner Bank oder aus Excel': 'Your bank\'s CSV export or from Excel',
+  'CSV aus Excel oder Trade-Republic-Export':
+      'CSV from Excel or Trade Republic export',
+  'CSV-Export deiner Bank oder aus Excel':
+      'Your bank\'s CSV export or from Excel',
   'Weiteres Depot': 'Another portfolio',
-  'Dein Depot kommt über Parqet. Dort mehrere Broker auf einmal verbinden.': 'Your portfolio comes through Parqet. Connect several brokers there at once.',
+  'Dein Depot kommt über Parqet. Dort mehrere Broker auf einmal verbinden.':
+      'Your portfolio comes through Parqet. Connect several brokers there at once.',
   'Broker in Parqet hinzufügen': 'Add a broker in Parqet',
-  'Dann in Ahead auf Aktualisieren. Das neue Depot erscheint für sich.': 'Then tap Refresh in Ahead. The new portfolio shows up on its own.',
+  'Dann in Ahead auf Aktualisieren. Das neue Depot erscheint für sich.':
+      'Then tap Refresh in Ahead. The new portfolio shows up on its own.',
   'Anderes Parqet-Konto verbinden': 'Connect another Parqet account',
   '{x}: Einnahmen {y}, Ausgaben {z}': '{x}: income {y}, spending {z}',
   'nach {x} Monaten {y} von {z}': 'after {x} months {y} of {z}',
@@ -2255,11 +3037,16 @@ const en = <String, String>{
   'Diesen Monat überzogen': 'Overspent this month',
   'Diesen Monat noch frei': 'Still free this month',
   'etwa {x} pro Tag': 'about {x} a day',
-  'Noch {daysLeft} {x} · als Nächstes {name} {x2} am {x3}': '{daysLeft} {x} left · next up {name} {x2} on {x3}',
-  'Noch {daysLeft} {x} · alle Fixkosten sind schon abgebucht': '{daysLeft} {x} left · all fixed costs are already debited',
-  'An deinen Kontostand angepasst (noch fällige Abbuchungen).': 'Adjusted to your balance (debits still due).',
-  'Einkommen aus diesem Monat. Ab drei vollen Monaten rechnen wir mit dem Schnitt.': 'Income from this month. From three full months on, we use the average.',
-  'Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.': 'From your transactions of recent months, without you having to set anything up.',
+  'Noch {daysLeft} {x} · als Nächstes {name} {x2} am {x3}':
+      '{daysLeft} {x} left · next up {name} {x2} on {x3}',
+  'Noch {daysLeft} {x} · alle Fixkosten sind schon abgebucht':
+      '{daysLeft} {x} left · all fixed costs are already debited',
+  'An deinen Kontostand angepasst (noch fällige Abbuchungen).':
+      'Adjusted to your balance (debits still due).',
+  'Einkommen aus diesem Monat. Ab drei vollen Monaten rechnen wir mit dem Schnitt.':
+      'Income from this month. From three full months on, we use the average.',
+  'Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.':
+      'From your transactions of recent months, without you having to set anything up.',
   'Einkommen (dieser Monat)': 'Income (this month)',
   'Übliches Einkommen': 'Usual income',
   'Fixkosten (Miete, Abos …)': 'Fixed costs (rent, subscriptions …)',
@@ -2267,12 +3054,16 @@ const en = <String, String>{
   'Rücklage für Jahreszahlungen': 'Reserve for yearly payments',
   'Bisher ausgegeben': 'Spent so far',
   'Noch frei': 'Still free',
-  'Begrenzt durch den Kontostand: gerade weniger auf dem Konto, als die Rechnung hergibt (z. B. vor dem Gehalt).': 'Capped by the balance: the account holds less right now than the sum suggests (for example before payday).',
+  'Begrenzt durch den Kontostand: gerade weniger auf dem Konto, als die Rechnung hergibt (z. B. vor dem Gehalt).':
+      'Capped by the balance: the account holds less right now than the sum suggests (for example before payday).',
   'Noch fällig diesen Monat': 'Still due this month',
   'Schon eingerechnet in den Fixkosten.': 'Already included in fixed costs.',
-  'Bei deinem üblichen Tempo gibst du bis Monatsende etwa {x} aus. Das passt.': 'At your usual pace you\'ll spend about {x} until the end of the month. That fits.',
-  'Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.': 'At your pace, about {x} by month end, more than is still free. A few quiet days are enough.',
-  'Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.': 'Over budget this month. Buddy shows where saving is easiest.',
+  'Bei deinem üblichen Tempo gibst du bis Monatsende etwa {x} aus. Das passt.':
+      'At your usual pace you\'ll spend about {x} until the end of the month. That fits.',
+  'Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.':
+      'At your pace, about {x} by month end, more than is still free. A few quiet days are enough.',
+  'Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.':
+      'Over budget this month. Buddy shows where saving is easiest.',
   'Ausgabe erfassen · noch {x}/Tag': 'Add expense · {x}/day left',
   'Teil davon fürs Polster': 'Part of it for the cushion',
   'Buddy KI': 'Buddy AI',
@@ -2283,30 +3074,38 @@ const en = <String, String>{
   'Dein Gratis-Kontingent diesen Monat': 'Your free allowance this month',
   'Kontostand gespeichert': 'Balance saved',
   'Wie viel ist gerade auf {x}?': 'How much is in {x} right now?',
-  'Wie viel ist gerade auf deinem Konto?': 'How much is in your account right now?',
-  'Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.': 'Take a quick look at your banking app. From then on Ahead keeps calculating with every booking.',
+  'Wie viel ist gerade auf deinem Konto?':
+      'How much is in your account right now?',
+  'Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.':
+      'Take a quick look at your banking app. From then on Ahead keeps calculating with every booking.',
   'Lieber Bankkonto verbinden': 'Rather connect a bank account',
-  'Tipp „Kaffee 3,20“ oder Bank verbinden': 'Type "Coffee 3.20" or connect your bank',
+  'Tipp „Kaffee 3,20“ oder Bank verbinden':
+      'Type "Coffee 3.20" or connect your bank',
   'Kontostand oder Bank': 'Balance or bank',
-  'Damit Vermögen und „noch frei“ stimmen': 'So wealth and "still free" are right',
+  'Damit Vermögen und „noch frei“ stimmen':
+      'So wealth and "still free" are right',
   'Budget setzen': 'Set a budget',
-  'Limits aus deinen Umsätzen vorschlagen': 'Suggest limits from your transactions',
+  'Limits aus deinen Umsätzen vorschlagen':
+      'Suggest limits from your transactions',
   'Alles eingerichtet': 'All set up',
   'Erste Schritte': 'First steps',
-  'Buchung, Kontostand, Budget stehen. Weiter: Polster und Vorsorge.': 'Booking, balance and budget are in. Next: cushion and retirement.',
+  'Buchung, Kontostand, Budget stehen. Weiter: Polster und Vorsorge.':
+      'Booking, balance and budget are in. Next: cushion and retirement.',
   '{done} von {total} erledigt': '{done} of {total} done',
   'Ausblenden': 'Hide',
   'Polster & Absicherung': 'Cushion & protection',
   'Notgroschen, Schulden, Versicherungen': 'Emergency fund, debts, insurance',
   'ich': 'me',
-  'Kurzer Stand für „{name}“ von Buddy:': 'Quick update for "{name}" from Buddy:',
+  'Kurzer Stand für „{name}“ von Buddy:':
+      'Quick update for "{name}" from Buddy:',
   'Zusammen ausgegeben: {x}': 'Spent together: {x}',
   'Alle sind quitt. Nichts zu tun.': 'Everyone is even. Nothing to do.',
   'So sind wir mit {n} {x} quitt:': 'This is how we get even with {n} {x}:',
   'Überweisung': 'transfer',
   'Überweisungen': 'transfers',
   'Live mitrechnen in Ahead: {link}': 'Follow along live in Ahead: {link}',
-  'Live mitrechnen in Ahead, Gruppencode {code}': 'Follow along live in Ahead, group code {code}',
+  'Live mitrechnen in Ahead, Gruppencode {code}':
+      'Follow along live in Ahead, group code {code}',
   'Buddy für {name}': 'Buddy for {name}',
   'Nur aus den Ausgaben dieser Gruppe': 'Only from this group\'s expenses',
   'Du bist quitt.': 'You\'re even.',
@@ -2315,17 +3114,21 @@ const en = <String, String>{
   'Alle sind quitt.': 'Everyone is even.',
   'Mit {n} {x} seid ihr quitt:': 'With {n} {x} you\'re all even:',
   'Stand an die Gruppe schicken': 'Send the balance to the group',
-  'Wie teilen wir die Kosten in „{name}“ am fairsten auf?': 'How do we split the costs in "{name}" most fairly?',
+  'Wie teilen wir die Kosten in „{name}“ am fairsten auf?':
+      'How do we split the costs in "{name}" most fairly?',
   'Buddy fragen, was fair ist': 'Ask Buddy what\'s fair',
-  'Nur die Beträge dieser Gruppe und der Gruppencode, nichts aus deinen eigenen Finanzen.': 'Only the amounts in this group and the group code, nothing from your own finances.',
+  'Nur die Beträge dieser Gruppe und der Gruppencode, nichts aus deinen eigenen Finanzen.':
+      'Only the amounts in this group and the group code, nothing from your own finances.',
   'In welches Konto?': 'Into which account?',
   'Neues Konto': 'New account',
-  'Sparkonto, Bargeld oder ein weiteres Girokonto': 'Savings account, cash or another current account',
+  'Sparkonto, Bargeld oder ein weiteres Girokonto':
+      'Savings account, cash or another current account',
   'Umsätze in welches Konto?': 'Transactions into which account?',
   '{duplicates} schon vorhanden': '{duplicates} already there',
   '{skipped} nicht lesbar': '{skipped} unreadable',
   '{skipped} übersprungen': '{skipped} skipped',
-  'In dieser Datei wurden keine neuen Umsätze gefunden. Exportiere sie im Online-Banking als CSV.': 'No new transactions were found in this file. Export them as CSV in your online banking.',
+  'In dieser Datei wurden keine neuen Umsätze gefunden. Exportiere sie im Online-Banking als CSV.':
+      'No new transactions were found in this file. Export them as CSV in your online banking.',
   'Import hat nicht geklappt.': 'Import didn\'t work.',
   '{holdings} {x}{x2} importiert{x3}': '{holdings} {x}{x2} imported{x3}',
   ' in {name}': ' into {name}',
@@ -2339,7 +3142,8 @@ const en = <String, String>{
   'Eigenes Wertpapier': 'Custom security',
   'Kurs gerade nicht verfügbar': 'Price not available right now',
   'Noch kein Verlauf': 'No history yet',
-  'Verlauf vom {x} bis {x2}: von {x3} auf {x4}. Tiefster Stand {x5} am {x6}, höchster {x7} am {x8}.': 'History from {x} to {x2}: from {x3} to {x4}. Lowest {x5} on {x6}, highest {x7} on {x8}.',
+  'Verlauf vom {x} bis {x2}: von {x3} auf {x4}. Tiefster Stand {x5} am {x6}, höchster {x7} am {x8}.':
+      'History from {x} to {x2}: from {x3} to {x4}. Lowest {x5} on {x6}, highest {x7} on {x8}.',
   'in 7 Tagen': 'in 7 days',
   'in 30 Tagen': 'in 30 days',
   'in 12 Monaten': 'in 12 months',
@@ -2351,28 +3155,34 @@ const en = <String, String>{
   'Gesamter Zeitraum': 'Whole period',
   '{done} von {all} erledigt': '{done} of {all} done',
   'Wieder offen': 'Open again',
-  '{count}× in Sonstiges · {x}, nur diese Sonstiges-Buchungen.': '{count}× in Other · {x}, only these Other bookings.',
+  '{count}× in Sonstiges · {x}, nur diese Sonstiges-Buchungen.':
+      '{count}× in Other · {x}, only these Other bookings.',
   'Sonstiges ist leer.': 'Other is empty.',
-  '{n} in Sonstiges. Vorschlag antippen oder selbst wählen.': '{n} in Other. Tap a suggestion or choose yourself.',
+  '{n} in Sonstiges. Vorschlag antippen oder selbst wählen.':
+      '{n} in Other. Tap a suggestion or choose yourself.',
   '{x} Vorschläge übernehmen': 'Apply {x} suggestions',
   '{moved} {x} jetzt in {category}': '{moved} {x} now in {category}',
   'Nichts offen.': 'Nothing open.',
-  '{savingsRate} % meines Einkommens gespart': 'Saved {savingsRate} % of my income',
+  '{savingsRate} % meines Einkommens gespart':
+      'Saved {savingsRate} % of my income',
   '{x} % {x2} ausgegeben als im {prev}': 'Spent {x} % {x2} than in {prev}',
   '{bookings} Buchungen im Blick': '{bookings} bookings tracked',
   'Mein': 'My',
   'Und dein Monat?': 'And your month?',
   'Finanzen mit Buddy · Ahead': 'Finances with Buddy · Ahead',
-  'Bild ging nicht, Text ist kopiert': 'The image didn\'t work, the text is copied',
+  'Bild ging nicht, Text ist kopiert':
+      'The image didn\'t work, the text is copied',
   'Deine Story': 'Your story',
   'Nur Prozente, keine Beträge.': 'Only percentages, no amounts.',
   'Story teilen': 'Share story',
   'Bild speichern': 'Save image',
   'Überzogen': 'Overspent',
-  'Nur Rechnung, nichts wird gespeichert.': 'Just a calculation, nothing is saved.',
+  'Nur Rechnung, nichts wird gespeichert.':
+      'Just a calculation, nothing is saved.',
   'wie heute': 'same as today',
   '{x}{y} vs. heute': '{x}{y} vs. today',
-  'Dafür brauche ich noch Einnahmen in den Buchungen.': 'For that I still need income in the bookings.',
+  'Dafür brauche ich noch Einnahmen in den Buchungen.':
+      'For that I still need income in the bookings.',
   'Abos diesen Monat auslassen': 'Skip subscriptions this month',
   'Keine Verträge erkannt.': 'No contracts spotted.',
   'Einmalkauf': 'One-off purchase',
@@ -2389,33 +3199,39 @@ const en = <String, String>{
   'Aktualisieren, {text}': 'Refresh, {text}',
   'Umbuchung an {name}': 'Transfer to {name}',
   'Umbuchung von {name}': 'Transfer from {name}',
-  'Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.': 'You need at least two accounts for this, e.g. current and savings.',
+  'Dafür brauchst du mindestens zwei Konten, z. B. Giro und Sparkonto.':
+      'You need at least two accounts for this, e.g. current and savings.',
   'Umgebucht': 'Transferred',
   'Bitte einen Betrag eingeben, z. B. 200': 'Please enter an amount, e.g. 200',
   'Wähle zwei verschiedene Konten': 'Choose two different accounts',
   'Mindestens zwei Konten nötig.': 'At least two accounts needed.',
-  'Zwischen deinen eigenen Konten. Zählt nicht als Ausgabe.': 'Between your own accounts. Doesn\'t count as spending.',
+  'Zwischen deinen eigenen Konten. Zählt nicht als Ausgabe.':
+      'Between your own accounts. Doesn\'t count as spending.',
   'Von': 'From',
   'Nach': 'To',
   'Umbuchen': 'Transfer',
   '{category} · Erstattung': '{category} · refund',
   'Noch nichts in dieser Kategorie': 'Nothing in this category yet',
-  'Sobald du hier etwas buchst, erscheint es in der Liste.': 'As soon as you book something here, it shows up in the list.',
+  'Sobald du hier etwas buchst, erscheint es in der Liste.':
+      'As soon as you book something here, it shows up in the list.',
   'Cloud laden': 'Load cloud',
-  'Das kann auf dem Handy ein paar Sekunden dauern, bitte warten.': 'This can take a few seconds on a phone, please wait.',
+  'Das kann auf dem Handy ein paar Sekunden dauern, bitte warten.':
+      'This can take a few seconds on a phone, please wait.',
   'Dein Passwort': 'Your password',
   'Dasselbe wie beim Anmelden': 'The same as when signing in',
   'Ohne Cloud weiter': 'Continue without cloud',
   'Laden': 'Load',
   'Cloud wird geladen…': 'Loading cloud…',
-  'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. Bis dahin nichts in die Cloud.': 'Account data is not loaded yet. Tap to try again. Until then nothing goes to the cloud.',
+  'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. Bis dahin nichts in die Cloud.':
+      'Account data is not loaded yet. Tap to try again. Until then nothing goes to the cloud.',
   '{pct} % {x} als sonst': '{pct} % {x} than usual',
   'Am meisten: {category}': 'Most: {category}',
   '{noSpendDays} {x} ohne Ausgaben': '{noSpendDays} {x} without spending',
   'Teuerster Tag: {x}': 'Most expensive day: {x}',
   'Und deine Woche?': 'And your week?',
   'Wochen-Story': 'Weekly story',
-  'Nur Prozente und Anzahlen, kein Kontostand.': 'Only percentages and counts, no balance.',
+  'Nur Prozente und Anzahlen, kein Kontostand.':
+      'Only percentages and counts, no balance.',
   'Hey {name}': 'Hey {name}',
   'Hey': 'Hey',
   'Was steht an?': 'What\'s up?',
@@ -2435,11 +3251,16 @@ const en = <String, String>{
   'Was hakt oder fehlt': 'What\'s broken or missing',
   'Zum Ausprobieren': 'To try out',
   'Bank und Sicherung nur für dich.': 'Bank and backup only for you.',
-  'Passwort = Schlüssel zur Cloud. Ohne Passwort kein Wiederherstellen, auch nicht durch uns.': 'Password = cloud key. Without it, no restore, not even by us.',
-  'Sparpotenzial:\n{x}\n\nNächster Schritt: Budget für die größte Kategorie.': 'Savings potential:\n{x}\n\nNext step: a budget for the biggest category.',
-  'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen, dann rechne ich konkret.': 'Not much history yet. Connect a bank or log a few expenses, then I can calculate concretely.',
-  '**{x}** auf dem Konto, Depot {y}. Diesen Monat {z} rein, {a} raus.': '**{x}** in the account, portfolio {y}. This month {z} in, {a} out.',
-  'Wie in der Banking-App. Ab da rechnet Ahead weiter.': 'As in the banking app. Ahead keeps counting from there.',
+  'Passwort = Schlüssel zur Cloud. Ohne Passwort kein Wiederherstellen, auch nicht durch uns.':
+      'Password = cloud key. Without it, no restore, not even by us.',
+  'Sparpotenzial:\n{x}\n\nNächster Schritt: Budget für die größte Kategorie.':
+      'Savings potential:\n{x}\n\nNext step: a budget for the biggest category.',
+  'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen, dann rechne ich konkret.':
+      'Not much history yet. Connect a bank or log a few expenses, then I can calculate concretely.',
+  '**{x}** auf dem Konto, Depot {y}. Diesen Monat {z} rein, {a} raus.':
+      '**{x}** in the account, portfolio {y}. This month {z} in, {a} out.',
+  'Wie in der Banking-App. Ab da rechnet Ahead weiter.':
+      'As in the banking app. Ahead keeps counting from there.',
   'Tipp oder Bank': 'Quick entry or bank',
   'Damit die Zahlen stimmen': 'So the numbers add up',
   'Gestoppt.': 'Stopped.',
@@ -2464,92 +3285,157 @@ const en = <String, String>{
   'Private Rente': 'Private pension',
   'Privathaftpflicht fehlt. Die ist für fast alle die wichtigste.':
       'Personal liability cover is missing. It\'s the most important one for almost everyone.',
-  '{x} mehr als einmal. Doppelte Deckung bringt nichts.': '{x} more than once. Duplicate cover does nothing.',
-  '{x} lohnt sich oft nicht mit Anfang 20.': '{x} is often not worth it in your twenties.',
+  '{x} mehr als einmal. Doppelte Deckung bringt nichts.':
+      '{x} more than once. Duplicate cover does nothing.',
+  '{x} lohnt sich oft nicht mit Anfang 20.':
+      '{x} is often not worth it in your twenties.',
   '{x} % Zins': '{x} % interest',
-  'Keine Versicherung in den Buchungen oder unter Vermögen erkannt. Die Privathaftpflicht ist für fast alle die wichtigste.\n\nNächster Schritt: Trag sie unter Vermögen ein.': 'No insurance found in bookings or under Wealth. Personal liability cover matters for almost everyone.\n\nNext step: Add it under Wealth.',
-  'Versicherungs-Check (allgemein, keine Beratung):\n{x}\n\n{y}\n\nNächster Schritt: Unter Vermögen eintragen oder Doppeltes streichen.': 'Insurance check (general, not advice):\n{x}\n\n{y}\n\nNext step: Add under Wealth or remove duplicates.',
+  'Keine Versicherung in den Buchungen oder unter Vermögen erkannt. Die Privathaftpflicht ist für fast alle die wichtigste.\n\nNächster Schritt: Trag sie unter Vermögen ein.':
+      'No insurance found in bookings or under Wealth. Personal liability cover matters for almost everyone.\n\nNext step: Add it under Wealth.',
+  'Versicherungs-Check (allgemein, keine Beratung):\n{x}\n\n{y}\n\nNächster Schritt: Unter Vermögen eintragen oder Doppeltes streichen.':
+      'Insurance check (general, not advice):\n{x}\n\n{y}\n\nNext step: Add under Wealth or remove duplicates.',
   'Zinssatz / Jahr': 'Interest / year',
   'Für alle Konten.': 'For all accounts.',
   'Buchung tippen oder Buddy fragen.': 'Tap a booking or ask Buddy.',
   'Andere Suche oder Filter weg.': 'Try another search or clear the filters.',
-  'Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.': 'Bank connected. Pull to refresh or add by hand.',
-  'Bank verbinden oder erste Ausgabe tippen.': 'Connect a bank or enter the first expense.',
-  'Anmelden für Bank, Depot und Sicherung.': 'Sign in for bank, portfolio and backup.',
+  'Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.':
+      'Bank connected. Pull to refresh or add by hand.',
+  'Bank verbinden oder erste Ausgabe tippen.':
+      'Connect a bank or enter the first expense.',
+  'Anmelden für Bank, Depot und Sicherung.':
+      'Sign in for bank, portfolio and backup.',
   'Aktiv · Authenticator': 'On · authenticator',
   'Optional': 'Optional',
   'Einzeln oder alle': 'One by one or all',
   'Andere Geräte raus': 'Other devices out',
   'Mit Banken, endgültig': 'With banks, for good',
-  'Cloud-Umsätze sind passwortverschlüsselt. Die App-Sperre schützt nur dieses Gerät.': 'Cloud transactions are password-encrypted. The app lock only protects this device.',
-  'Finanzdaten auf diesem Gerät weg. Mit Cloud-Sicherung holst du sie beim nächsten Login zurück.': 'Financial data on this device is removed. A cloud backup comes back at the next sign-in.',
-  '\n\nPlus läuft über {storeName} weiter. Dort kündigen.': '\n\nPlus continues via {storeName}. Cancel it there.',
-  '\n\nPlus wird mit dem Konto gekündigt.': '\n\nPlus is cancelled with the account.',
-  'Konto, Bankverbindungen, Cloud-Sicherung und die Umsätze hier werden dauerhaft gelöscht.{plusNote}': 'Account, bank connections, cloud backup and the transactions here are deleted for good.{plusNote}',
+  'Cloud-Umsätze sind passwortverschlüsselt. Die App-Sperre schützt nur dieses Gerät.':
+      'Cloud transactions are password-encrypted. The app lock only protects this device.',
+  'Finanzdaten auf diesem Gerät weg. Mit Cloud-Sicherung holst du sie beim nächsten Login zurück.':
+      'Financial data on this device is removed. A cloud backup comes back at the next sign-in.',
+  '\n\nPlus läuft über {storeName} weiter. Dort kündigen.':
+      '\n\nPlus continues via {storeName}. Cancel it there.',
+  '\n\nPlus wird mit dem Konto gekündigt.':
+      '\n\nPlus is cancelled with the account.',
+  'Konto, Bankverbindungen, Cloud-Sicherung und die Umsätze hier werden dauerhaft gelöscht.{plusNote}':
+      'Account, bank connections, cloud backup and the transactions here are deleted for good.{plusNote}',
   'So nennt dich Buddy.': 'What Buddy calls you.',
-  'Du bleibst hier angemeldet, andere Geräte nicht. Das Passwort verschlüsselt die Cloud. Ohne es ist die Kopie weg.': 'You stay signed in here, other devices do not. The password encrypts the cloud. Without it the copy is gone.',
-  'Nur die Anmeldung. Umsätze bleiben passwortverschlüsselt. Ohne Code kein Zugang, kein Reset per E-Mail.': 'Sign-in only. Transactions stay password-encrypted. No code, no access, no email reset.',
-  'Schlüssel in die Authenticator-App, ersten Code eingeben. Andere Geräte werden abgemeldet.': 'Add the key in your authenticator app and enter the first code. Other devices are signed out.',
-  'Jede Anmeldung endet, auch hier. Daten hier weg; die Sicherung kommt mit dem nächsten Login zurück.': 'Every sign-in ends, including here. Data here is removed; the backup returns at the next sign-in.',
-  'Gestohlene Sitzung gilt, bis du sie beendest oder das Passwort änderst.': 'A stolen session stays valid until you end it or change the password.',
-  'Was reinkommt, was regelmäßig weggeht, was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.': 'What comes in, what leaves regularly, and what is left for goals or retirement. No account, no payouts, no advice.',
-  'Auf dem Gerät: Umsätze, Budgets, Ziele, Depot. Mit Konto eine verschlüsselte Kopie, für uns unlesbar. Keine Werbung, kein Tracking, kein Datenverkauf.': 'On the device: transactions, budgets, goals, portfolio. With an account, an encrypted copy we cannot read. No ads, no tracking, no selling of data.',
-  'Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.': 'Finanzguru: a household app, AI on the side. Ahead is the coach, numbers from the app, for moments like a first job. Buddy prepares, you decide. Portfolio and retirement with no brokerage. Data only with consent, only what the question needs.',
-  'Wir bauen selbst. Gesucht: Werkstudenten, Praktika, Produkt, Flutter, Backend. Ein paar Sätze reichen.': 'We build it ourselves. We are looking for working students, internships, and people in product, Flutter or backend. A few sentences are enough.',
-  'Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.': 'Passwords are stored only as a bcrypt hash. Second factor and devices are under My account. App lock on the device.\n\nBank via Enable Banking, sign-in at the bank. We never see login details.\n\nBuddy with AI only after your consent, without account numbers. Otherwise the answer stays on the device.',
+  'Du bleibst hier angemeldet, andere Geräte nicht. Das Passwort verschlüsselt die Cloud. Ohne es ist die Kopie weg.':
+      'You stay signed in here, other devices do not. The password encrypts the cloud. Without it the copy is gone.',
+  'Nur die Anmeldung. Umsätze bleiben passwortverschlüsselt. Ohne Code kein Zugang, kein Reset per E-Mail.':
+      'Sign-in only. Transactions stay password-encrypted. No code, no access, no email reset.',
+  'Schlüssel in die Authenticator-App, ersten Code eingeben. Andere Geräte werden abgemeldet.':
+      'Add the key in your authenticator app and enter the first code. Other devices are signed out.',
+  'Jede Anmeldung endet, auch hier. Daten hier weg; die Sicherung kommt mit dem nächsten Login zurück.':
+      'Every sign-in ends, including here. Data here is removed; the backup returns at the next sign-in.',
+  'Gestohlene Sitzung gilt, bis du sie beendest oder das Passwort änderst.':
+      'A stolen session stays valid until you end it or change the password.',
+  'Was reinkommt, was regelmäßig weggeht, was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.':
+      'What comes in, what leaves regularly, and what is left for goals or retirement. No account, no payouts, no advice.',
+  'Auf dem Gerät: Umsätze, Budgets, Ziele, Depot. Mit Konto eine verschlüsselte Kopie, für uns unlesbar. Keine Werbung, kein Tracking, kein Datenverkauf.':
+      'On the device: transactions, budgets, goals, portfolio. With an account, an encrypted copy we cannot read. No ads, no tracking, no selling of data.',
+  'Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.':
+      'Finanzguru: a household app, AI on the side. Ahead is the coach, numbers from the app, for moments like a first job. Buddy prepares, you decide. Portfolio and retirement with no brokerage. Data only with consent, only what the question needs.',
+  'Wir bauen selbst. Gesucht: Werkstudenten, Praktika, Produkt, Flutter, Backend. Ein paar Sätze reichen.':
+      'We build it ourselves. We are looking for working students, internships, and people in product, Flutter or backend. A few sentences are enough.',
+  'Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.':
+      'Passwords are stored only as a bcrypt hash. Second factor and devices are under My account. App lock on the device.\n\nBank via Enable Banking, sign-in at the bank. We never see login details.\n\nBuddy with AI only after your consent, without account numbers. Otherwise the answer stays on the device.',
   'Keine Beratung, Kurse, KI': 'No advice, prices, AI',
   'Support, Open Source': 'Support, open source',
-  'Kontostand und Umsätze, automatisch.': 'Balance and transactions, automatically.',
-  'Freigabe weg. Umsätze und Konten dieser Bank verschwinden.': 'Access revoked. This bank\'s transactions and accounts disappear.',
+  'Kontostand und Umsätze, automatisch.':
+      'Balance and transactions, automatically.',
+  'Freigabe weg. Umsätze und Konten dieser Bank verschwinden.':
+      'Access revoked. This bank\'s transactions and accounts disappear.',
   'Nur lesen, keine Überweisung': 'Read only, no transfers',
-  'Login bei der Bank. Ahead sieht nichts.': 'Sign-in at the bank. Ahead sees nothing.',
-  'Trennbar, Freigabe bis 180 Tage': 'Disconnect any time, access for up to 180 days',
-  'Auch Trade Republic: Guthaben, Karte, Zinsen': 'Trade Republic too: balance, card, interest',
-  'Dafür ein kostenloses Konto. Deine {x} bleibt nur für dich.': 'This needs a free account. Your {x} stays only yours.',
-  'Im Fenster bei der Bank anmelden. Danach hier weiter. Nach 10 Minuten bricht es ab.': 'Sign in at the bank in the window. Then it continues here. It stops after 10 minutes.',
-  'Ahead liest es nicht mehr. Positionen bleiben, bis du sie löschst.': 'Ahead stops reading it. Positions stay until you delete them.',
+  'Login bei der Bank. Ahead sieht nichts.':
+      'Sign-in at the bank. Ahead sees nothing.',
+  'Trennbar, Freigabe bis 180 Tage':
+      'Disconnect any time, access for up to 180 days',
+  'Auch Trade Republic: Guthaben, Karte, Zinsen':
+      'Trade Republic too: balance, card, interest',
+  'Dafür ein kostenloses Konto. Deine {x} bleibt nur für dich.':
+      'This needs a free account. Your {x} stays only yours.',
+  'Im Fenster bei der Bank anmelden. Danach hier weiter. Nach 10 Minuten bricht es ab.':
+      'Sign in at the bank in the window. Then it continues here. It stops after 10 minutes.',
+  'Ahead liest es nicht mehr. Positionen bleiben, bis du sie löschst.':
+      'Ahead stops reading it. Positions stay until you delete them.',
   'Kostenlos, Parqet hält es aktuell': 'Free, and Parqet keeps it up to date',
-  'Nur lesen. Zugangsdaten sieht Ahead nie.': 'Read only. Ahead never sees the login details.',
-  'Ohne Parqet: CSV bei Trade Republic, dann Profil → Import → Depot.': 'Without Parqet: a CSV from Trade Republic, then Profile → Import → Portfolio.',
-  'Bei Parqet anmelden, Zugriff erlauben. Danach hier weiter. Nach 10 Minuten bricht es ab.': 'Sign in at Parqet and allow access. Then it continues here. It stops after 10 minutes.',
-  'Weitere Depots in Parqet. Beim nächsten Sync erscheinen sie hier.': 'Add more portfolios in Parqet. They show up here on the next sync.',
-  'Kein Server. Verbinden geht gerade nicht.': 'No server. Connecting is not possible right now.',
-  'Erfassen und CSV-Import gehen weiter.': 'Manual entry and CSV import still work.',
-  'Demo: Beispielbank und -depot, keine echten Daten': 'Demo: sample bank and portfolio, no real data',
-  'Umsätze da. Auf dem Start siehst du, was noch frei ist.': 'Transactions are in. On Home you can see what is still free.',
-  '{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.': '{added} {x} in. On Home Buddy works out what is still free.',
-  '\n\nAbos und Miete unter Verträge.': '\n\nSubscriptions and rent are under Contracts.',
-  'Freigabe weg. Übernommene Umsätze verschwinden.': 'Access revoked. Imported transactions disappear.',
-  'Freigabe weg. Die andere Bank und ihre Umsätze bleiben.': 'Access revoked. The other bank and its transactions stay.',
-  'Depot-Zugriff weg. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen trennen.': 'Portfolio access is off. Positions stay until you delete them. Disconnect under Integrations in Parqet.',
-  'Gleiche Zahlung, gleicher Empfänger, regelmäßig.': 'Same payment, same recipient, on a regular basis.',
+  'Nur lesen. Zugangsdaten sieht Ahead nie.':
+      'Read only. Ahead never sees the login details.',
+  'Ohne Parqet: CSV bei Trade Republic, dann Profil → Import → Depot.':
+      'Without Parqet: a CSV from Trade Republic, then Profile → Import → Portfolio.',
+  'Bei Parqet anmelden, Zugriff erlauben. Danach hier weiter. Nach 10 Minuten bricht es ab.':
+      'Sign in at Parqet and allow access. Then it continues here. It stops after 10 minutes.',
+  'Weitere Depots in Parqet. Beim nächsten Sync erscheinen sie hier.':
+      'Add more portfolios in Parqet. They show up here on the next sync.',
+  'Kein Server. Verbinden geht gerade nicht.':
+      'No server. Connecting is not possible right now.',
+  'Erfassen und CSV-Import gehen weiter.':
+      'Manual entry and CSV import still work.',
+  'Demo: Beispielbank und -depot, keine echten Daten':
+      'Demo: sample bank and portfolio, no real data',
+  'Umsätze da. Auf dem Start siehst du, was noch frei ist.':
+      'Transactions are in. On Home you can see what is still free.',
+  '{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.':
+      '{added} {x} in. On Home Buddy works out what is still free.',
+  '\n\nAbos und Miete unter Verträge.':
+      '\n\nSubscriptions and rent are under Contracts.',
+  'Freigabe weg. Übernommene Umsätze verschwinden.':
+      'Access revoked. Imported transactions disappear.',
+  'Freigabe weg. Die andere Bank und ihre Umsätze bleiben.':
+      'Access revoked. The other bank and its transactions stay.',
+  'Depot-Zugriff weg. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen trennen.':
+      'Portfolio access is off. Positions stay until you delete them. Disconnect under Integrations in Parqet.',
+  'Gleiche Zahlung, gleicher Empfänger, regelmäßig.':
+      'Same payment, same recipient, on a regular basis.',
   '{name} kostet {x} mehr.': '{name} costs {x} more.',
-  '{raised} teurer, z. B. {name} (+{x}).': '{raised} went up, e.g. {name} (+{x}).',
-  'Drei gleiche Monate in Folge. Mit Bank automatisch.': 'Three equal months in a row. Automatic with a bank.',
-  'Gekündigt am {x}. Weitere Abbuchung meldet Buddy.': 'Cancelled on {x}. Buddy flags a later charge.',
-  'Viele haben „Verträge hier kündigen“. Text dort einfügen.': 'Many have "Cancel contracts here". Paste the text there.',
-  'Nächster Schritt: Prüfen, was du nutzt.': 'Next step: check what you actually use.',
-  'Depot verbinden, dann kommen Positionen und Kurse.': 'Connect a portfolio, then positions and prices come in.',
-  'Oder die erste Position selbst. Kurs wird vorausgefüllt.': 'Or add the first position yourself. The price is filled in.',
+  '{raised} teurer, z. B. {name} (+{x}).':
+      '{raised} went up, e.g. {name} (+{x}).',
+  'Drei gleiche Monate in Folge. Mit Bank automatisch.':
+      'Three equal months in a row. Automatic with a bank.',
+  'Gekündigt am {x}. Weitere Abbuchung meldet Buddy.':
+      'Cancelled on {x}. Buddy flags a later charge.',
+  'Viele haben „Verträge hier kündigen“. Text dort einfügen.':
+      'Many have "Cancel contracts here". Paste the text there.',
+  'Nächster Schritt: Prüfen, was du nutzt.':
+      'Next step: check what you actually use.',
+  'Depot verbinden, dann kommen Positionen und Kurse.':
+      'Connect a portfolio, then positions and prices come in.',
+  'Oder die erste Position selbst. Kurs wird vorausgefüllt.':
+      'Or add the first position yourself. The price is filled in.',
   '{text}\nVerlauf, heutiger Bestand': '{text}\nHistory, today\'s holdings',
-  'Durchschnittspreis. Dein Broker kann abweichen.': 'Average price. Your broker may differ.',
-  '{live} {x} aktuell · {failed} ohne Live-Kurs, letzter Stand': '{live} {x} fresh · {failed} without a live price, last known price',
-  'Keine Live-Kurse. Letzter Stand gilt.': 'No live prices. The last known price stands.',
-  'Kurse gerade nicht geladen. Gleich noch einmal.': 'Prices did not load. Try again in a moment.',
-  'Ein Ziel ist gratis. Plus: beliebig viele.': 'One goal is free. Plus: as many as you like.',
-  'Ziel anlegen. Überweisung aufs Sparkonto zählt nach Sync. Sonst den Stand von Hand.': 'Create a goal. A transfer to the savings account counts after sync. Otherwise enter the amount by hand.',
-  'Autopilot: Aufrunden und Monatsbetrag': 'Autopilot: round-ups and a monthly amount',
-  'Mit Sparkonto zählt die Überweisung nach dem Sync.': 'With a savings account the transfer counts after sync.',
-  'Ohne Sparkonto nur der Stand hier. Mit Tagesgeld nach dem Sync.': 'Without a savings account, only the amount here. With a savings account, after sync.',
+  'Durchschnittspreis. Dein Broker kann abweichen.':
+      'Average price. Your broker may differ.',
+  '{live} {x} aktuell · {failed} ohne Live-Kurs, letzter Stand':
+      '{live} {x} fresh · {failed} without a live price, last known price',
+  'Keine Live-Kurse. Letzter Stand gilt.':
+      'No live prices. The last known price stands.',
+  'Kurse gerade nicht geladen. Gleich noch einmal.':
+      'Prices did not load. Try again in a moment.',
+  'Ein Ziel ist gratis. Plus: beliebig viele.':
+      'One goal is free. Plus: as many as you like.',
+  'Ziel anlegen. Überweisung aufs Sparkonto zählt nach Sync. Sonst den Stand von Hand.':
+      'Create a goal. A transfer to the savings account counts after sync. Otherwise enter the amount by hand.',
+  'Autopilot: Aufrunden und Monatsbetrag':
+      'Autopilot: round-ups and a monthly amount',
+  'Mit Sparkonto zählt die Überweisung nach dem Sync.':
+      'With a savings account the transfer counts after sync.',
+  'Ohne Sparkonto nur der Stand hier. Mit Tagesgeld nach dem Sync.':
+      'Without a savings account, only the amount here. With a savings account, after sync.',
   '{x} für {name}.': '{x} for {name}.',
   'Zählt mit, überweist nichts.': 'Keeps count, transfers nothing.',
-  '3,20 € werden 0,80 € fürs Ziel.{x}{x2}': '€3.20 adds €0.80 to the goal.{x}{x2}',
+  '3,20 € werden 0,80 € fürs Ziel.{x}{x2}':
+      '€3.20 adds €0.80 to the goal.{x}{x2}',
   ' Bei dir etwa {x} im Monat.': ' For you, about {x} a month.',
-  ' Bisher für „{name}“, das hört dann auf.': ' Until now for "{name}", that stops.',
-  'Ahead bewegt kein Geld. Für den Monatsbetrag einen Dauerauftrag aufs Sparkonto.': 'Ahead moves no money. Set up a standing order to your savings account for the monthly amount.',
+  ' Bisher für „{name}“, das hört dann auf.':
+      ' Until now for "{name}", that stops.',
+  'Ahead bewegt kein Geld. Für den Monatsbetrag einen Dauerauftrag aufs Sparkonto.':
+      'Ahead moves no money. Set up a standing order to your savings account for the monthly amount.',
   'Einmal eintragen, dann stimmt es.': 'Enter it once, then it is right.',
-  'Beispiele weg. Deine eigenen Einträge bleiben.': 'Samples go. What you entered yourself stays.',
-  'Für „noch frei“ brauchst du eine Einnahme.': 'For "still free" you need some income.',
+  'Beispiele weg. Deine eigenen Einträge bleiben.':
+      'Samples go. What you entered yourself stays.',
+  'Für „noch frei“ brauchst du eine Einnahme.':
+      'For "still free" you need some income.',
   'Konto + Depot − {x} Schulden': 'Account + portfolio − {x} debt',
   'Konto + Depot': 'Account + portfolio',
   'Bank oder erste Ausgabe.': 'A bank, or a first expense.',
@@ -2558,135 +3444,176 @@ const en = <String, String>{
   'Aufrunden und Monatsbetrag': 'Round-ups and a monthly amount',
   'Keine Werbung, kein Datenverkauf': 'No ads, no selling of data',
   'Kein Abo zum Wiederherstellen': 'No subscription to restore',
-  'Buddy, Belege und Ziele ohne Limit.': 'Buddy, receipts and goals, with no limit.',
+  'Buddy, Belege und Ziele ohne Limit.':
+      'Buddy, receipts and goals, with no limit.',
   '7 Tage gratis, danach kündbar': '7 days free, cancel any time after',
-  'Gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.': 'Free: account, portfolio, budgets, forecast, contracts, emergency fund, alerts, groups, monthly review.',
-  'Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Ziel. Plus ohne Limit.': 'Free: {x} AI questions, {x2} receipts, {freeGoals} goal. Plus has no limit.',
-  'Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.': 'Account, portfolio, budgets, forecast, contracts, emergency fund, alerts, groups, monthly review.',
-  'Alles bis zum Ende. Danach gratis, Daten bleiben.': 'Everything until it ends. Then it is free, and your data stays.',
+  'Gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.':
+      'Free: account, portfolio, budgets, forecast, contracts, emergency fund, alerts, groups, monthly review.',
+  'Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Ziel. Plus ohne Limit.':
+      'Free: {x} AI questions, {x2} receipts, {freeGoals} goal. Plus has no limit.',
+  'Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.':
+      'Account, portfolio, budgets, forecast, contracts, emergency fund, alerts, groups, monthly review.',
+  'Alles bis zum Ende. Danach gratis, Daten bleiben.':
+      'Everything until it ends. Then it is free, and your data stays.',
   'Belege per E-Mail von {storeName}': 'Receipts by email from {storeName}',
   'PDF bei Stripe': 'PDF at Stripe',
   'Keine. Im Test zahlst du nichts.': 'None. You pay nothing during the trial.',
   'Noch keine. Erste am {x}.': 'None yet. The first is on {x}.',
   'Neues Gerät oder Neuinstallation': 'New device or a reinstall',
   'Läuft weiter wie bisher': 'Carries on as before',
-  '{storeName} entscheidet über die Erstattung': '{storeName} decides on the refund',
-  '14 Tage nach Abschluss, ohne Grund': '14 days after purchase, no reason needed',
-  'Über {storeName}. Zahlung, Kündigung und Belege über {x}.': 'Bought via {storeName}. Payment, cancellation and receipts go through {x}.',
-  'Zahlung und Rechnungen über Stripe. Zahlungsdaten nur dort.': 'Payment and invoices via Stripe. Card details stay only there.',
-  'Testmodus: nichts abgebucht. Im Store über App Store, Google Play oder Stripe.': 'Test mode: nothing is charged. In the store release, payment goes through the App Store, Google Play or Stripe.',
-  'Plus endet sofort. Gezahltes kommt in 14 Tagen zurück, abzüglich der genutzten Zeit.': 'Plus ends now. What you paid comes back within 14 days, minus the time you already used.',
-  'Plus bleibt bis {x}, danach keine Abbuchung.': 'Plus stays until {x}, then nothing more is charged.',
-  'Für diesen Monat gibt es noch zu wenig Verlauf.': 'Not enough history for this month yet.',
+  '{storeName} entscheidet über die Erstattung':
+      '{storeName} decides on the refund',
+  '14 Tage nach Abschluss, ohne Grund':
+      '14 days after purchase, no reason needed',
+  'Über {storeName}. Zahlung, Kündigung und Belege über {x}.':
+      'Bought via {storeName}. Payment, cancellation and receipts go through {x}.',
+  'Zahlung und Rechnungen über Stripe. Zahlungsdaten nur dort.':
+      'Payment and invoices via Stripe. Card details stay only there.',
+  'Testmodus: nichts abgebucht. Im Store über App Store, Google Play oder Stripe.':
+      'Test mode: nothing is charged. In the store release, payment goes through the App Store, Google Play or Stripe.',
+  'Plus endet sofort. Gezahltes kommt in 14 Tagen zurück, abzüglich der genutzten Zeit.':
+      'Plus ends now. What you paid comes back within 14 days, minus the time you already used.',
+  'Plus bleibt bis {x}, danach keine Abbuchung.':
+      'Plus stays until {x}, then nothing more is charged.',
+  'Für diesen Monat gibt es noch zu wenig Verlauf.':
+      'Not enough history for this month yet.',
   'Mein {month} mit Ahead.': 'My {month} with Ahead.',
   'Monats-Story teilen': 'Share month story',
-  'Dein Monatsrückblick als Story, nur Prozente.': 'Your monthly review as a story, percentages only.',
+  'Dein Monatsrückblick als Story, nur Prozente.':
+      'Your monthly review as a story, percentages only.',
   'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n- Lohnsteuer: {tax}{soli}\n- Sozialabgaben: {social}\n\nSteuerklasse {cls}, Lohnsteuer 2026. Kann um ein paar Euro abweichen.':
       'From **{gross}** gross, about **{net}** net is left each month.\n- Wage tax: {tax}{soli}\n- Social contributions: {social}\n\nTax class {cls}, wage tax 2026. It can differ by a few euros.',
-  'Im Schnitt gibst du **{x} mehr aus**, als reinkommt.': 'On average you\'re **spending {x} more** than comes in.',
+  'Im Schnitt gibst du **{x} mehr aus**, als reinkommt.':
+      'On average you\'re **spending {x} more** than comes in.',
   'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz. Größte Position: {b} ({c} %).':
       'Your portfolio is worth **{x}**, {y} of {z} on {a} invested. Largest position: {b} ({c} %).',
   'Keine Versicherung erkannt. Privathaftpflicht zuerst, unter Vermögen.':
       'No insurance found. Liability cover first, under Wealth.',
   'Versicherungs-Check:\n{x}\n\n{y}': 'Insurance check:\n{x}\n\n{y}',
-  'Altersvorsorge ist noch nicht eingerichtet.': 'Retirement planning isn\'t set up yet.',
+  'Altersvorsorge ist noch nicht eingerichtet.':
+      'Retirement planning isn\'t set up yet.',
   '{x} läuft schon länger': '{x} has been running a while',
-  'Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.': 'No saved payslips yet. Send Buddy a photo of one.',
+  'Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.':
+      'No saved payslips yet. Send Buddy a photo of one.',
   'Brutto, Netto, Abzüge': 'Gross, net, deductions',
   'Abzüge': 'Deductions',
-  '{x}: Brutto {y}, Netto {z}, Abzüge {a}': '{x}: gross {y}, net {z}, deductions {a}',
-  'Grau ist Brutto, Kupfer Netto, dunkelgrau die Abzüge.': 'Grey is gross, copper is net, dark grey is deductions.',
-
-  'Die KI ist ohne Konto gerade nicht da. Offline gehen Erster Job, Umzug, Zusammenziehen und Begriffe wie ETF oder Steuerklasse.\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.': 'The AI isn\'t available without an account right now. Offline: first job, moving, moving in together, and terms like ETF or tax class.\n\nNext step: With a free account I work with your numbers.',
-  '**{net}** netto, von **{gross}** brutto. Lohnsteuer {tax}{soli}, Sozialabgaben {social}. Steuerklasse {cls}, Lohnsteuer 2026, kann um ein paar Euro abweichen.': '**{net}** net, from **{gross}** gross. Wage tax {tax}{soli}, social contributions {social}. Tax class {cls}, wage tax 2026, can differ by a few euros.',
+  '{x}: Brutto {y}, Netto {z}, Abzüge {a}':
+      '{x}: gross {y}, net {z}, deductions {a}',
+  'Grau ist Brutto, Kupfer Netto, dunkelgrau die Abzüge.':
+      'Grey is gross, copper is net, dark grey is deductions.',
+  'Die KI ist ohne Konto gerade nicht da. Offline gehen Erster Job, Umzug, Zusammenziehen und Begriffe wie ETF oder Steuerklasse.\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.':
+      'The AI isn\'t available without an account right now. Offline: first job, moving, moving in together, and terms like ETF or tax class.\n\nNext step: With a free account I work with your numbers.',
+  '**{net}** netto, von **{gross}** brutto. Lohnsteuer {tax}{soli}, Sozialabgaben {social}. Steuerklasse {cls}, Lohnsteuer 2026, kann um ein paar Euro abweichen.':
+      '**{net}** net, from **{gross}** gross. Wage tax {tax}{soli}, social contributions {social}. Tax class {cls}, wage tax 2026, can differ by a few euros.',
   'Nichts liegt in Sonstiges.': 'Nothing is left in Other.',
   '**{n}** Buchungen liegen in Sonstiges.': '**{n}** bookings are in Other.',
   ' Am meisten an **{x}** ({y}).': ' Most went to **{x}** ({y}).',
-  '**{x}** ausgegeben diesen Monat, vor allem:\n{y}{merchant}': '**{x}** spent this month, mainly:\n{y}{merchant}',
-  '**{y}** über einem üblichen Monat, bei {x}.': '**{y}** above a usual month, on {x}.',
-  '**{y}** im Monat für Abos ({x}), {z} im Jahr. Brauchst du alle?': '**{y}** a month for subscriptions ({x}), {z} a year. Do you need all of them?',
-  'Dafür fehlt noch Verlauf. Ein paar Wochen Ausgaben reichen.': 'Not enough history for that yet. A few weeks of spending is enough.',
-  '**{y}** im Monat für {x}, der größte Posten. 10 % weniger sind {z}.': '**{y}** a month for {x}, the biggest item. 10% less is {z}.',
-  'Nächster Schritt: Budget für die größte Kategorie.': 'Next step: a budget for the biggest category.',
-  'Dafür fehlt mindestens ein voller Monat Daten.': 'That needs at least one full month of data.',
-  '**{x} mehr** gehen im Schnitt raus, als reinkommt.': '**{x} more** goes out than comes in, on average.',
-  '🔴 **Rot:** **{x} mehr** gehen raus, als reinkommt.': '🔴 **Red:** **{x} more** goes out than comes in.',
-  '**{x}** bleiben im Monat. Nenn einen Betrag.': '**{x}** left a month. Name an amount.',
+  '**{x}** ausgegeben diesen Monat, vor allem:\n{y}{merchant}':
+      '**{x}** spent this month, mainly:\n{y}{merchant}',
+  '**{y}** über einem üblichen Monat, bei {x}.':
+      '**{y}** above a usual month, on {x}.',
+  '**{y}** im Monat für Abos ({x}), {z} im Jahr. Brauchst du alle?':
+      '**{y}** a month for subscriptions ({x}), {z} a year. Do you need all of them?',
+  'Dafür fehlt noch Verlauf. Ein paar Wochen Ausgaben reichen.':
+      'Not enough history for that yet. A few weeks of spending is enough.',
+  '**{y}** im Monat für {x}, der größte Posten. 10 % weniger sind {z}.':
+      '**{y}** a month for {x}, the biggest item. 10% less is {z}.',
+  'Nächster Schritt: Budget für die größte Kategorie.':
+      'Next step: a budget for the biggest category.',
+  'Dafür fehlt mindestens ein voller Monat Daten.':
+      'That needs at least one full month of data.',
+  '**{x} mehr** gehen im Schnitt raus, als reinkommt.':
+      '**{x} more** goes out than comes in, on average.',
+  '🔴 **Rot:** **{x} mehr** gehen raus, als reinkommt.':
+      '🔴 **Red:** **{x} more** goes out than comes in.',
+  '**{x}** bleiben im Monat. Nenn einen Betrag.':
+      '**{x}** left a month. Name an amount.',
   '**{x}** bleiben im Monat.': '**{x}** left a month.',
-  '**{x}** bleiben im Monat. Danach noch **{free}** frei.': '**{x}** left a month. **{free}** still free after that.',
-  '**{x}** bleiben im Monat. Diesen Monat **{over} über** dem Plan.': '**{x}** left a month. **{over} over** plan this month.',
+  '**{x}** bleiben im Monat. Danach noch **{free}** frei.':
+      '**{x}** left a month. **{free}** still free after that.',
+  '**{x}** bleiben im Monat. Diesen Monat **{over} über** dem Plan.':
+      '**{x}** left a month. **{over} over** plan this month.',
   '**{x}** in etwa **{months} {y}**.': '**{x}** in about **{months} {y}**.',
-  '🟢 **Grün:** **{x}** gehen, etwa **{months} {y}**.': '🟢 **Green:** **{x}** fits, about **{months} {y}**.',
-  '🟡 **Gelb:** **{x}** nur mit weniger Sparen, etwa **{months} {y}**.': '🟡 **Yellow:** **{x}** only by saving less, about **{months} {y}**.',
-  '🔴 **Rot:** **{x}** gingen an den Notgroschen, etwa **{months} {y}**.': '🔴 **Red:** **{x}** would cut into the emergency fund, about **{months} {y}**.',
-  '**{x}** bleiben im Monat (rein {y}, raus {z}).': '**{x}** left a month (in {y}, out {z}).',
-  '{base}\n\nNenn einen Betrag, dann sage ich, wie lange es dauert.': '{base}\n\nName an amount and I will say how long it takes.',
-  '{base} Für **{x}** etwa **{months} {y}**.': '{base} For **{x}**, about **{months} {y}**.',
+  '🟢 **Grün:** **{x}** gehen, etwa **{months} {y}**.':
+      '🟢 **Green:** **{x}** fits, about **{months} {y}**.',
+  '🟡 **Gelb:** **{x}** nur mit weniger Sparen, etwa **{months} {y}**.':
+      '🟡 **Yellow:** **{x}** only by saving less, about **{months} {y}**.',
+  '🔴 **Rot:** **{x}** gingen an den Notgroschen, etwa **{months} {y}**.':
+      '🔴 **Red:** **{x}** would cut into the emergency fund, about **{months} {y}**.',
+  '**{x}** bleiben im Monat (rein {y}, raus {z}).':
+      '**{x}** left a month (in {y}, out {z}).',
+  '{base}\n\nNenn einen Betrag, dann sage ich, wie lange es dauert.':
+      '{base}\n\nName an amount and I will say how long it takes.',
+  '{base} Für **{x}** etwa **{months} {y}**.':
+      '{base} For **{x}**, about **{months} {y}**.',
   'Vom Kontostand blieben {x}{y}': 'From the balance, {x} would be left{y}',
   ', weniger als ein Monat Ausgaben.': ', less than a month of spending.',
-  'Diesen Monat danach noch **{x}** frei, etwa {y} am Tag.': 'This month, **{x}** still free after that, about {y} a day.',
+  'Diesen Monat danach noch **{x}** frei, etwa {y} am Tag.':
+      'This month, **{x}** still free after that, about {y} a day.',
   'Diesen Monat **{x} über** dem Plan.': 'This month, **{x} over** plan.',
-  '🟢 **Grün:** Das geht aus dem freien Geld, mit Puffer.': '🟢 **Green:** This fits in the free money, with a buffer.',
-  '🟡 **Gelb:** Nur mit weniger Sparen oder aus Erspartem.': '🟡 **Yellow:** Only by saving less or using savings.',
-  '🔴 **Rot:** Das ginge an den Notgroschen.': '🔴 **Red:** This would cut into the emergency fund.',
-  'Noch keine festen Verträge. Dafür brauche ich drei Monate gleicher Zahlungen.': 'No fixed contracts yet. I need three months of the same payments.',
-  '**{y}** im Monat für **{x}** feste Zahlungen ({z} im Jahr):\n{a}': '**{y}** a month for **{x}** fixed payments ({z} a year):\n{a}',
-  'Noch keine Budgets.\n\nNächster Schritt: Unter Budgets im Konto eins anlegen.': 'No budgets yet.\n\nNext step: Create one under Budgets in the account.',
-  'Noch keine Budgets. Unter Budgets im Konto anlegen.': 'No budgets yet. Add one under Budgets.',
+  '🟢 **Grün:** Das geht aus dem freien Geld, mit Puffer.':
+      '🟢 **Green:** This fits in the free money, with a buffer.',
+  '🟡 **Gelb:** Nur mit weniger Sparen oder aus Erspartem.':
+      '🟡 **Yellow:** Only by saving less or using savings.',
+  '🔴 **Rot:** Das ginge an den Notgroschen.':
+      '🔴 **Red:** This would cut into the emergency fund.',
+  'Noch keine festen Verträge. Dafür brauche ich drei Monate gleicher Zahlungen.':
+      'No fixed contracts yet. I need three months of the same payments.',
+  '**{y}** im Monat für **{x}** feste Zahlungen ({z} im Jahr):\n{a}':
+      '**{y}** a month for **{x}** fixed payments ({z} a year):\n{a}',
+  'Noch keine Budgets.\n\nNächster Schritt: Unter Budgets im Konto eins anlegen.':
+      'No budgets yet.\n\nNext step: Create one under Budgets in the account.',
+  'Noch keine Budgets. Unter Budgets im Konto anlegen.':
+      'No budgets yet. Add one under Budgets.',
   '**{x}** über {cat}.': '**{x}** over {cat}.',
   '**{x}** noch bei {cat}.': '**{x}** left on {cat}.',
   'Noch **{x}** Tage im Monat:\n{y}': '**{x}** days left this month:\n{y}',
   'Noch keine Depot-Positionen.': 'No portfolio positions yet.',
-  '**{x}** im Depot, {y} {z} auf {a}. Größte Position: {b} ({c} %).': '**{x}** in the portfolio, {y} of {z} on {a}. Largest position: {b} ({c} %).',
-  'Noch keine Sparziele.\n\nNächster Schritt: Unter Sparziele anlegen.': 'No savings goals yet.\n\nNext step: Create one under Savings goals.',
-  '**{x}** netto. Konten {y}, Depot {z}{a}.': '**{x}** net. Accounts {y}, portfolio {z}{a}.',
+  '**{x}** im Depot, {y} {z} auf {a}. Größte Position: {b} ({c} %).':
+      '**{x}** in the portfolio, {y} of {z} on {a}. Largest position: {b} ({c} %).',
+  'Noch keine Sparziele.\n\nNächster Schritt: Unter Sparziele anlegen.':
+      'No savings goals yet.\n\nNext step: Create one under Savings goals.',
+  '**{x}** netto. Konten {y}, Depot {z}{a}.':
+      '**{x}** net. Accounts {y}, portfolio {z}{a}.',
   'Sparquote {x} %.': 'Savings rate {x}%.',
   'Notgroschen {x} von {y}.': 'Emergency fund {x} of {y}.',
   'Auf Sparkonten {x}.': 'In savings accounts: {x}.',
   'Schulden: {x}.': 'Debts: {x}.',
   'Versicherungen: {x}, {y} im Monat.': 'Insurance: {x}, {y} a month.',
   'Reichweite etwa {x} Monate.': 'Runway about {x} months.',
-  'Keine Versicherung erkannt. Privathaftpflicht zuerst.\n\nNächster Schritt: Unter Vermögen eintragen.': 'No insurance found. Liability cover first.\n\nNext step: Add it under Wealth.',
-  'Altersvorsorge ist noch nicht eingerichtet.\n\nNächster Schritt: „Vorsorge einrichten“.': 'Retirement planning isn\'t set up yet.\n\nNext step: "Set up retirement plan".',
-  '**{x}** Wunschrente im Monat ist gedeckt. Orientierung, keine Beratung.': '**{x}** desired pension a month is covered. Guidance, not advice.',
-  '**{z}** fehlen im Monat, noch **{y} Jahre** bis {x}. Etwa {a} extra im Monat (gesetzlich {b}, Kapital {c}). Orientierung, keine Beratung.': '**{z}** a month short, **{y} years** until {x}. About {a} extra a month (state {b}, capital {c}). Guidance, not advice.',
+  'Keine Versicherung erkannt. Privathaftpflicht zuerst.\n\nNächster Schritt: Unter Vermögen eintragen.':
+      'No insurance found. Liability cover first.\n\nNext step: Add it under Wealth.',
+  'Altersvorsorge ist noch nicht eingerichtet.\n\nNächster Schritt: „Vorsorge einrichten“.':
+      'Retirement planning isn\'t set up yet.\n\nNext step: "Set up retirement plan".',
+  '**{x}** Wunschrente im Monat ist gedeckt. Orientierung, keine Beratung.':
+      '**{x}** desired pension a month is covered. Guidance, not advice.',
+  '**{z}** fehlen im Monat, noch **{y} Jahre** bis {x}. Etwa {a} extra im Monat (gesetzlich {b}, Kapital {c}). Orientierung, keine Beratung.':
+      '**{z}** a month short, **{y} years** until {x}. About {a} extra a month (state {b}, capital {c}). Guidance, not advice.',
   'Noch keine geteilten Ausgaben.': 'No shared expenses yet.',
   'Keine aktiven wiederkehrenden Buchungen.': 'No active recurring bookings.',
   '**{x}** Kontostand.': '**{x}** balance.',
-  'Dafür fehlen ein paar volle Monate mit Einnahmen.': 'That needs a few full months of income.',
-  'Sag zum Beispiel „Was wäre ohne {x}?“ oder nenn einen Betrag. Abos: {tip}.': 'Say for example "What if I drop {x}?" or name an amount. Subscriptions: {tip}.',
-  'Noch keine Abos erkannt. Zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“': 'No subscriptions spotted yet. For example: "What if I spend €200?"',
-  '**{x}** frei. Szenario {label}: **{y}**. {delta}': '**{x}** free. Scenario {label}: **{y}**. {delta}',
-  '**{x}** bis Monatsende, etwa {y} am Tag. Tempo: {tempo}.{due}': '**{x}** left until the end of the month, about {y} a day. Pace: {tempo}.{due}',
-  'Plus ist nicht aktiv. {left}Ein Ziel ist gratis, mehr mit Plus.': 'Plus isn\'t active. {left}One goal is free, more with Plus.',
-  'Noch wenig Verlauf.\n\nNächster Schritt: Bank verbinden oder ein paar Ausgaben erfassen.': 'Not much history yet.\n\nNext step: Connect a bank or log a few expenses.',
-  'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen.': 'Not much history yet. Connect a bank or log a few expenses.',
-  '**{x}** fehlen noch für {y}.': '**{x}** still to go for {y}.',
-  '**{x}** für {y} sind da.': '**{x}** is already there for {y}.',
-  '**{x}** bekommst du zurück, von {y}.': '**{x}** comes back to you, from {y}.',
-  '**{x}** schuldest du, in {y}.': '**{x}** you owe, in {y}.',
-  '**0 €** offen. Alles ausgeglichen.': '**€0** open. All settled.',
-  '**{x}** im Monat wiederkehrend.': '**{x}** a month, recurring.',
-  '**{x}** als Nächstes ({y}).': '**{x}** next ({y}).',
-  '**{x}** auf den Konten.': '**{x}** across your accounts.',
-  'Zuletzt {x} {sign}{y}.': 'Last: {x} {sign}{y}.',
-  '**{x}** netto.': '**{x}** net.',
-  'Notgroschen: noch **{x}**.': 'Emergency fund: **{x}** still to go.',
-  'Notgroschen ist voll ({x}).': 'Emergency fund is full ({x}).',
-  'Notgroschen ist noch nicht eingetragen.': 'No emergency fund entered yet.',
-  'Konten {y}, Depot {z}.': 'Accounts {y}, portfolio {z}.',
-  '**{x}** im Monat. {y}': '**{x}** a month. {y}',
-  '**{n}** erkannt. {y}': '**{n}** found. {y}',
-  '**{z}** fehlen im Monat bis {x}. Etwa **{a}** extra. Orientierung, keine Beratung.':
-      '**{z}** a month short until {x}. About **{a}** extra. Guidance, not advice.',
-  '**{x}** Gratis-Fragen übrig. Plus ist nicht aktiv.':
-      '**{x}** free questions left. Plus isn\'t active.',
-  'Plus ist nicht aktiv. Ein Ziel ist gratis.': 'Plus isn\'t active. One goal is free.',
+  'Dafür fehlen ein paar volle Monate mit Einnahmen.':
+      'That needs a few full months of income.',
+  'Sag zum Beispiel „Was wäre ohne {x}?“ oder nenn einen Betrag. Abos: {tip}.':
+      'Say for example "What if I drop {x}?" or name an amount. Subscriptions: {tip}.',
+  'Noch keine Abos erkannt. Zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“':
+      'No subscriptions spotted yet. For example: "What if I spend €200?"',
+  '**{x}** frei. Szenario {label}: **{y}**. {delta}':
+      '**{x}** free. Scenario {label}: **{y}**. {delta}',
+  '**{x}** bis Monatsende, etwa {y} am Tag. Tempo: {tempo}.{due}':
+      '**{x}** left until the end of the month, about {y} a day. Pace: {tempo}.{due}',
+  'Plus ist nicht aktiv. {left}Ein Ziel ist gratis, mehr mit Plus.':
+      'Plus isn\'t active. {left}One goal is free, more with Plus.',
+  'Noch wenig Verlauf.\n\nNächster Schritt: Bank verbinden oder ein paar Ausgaben erfassen.':
+      'Not much history yet.\n\nNext step: Connect a bank or log a few expenses.',
+  'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen.':
+      'Not much history yet. Connect a bank or log a few expenses.',
   '{x}/Monat': '{x}/month',
   'ohne Limit': 'no limit',
   'Gratis': 'Free',
   'Plus': 'Plus',
-  'Konto, Budgets, Prognose, Verträge und Notgroschen bleiben gratis. Keine Werbung.': 'Account, budgets, forecast, contracts and the emergency fund stay free. No ads.',
+  'Konto, Budgets, Prognose, Verträge und Notgroschen bleiben gratis. Keine Werbung.':
+      'Account, budgets, forecast, contracts and the emergency fund stay free. No ads.',
   '**Du bist nicht angemeldet.** Passwort ändern geht erst im Konto. Per E-Mail zurücksetzen geht nicht.\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden. Danach Mein Konto › Sicherheit › Passwort ändern.':
       '**You\'re not signed in.** You can change the password only inside an account. There\'s no reset by email.\n\nNext step: Profile › Create account, or Sign in. Then My account › Security › Change password.',
   '**Profil › Mein Konto › Sicherheit › Passwort ändern.** Per E-Mail zurücksetzen geht nicht.\n\nNächster Schritt: Aktuelles Passwort eingeben, das neue zweimal.':
@@ -2727,4 +3654,25 @@ const en = <String, String>{
       '**Profile › Plan › Contracts & subscriptions.**\n\nNext step: There you see the subscriptions that were found.',
   '**Profil › Planen › Geteilte Ausgaben.**\n\nNächster Schritt: Dort steht, wer wem was schuldet.':
       '**Profile › Plan › Shared expenses.**\n\nNext step: There you see who owes whom.',
+  '**{x}** fehlen noch für {y}.': '**{x}** still to go for {y}.',
+  '**{x}** für {y} sind da.': '**{x}** is already there for {y}.',
+  '**{x}** bekommst du zurück, von {y}.': '**{x}** comes back to you, from {y}.',
+  '**{x}** schuldest du, in {y}.': '**{x}** you owe, in {y}.',
+  '**0 €** offen. Alles ausgeglichen.': '**€0** open. All settled.',
+  '**{x}** im Monat wiederkehrend.': '**{x}** a month, recurring.',
+  '**{x}** als Nächstes ({y}).': '**{x}** next ({y}).',
+  '**{x}** auf den Konten.': '**{x}** across your accounts.',
+  'Zuletzt {x} {sign}{y}.': 'Last: {x} {sign}{y}.',
+  '**{x}** netto.': '**{x}** net.',
+  'Notgroschen: noch **{x}**.': 'Emergency fund: **{x}** still to go.',
+  'Notgroschen ist voll ({x}).': 'Emergency fund is full ({x}).',
+  'Notgroschen ist noch nicht eingetragen.': 'No emergency fund entered yet.',
+  'Konten {y}, Depot {z}.': 'Accounts {y}, portfolio {z}.',
+  '**{x}** im Monat. {y}': '**{x}** a month. {y}',
+  '**{n}** erkannt. {y}': '**{n}** found. {y}',
+  '**{z}** fehlen im Monat bis {x}. Etwa **{a}** extra. Orientierung, keine Beratung.':
+      '**{z}** a month short until {x}. About **{a}** extra. Guidance, not advice.',
+  '**{x}** Gratis-Fragen übrig. Plus ist nicht aktiv.':
+      '**{x}** free questions left. Plus isn\'t active.',
+  'Plus ist nicht aktiv. Ein Ziel ist gratis.': 'Plus isn\'t active. One goal is free.',
 };
