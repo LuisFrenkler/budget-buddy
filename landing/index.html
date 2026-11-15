@@ -68,7 +68,8 @@
   .top.on-paper .pill.cta{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .top.on-paper .pill{--glass:rgba(255,255,255,.08);--glass-line:rgba(255,255,255,.12)}}
-  @media (max-width:720px){.menu{display:none}.top .pill.cta{margin-left:auto}}
+  .pill.lang{cursor:pointer;padding:0 14px;font:700 13px/1 var(--text);letter-spacing:.06em}
+  @media (max-width:720px){.menu{display:none}.top .pill.lang{margin-left:auto}}
 
   /* ---------------- hero */
   .hero{min-height:100svh;display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,64px);align-items:center;padding-top:112px;padding-bottom:0}
@@ -222,8 +223,9 @@
 <div class="top" data-top>
   <div class="w">
     <a class="pill brand" href="#"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</a>
-    <nav class="menu" aria-label="Seiten"><a href="#buddy">Buddy</a><a href="#lebenslagen">Lebenslagen</a><a href="#fragen">Ausprobieren</a></nav>
-    <a class="pill cta" href="#platz">Warteliste</a>
+    <nav class="menu" aria-label="Seiten" data-en-aria-label="Pages"><a href="#buddy">Buddy</a><a href="#lebenslagen" data-en="Life stages">Lebenslagen</a><a href="#fragen" data-en="Try it">Ausprobieren</a></nav>
+    <button class="pill lang" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
+    <a class="pill cta" href="#platz" data-en="Waitlist">Warteliste</a>
   </div>
 </div>
 
@@ -231,32 +233,32 @@
   <div class="grain"></div>
   <div class="w hero">
    <div class="hero-text">
-    <h1>Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
-    <p class="lead">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
+    <h1 data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
+    <p class="lead" data-en="Ask Buddy. He works with your real numbers, explains every term and tells you the next step. You decide.">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
     <div id="platz">
       <form class="join" novalidate>
-        <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
-        <button class="btn white" type="submit">Auf die Warteliste</button>
+        <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
+        <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
       </form>
       <div class="err" role="alert"></div>
       <div class="spot">
         <div class="n" data-pos>#–</div>
-        <p>So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
+        <p data-en="That’s your place in line. Every person who joins through your link moves you five places up.">So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
         <div class="bars" data-bars><i></i><i></i><i></i></div>
         <code data-link></code>
         <div class="row">
-          <a class="btn white" data-wa target="_blank" rel="noopener">Per WhatsApp schicken</a>
-          <button class="btn ghost" type="button" data-copy>Link kopieren</button>
+          <a class="btn white" data-wa target="_blank" rel="noopener" data-en="Send via WhatsApp">Per WhatsApp schicken</a>
+          <button class="btn ghost" type="button" data-copy data-en="Copy link">Link kopieren</button>
         </div>
       </div>
-      <p class="fine">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
+      <p class="fine" data-en="Free. Read-only access to your bank. No account numbers go to the AI.">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
     </div>
-    <a class="scroll" href="#buddy">Runter ↓</a>
+    <a class="scroll" href="#buddy" data-en="Scroll ↓">Runter ↓</a>
    </div>
    <div class="stage">
-      <div class="phone"><img src="app_chat.jpg" alt="Buddy erklärt die Betriebsrente und schlägt als nächsten Schritt vor, bei der Personalabteilung nach Zuschuss und Kosten zu fragen." width="780" height="1688"></div>
-      <div class="remark r1"><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem <b>29,90 €</b> ab.</div>
-      <div class="remark r2"><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Bis Monatsende sind noch <b>340 €</b> frei. Der Lieferdienst weiß das leider auch.</div>
+      <div class="phone"><img src="app_chat.jpg" data-en-src="app_chat_en.jpg" data-en-alt="Buddy explains the company pension and suggests asking HR about the employer top-up and costs as the next step." alt="Buddy erklärt die Betriebsrente und schlägt als nächsten Schritt vor, bei der Personalabteilung nach Zuschuss und Kosten zu fragen." width="780" height="1688"></div>
+      <div class="remark r1" data-en="&lt;small&gt;&lt;span class=&quot;coin&quot;&gt;&lt;svg&gt;&lt;use href=&quot;#b&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;Buddy&lt;/small&gt;Your gym hasn’t seen you since March. It still charges &lt;b&gt;€29.90&lt;/b&gt; anyway."><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem <b>29,90 €</b> ab.</div>
+      <div class="remark r2" data-en="&lt;small&gt;&lt;span class=&quot;coin&quot;&gt;&lt;svg&gt;&lt;use href=&quot;#b&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;Buddy&lt;/small&gt;&lt;b&gt;€340&lt;/b&gt; is still free until the end of the month. Sadly the delivery app knows that too."><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Bis Monatsende sind noch <b>340 €</b> frei. Der Lieferdienst weiß das leider auch.</div>
    </div>
   </div>
 </header>
@@ -264,21 +266,21 @@
 <main>
   <section id="buddy">
     <div class="w rise">
-      <h2 class="say-big">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
-      <p class="sub">Buddy ist dein Coach fürs Geld. Er sieht, was reinkommt und rausgeht, sagt es dir ohne Fachchinesisch und schlägt genau einen nächsten Schritt vor.</p>
+      <h2 class="say-big" data-en="Less finance jargon. <span>More next step.</span>">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
+      <p class="sub" data-en="Buddy is your money coach. He sees what comes in and goes out, tells you in plain words and suggests exactly one next step.">Buddy ist dein Coach fürs Geld. Er sieht, was reinkommt und rausgeht, sagt es dir ohne Fachchinesisch und schlägt genau einen nächsten Schritt vor.</p>
     </div>
   </section>
 
   <section>
     <div class="w">
-      <h2 class="say-big rise">Frag, was du dich <span>sonst nicht traust.</span></h2>
+      <h2 class="say-big rise" data-en="Ask what you’d <span>never dare to ask.</span>">Frag, was du dich <span>sonst nicht traust.</span></h2>
       <div class="ex rise">
-        <div class="topics" role="group" aria-label="Beispiele">
-          <button type="button" aria-pressed="true" data-t="urlaub">Urlaub im Juli</button>
-          <button type="button" aria-pressed="false" data-t="gehalt">Erste Abrechnung</button>
-          <button type="button" aria-pressed="false" data-t="abos">Vergessene Abos</button>
-          <button type="button" aria-pressed="false" data-t="wg">WG-Kasse</button>
-          <button type="button" aria-pressed="false" data-t="bav">Betriebsrente</button>
+        <div class="topics" role="group" aria-label="Beispiele" data-en-aria-label="Examples">
+          <button type="button" aria-pressed="true" data-t="urlaub" data-en="Holiday in July">Urlaub im Juli</button>
+          <button type="button" aria-pressed="false" data-t="gehalt" data-en="First payslip">Erste Abrechnung</button>
+          <button type="button" aria-pressed="false" data-t="abos" data-en="Forgotten subscriptions">Vergessene Abos</button>
+          <button type="button" aria-pressed="false" data-t="wg" data-en="Flatshare money">WG-Kasse</button>
+          <button type="button" aria-pressed="false" data-t="bav" data-en="Company pension">Betriebsrente</button>
         </div>
         <div class="talk" data-talk aria-live="polite"></div>
       </div>
@@ -287,31 +289,31 @@
 
   <div class="tiles" id="lebenslagen">
     <div class="tile t1 rise">
-      <h3>Lebenslagen statt Menüs.</h3>
-      <p>Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt mit dir ab, was erledigt ist.</p>
-      <div class="shot"><img src="app_welcome.jpg" alt="Buddy begrüßt dich und zeigt die Lebenslage Erster Job mit dem nächsten Schritt: Notgroschen aufbauen." loading="lazy"></div>
+      <h3 data-en="Life stages, not menus.">Lebenslagen statt Menüs.</h3>
+      <p data-en="First job, first flat, moving in together. Buddy knows what matters right now and ticks off what’s done with you.">Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt mit dir ab, was erledigt ist.</p>
+      <div class="shot"><img src="app_welcome.jpg" data-en-src="app_welcome_en.jpg" data-en-alt="Buddy takes a first look at your numbers and suggests the next step." alt="Buddy begrüßt dich und zeigt die Lebenslage Erster Job mit dem nächsten Schritt: Notgroschen aufbauen." loading="lazy"></div>
     </div>
     <div class="tile t2 rise">
-      <h3>Er merkt sich, was du ihm sagst.</h3>
-      <p>Gehalt kommt am 28.? Notiert. Gespeichert wird aber erst, wenn du auf Merken tippst. Gilt auch für jede Buchung.</p>
-      <div class="shot"><img src="app_coach.jpg" alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
+      <h3 data-en="He remembers what you tell him.">Er merkt sich, was du ihm sagst.</h3>
+      <p data-en="Salary arrives on the 28th? Noted. But it’s only saved when you tap Remember. Same for every booking.">Gehalt kommt am 28.? Notiert. Gespeichert wird aber erst, wenn du auf Merken tippst. Gilt auch für jede Buchung.</p>
+      <div class="shot"><img src="app_coach.jpg" data-en-src="app_coach_en.jpg" data-en-alt="Buddy asks whether he should remember that your salary arrives on the 28th and suggests a savings goal you can apply or dismiss." alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
     </div>
   </div>
 
   <section>
     <div class="w rise">
-      <h2 class="say-big" style="font-size:clamp(28px,3.6vw,44px)">Was Buddy nicht macht:</h2>
+      <h2 class="say-big" style="font-size:clamp(28px,3.6vw,44px)" data-en="What Buddy doesn’t do:">Was Buddy nicht macht:</h2>
       <div class="nots">
-        <div>Geld bewegen</div>
-        <div>Dir Fonds verkaufen</div>
-        <div>Deinen Kaffee zählen</div>
+        <div data-en="Move money">Geld bewegen</div>
+        <div data-en="Sell you funds">Dir Fonds verkaufen</div>
+        <div data-en="Count your coffees">Deinen Kaffee zählen</div>
       </div>
-      <p class="punch">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
+      <p class="punch" data-en="It’s never the coffee anyway. Usually it’s the gym.">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
       <div class="facts">
-        <span>Nur Lesezugriff aufs Konto</span>
-        <span>Du bestätigst jede Buchung</span>
-        <span>Keine Kontonummern an die KI</span>
-        <span>Höchstens eine Mitteilung am Tag</span>
+        <span data-en="Read-only access to your account">Nur Lesezugriff aufs Konto</span>
+        <span data-en="You confirm every booking">Du bestätigst jede Buchung</span>
+        <span data-en="No account numbers to the AI">Keine Kontonummern an die KI</span>
+        <span data-en="At most one notification a day">Höchstens eine Mitteilung am Tag</span>
       </div>
     </div>
   </section>
@@ -319,17 +321,17 @@
   <div class="finale atmo" id="fragen">
     <div class="grain"></div>
     <div class="w">
-      <h2 class="rise">Frag Buddy. <span>Jetzt, ohne Anmeldung.</span></h2>
+      <h2 class="rise" data-en="Ask Buddy. <span>Now, no sign-up.</span>">Frag Buddy. <span>Jetzt, ohne Anmeldung.</span></h2>
       <form class="ask">
-        <input id="q" name="q" placeholder="Wie viel Notgroschen brauche ich?" autocomplete="off" maxlength="400" aria-label="Frage an Buddy">
-        <button class="btn white" type="submit">Fragen</button>
+        <input id="q" name="q" placeholder="Wie viel Notgroschen brauche ich?" autocomplete="off" maxlength="400" aria-label="Frage an Buddy" data-en-placeholder="How big should my emergency fund be?" data-en-aria-label="Question for Buddy">
+        <button class="btn white" type="submit" data-en="Ask">Fragen</button>
       </form>
       <div class="answer" aria-live="polite"></div>
       <div class="again">
-        <h3>Sei früh dabei.</h3>
+        <h3 data-en="Get in early.">Sei früh dabei.</h3>
         <form class="join" novalidate>
-          <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail">
-          <button class="btn white" type="submit">Auf die Warteliste</button>
+          <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
+          <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
       </div>
@@ -340,8 +342,8 @@
 <footer>
   <div class="w">
     <span>© 2026 Ahead</span>
-    <span>Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
-    <a href="#">Datenschutz</a><a href="#">Impressum</a>
+    <span data-en="Buddy can make mistakes. No investment, tax or legal advice.">Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
+    <a href="#" data-en="Privacy">Datenschutz</a><a href="#" data-en="Legal notice">Impressum</a>
   </div>
 </footer>
 
@@ -363,6 +365,35 @@
       return realFetch(url, opts);
     };
   }
+  // ------------------------------------------------ language: German or English
+  // ?lang=en|de wins, then the last choice, then the browser language
+  var qLang = new URLSearchParams(location.search).get('lang');
+  var lang = qLang === 'en' || qLang === 'de' ? qLang : store.get('ahead-lang') || ((navigator.language || 'de').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
+  function L(de, en) { return lang === 'en' ? en : de; }
+  var meta = {
+    de: { title: 'Ahead', desc: document.querySelector('meta[name="description"]').content },
+    en: { title: 'Ahead', desc: 'What do I do with my salary? Ask Buddy. He works with your real numbers and tells you the next step.' }
+  };
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-en]').forEach(function (el) {
+      if (el.dataset.de == null) el.dataset.de = el.innerHTML;
+      el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.de;
+    });
+    ['placeholder', 'aria-label', 'alt', 'src'].forEach(function (a) {
+      document.querySelectorAll('[data-en-' + a + ']').forEach(function (el) {
+        var key = 'de' + a.replace(/-./g, function (m) { return m[1].toUpperCase(); }).replace(/^./, function (c) { return c.toUpperCase(); });
+        if (el.dataset[key] == null) el.dataset[key] = el.getAttribute(a);
+        el.setAttribute(a, lang === 'en' ? el.getAttribute('data-en-' + a) : el.dataset[key]);
+      });
+    });
+    document.querySelector('meta[name="description"]').content = meta[lang].desc;
+    var sw = document.querySelector('[data-lang]');
+    sw.textContent = lang === 'en' ? 'DE' : 'EN';
+    sw.setAttribute('aria-label', lang === 'en' ? 'Auf Deutsch lesen' : 'Read in English');
+  }
+  applyLang();
+
   var ref = new URLSearchParams(location.search).get('ref');
   if (ref && /^[A-Za-z0-9]{6}$/.test(ref)) store.set('ahead-ref', ref.toUpperCase());
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -398,28 +429,49 @@
   });
 
   // ------------------------------------------------ the conversation
-  var talks = {
+  var talksDe = {
     urlaub: { q: 'Kann ich mir im Juli 800 € Urlaub leisten?', a: 'Ja, mit <b>100 € im Monat</b> ab jetzt. Dein Notgroschen bleibt unangetastet, und bis Monatsende sind trotzdem noch 340 € frei.', next: 'Sparziel „Urlaub Juli“ anlegen. Ich rechne jeden Monat mit.' },
     gehalt: { q: 'Kannst du meine erste Gehaltsabrechnung prüfen?', a: 'Schick mir ein Foto. Zuerst schaue ich auf <b>vier Dinge</b>:', list: ['Steuerklasse: ledig ist Klasse I', 'Steuer-ID und Krankenkasse richtig eingetragen', 'Sozialabgaben, grob ein Fünftel vom Brutto', 'Kommt genau das Netto auf deinem Konto an?'], next: 'Foto der Abrechnung in den Chat.' },
     abos: { q: 'Welche Abos habe ich eigentlich?', a: '<b>6 feste Zahlungen</b>, zusammen 74 € im Monat. Ein Streamingdienst ist im Juni teurer geworden, und zwei davon hast du dieses Jahr kaum genutzt.', next: 'Ich zeig dir, wie du kündigst. Den Text schreibe ich vor.' },
     wg: { q: 'Wer schuldet in der WG wem was?', a: 'Mit <b>zwei Überweisungen</b> seid ihr quitt: Jonas schickt dir 38,50 €, Lea schickt Mia 12 €.', next: 'Ich schreibe die Nachricht für euren Gruppenchat.' },
     bav: { q: 'Lohnt sich die Betriebsrente?', a: 'Oft ja, wegen des Zuschusses: Spart dein Arbeitgeber Sozialabgaben, gibt er in der Regel <b>15 Prozent</b> dazu. Frag in der Personalabteilung:', list: ['Wie viel gibt der Arbeitgeber dazu?', 'Welche Kosten hat der Vertrag?', 'Was passiert beim Jobwechsel?'], next: 'Mit den drei Antworten rechnen wir gemeinsam nach.' }
   };
+  var talksEn = {
+    urlaub: { q: 'Can I afford an €800 holiday in July?', a: 'Yes, with <b>€100 a month</b> from now on. Your emergency fund stays untouched, and you still have €340 free until the end of the month.', next: 'Create the savings goal “Holiday July”. I’ll keep track every month.' },
+    gehalt: { q: 'Can you check my first payslip?', a: 'Send me a photo. First I look at <b>four things</b>:', list: ['Tax class: single is class I', 'Tax ID and health insurer entered correctly', 'Social contributions, roughly a fifth of your gross pay', 'Does exactly the net amount arrive in your account?'], next: 'Drop a photo of the payslip into the chat.' },
+    abos: { q: 'Which subscriptions do I actually have?', a: '<b>6 fixed payments</b>, €74 a month together. One streaming service got more expensive in June, and you barely used two of them this year.', next: 'I’ll show you how to cancel. I’ll draft the letter.' },
+    wg: { q: 'Who owes whom in our flatshare?', a: 'With <b>two transfers</b> you’re even: Jonas sends you €38.50, Lea sends Mia €12.', next: 'I’ll write the message for your group chat.' },
+    bav: { q: 'Is the company pension worth it?', a: 'Often yes, because of the top-up: if your employer saves social contributions, they usually add <b>15 percent</b>. Ask HR:', list: ['How much does the employer add?', 'What does the plan cost?', 'What happens if I change jobs?'], next: 'With those three answers we’ll do the maths together.' }
+  };
+  var talks = lang === 'en' ? talksEn : talksDe;
   function block(q, a, list, next, note) {
     return '<div class="you fade">' + esc(q) + '</div>' +
       '<div class="buddy fade">' + coin + '<div><div class="say">' + a + '</div>' +
       (list ? '<ul>' + list.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
-      (next ? '<div class="step"><em>Nächster Schritt</em><span>' + next + '</span></div>' : '') +
+      (next ? '<div class="step"><em>' + L('Nächster Schritt', 'Next step') + '</em><span>' + next + '</span></div>' : '') +
       (note ? '<div class="note">' + note + '</div>' : '') + '</div></div>';
   }
-  var talk = document.querySelector('[data-talk]');
+  var talk = document.querySelector('[data-talk]'), current = 'urlaub';
   function showTalk(key) {
+    current = key;
     var t = talks[key];
-    talk.innerHTML = block(t.q, t.a, t.list, esc(t.next), 'Beispiel. In der App rechnet Buddy mit deinen eigenen Zahlen.');
+    talk.innerHTML = block(t.q, t.a, t.list, esc(t.next), L('Beispiel. In der App rechnet Buddy mit deinen eigenen Zahlen.', 'Example. In the app Buddy works with your own numbers.'));
     document.querySelectorAll('.topics button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === key)); });
   }
   document.querySelectorAll('.topics button').forEach(function (b) { b.addEventListener('click', function () { showTalk(b.dataset.t); }); });
   showTalk('urlaub');
+
+  document.querySelector('[data-lang]').addEventListener('click', function () {
+    lang = lang === 'en' ? 'de' : 'en';
+    store.set('ahead-lang', lang);
+    talks = lang === 'en' ? talksEn : talksDe;
+    basics = lang === 'en' ? basicsEn : basicsDe;
+    applyLang();
+    showTalk(current);
+    var code = store.get('ahead-code');
+    if (code && spot.classList.contains('on')) fetch(API + '/waitlist/status?code=' + encodeURIComponent(code)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+    out.innerHTML = '';
+  });
 
   // ------------------------------------------------------------ waitlist
   var spot = document.querySelector('.spot');
@@ -429,16 +481,16 @@
     document.querySelectorAll('form.join').forEach(function (f) { f.style.display = 'none'; });
     document.querySelector('.again').style.display = 'none';
     spot.classList.add('on');
-    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString('de-DE');
+    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString(L('de-DE', 'en-GB'));
     var bars = spot.querySelectorAll('[data-bars] i');
     for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = 'Ich steh auf der Warteliste für Ahead, einen Buddy fürs Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ' + link;
+    var text = L('Ich steh auf der Warteliste für Ahead, einen Buddy fürs Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ', 'I’m on the waitlist for Ahead, a money buddy that tells you what to do next. Join me: ') + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
-      var done = function () { btn.textContent = 'Kopiert'; setTimeout(function () { btn.textContent = 'Link kopieren'; }, 1600); };
+      var done = function () { btn.textContent = L('Kopiert', 'Copied'); setTimeout(function () { btn.textContent = L('Link kopieren', 'Copy link'); }, 1600); };
       if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, function () {}); else done();
     };
   }
@@ -446,12 +498,12 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var err = form.nextElementSibling, btn = form.querySelector('button'), email = form.email.value.trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; return; }
-      err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = 'Einen Moment …';
-      fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref') }) })
-        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Fehler'); return j; }); })
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
+      err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
+      fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref'), lang: lang }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(lang === 'en' ? '' : j.error || 'Fehler'); return j; }); })
         .then(function (d) { showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' }); })
-        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : 'Gerade nicht erreichbar. Versuch es gleich noch einmal.'; })
+        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
         .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
   });
@@ -462,20 +514,28 @@
   var ask = document.querySelector('form.ask'), out = document.querySelector('.answer');
   var device = store.get('ahead-device');
   if (!device) { device = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, ''); store.set('ahead-device', device); }
-  var basics = [
+  var basicsDe = [
     [/notgroschen|rücklage|reserve|polster/i, '<b>Drei Monatsausgaben</b> auf einem Tagesgeldkonto. Bei 1.500 € Ausgaben im Monat sind das 4.500 €. Erst den Notgroschen füllen, dann investieren.', 'Dauerauftrag direkt nach dem Gehalt.'],
     [/betriebsrente|bav|entgeltumwandlung/i, talks.bav.a, talks.bav.next, talks.bav.list],
     [/etf|sparplan|aktie|fonds|invest/i, 'Ein <b>ETF</b> bildet einen Index nach, also viele Unternehmen auf einmal. Mit einem Sparplan kaufst du jeden Monat automatisch für einen festen Betrag. Meist günstig und breit gestreut.', 'Erst den Notgroschen, dann einen Betrag, den du jeden Monat sicher schaffst.'],
     [/gehalt|abrechnung|steuerklasse|netto|brutto/i, talks.gehalt.a, talks.gehalt.next, talks.gehalt.list],
     [/spar|wie viel|wieviel/i, 'Ein guter Start sind <b>10 bis 20 Prozent</b> deines Nettos, direkt am Zahltag per Dauerauftrag.', 'In der App rechne ich aus deinen echten Ausgaben aus, was realistisch ist.']
   ];
+  var basicsEn = [
+    [/emergency|reserve|cushion|rainy/i, '<b>Three months of spending</b> in an instant-access savings account. At €1,500 of spending a month that’s €4,500. Fill the emergency fund first, then invest.', 'A standing order right after payday.'],
+    [/company pension|workplace pension|salary conversion/i, talksEn.bav.a, talksEn.bav.next, talksEn.bav.list],
+    [/etf|savings plan|stock|fund|invest/i, 'An <b>ETF</b> tracks an index, so many companies at once. With a savings plan you automatically buy a fixed amount every month. Usually cheap and broadly diversified.', 'Emergency fund first, then an amount you can safely manage every month.'],
+    [/salary|payslip|tax class|net|gross/i, talksEn.gehalt.a, talksEn.gehalt.next, talksEn.gehalt.list],
+    [/save|how much/i, 'A good start is <b>10 to 20 percent</b> of your net pay, by standing order on payday.', 'In the app I work out from your real spending what’s realistic.']
+  ];
+  var basics = lang === 'en' ? basicsEn : basicsDe;
   function render(text) {
     var next = '', body = [], list = [];
     text.split('\n').forEach(function (l) {
       l = l.trim();
       if (!l || /^\[(weiter|merken)/i.test(l)) return;
-      var m = /^(\*\*)?Nächster Schritt:(\*\*)?\s*(.*)$/.exec(l);
-      if (m) { next = m[3]; return; }
+      var m = /^(\*\*)?(Nächster Schritt|Next step):(\*\*)?\s*(.*)$/.exec(l);
+      if (m) { next = m[4]; return; }
       var md = function (s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); };
       if (/^([-•*]|\d+[.)])\s+/.test(l)) { list.push(md(l.replace(/^([-•*]|\d+[.)])\s+/, ''))); return; }
       body.push(md(l));
@@ -487,16 +547,16 @@
     if (list && list.length) out.querySelector('.say').insertAdjacentHTML('afterend', '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>');
   }
   function offline(q) {
-    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), 'Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.');
-    show(q, 'Dafür brauche ich gerade die KI, und die ist nicht erreichbar oder für heute aufgebraucht.', 'Trag dich ein, dann rechnet Buddy in der App mit deinen echten Zahlen.');
+    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. With an account he works with your numbers.'));
+    show(q, L('Dafür brauche ich gerade die KI, und die ist nicht erreichbar oder für heute aufgebraucht.', 'For that I need the AI right now, and it’s not reachable or used up for today.'), L('Trag dich ein, dann rechnet Buddy in der App mit deinen echten Zahlen.', 'Sign up and Buddy works with your real numbers in the app.'));
   }
   ask.addEventListener('submit', function (e) {
     e.preventDefault();
     var q = ask.q.value.trim() || ask.q.placeholder;
     var btn = ask.querySelector('button'); btn.disabled = true;
-    show(q, '<span style="color:var(--soft)">Buddy schreibt …</span>', '');
+    show(q, '<span style="color:var(--soft)">' + L('Buddy schreibt …', 'Buddy is typing …') + '</span>', '');
     var acc = '';
-    fetch(API + '/ai/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device: device, history: [{ role: 'user', text: q }] }) })
+    fetch(API + '/ai/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device: device, lang: lang, history: [{ role: 'user', text: q }] }) })
       .then(function (res) {
         if (!res.ok || !res.body) throw 0;
         var reader = res.body.getReader(), dec = new TextDecoder(), buf = '', failed = false;
