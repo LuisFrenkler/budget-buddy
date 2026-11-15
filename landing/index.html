@@ -135,15 +135,16 @@
   .remark small .coin{width:18px;height:18px}
   .r1{left:-6%;top:14%}.r2{right:-4%;top:46%}
   @media (max-width:900px){
-    .hero{grid-template-columns:1fr;align-items:start;gap:16px;padding-top:92px;padding-bottom:28px}
+    .hero{grid-template-columns:minmax(0,1fr);align-items:start;gap:16px;padding-top:92px;padding-bottom:28px}
     .scroll{display:none}
-    .hero-text{padding-bottom:0}
-    .hero h1{font-size:clamp(38px,10.4vw,60px)}
+    .hero-text{min-width:0;max-width:100%;padding-bottom:0}
+    .hero h1,.hero .lead,.plan,.trust{max-width:100%}
+    .hero h1{font-size:clamp(34px,8.6vw,52px)}
     .hero .lead{margin-top:12px}
     .join{margin-top:18px}
     .trust{margin-top:12px}
-    .stage{align-self:center;width:100%;max-width:520px;justify-self:center;
-           display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"p p" "a b";gap:10px;justify-items:stretch}
+    .stage{align-self:center;width:100%;max-width:520px;min-width:0;justify-self:center;
+           display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"p p" "a b";gap:10px;justify-items:stretch}
     .stage .phone{grid-area:p;justify-self:center;width:min(272px,74vw);margin-top:4px;border-radius:40px}
     .stage .phone img{border-radius:32px}
     .r1,.r2{position:static;max-width:none;min-width:0;top:auto;left:auto;right:auto}
