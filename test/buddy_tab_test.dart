@@ -4,6 +4,7 @@ import 'package:budget_buddy/screens/home_screen.dart';
 import 'package:budget_buddy/utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -69,6 +70,33 @@ void main() {
     expect(bottom, lessThanOrEqualTo(844 - 300));
     expect(bottom, greaterThan(844 - 300 - 90)); // no gap of a hidden tab bar
     expect(find.bySemanticsLabel(RegExp('^Schnell erfassen')), findsNothing); // the tab bar steps aside
+    await settle(tester);
+  });
+
+  testWidgets('a screen reader hears who speaks in the chat', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpShell(tester);
+    BuddyScreen.ask.value = '';
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.enterText(find.byType(TextField), 'Was kannst du alles?');
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel('Senden'));
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 300)));
+    await tester.pump(const Duration(seconds: 1));
+    // the answer: who speaks, read out when it arrives
+    final buddy = find.bySemanticsLabel(RegExp(r'^Buddy\nIch rechne'));
+    expect(buddy, findsOneWidget);
+    expect(tester.getSemantics(buddy).getSemanticsData().flagsCollection.isLiveRegion, isTrue);
+    // the question above it: scroll back up to it
+    await tester.drag(find.ancestor(of: buddy, matching: find.byType(Scrollable)).first, const Offset(0, 2000));
+    await tester.pump(const Duration(milliseconds: 500));
+    final mine = find.byWidgetPredicate((w) => w is Semantics && w.properties.label == 'Du', skipOffstage: false);
+    expect(mine, findsOneWidget);
+    expect((tester.widget(mine) as Semantics).properties.hintOverrides?.onLongPressHint, 'Kopieren und mehr');
+    handle.dispose();
     await settle(tester);
   });
 }
