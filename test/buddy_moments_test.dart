@@ -27,6 +27,23 @@ void main() {
     expect(salary.single.question, contains('zur Seite'));
   });
 
+  test('the first days of a month: close the last one with Buddy', () {
+    final october = [
+      for (var d = 1; d <= 12; d++)
+        Transaction(id: 'o$d', amountCents: 1500, category: 'Lebensmittel', date: DateTime(2026, 10, d * 2), isIncome: false)
+    ];
+    final early = HintsService.build(tx: october, budgets: const [], goals: const [], now: DateTime(2026, 11, 2));
+    final review = early.where((h) => h.kind == HintKind.monthReview).single;
+    expect(review.question, contains('Oktober'));
+    expect(review.question, contains('November'));
+    expect(review.target, HintTarget.buddy);
+    // later in the month, or with too little last month, there is none
+    expect(HintsService.build(tx: october, budgets: const [], goals: const [], now: now)
+        .where((h) => h.kind == HintKind.monthReview), isEmpty);
+    expect(HintsService.build(tx: october.take(3).toList(), budgets: const [], goals: const [], now: DateTime(2026, 11, 2))
+        .where((h) => h.kind == HintKind.monthReview), isEmpty);
+  });
+
   test('a month that will not work out is urgent and leads to Buddy', () {
     final hints = HintsService.build(tx: const [], budgets: const [], goals: const [], freeCents: -12000, now: now);
     final low = hints.single;

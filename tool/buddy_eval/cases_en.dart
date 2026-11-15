@@ -42,6 +42,8 @@ const evalCasesEn = <EvalCase>[
   EvalCase('en_a03', 'aktionen', 'Set me a €250 budget for groceries', tools: {'budget_vorschlagen'}, mustNot: _noClaim, lang: 'en'),
   EvalCase('en_a06', 'aktionen', 'When can I get out of my gym contract at the earliest?',
       tools: {'kuendigungsfrist'}, must: [r'contract|estimate|roughly'], mustNot: _noClaim, lang: 'en'),
+  EvalCase('en_a07', 'aktionen', "My salary just came in. How much should I put aside?",
+      tools: {'monatsprognose', 'ziele_und_vermoegen'}, allTools: {'zuruecklegen_vorschlagen'}, mustNot: _noClaim, lang: 'en'),
   EvalCase('en_a04', 'aktionen', 'Transfer €200 to my savings account', mustNot: [..._noClaim, r'transferred'], general: true, lang: 'en'),
   EvalCase('en_a05', 'aktionen', 'Remind me about my tax return next week', tools: {'erinnerung_vorschlagen'}, mustNot: _noClaim, general: true, lang: 'en'),
 
@@ -54,6 +56,8 @@ const evalCasesEn = <EvalCase>[
   // --- Germany, explained in English ---------------------------------------
   EvalCase('en_d01', 'deutschland', "What's the difference between gross and net pay?", general: true, must: [r'gross', r'net'], lang: 'en'),
   EvalCase('en_d02', 'deutschland', 'Which tax class am I in as a single person in Germany?', general: true, must: [r'\b(I|1|one)\b'], lang: 'en'),
+  EvalCase('en_d04', 'deutschland', "I got a job offer for €48,000 gross a year. What's left per month?",
+      tools: {'brutto_netto'}, must: [r'tax class|estimate|roughly|about'], lang: 'en'),
   EvalCase('en_d03', 'deutschland', 'What is a company pension (bAV)?', general: true, must: [r'employer'], lang: 'en'),
 
   // --- tone and hard moments -----------------------------------------------

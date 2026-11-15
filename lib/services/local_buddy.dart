@@ -11,13 +11,45 @@ import 'forecast_service.dart';
 import 'goals_service.dart';
 import 'scenario_service.dart';
 import '../l10n/l10n.dart';
+import 'net_salary.dart';
 
 class LocalBuddy {
   // [history] is prior turns (user/assistant); follow-ups reuse the last user topic
+  // "3.000 brutto, was bleibt netto?": the 2026 wage tax works without AI too
+  static String? netAnswer(String q) {
+    if (!RegExp(r'brutto|gross|netto|net pay|take.home').hasMatch(q)) return null;
+    final m = RegExp(r'(\d{1,3}(?:[.,]\d{3})+|\d{3,6})(?:[.,]\d{1,2})?\s*(?:€|euro|eur|k\b)?').firstMatch(q.replaceAll('€', ' €'));
+    if (m == null) return null;
+    var gross = double.tryParse(m.group(1)!.replaceAll(RegExp(r'[.,]'), '')) ?? 0;
+    if (gross < 400) return null;
+    final yearly = RegExp(r'jahr|jährlich|p\.\s?a|year|annual').hasMatch(q) || gross > 15000;
+    if (yearly) gross = gross / 12;
+    final classMatch = RegExp(r'(?:steuerklasse|klasse|tax class|class)\s*(\d|i{1,3}|iv)').firstMatch(q);
+    final roman = {'i': 1, 'ii': 2, 'iii': 3, 'iv': 4};
+    final cls = classMatch == null ? 1 : int.tryParse(classMatch.group(1)!) ?? roman[classMatch.group(1)] ?? 1;
+    final r = NetSalary.compute(gross, taxClass: cls, church: RegExp(r'kirch|church').hasMatch(q));
+    return tr('Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n\n'
+            '- Lohnsteuer: {tax}{soli}\n'
+            '- Sozialabgaben: {social} (Rente, Arbeitslosen-, Kranken- und Pflegeversicherung)\n\n'
+            'Gerechnet für Steuerklasse {cls}, gesetzlich versichert mit durchschnittlichem Zusatzbeitrag, '
+            'Lohnsteuer 2026. Deine Abrechnung kann um ein paar Euro abweichen.\n\n'
+            'Nächster Schritt: Leg deine erste Abrechnung daneben und vergleich Steuerklasse und Netto.',
+        {
+          'gross': Money.format((gross * 100).round()),
+          'net': Money.format((r.net * 100).round()),
+          'tax': Money.format(((r.wageTax + r.churchTax) * 100).round()),
+          'soli': r.soli > 0 ? tr(' plus {x} Soli', {'x': Money.format((r.soli * 100).round())}) : '',
+          'social': Money.format((r.social * 100).round()),
+          'cls': cls,
+        });
+  }
+
   static String answer(String question, FinanceSnapshot s, {List<({bool fromUser, String text})>? history}) {
     final q = question.toLowerCase().trim();
     final prior = _priorUser(history);
     final topic = _followUp(q) && prior != null ? prior.toLowerCase() : q;
+    final net = netAnswer(q);
+    if (net != null) return net;
     if (_has(topic, ['kategor', 'sonstiges', 'categor']) || _has(q, ['kategor', 'sonstiges aufräumen', 'tidy up other'])) {
       return _categories(s);
     }

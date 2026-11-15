@@ -118,6 +118,27 @@ void main() {
     });
   });
 
+  group('putting money aside', () {
+    test('after payday: an amount for the goal, counted and undone again', () async {
+      final t = tools();
+      t.run('sparziel_vorschlagen', {'name': 'Notgroschen', 'betrag': 3000});
+      await t.proposals.single.apply(now: now);
+      final t2 = tools();
+      final r = t2.run('zuruecklegen_vorschlagen', {'ziel': 'notgroschen', 'betrag': 250});
+      expect(r['karte'], 'gezeigt');
+      expect(t2.proposals.single.detail, contains('2.750'));
+      await t2.proposals.single.apply(now: now);
+      expect(GoalsService.all().single.savedCents, 25000);
+      await BuddyLog.undo(BuddyLog.all().first.id);
+      expect(GoalsService.all().single.savedCents, 0);
+    });
+
+    test('without a goal Buddy is told to propose one first', () {
+      expect(tools().run('zuruecklegen_vorschlagen', {'ziel': 'Urlaub', 'betrag': 100})['fehler'],
+          contains('kein offenes Sparziel'));
+    });
+  });
+
   group('notice periods', () {
     BuddyTools withContract(String name, String category, String since, String next) => BuddyTools(
           tx: const [],
@@ -260,6 +281,6 @@ void main() {
   });
 
   test('every proposal kind has an apply path', () {
-    expect(ProposalKind.values.length, 5);
+    expect(ProposalKind.values.length, 6);
   });
 }

@@ -13,6 +13,7 @@ import 'backend_service.dart';
 import 'glossary.dart';
 import 'life_stages.dart';
 import '../l10n/l10n.dart';
+import 'local_buddy.dart';
 
 class GuestBuddy {
   static const perDay = 3;
@@ -98,6 +99,8 @@ class GuestBuddy {
 
   // without the AI: life stage steps and money words, otherwise an honest note
   static String offline(String question) {
+    final net = LocalBuddy.netAnswer(question.toLowerCase());
+    if (net != null) return net;
     final step = LifeStages.stepFor(question);
     if (step != null) return step.offline;
     final q = question.toLowerCase();

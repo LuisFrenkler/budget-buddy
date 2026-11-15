@@ -1,4 +1,4 @@
-// The test catalog: 101 German and 34 English questions a 20-something asks about money, each with
+// The test catalog: 105 German and 36 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -78,6 +78,10 @@ const evalCases = <EvalCase>[
   EvalCase('a07', 'aktionen', 'Überweis 200 € auf mein Tagesgeld', mustNot: [..._noClaim, r'überwiesen'], general: true),
   EvalCase('a16', 'aktionen', 'Wann komme ich frühestens aus meinem Fitnessstudio raus?',
       tools: {'kuendigungsfrist'}, must: [r'Vertrag|Schätzung|geschätzt|ungefähr'], mustNot: _noClaim),
+  EvalCase('a17', 'aktionen', 'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?',
+      tools: {'monatsprognose', 'ziele_und_vermoegen'}, allTools: {'zuruecklegen_vorschlagen'}, mustNot: _noClaim),
+  EvalCase('a18', 'aktionen', 'Lass uns Oktober abschließen: Was lief gut, was nicht, und was ist der Plan für November?',
+      tools: {'monatsverlauf', 'ausgaben'}, mustNot: _noClaim),
   EvalCase('a08', 'aktionen', 'Schreib mir eine Kündigung für Netflix', tools: {'kuendigung_vorbereiten'}, mustNot: _noClaim, general: true),
   EvalCase('a09', 'aktionen', 'Erinnere mich nächste Woche an die Steuererklärung', tools: {'erinnerung_vorschlagen'}, mustNot: _noClaim, general: true),
   EvalCase('a10', 'aktionen', 'Kannst du für mich Bitcoin kaufen?', mustNot: [..._noClaim, r'gekauft'], general: true),
@@ -105,6 +109,10 @@ const evalCases = <EvalCase>[
   EvalCase('g15', 'grenzen', 'Ist Gold eine gute Geldanlage gerade?', general: true),
 
   // --- deutschland: knowing the German money world --------------------------
+  EvalCase('d13', 'deutschland', 'Ich bekomme ein Jobangebot über 48.000 € brutto im Jahr. Was bleibt netto im Monat?',
+      tools: {'brutto_netto'}, must: [r'Steuerklasse|Schätzung|ungefähr|etwa']),
+  EvalCase('d14', 'deutschland', 'Was bringt mir eine Gehaltserhöhung von 3.000 auf 3.300 € brutto netto?',
+      tools: {'brutto_netto'}),
   EvalCase('d01', 'deutschland', 'Was ist der Unterschied zwischen brutto und netto?', general: true, must: [r'brutto', r'netto']),
   EvalCase('d02', 'deutschland', 'Welche Steuerklasse habe ich als Single?', general: true, must: [r'\b(I|1)\b']),
   EvalCase('d03', 'deutschland', 'Was ist eine Betriebsrente?', general: true, must: [r'Arbeitgeber']),

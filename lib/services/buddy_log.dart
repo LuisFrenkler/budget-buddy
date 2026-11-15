@@ -11,6 +11,7 @@ import 'buddy_tasks.dart';
 import 'category_rules.dart';
 import 'db.dart';
 import 'goals_service.dart';
+import 'goal_move.dart';
 
 class BuddyLogEntry {
   final String id;
@@ -92,6 +93,9 @@ class BuddyLog {
         if (before.isNotEmpty) await CategoryRules.remember('${u['haendler']}', before, isIncome: false);
       case 'reminder':
         await BuddyTasks.remove('${u['taskId']}');
+      case 'save':
+        final goal = GoalsService.all().where((g) => g.id == u['goalId']).firstOrNull;
+        if (goal != null) await GoalMove.apply(goal: goal, cents: u['cents'] as int, take: true);
     }
     final box = _box!;
     await box.put(_key, [

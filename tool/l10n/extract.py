@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from wrap import scan  # noqa: E402
 
 # texts that reach tr() through a variable: category names, intervals, types
-DYNAMIC = ['deine Konten', 'deine Ausgaben', 'deine Einnahmen', 'deine Buchungen', 'die letzten Monate', 'deine Verträge', 'deinen Monat', 'deine Ziele', 'ein Szenario', 'einen Sparplan', 'die Rechnung', 'dein Budget', 'dein Sparziel', 'die Kündigung', 'die Kategorien', 'deine Erinnerung', 'ein Diagramm', 'deine Zahlen', 'deine Zahlen noch einmal', 'die Kündigungsfrist',
+DYNAMIC = ['deine Sparrate', 'die Gehaltsrechnung', 'deine Konten', 'deine Ausgaben', 'deine Einnahmen', 'deine Buchungen', 'die letzten Monate', 'deine Verträge', 'deinen Monat', 'deine Ziele', 'ein Szenario', 'einen Sparplan', 'die Rechnung', 'dein Budget', 'dein Sparziel', 'die Kündigung', 'die Kategorien', 'deine Erinnerung', 'ein Diagramm', 'deine Zahlen', 'deine Zahlen noch einmal', 'die Kündigungsfrist',
            'Lebensmittel', 'Transport', 'Unterhaltung', 'Wohnen', 'Kleidung', 'Gesundheit', 'Bildung',
            'Essen & Trinken', 'Sonstiges', 'Umbuchung', 'Gehalt', 'Nebenjob', 'Investition', 'Geschenk',
            '1T', '1J', 'Max', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember', 'Jan', 'Feb', 'Mär', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez', 'Essen gehen', 'Abos', 'Sport', 'Handy', 'Versicherung', 'Freizeit', 'Technik', 'Shopping', 'Zahl stimmt nicht', 'Hilft mir nicht', 'Zu lang', 'Falscher Ton', 'Anderes', 'Einmalig', 'Girokonto', 'Sparkonto', 'Bargeld', 'täglich', 'wöchentlich', 'monatlich', 'jährlich', 'Aktie', 'Krypto', 'mehr', 'weniger']

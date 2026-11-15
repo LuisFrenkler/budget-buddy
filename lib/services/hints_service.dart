@@ -28,6 +28,7 @@ enum HintKind {
   stillCharging,
   splitNew,
   salaryIn,
+  monthReview,
   lowMonth,
   goalReached,
 }
@@ -124,10 +125,26 @@ class HintsService {
         out.add(Hint(
             'budget-close-${b.category}-$month',
             HintKind.budgetClose,
-            '${b.category}: ${(share * 100).round()} % weg',
+            tr('{x}: {y} % weg', {'x': tr(b.category), 'y': (share * 100).round()}),
             tr('Noch {x} für {daysLeft} Tage, also etwa {y} am Tag.', {'x': Money.format(b.limitCents - b.spentCents), 'daysLeft': daysLeft, 'y': Money.format((b.limitCents - b.spentCents) ~/ daysLeft)}),
             HintTarget.budgets,
             question: tr('Wie komme ich mit {x} bis Monatsende hin?', {'x': b.category})));
+      }
+    }
+
+    // the first three days of a month: close the last one with Buddy
+    if (today.day <= 3) {
+      final last = DateTime(today.year, today.month - 1);
+      final had = tx.where((t) => t.date.year == last.year && t.date.month == last.month).length;
+      if (had >= 10) {
+        const names = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober',
+          'November', 'Dezember'];
+        final m = tr(names[last.month - 1]), n = tr(names[today.month - 1]);
+        out.add(Hint('month-${last.year}-${last.month}', HintKind.monthReview, tr('Dein Monatsabschluss'),
+            tr('{m} ist vorbei. Zwei Minuten mit Buddy: was lief gut und was ist der Plan für {n}?', {'m': m, 'n': n}),
+            HintTarget.buddy,
+            question: tr('Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?',
+                {'m': m, 'n': n})));
       }
     }
 
@@ -200,8 +217,8 @@ class HintsService {
             'big-${t.id}',
             HintKind.bigExpense,
             tr('Ungewöhnlich hohe Ausgabe'),
-            '${t.note ?? t.category}: ${Money.format(t.amountCents)}, sonst meist ${Money.format(median)}. '
-                'Alles richtig so?',
+            tr('{x}: {y}, sonst meist {z}. Alles richtig so?',
+                {'x': t.note ?? tr(t.category), 'y': Money.format(t.amountCents), 'z': Money.format(median)}),
             HintTarget.transactions));
       }
     }
