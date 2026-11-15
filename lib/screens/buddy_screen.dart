@@ -185,8 +185,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _away = false;
   // the guest's sign-up card was closed for this session
   bool _ctaClosed = false;
-  // Buddy's little hop after something good happened
-  bool _cheer = false;
+    // Buddy's little hop after something good happened
+    bool _cheer = false;
+    // filled after the first frame: forecast and tips stay off the cold-start paint
+    ({String? free, String? perDay, BuddyTip? tip})? _startBrief;
+    List<BuddyChip>? _startChips;
   Timer? _cheerTimer;
 
   void _celebrate() {
@@ -220,10 +223,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
     _restore();
-    // tick life-stage progress after the first frame so Buddy paints instantly
+    // life-stage ticks, forecast and tips scan the ledger: the first frame is only the greeting
     if (!_guest) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) LifeProgress.sync();
+        if (!mounted) return;
+        LifeProgress.sync();
+        _warmStart();
       });
     }
     // the setup talk needs no server: it starts right away
@@ -799,7 +804,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (_photo == null && DataMap.matches(question)) return _privacy(question);
     // "Monatsrückblick" / story share stays on-device
     if (_photo == null && _wantsMonthStory(question)) {
-      _shareMonthStory();
+      _offerMonthStory(question);
       return;
     }
     if (_guest) return _sendGuest(question);
@@ -1017,6 +1022,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // a follow-up that names a life stage step sends that step's full question
   void _follow(String f) {
+    if (f == tr('Monats-Story teilen')) {
+      _shareMonthStory();
+      return;
+    }
     for (final stage in LifeStages.all) {
       for (final s in stage.steps) {
         if (s.title == f) return _send(s.prompt).ignore();
@@ -1044,6 +1053,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _wizard.reset();
     setState(() => _messages.clear());
     await BuddyHistory.clear(guest: _guest);
+    _warmStart();
   }
 
   void _openStage(LifeStage stage) =>
@@ -1101,12 +1111,34 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   bool _wantsMonthStory(String q) {
     final t = q.toLowerCase();
-    return t.contains('monatsrückblick') ||
+    return t.contains('rückblick') ||
+        t.contains('rueckblick') ||
         t.contains('monats-story') ||
         t.contains('monatsstory') ||
         t.contains('month story') ||
         t.contains('monthly recap') ||
+        t.contains('monthly review') ||
         (t.contains('story') && (t.contains('monat') || t.contains('teilen')));
+  }
+
+  // the question stays in the chat; the chip opens the current month's story
+  void _offerMonthStory(String question) {
+    _input.clear();
+    final now = DateTime.now();
+    final has = RecapService.build(DB.getTx(), DateTime(now.year, now.month)) != null;
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(
+          false,
+          has
+              ? tr('Dein Monatsrückblick als Story, nur Prozente.')
+              : tr('Für diesen Monat gibt es noch zu wenig Verlauf.'))
+        ..offline = true
+        ..followUps = has ? [tr('Monats-Story teilen')] : const []);
+    });
+    _persist();
+    _scrollDown();
+    if (has) _shareMonthStory();
   }
 
   // month as a story card (percentages only), opened from Buddy's menu or chat

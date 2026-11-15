@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 
 import '../l10n/l10n.dart';
 import '../utils/money.dart';
+import 'buddy_proposals.dart';
 import 'payslip_check.dart';
 
 class PayslipHistory {
@@ -94,5 +95,32 @@ class PayslipHistory {
     final c = changes(earlier.last, now);
     if (c.isEmpty) return tr('**Im Vergleich zur letzten Abrechnung:** nichts Auffälliges geändert.');
     return '${tr('**Im Vergleich zur letzten Abrechnung:**')}\n${[for (final x in c) '- $x'].join('\n')}';
+  }
+
+  // small Buddy chart: brutto vs netto over months (deductions = gap)
+  static BuddyChart? chart() {
+    final slips = [
+      for (final p in all())
+        if (p.brutto != null && (p.netto ?? p.auszahlung) != null) p
+    ];
+    if (slips.length < 2) return null;
+    slips.sort((a, b) => ('${a.monat}').compareTo('${b.monat}'));
+    final rows = <({String label, int a, int b})>[
+      for (final p in slips.take(keep))
+        (
+          label: _monthLabel(p.monat),
+          a: (p.brutto! * 100).round(),
+          b: ((p.netto ?? p.auszahlung)! * 100).round(),
+        )
+    ];
+    return BuddyChart(ChartKind.months, tr('Abrechnung: Brutto und Netto'), rows);
+  }
+
+  static String _monthLabel(String? monat) {
+    if (monat == null || monat.isEmpty) return '–';
+    // expect YYYY-MM or similar
+    final m = RegExp(r'(\d{4})-(\d{1,2})').firstMatch(monat);
+    if (m != null) return '${m.group(2)}.${m.group(1)!.substring(2)}';
+    return monat.length > 7 ? monat.substring(0, 7) : monat;
   }
 }
