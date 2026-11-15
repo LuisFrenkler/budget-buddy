@@ -12,7 +12,7 @@ import 'account_service.dart';
 import 'backup_service.dart';
 
 class DataExport {
-  static String build({required DataStatus status, DateTime? now}) {
+  static String build({required DataStatus status, Map<String, dynamic>? server, DateTime? now}) {
     final settings = Hive.isBoxOpen('settings') ? Hive.box('settings') : null;
     final user = AccountService.current.value;
     final device = jsonDecode(BackupService.toBackupJson()) as Map<String, dynamic>;
@@ -27,12 +27,16 @@ class DataExport {
         'notizen': settings?.get('buddyJournal') ?? const [],
         'gehaltsabrechnungen': settings?.get('payslips') ?? const [],
       },
+      if (server != null) 'aufUnseremServer': server,
       'woDieDatenLiegen': [
         for (final f in DataMap.flows(status))
           {'was': f.what, 'wo': f.where, 'werLiest': f.who, 'stoppen': f.end, 'aktiv': f.active}
       ],
-      'hinweis': 'Auf unserem Server liegen zusätzlich dein Konto (Name, E-Mail, Passwort-Hash) und eine '
-          'verschlüsselte Kopie derselben Daten, die nur du öffnen kannst. Für alles andere: ${LegalInfo.email}',
+      'hinweis': server != null
+          ? 'Unter aufUnseremServer steht alles, was der Server zu deinem Konto speichert. Die Sicherung ist '
+              'verschlüsselt und enthält dieselben Daten wie aufDiesemGeraet. Fragen: ${LegalInfo.email}'
+          : 'Auf unserem Server liegen zusätzlich dein Konto (Name, E-Mail, Passwort-Hash) und eine '
+              'verschlüsselte Kopie derselben Daten, die nur du öffnen kannst. Für alles andere: ${LegalInfo.email}',
     };
     return const JsonEncoder.withIndent('  ').convert(data);
   }

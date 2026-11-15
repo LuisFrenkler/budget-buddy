@@ -2,7 +2,7 @@
 // app actually works (local data, account server, bank access via Enable
 // Banking, Buddy via Anthropic, market data, store payments) and should be
 // reviewed by a lawyer before the app is published.
-import '../l10n/l10n.dart';
+import 'legal_lang.dart';
 import 'legal_info.dart';
 import 'legal_texts_en.dart';
 
@@ -22,7 +22,7 @@ class LegalTexts {
   static String get _contact => '${LegalInfo.provider}\n${LegalInfo.address}\n'
       'E-Mail: ${LegalInfo.email}${LegalInfo.phone.isEmpty ? '' : '\nTelefon: ${LegalInfo.phone}'}';
 
-  static LegalDoc get imprint => L10n.isDe ? _imprintDe : LegalTextsEn.imprint;
+  static LegalDoc get imprint => LegalLang.isDe() ? _imprintDe : LegalTextsEn.imprint;
 
   static LegalDoc get _imprintDe => LegalDoc('Impressum', [
         LegalSection('Angaben gemäß § 5 DDG', _contact),
@@ -44,7 +44,7 @@ class LegalTexts {
                 'wir jedoch keine Gewähr übernehmen. Sie ersetzen keine Beratung.'),
       ]);
 
-  static LegalDoc get privacy => L10n.isDe ? _privacyDe : LegalTextsEn.privacy;
+  static LegalDoc get privacy => LegalLang.isDe() ? _privacyDe : LegalTextsEn.privacy;
 
   static LegalDoc get _privacyDe => LegalDoc('Datenschutzerklärung', [
         LegalSection(
@@ -173,7 +173,7 @@ class LegalTexts {
                 '${LegalInfo.authority}.'),
       ]);
 
-  static LegalDoc get terms => L10n.isDe ? _termsDe : LegalTextsEn.terms;
+  static LegalDoc get terms => LegalLang.isDe() ? _termsDe : LegalTextsEn.terms;
 
   static LegalDoc get _termsDe => LegalDoc('Nutzungsbedingungen', [
         LegalSection(
@@ -224,7 +224,7 @@ class LegalTexts {
                 'unberührt.'),
       ]);
 
-  static LegalDoc get withdrawal => L10n.isDe ? _withdrawalDe : LegalTextsEn.withdrawal;
+  static LegalDoc get withdrawal => LegalLang.isDe() ? _withdrawalDe : LegalTextsEn.withdrawal;
 
   static LegalDoc get _withdrawalDe => LegalDoc('Widerrufsbelehrung', [
         const LegalSection(
@@ -267,7 +267,7 @@ class LegalTexts {
                 '(*) Unzutreffendes streichen.'),
       ]);
 
-  static LegalDoc get notes => L10n.isDe ? _notesDe : LegalTextsEn.notes;
+  static LegalDoc get notes => LegalLang.isDe() ? _notesDe : LegalTextsEn.notes;
 
   static const _notesDe = LegalDoc('Wichtige Hinweise', [
     LegalSection(

@@ -13,7 +13,7 @@ kurz berichten. Erledigtes wandert nach unten.
 5. Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern, damit der Plan ohne Nachfrage rechnet
 6. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
 7. Datenübersicht: Serverstandort eintragen, sobald der Server steht (LegalInfo + Datenschutzerklärung)
-8. Server-Export: Konto und Feedback vom Server mit in „Alle meine Daten“ (Endpunkt /account/export)
+8. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 9. Klick-Test auch für Deutsch und für die Unterseiten von Planen und Vermögen
 10. Chat-Verlauf: Sprachwechsel auch für Hinweise im Überblick („Buddy sagt“) sofort neu berechnen
 
@@ -36,3 +36,4 @@ kurz berichten. Erledigtes wandert nach unten.
 - Gehaltsabrechnungen im Monatsvergleich (Steuerklasse, Kirchensteuer, Krankenkasse, Betriebsrente), Schulden-Plan (Lawine)
 - Rücklage für Jahreszahlungen in der Prognose, Ratenkäufe mit Enddatum, „Wo deine Daten liegen“ (live, gegen die Datenschutzerklärung getestet), Chat folgt dem Sprachwechsel
 - Englisch-Klicktest durch alle Tabs und Profilseiten (keine deutschen Reste mehr), „Alle meine Daten“ als Datei, Screenshot-Test 08 hängt nicht mehr
+- Server startet wieder (Rechtstexte ohne Flutter, Wächter-Test), Server-Export in „Alle meine Daten“

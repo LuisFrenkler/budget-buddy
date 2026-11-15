@@ -235,6 +235,9 @@ class BackendService {
   // WhatsApp opt-in. {configured, optedIn}. Throws when the server is down.
   static Future<Map<String, dynamic>> whatsAppStatus() => _get('/notify/whatsapp');
 
+  // what the server keeps about this account (GDPR export, no secrets)
+  static Future<Map<String, dynamic>> exportAccount() => _get('/account/export');
+
   static Future<Map<String, dynamic>> whatsAppLink(String phone) =>
       _post('/notify/whatsapp/link', {'phone': phone});
 

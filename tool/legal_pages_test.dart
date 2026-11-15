@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:budget_buddy/l10n/l10n.dart';
+import 'package:budget_buddy/legal/legal_lang.dart';
 import 'package:budget_buddy/legal/legal_texts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -82,6 +83,7 @@ String _page(String title, String de, String en) => '''<!DOCTYPE html>
 
 void main() {
   test('legal pages for the website', () {
+    LegalLang.isDe = () => L10n.isDe;
     String both(LegalDoc Function() doc) {
       L10n.lang.value = 'de';
       final de = _doc(doc(), 'de');

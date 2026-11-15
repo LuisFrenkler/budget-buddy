@@ -40,4 +40,12 @@ void main() {
     expect(j['hinweis'], contains('verschlüsselte Kopie'));
     expect(j.containsKey('konto'), isFalse);
   });
+
+  test('with the server part when it came', () {
+    final j = jsonDecode(DataExport.build(status: const DataStatus(), server: {
+      'konto': {'email': 'a@b.de'}
+    })) as Map<String, dynamic>;
+    expect(j['aufUnseremServer']['konto']['email'], 'a@b.de');
+    expect(j['hinweis'], contains('aufUnseremServer'));
+  });
 }
