@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ahead</title>
-<meta name="description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
-<meta property="og:title" content="Ahead">
-<meta property="og:description" content="Was mach ich jetzt mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen echten Zahlen und sagt dir den nächsten Schritt.">
+<title>Ahead — der Geld-Coach</title>
+<meta name="description" content="Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank später, nur lesend. Du entscheidest.">
+<meta property="og:title" content="Ahead — der Geld-Coach">
+<meta property="og:description" content="Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank später, nur lesend. Du entscheidest.">
 <meta property="og:image" content="og.png">
 <meta name="theme-color" content="#8E4620">
 <!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server -->
-<meta name="ahead-api" content="demo">
+<meta name="ahead-api" content="">
 <link rel="icon" href="appicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,12 +29,13 @@
   :root[data-theme="dark"]{--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;--tint:#1C1815;color-scheme:dark}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;overflow-x:hidden;overflow-x:clip}
-  body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased}
+  body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   [id]{scroll-margin-top:96px}
   .w{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   a{color:inherit}
   h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:-.035em;line-height:1;text-wrap:balance}
   :focus-visible{outline:2px solid var(--copper);outline-offset:3px;border-radius:6px}
+  ::selection{background:rgba(176,96,48,.28);color:var(--ink)}
 
   .coin{display:inline-grid;place-items:center;border-radius:50%;color:#FFF7F0;flex:none;
         background:radial-gradient(circle at 34% 28%,#FFEBD9 0%,#F4B98A 27%,#C8682F 63%,#7A3A16 100%)}
@@ -51,18 +52,23 @@
   @keyframes drift{to{transform:translate(6vmax,4vmax) scale(1.08)}}
 
   /* ---------------- glass pills */
-  .top{position:fixed;inset:0 0 auto;z-index:20;padding-top:max(14px,env(safe-area-inset-top));pointer-events:none}
+  .top{position:fixed;inset:0 0 auto;z-index:20;padding-top:max(14px,env(safe-area-inset-top));pointer-events:none;
+       opacity:0;transform:translateY(-8px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+  .js.ready-nav .top,.ready-nav .top{opacity:1;transform:none}
   .top .w{display:flex;align-items:center;gap:10px}
   .pill{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:999px;
         background:var(--glass);border:1px solid var(--glass-line);color:#fff;text-decoration:none;
-        -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);font:600 15px/1 var(--text)}
+        -webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);font:600 15px/1 var(--text);
+        transition:background .25s ease,border-color .25s ease,color .25s ease,transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease}
+  .pill:hover{transform:translateY(-1px)}
   .pill.brand{padding:0 16px 0 6px;font:700 19px/1 var(--display);letter-spacing:-.03em}
   .pill.brand .coin{width:32px;height:32px}
   .menu{margin-left:auto;display:flex;gap:2px;pointer-events:auto}
-  .menu a{text-decoration:none;padding:12px 14px;border-radius:999px;font:600 15px/1 var(--text);color:#fff;opacity:.9}
+  .menu a{text-decoration:none;padding:12px 14px;border-radius:999px;font:600 15px/1 var(--text);color:#fff;opacity:.78;transition:opacity .2s ease}
   .menu a:hover{opacity:1;text-decoration:underline;text-underline-offset:5px}
   .top.on-paper .menu a{color:var(--ink)}
-  .pill.cta{background:#fff;color:#17120E;border-color:#fff}
+  .pill.cta{background:#fff;color:#17120E;border-color:#fff;box-shadow:0 8px 28px -12px rgba(20,8,0,.45)}
+  .pill.cta:hover{box-shadow:0 12px 32px -12px rgba(20,8,0,.55)}
   /* past the hero the pills sit on paper: switch to ink glass */
   .top.on-paper .pill{--glass:rgba(23,18,14,.06);--glass-line:rgba(23,18,14,.10);color:var(--ink)}
   .top.on-paper .pill.cta{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -74,51 +80,80 @@
   /* ---------------- hero */
   .hero{min-height:100svh;display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,64px);align-items:center;padding-top:112px;padding-bottom:0}
   .hero-text{padding-bottom:64px}
-  .hero h1{font-size:clamp(48px,7.2vw,104px);font-weight:600;letter-spacing:-.045em;line-height:.95;max-width:9.5em}
+  .hero-mark{margin-bottom:16px;font:600 15px/1 var(--display);letter-spacing:-.02em;color:rgba(255,247,240,.9)}
+  .hero h1{font-size:clamp(44px,6.6vw,92px);font-weight:600;letter-spacing:-.045em;line-height:.96;max-width:9.2em}
   .hero h1 span{color:var(--peach)}
-  .hero .lead{font-size:clamp(17px,1.8vw,20px);max-width:28em;margin-top:24px;color:rgba(255,247,240,.86)}
+  .hero .lead{font-size:clamp(17px,1.8vw,20px);max-width:26em;margin-top:22px;color:rgba(255,247,240,.86);line-height:1.5}
   .join{margin:34px 0 0;display:flex;gap:6px;max-width:500px;padding:6px;border-radius:999px;
-        background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+        background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+        transition:border-color .25s ease,box-shadow .25s ease}
+  .join:focus-within{border-color:rgba(255,255,255,.45);box-shadow:0 0 0 4px rgba(255,255,255,.08)}
   .join input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:500 16px var(--text);padding:0 16px}
   .join input::placeholder{color:rgba(255,247,240,.7)}
-  .btn{font:600 15px/1 var(--text);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-  .btn.white{background:#fff;color:#17120E}
+  .btn{font:600 15px/1 var(--text);border:0;border-radius:999px;padding:15px 22px;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+       transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease,opacity .2s ease,background .2s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.white{background:#fff;color:#17120E;box-shadow:0 10px 28px -14px rgba(20,8,0,.5)}
   .btn.ink{background:var(--ink);color:var(--paper)}
   .btn.copper{background:var(--copper);color:#fff}
   .btn.ghost{background:transparent;border:1px solid currentColor}
-  .btn:disabled{opacity:.6;cursor:default}
+  .btn:disabled{opacity:.6;cursor:default;transform:none}
   .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px}
-  .fine{font-size:13px;color:rgba(255,247,240,.72)}
-  .scroll{display:inline-block;margin-top:clamp(28px,5vh,56px);font:500 14px/1 var(--text);color:rgba(255,247,240,.75);text-decoration:none}
+  .trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;padding:0;list-style:none;max-width:36em}
+  .trust li{display:flex;align-items:center;gap:8px;font:500 13.5px/1.35 var(--text);color:rgba(255,247,240,.86)}
+  .trust li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--peach);flex:none}
+  .plan{margin-top:14px;max-width:40em;font:500 13px/1.45 var(--text);color:rgba(255,247,240,.72)}
+  .scroll{display:inline-flex;align-items:center;gap:8px;margin-top:clamp(28px,5vh,56px);font:500 14px/1 var(--text);color:rgba(255,247,240,.75);text-decoration:none}
+  .scroll::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.85;animation:cue 1.8s ease-in-out infinite}
+  @keyframes cue{0%,100%{transform:rotate(45deg) translateY(0);opacity:.5}50%{transform:rotate(45deg) translateY(4px);opacity:1}}
   .spot{display:none;margin-top:28px;max-width:520px}
   .spot.on{display:block}
-  .spot .n{font:300 clamp(72px,12vw,128px)/.9 var(--display);letter-spacing:-.05em}
+  .spot .ok{font:600 clamp(28px,4vw,44px)/1.05 var(--display);letter-spacing:-.03em;margin-top:0}
+  .spot .n{font:600 clamp(28px,4vw,40px)/1 var(--display);letter-spacing:-.04em;margin-top:18px}
   .spot p{margin-top:12px}
+  .spot .go{margin-top:16px}
   .spot code{display:block;margin-top:14px;font:600 14px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;opacity:.9}
   .spot .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .spot [hidden]{display:none !important}
   .bars{display:flex;gap:6px;margin:16px 0 0;max-width:220px}
   .bars i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.28)}
   .bars i.on{background:#fff}
 
   /* ---------------- the phone with Buddy's remarks around it */
-  .stage{position:relative;align-self:end;display:grid;justify-items:center}
+  .stage{position:relative;align-self:end;display:grid;justify-items:center;perspective:1200px}
   .stage .phone{border-radius:clamp(38px,4vw,48px) clamp(38px,4vw,48px) 0 0;padding-bottom:0;aspect-ratio:780/1500}
   .stage .phone img{border-radius:clamp(30px,3.3vw,40px) clamp(30px,3.3vw,40px) 0 0}
   .phone{width:clamp(250px,26vw,320px);aspect-ratio:780/1688;border-radius:clamp(38px,4vw,48px);padding:9px;background:#0D0B0A;
-         box-shadow:0 0 0 1.5px #3A332E inset,0 40px 80px -20px rgba(40,15,0,.6),0 12px 30px rgba(40,15,0,.3)}
+         box-shadow:0 0 0 1.5px #3A332E inset,0 40px 80px -20px rgba(40,15,0,.6),0 12px 30px rgba(40,15,0,.3);
+         will-change:transform;animation:float 7s ease-in-out infinite;transition:transform .45s cubic-bezier(.2,.7,.2,1)}
   .phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:clamp(30px,3.3vw,40px)}
-  .remark{position:absolute;max-width:260px;padding:14px 16px;border-radius:20px;font:500 15px/1.4 var(--text);color:#fff;text-align:left;
-          background:#24130A;border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 40px -12px rgba(30,10,0,.55)}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .remark{position:absolute;z-index:2;max-width:260px;padding:14px 16px;border-radius:20px;font:500 15px/1.4 var(--text);color:#fff;text-align:left;
+          background:rgba(36,19,10,.92);border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 40px -12px rgba(30,10,0,.55);
+          -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s ease}
+  .remark:hover{transform:translateY(-2px);box-shadow:0 22px 48px -12px rgba(30,10,0,.62)}
   .remark b{font-weight:700}
   .remark small{display:flex;align-items:center;gap:6px;font:600 12px/1 var(--text);opacity:.8;margin-bottom:8px}
   .remark small .coin{width:18px;height:18px}
   .r1{left:-6%;top:14%}.r2{right:-4%;top:46%}
   @media (max-width:900px){
-    .hero{grid-template-columns:1fr;padding-top:104px}
+    .hero{grid-template-columns:minmax(0,1fr);align-items:start;gap:16px;padding-top:92px;padding-bottom:28px}
     .scroll{display:none}
-    .hero-text{padding-bottom:8px}
-    .r1{left:0;top:10%}.r2{right:0;top:44%}
-    .remark{max-width:200px;font-size:14px;padding:12px 14px}
+    .hero-text{min-width:0;max-width:100%;padding-bottom:0}
+    .hero h1,.hero .lead,.plan,.trust{max-width:100%}
+    .hero h1{font-size:clamp(34px,8.6vw,52px)}
+    .hero .lead{margin-top:12px}
+    .join{margin-top:18px}
+    .trust{margin-top:12px}
+    .stage{align-self:center;width:100%;max-width:520px;min-width:0;justify-self:center;
+           display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"p p" "a b";gap:10px;justify-items:stretch}
+    .stage .phone{grid-area:p;justify-self:center;width:min(272px,74vw);margin-top:4px;border-radius:40px}
+    .stage .phone img{border-radius:32px}
+    .r1,.r2{position:static;max-width:none;min-width:0;top:auto;left:auto;right:auto}
+    .r1{grid-area:a}.r2{grid-area:b}
+    .remark{font-size:13.5px;padding:12px 12px}
+    .phone,.js .ready .stage .phone{animation:none}
   }
 
   /* ---------------- paper sections */
@@ -131,14 +166,15 @@
   /* examples: pick a topic, read the answer in large type */
   .ex{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:clamp(28px,5vw,72px);margin-top:clamp(48px,6vw,72px);align-items:start}
   .topics{display:grid;gap:2px}
-  .topics button{all:unset;cursor:pointer;font:400 clamp(22px,2.4vw,28px)/1.2 var(--display);letter-spacing:-.02em;color:var(--soft);padding:10px 0;transition:color .2s}
-  .topics button:hover{color:var(--ink)}
+  .topics button{all:unset;cursor:pointer;font:400 clamp(22px,2.4vw,28px)/1.2 var(--display);letter-spacing:-.02em;color:var(--soft);padding:10px 0;transition:color .25s ease,transform .25s ease}
+  .topics button:hover{color:var(--ink);transform:translateX(2px)}
   .topics button[aria-pressed="true"]{color:var(--ink)}
   .topics button[aria-pressed="true"]::after{content:" →";color:var(--copper)}
   .topics button:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
   .talk{display:grid;gap:22px;min-height:400px;align-content:start}
   .you{justify-self:end;max-width:22em;background:var(--ink);color:var(--paper);border-radius:22px 22px 6px 22px;padding:14px 18px;font:500 17px/1.4 var(--text)}
   .buddy{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+  .you.fade{animation-delay:.04s}.buddy.fade{animation-delay:.16s}
   .buddy .coin{width:40px;height:40px;margin-top:2px}
   .buddy .say{font:400 clamp(22px,2.4vw,28px)/1.3 var(--display);letter-spacing:-.015em;max-width:24em}
   .buddy .say b{font-weight:600;background:linear-gradient(transparent 64%,rgba(176,96,48,.26) 64%)}
@@ -148,12 +184,13 @@
   .step{display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:12px 16px 12px 12px;border:2px solid var(--copper);border-radius:16px;font:600 16px/1.35 var(--text);max-width:100%}
   .step em{font-style:normal;flex:none;font:700 11px/1 var(--text);letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--copper);border-radius:7px;padding:7px 8px}
   .note{margin-top:14px;font-size:13px;color:var(--soft)}
-  .fade{animation:in .35s ease both}
-  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .fade{animation:in .5s cubic-bezier(.16,1,.3,1) both}
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @media (max-width:760px){
     .ex{grid-template-columns:1fr}
     .topics{display:flex;gap:8px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
-    .topics button{font:600 15px/1 var(--text);letter-spacing:0;border:1px solid var(--line);border-radius:999px;padding:11px 15px;white-space:nowrap}
+    .topics button{font:600 15px/1 var(--text);letter-spacing:0;border:1px solid var(--line);border-radius:999px;padding:11px 15px;white-space:nowrap;transform:none}
+    .topics button:hover{transform:none}
     .topics button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
     .topics button[aria-pressed="true"]::after{content:""}
     .step{flex-direction:column;align-items:flex-start;gap:8px}
@@ -161,11 +198,13 @@
 
   /* two tiles: life stages and memory, each with the real screen */
   .tiles{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,1.2vw,16px);margin:0 clamp(8px,1.2vw,16px)}
-  .tile{border-radius:clamp(24px,3vw,36px);overflow:hidden;overflow:clip;position:relative;min-height:clamp(560px,52vw,700px);display:flex;flex-direction:column;padding:clamp(28px,3.4vw,44px)}
+  .tile{border-radius:clamp(24px,3vw,36px);overflow:hidden;overflow:clip;position:relative;min-height:clamp(560px,52vw,700px);display:flex;flex-direction:column;padding:clamp(28px,3.4vw,44px);
+        transition:transform .45s cubic-bezier(.2,.7,.2,1)}
   .tile h3{font-size:clamp(30px,3.4vw,44px);max-width:11em}
   .tile p{margin-top:14px;max-width:26em;font-size:17px}
   .tile .shot{margin-top:auto;align-self:center;width:min(300px,78%);aspect-ratio:780/1100;border-radius:34px 34px 0 0;overflow:hidden;margin-bottom:calc(-1 * clamp(28px,3.4vw,44px));
-              box-shadow:0 0 0 8px #0D0B0A,0 30px 60px -20px rgba(0,0,0,.45);transform:translateY(8px)}
+              box-shadow:0 0 0 8px #0D0B0A,0 30px 60px -20px rgba(0,0,0,.45);transform:translateY(8px);transition:transform .55s cubic-bezier(.2,.7,.2,1)}
+  .tile:hover .shot{transform:translateY(0)}
   .tile .shot img{width:100%;display:block}
   .t1{background:linear-gradient(170deg,#FBEFE4 0%,#F2D3B8 100%);color:#2A140A}
   .t1 p{color:#6B4A36}
@@ -177,39 +216,62 @@
 
   /* what Buddy leaves alone */
   .nots{margin-top:12px;display:grid;gap:2px}
-  .nots div{font:400 clamp(34px,6vw,76px)/1.06 var(--display);letter-spacing:-.035em;text-decoration:line-through;text-decoration-thickness:.06em;text-decoration-color:var(--copper);color:var(--soft)}
+  .nots div{font:400 clamp(34px,6vw,76px)/1.06 var(--display);letter-spacing:-.035em;text-decoration:line-through;text-decoration-thickness:.06em;text-decoration-color:var(--copper);color:var(--soft);
+            transition:color .3s ease,transform .4s cubic-bezier(.2,.7,.2,1)}
+  .js .nots div{opacity:0;transform:translateY(18px)}
+  .js .rise.seen .nots div{opacity:1;transform:none;transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1),color .3s ease}
+  .js .rise.seen .nots div:nth-child(1){transition-delay:.05s}
+  .js .rise.seen .nots div:nth-child(2){transition-delay:.14s}
+  .js .rise.seen .nots div:nth-child(3){transition-delay:.23s}
   .punch{margin-top:30px;font:400 clamp(22px,2.6vw,30px)/1.3 var(--display);letter-spacing:-.02em;max-width:22em}
   .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:40px}
-  .facts span{font:500 14px/1 var(--text);padding:11px 14px;border-radius:999px;background:var(--tint)}
+  .facts span{font:500 14px/1 var(--text);padding:11px 14px;border-radius:999px;background:var(--tint);transition:transform .25s ease,background .25s ease}
+  .facts span:hover{transform:translateY(-1px);background:var(--sand)}
 
   /* finale on copper light again */
   .finale{margin:0 clamp(8px,1.2vw,16px) clamp(8px,1.2vw,16px);border-radius:clamp(24px,3vw,40px);padding:clamp(80px,10vw,140px) 0;text-align:center}
   .finale h2{font-size:clamp(40px,6.4vw,84px);font-weight:500;letter-spacing:-.04em;max-width:12em;margin:0 auto}
   .finale h2 span{color:var(--peach)}
-  .ask{display:flex;gap:6px;margin:34px auto 0;max-width:600px;padding:6px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+  .ask{display:flex;gap:6px;margin:34px auto 0;max-width:600px;padding:6px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+       transition:border-color .25s ease,box-shadow .25s ease}
+  .ask:focus-within{border-color:rgba(255,255,255,.45);box-shadow:0 0 0 4px rgba(255,255,255,.08)}
   .ask input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:500 16px var(--text);padding:0 16px}
   .ask input::placeholder{color:rgba(255,247,240,.72)}
-  .answer{margin:28px auto 0;max-width:760px;text-align:left;background:var(--paper);color:var(--ink);border-radius:28px;padding:clamp(20px,3vw,32px)}
-  .answer:empty{display:none}
+  .answer{margin:28px auto 0;max-width:760px;text-align:left;background:var(--paper);color:var(--ink);border-radius:28px;padding:clamp(20px,3vw,32px);
+          box-shadow:0 24px 60px -28px rgba(20,8,0,.45);animation:in .45s cubic-bezier(.2,.7,.2,1) both}
+  .answer:empty{display:none;animation:none}
   .answer .talk{min-height:0}
   .again{margin-top:72px}
   .again h3{font-size:clamp(28px,3.4vw,40px);font-weight:500}
-  .again .join{margin-top:22px}
+  .again .join{margin-top:22px;margin-left:auto;margin-right:auto}
   footer{padding:28px 0 max(36px,env(safe-area-inset-bottom));font-size:13px;color:var(--soft)}
   footer .w{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
-  footer a{text-decoration:underline;text-underline-offset:3px}
+  footer a{text-decoration:underline;text-underline-offset:3px;transition:color .2s ease}
+  footer a:hover{color:var(--ink)}
 
   @media (max-width:560px){
     .join,.ask{flex-direction:column;border-radius:24px}
     .join input,.ask input{height:48px}
   }
 
-  /* scroll reveals, only once JS is running */
-  .js .rise{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+  /* hero entrance + scroll reveals */
+  .js .hi{opacity:0;transform:translateY(22px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+  .js .ready .hi{opacity:1;transform:none}
+  .js .hi-1{transition-delay:.06s}.js .hi-2{transition-delay:.16s}.js .hi-3{transition-delay:.28s}.js .hi-4{transition-delay:.4s}
+  .js .stage .phone{opacity:0;transform:translateY(36px) scale(.97);transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1);animation:none}
+  .js .ready .stage .phone{opacity:1;transform:none;animation:float 7s ease-in-out 1s infinite}
+  .js .remark{opacity:0;transform:translateY(16px) scale(.98);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1),box-shadow .35s ease}
+  .js .ready .remark{opacity:1;transform:none}
+  .js .ready .r1{transition-delay:.55s}.js .ready .r2{transition-delay:.75s}
+  .js .rise{opacity:0;transform:translateY(32px);transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1)}
   .js .rise.seen{opacity:1;transform:none}
+  .js .rise[data-d="1"]{transition-delay:.06s}.js .rise[data-d="2"]{transition-delay:.14s}
   @media (prefers-reduced-motion:reduce){
-    .fade{animation:none}.atmo::before,.atmo::after{animation:none}
-    .js .rise{opacity:1;transform:none;transition:none}
+    .fade,.answer{animation:none}.atmo::before,.atmo::after,.scroll::after,.phone{animation:none!important}
+    .js .rise,.js .hi,.js .stage .phone,.js .remark,.js .nots div,.top{opacity:1;transform:none;transition:none}
+    .js .ready .stage .phone{animation:none}
+    .tile:hover .shot{transform:translateY(8px)}
+    .topics button:hover{transform:none}
     html{scroll-behavior:auto}
   }
 </style>
@@ -229,34 +291,47 @@
   </div>
 </div>
 
-<header class="atmo">
+<header class="atmo" data-hero>
   <div class="grain"></div>
   <div class="w hero">
    <div class="hero-text">
-    <h1 data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
-    <p class="lead" data-en="Ask Buddy. He works with your real numbers, explains every term and tells you the next step. You decide.">Frag Buddy. Er rechnet mit deinen echten Zahlen, erklärt jeden Begriff und sagt dir den nächsten Schritt. Entscheiden tust du.</p>
-    <div id="platz">
+    <p class="hero-mark hi hi-1" data-en="Ahead · Money coach">Ahead · Geld-Coach</p>
+    <h1 class="hi hi-1" data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
+    <p class="lead hi hi-2" data-en="Buddy works with your numbers and names one next step, with a real euro amount. He can’t move your money. You decide.">Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt, mit einem echten Euro-Betrag. Er bewegt kein Geld. Entscheiden tust du.</p>
+    <div id="platz" class="hi hi-3">
       <form class="join" novalidate>
         <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
         <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
       </form>
       <div class="err" role="alert"></div>
+      <p class="plan" data-join-why data-en="Early access once we invite you in. Ask Buddy here already.">Früher Zugang, sobald wir einladen. Buddy fragst du schon hier.</p>
+      <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       <div class="spot">
-        <div class="n" data-pos>#–</div>
-        <p data-en="That’s your place in line. Every person who joins through your link moves you five places up.">So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
-        <div class="bars" data-bars><i></i><i></i><i></i></div>
+        <p class="ok" data-en="You’re on the list.">Du bist auf der Liste.</p>
+        <p data-en="Next is your invite by email — TestFlight, once the app is ready.">Als Nächstes kommt die Einladung per E-Mail — TestFlight, sobald die App bereit ist.</p>
+        <p data-en="Until then, ask Buddy. The first answer with a real euro amount is the start.">Bis dahin frag Buddy. Die erste Antwort mit einem echten Euro-Betrag ist der Anfang.</p>
+        <a class="btn white go" href="#fragen" data-en="Ask Buddy">Buddy fragen</a>
+        <p data-en="Send the link. Anyone who joins through it gets on the same list.">Schick den Link. Wer darüber kommt, steht auf derselben Liste.</p>
+        <div class="n" data-pos hidden></div>
+        <p data-place hidden data-en="Every person who joins through your link moves you five places up.">Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
+        <div class="bars" data-bars hidden><i></i><i></i><i></i></div>
         <code data-link></code>
         <div class="row">
           <a class="btn white" data-wa target="_blank" rel="noopener" data-en="Send via WhatsApp">Per WhatsApp schicken</a>
           <button class="btn ghost" type="button" data-copy data-en="Copy link">Link kopieren</button>
         </div>
       </div>
-      <p class="fine" data-en="Free. Read-only access to your bank. No account numbers go to the AI.">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
+      <ul class="trust" aria-label="Warum das trägt" data-en-aria-label="Why this holds">
+        <li data-en="Bank later, read-only">Bank später, nur lesend</li>
+        <li data-en="Doesn’t sell you funds">Verkauft dir keine Fonds</li>
+        <li data-en="No account numbers to the AI">Keine Kontonummern an die KI</li>
+      </ul>
+      <p class="plan" data-en="Free: 30 questions a month. Plus: no limit, 7 days to try, then €4.99 a month.">Kostenlos: 30 Fragen im Monat. Plus: ohne Limit, 7 Tage testen, dann 4,99 € im Monat.</p>
     </div>
-    <a class="scroll" href="#buddy" data-en="Scroll ↓">Runter ↓</a>
+    <a class="scroll hi hi-4" href="#buddy" data-en="Scroll">Runter</a>
    </div>
-   <div class="stage">
-      <div class="phone"><img src="app_chat.jpg" data-en-src="app_chat_en.jpg" data-en-alt="Buddy explains the company pension and suggests asking HR about the employer top-up and costs as the next step." alt="Buddy erklärt die Betriebsrente und schlägt als nächsten Schritt vor, bei der Personalabteilung nach Zuschuss und Kosten zu fragen." width="780" height="1688"></div>
+   <div class="stage" data-stage>
+      <div class="phone" data-phone><img src="app_chat.jpg" data-en-src="app_chat_en.jpg" data-en-alt="Buddy explains the company pension and suggests asking HR about the employer top-up and costs as the next step." alt="Buddy erklärt die Betriebsrente und schlägt als nächsten Schritt vor, bei der Personalabteilung nach Zuschuss und Kosten zu fragen." width="780" height="1688"></div>
       <div class="remark r1" data-en="&lt;small&gt;&lt;span class=&quot;coin&quot;&gt;&lt;svg&gt;&lt;use href=&quot;#b&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;Buddy&lt;/small&gt;Your gym hasn’t seen you since March. It still charges &lt;b&gt;€29.90&lt;/b&gt; anyway."><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem <b>29,90 €</b> ab.</div>
       <div class="remark r2" data-en="&lt;small&gt;&lt;span class=&quot;coin&quot;&gt;&lt;svg&gt;&lt;use href=&quot;#b&quot;/&gt;&lt;/svg&gt;&lt;/span&gt;Buddy&lt;/small&gt;&lt;b&gt;€340&lt;/b&gt; is still free until the end of the month. Sadly the delivery app knows that too."><small><span class="coin"><svg><use href="#b"/></svg></span>Buddy</small>Bis Monatsende sind noch <b>340 €</b> frei. Der Lieferdienst weiß das leider auch.</div>
    </div>
@@ -267,7 +342,7 @@
   <section id="buddy">
     <div class="w rise">
       <h2 class="say-big" data-en="Less finance jargon. <span>More next step.</span>">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
-      <p class="sub" data-en="Buddy is your money coach. He sees what comes in and goes out, tells you in plain words and suggests exactly one next step.">Buddy ist dein Coach fürs Geld. Er sieht, was reinkommt und rausgeht, sagt es dir ohne Fachchinesisch und schlägt genau einen nächsten Schritt vor.</p>
+      <p class="sub" data-en="He sees what comes in and goes out. Then one step, concrete enough to do today. Or not.">Er sieht, was reinkommt und rausgeht. Dann ein Schritt, konkret genug für heute. Oder nicht.</p>
     </div>
   </section>
 
@@ -288,14 +363,14 @@
   </section>
 
   <div class="tiles" id="lebenslagen">
-    <div class="tile t1 rise">
+    <div class="tile t1 rise" data-d="1">
       <h3 data-en="Life stages, not menus.">Lebenslagen statt Menüs.</h3>
-      <p data-en="First job, first flat, moving in together. Buddy knows what matters right now and ticks off what’s done with you.">Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt mit dir ab, was erledigt ist.</p>
+      <p data-en="First job, first flat, moving in together. Buddy knows what matters now and ticks off what’s done.">Erster Job, erste Wohnung, zusammenziehen. Buddy weiß, was gerade zählt, und hakt Erledigtes ab.</p>
       <div class="shot"><img src="app_welcome.jpg" data-en-src="app_welcome_en.jpg" data-en-alt="Buddy takes a first look at your numbers and suggests the next step." alt="Buddy begrüßt dich und zeigt die Lebenslage Erster Job mit dem nächsten Schritt: Notgroschen aufbauen." loading="lazy"></div>
     </div>
-    <div class="tile t2 rise">
+    <div class="tile t2 rise" data-d="2">
       <h3 data-en="He remembers what you tell him.">Er merkt sich, was du ihm sagst.</h3>
-      <p data-en="Salary arrives on the 28th? Noted. But it’s only saved when you tap Remember. Same for every booking.">Gehalt kommt am 28.? Notiert. Gespeichert wird aber erst, wenn du auf Merken tippst. Gilt auch für jede Buchung.</p>
+      <p data-en="Salary on the 28th? Noted — only when you tap Remember. He stores nothing without you.">Gehalt am 28.? Notiert — erst wenn du auf Merken tippst. Ohne dich speichert er nichts.</p>
       <div class="shot"><img src="app_coach.jpg" data-en-src="app_coach_en.jpg" data-en-alt="Buddy asks whether he should remember that your salary arrives on the 28th and suggests a savings goal you can apply or dismiss." alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
     </div>
   </div>
@@ -310,8 +385,8 @@
       </div>
       <p class="punch" data-en="It’s never the coffee anyway. Usually it’s the gym.">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
       <div class="facts">
-        <span data-en="Read-only access to your account">Nur Lesezugriff aufs Konto</span>
-        <span data-en="You confirm every booking">Du bestätigst jede Buchung</span>
+        <span data-en="Later you sign in at your bank, not with us">Login später bei deiner Bank, nicht bei uns</span>
+        <span data-en="No ads, and we don’t sell your data">Keine Werbung, kein Datenverkauf</span>
         <span data-en="No account numbers to the AI">Keine Kontonummern an die KI</span>
         <span data-en="At most one notification a day">Höchstens eine Mitteilung am Tag</span>
       </div>
@@ -328,12 +403,14 @@
       </form>
       <div class="answer" aria-live="polite"></div>
       <div class="again">
-        <h3 data-en="Get in early.">Sei früh dabei.</h3>
+        <h3 data-en="Get early access.">Hol dir den frühen Zugang.</h3>
         <form class="join" novalidate>
           <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
           <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
+        <p class="plan" data-join-why data-en="Early access once we invite you in. Ask Buddy here already.">Früher Zugang, sobald wir einladen. Buddy fragst du schon hier.</p>
+        <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       </div>
     </div>
   </div>
@@ -360,7 +437,8 @@
     window.fetch = function (url, opts) {
       var u = String(url);
       function reply(o) { return Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } })); }
-      if (u.indexOf('demo/waitlist/') === 0) return reply({ code: 'K7Q2M9', position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      // no place, no headcount: a queue exists only on a real server
+      if (u.indexOf('demo/waitlist/') === 0) return reply({ preview: true });
       if (u.indexOf('demo/') === 0) return Promise.reject(new Error('preview'));
       return realFetch(url, opts);
     };
@@ -371,11 +449,12 @@
   var lang = qLang === 'en' || qLang === 'de' ? qLang : store.get('ahead-lang') || ((navigator.language || 'de').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
   function L(de, en) { return lang === 'en' ? en : de; }
   var meta = {
-    de: { title: 'Ahead', desc: document.querySelector('meta[name="description"]').content },
-    en: { title: 'Ahead', desc: 'What do I do with my salary? Ask Buddy. He works with your real numbers and tells you the next step.' }
+    de: { title: 'Ahead — der Geld-Coach', desc: 'Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank später, nur lesend. Du entscheidest.' },
+    en: { title: 'Ahead — the money coach', desc: 'Ahead is the money coach. Buddy names one next step from your numbers. Bank later, read-only. You decide.' }
   };
   function applyLang() {
     document.documentElement.lang = lang;
+    document.title = meta[lang].title;
     document.querySelectorAll('[data-en]').forEach(function (el) {
       if (el.dataset.de == null) el.dataset.de = el.innerHTML;
       el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.de;
@@ -388,10 +467,16 @@
       });
     });
     document.querySelector('meta[name="description"]').content = meta[lang].desc;
+    var ogT = document.querySelector('meta[property="og:title"]'), ogD = document.querySelector('meta[property="og:description"]');
+    if (ogT) ogT.content = meta[lang].title;
+    if (ogD) ogD.content = meta[lang].desc;
     document.querySelectorAll('[data-legal]').forEach(function (a) { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
     var sw = document.querySelector('[data-lang]');
     sw.textContent = lang === 'en' ? 'DE' : 'EN';
     sw.setAttribute('aria-label', lang === 'en' ? 'Auf Deutsch lesen' : 'Read in English');
+    document.querySelectorAll('[data-preview]').forEach(function (el) {
+      el.textContent = L('Nicht gespeichert. Vorschau, keine Warteliste.', 'Not saved. Preview, no waitlist.');
+    });
   }
   applyLang();
 
@@ -400,16 +485,20 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var coin = '<span class="coin"><svg><use href="#b"/></svg></span>';
 
-  // ------------------------------------------- nav colour and scroll reveals
-  var top = document.querySelector('[data-top]'), hero = document.querySelector('header.atmo');
+  // ------------------------------------------- nav colour, hero entrance, scroll reveals
+  var top = document.querySelector('[data-top]'), hero = document.querySelector('[data-hero]');
   var atmos = Array.prototype.slice.call(document.querySelectorAll('.atmo'));
   function navTone() {
     var y = 34, onAtmo = atmos.some(function (el) { var r = el.getBoundingClientRect(); return r.top <= y && r.bottom >= y; });
     top.classList.toggle('on-paper', !onAtmo);
   }
   addEventListener('scroll', navTone, { passive: true }); navTone();
+  requestAnimationFrame(function () { requestAnimationFrame(function () {
+    document.documentElement.classList.add('ready-nav');
+    if (hero) hero.classList.add('ready');
+  }); });
   if ('IntersectionObserver' in window) {
-    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
     document.querySelectorAll('.rise').forEach(function (el) { io.observe(el); });
   } else document.querySelectorAll('.rise').forEach(function (el) { el.classList.add('seen'); });
 
@@ -470,24 +559,40 @@
     applyLang();
     showTalk(current);
     var code = store.get('ahead-code');
-    if (code && spot.classList.contains('on')) fetch(API + '/waitlist/status?code=' + encodeURIComponent(code)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+    if (code && spot.classList.contains('on')) fetch(API + '/waitlist/status?code=' + encodeURIComponent(code)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(onStatus).catch(function () {});
     out.innerHTML = '';
   });
 
   // ------------------------------------------------------------ waitlist
+  if (API === 'demo') document.querySelectorAll('[data-demo]').forEach(function (el) { el.hidden = false; });
   var spot = document.querySelector('.spot');
   function myLink(code) { return location.origin + location.pathname + '?ref=' + code; }
+  function onStatus(d) {
+    if (d && d.preview) { store.set('ahead-code', ''); return; }
+    if (d) showSpot(d);
+  }
   function showSpot(d) {
+    if (!d || d.preview || !d.code) return;
     store.set('ahead-code', d.code);
     document.querySelectorAll('form.join').forEach(function (f) { f.style.display = 'none'; });
+    document.querySelectorAll('[data-join-why]').forEach(function (el) { el.hidden = true; });
     document.querySelector('.again').style.display = 'none';
     spot.classList.add('on');
-    spot.querySelector('[data-pos]').textContent = '#' + Number(d.position).toLocaleString(L('de-DE', 'en-GB'));
-    var bars = spot.querySelectorAll('[data-bars] i');
-    for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
+    var n = Number(d.position);
+    var real = Number.isFinite(n) && n >= 1;
+    var pos = spot.querySelector('[data-pos]');
+    pos.hidden = !real;
+    spot.querySelector('[data-place]').hidden = !real;
+    if (real) pos.textContent = '#' + n.toLocaleString(L('de-DE', 'en-GB'));
+    var friends = Number(d.friends);
+    var bars = spot.querySelector('[data-bars]');
+    var marks = bars.querySelectorAll('i');
+    var showBars = Number.isFinite(friends) && friends > 0;
+    bars.hidden = !showBars;
+    if (showBars) for (var i = 0; i < marks.length; i++) marks[i].classList.toggle('on', i < friends);
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = L('Ich steh auf der Warteliste für Ahead, einen Buddy fürs Geld, der sagt, was du als Nächstes tun kannst. Komm mit: ', 'I’m on the waitlist for Ahead, a money buddy that tells you what to do next. Join me: ') + link;
+    var text = L('Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead-Warteliste: ', 'What do I do with my salary? Buddy names one next step. Ahead waitlist: ') + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
@@ -499,17 +604,21 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var err = form.nextElementSibling, btn = form.querySelector('button'), email = form.email.value.trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
-      err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { delete err.dataset.preview; err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
+      delete err.dataset.preview; err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
       fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref'), lang: lang }) })
         .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(lang === 'en' ? '' : j.error || 'Fehler'); return j; }); })
-        .then(function (d) { showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' }); })
-        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
+        .then(function (d) {
+          if (d && d.preview) { err.dataset.preview = '1'; err.textContent = L('Nicht gespeichert. Vorschau, keine Warteliste.', 'Not saved. Preview, no waitlist.'); return; }
+          delete err.dataset.preview;
+          showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' });
+        })
+        .catch(function (x) { delete err.dataset.preview; err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
         .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
   });
   var mine = store.get('ahead-code');
-  if (mine) fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+  if (mine) fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(onStatus).catch(function () {});
 
   // ------------------------------------------------------- ask Buddy now
   var ask = document.querySelector('form.ask'), out = document.querySelector('.answer');
@@ -548,14 +657,14 @@
     if (list && list.length) out.querySelector('.say').insertAdjacentHTML('afterend', '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>');
   }
   function offline(q) {
-    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. With an account he works with your numbers.'));
-    show(q, L('Dafür brauche ich gerade die KI, und die ist nicht erreichbar oder für heute aufgebraucht.', 'For that I need the AI right now, and it’s not reachable or used up for today.'), L('Trag dich ein, dann rechnet Buddy in der App mit deinen echten Zahlen.', 'Sign up and Buddy works with your real numbers in the app.'));
+    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. In der App rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. In the app he works with your numbers.'));
+    show(q, L('Die KI ist gerade nicht da oder für heute aufgebraucht.', 'The AI is unavailable or used up for today.'), L('Auf die Warteliste: In der App rechnet Buddy mit deinen Zahlen.', 'Join the waitlist: in the app Buddy works with your numbers.'));
   }
   ask.addEventListener('submit', function (e) {
     e.preventDefault();
     var q = ask.q.value.trim() || ask.q.placeholder;
     var btn = ask.querySelector('button'); btn.disabled = true;
-    show(q, '<span style="color:var(--soft)">' + L('Buddy schreibt …', 'Buddy is typing …') + '</span>', '');
+    show(q, '<span style="color:var(--soft)">' + L('schreibt …', 'typing …') + '</span>', '');
     var acc = '';
     fetch(API + '/ai/guest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ device: device, lang: lang, history: [{ role: 'user', text: q }] }) })
       .then(function (res) {
