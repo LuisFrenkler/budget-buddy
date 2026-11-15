@@ -2061,9 +2061,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
                   try {
+                    final before = {for (final g in GoalsService.all()) if (g.reached) g.id};
                     final said = await p.apply();
                     await LifeProgress.sync();
                     if (mounted) setState(() => m.proposalDone[i] = said);
+                    // putting money aside filled a goal: the same celebration as in Sparziele
+                    final done = GoalsService.all().where((g) => g.reached && !before.contains(g.id)).firstOrNull;
+                    if (done != null && mounted) celebrateGoal(context, done);
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context)

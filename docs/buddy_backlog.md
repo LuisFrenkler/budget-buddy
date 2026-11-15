@@ -6,16 +6,16 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Buddy erkennt Jahreszahlungen (Kfz-Versicherung, GEZ quartalsweise) und legt dafür monatlich Geld zurück
-2. Gehaltsabrechnung: Werte über die Monate vergleichen (Steuerklasse, Krankenkasse geändert?)
-3. Ziel-Feier: erreichtes Sparziel mit kurzer Animation und nächstem Vorschlag
+1. Gehaltsabrechnung: Werte über die Monate vergleichen (Steuerklasse, Krankenkasse geändert?)
+2. Schulden-Lawine: Reihenfolge zum Abbezahlen (teuerste zuerst) als Plan-Karte
+3. Ratenkäufe: Tilgungsplan („in 4 Monaten frei“) aus bezahlten Raten und Restbetrag, wenn bekannt
 4. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
 5. Screenshot-Test „08 light mode chat“ hängt: Ursache finden (wartet vermutlich auf Netzwerk)
 6. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
 7. Abo-Spartipp auch als Hinweis, wenn ein Abo mit Tipp länger als 6 Monate läuft (einmal im Jahr)
-8. Ratenkäufe: Tilgungsplan („in 4 Monaten frei“) aus bezahlten Raten und Restbetrag, wenn bekannt
-9. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
-10. Schulden-Lawine: Reihenfolge zum Abbezahlen (teuerste zuerst) als Plan-Karte
+8. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
+9. Jahreszahlungen in der Monatsprognose als „Rücklage“ mitrechnen
+10. Englische Texte im ganzen App-Durchlauf prüfen (automatischer Klick-Test wie beim Plus-Fix)
 
 ## Erledigt
 - Zahlen-Check, verworfene Vorschläge, Kündigungsfristen
@@ -32,3 +32,4 @@ kurz berichten. Erledigtes wandert nach unten.
 - Glossar zuerst bei „Was ist …?“, Karten und Diagramme für Screenreader, Mahngebühren und Inkasso erkennen
 - Ausbleibende Einnahmen (Gehalt, Kindergeld), Push am Morgen vor dem Minus, Werkzeug-Auswertung (Kosten, Tempo)
 - Ratenkäufe (Klarna, PayPal, Finanzierung) als Monatssumme, Nachfrage eine Woche nach einer Karte, Versicherungs-Check nach Art
+- Plus-Kauf verlangt kein neues Konto mehr (Fix), Jahreszahlungen mit Rücklage, Ziel-Feier mit nächstem Schritt

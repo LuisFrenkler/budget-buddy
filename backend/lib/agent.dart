@@ -842,6 +842,13 @@ oder Passwörter.''';
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
     },
     {
+      'name': 'jahreszahlungen',
+      'description': 'Findet Zahlungen, die nicht jeden Monat kommen (Kfz-Versicherung, Haftpflicht, Rundfunkbeitrag '
+          'alle drei Monate, ADAC, BahnCard), mit nächstem Termin und dem Betrag, der dafür jeden Monat zurückgelegt '
+          'werden sollte. Gibt es noch keine Rücklage, zeigt das Werkzeug eine Sparziel-Karte dafür.',
+      'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -917,6 +924,7 @@ oder Passwörter.''';
     'leisten': 'ob es passt',
     'buchung_erklaeren': 'die Buchung',
     'versicherungen_pruefen': 'deine Versicherungen',
+    'jahreszahlungen': 'deine Jahreszahlungen',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',
