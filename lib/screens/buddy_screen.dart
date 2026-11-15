@@ -1,6 +1,7 @@
 import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
 import '../services/buddy_journal.dart';
+import '../services/buddy_onboarding.dart';
 import '../services/payslip_check.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
@@ -211,12 +212,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
     _restore();
+    // the setup talk needs no server: it starts right away
+    final onboarding = !_guest && _onboard();
     (_guest ? GuestBuddy.live() : BuddyService.live()).then((v) {
       if (!mounted) return;
       setState(() => _live = v);
       if (widget.question != null) _send(widget.question!);
       if (widget.tab) _asked();
-      if (!_guest && !_firstLook()) _checkIn();
+      if (!_guest && !onboarding && !_firstLook()) _checkIn();
     });
     if (widget.tab) BuddyScreen.ask.addListener(_asked);
   }
@@ -239,6 +242,39 @@ class _BuddyScreenState extends State<BuddyScreen> {
           if (!m.error && m.text.trim().isNotEmpty)
             SavedMessage(m.fromUser, m.fromUser ? m.text : BuddyMarkers.parse(m.text).text, m.at, offline: m.offline)
       ], guest: _guest);
+
+  // a new account: Buddy gets to know the person in three tapped answers
+  bool _onboard() {
+    if (_thinking || widget.question != null || !BuddyOnboarding.shouldStart()) return false;
+    BuddyOnboarding.start().then((turn) {
+      if (!mounted) return;
+      setState(() => _messages.add(_Message(false, turn.text)
+        ..checkIn = true
+        ..followUps = [...turn.chips, BuddyOnboarding.skipChip]));
+      _persist();
+      _scrollDown();
+    });
+    return true;
+  }
+
+  // false when the text was a question of its own, not an answer
+  Future<bool> _runOnboarding(String text) async {
+    final turn = await BuddyOnboarding.answer(text);
+    if (turn == null || !mounted) return false;
+    _input.clear();
+    _messages.add(_Message(true, text));
+    setState(() {
+      if (turn.text.isNotEmpty) {
+        _messages.add(_Message(false, turn.text)
+          ..entries = [if (turn.goal != null) turn.goal!]
+          ..followUps = [...turn.chips, if (!turn.done) BuddyOnboarding.skipChip]);
+      }
+    });
+    _persist();
+    _scrollDown();
+    HapticFeedback.lightImpact();
+    return true;
+  }
 
   // Buddy speaks first, rarely: once a day at most, only when something
   // really matters (a budget tipping over, a contract got pricier)
@@ -279,14 +315,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
         freeCents: BuddyService.freeCents(),
-      ).where((h) =>
-              h.urgent ||
-              h.kind == HintKind.salaryIn ||
-              h.kind == HintKind.goalReached ||
-              h.kind == HintKind.monthReview ||
-              h.kind == HintKind.goalBehind ||
-              h.kind == HintKind.weekPlan ||
-              h.kind == HintKind.doubleCharge).firstOrNull;
+      // the most important thing today, if it is worth speaking first
+      ).where((h) => h.weight >= 30).firstOrNull;
     } catch (_) {
       return;
     }
@@ -667,6 +697,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _spokenInput = false;
     HapticFeedback.selectionClick();
     if (_guest) return _sendGuest(question);
+    if (_photo == null && BuddyOnboarding.active && question.isNotEmpty && await _runOnboarding(question)) return;
     if (_photo == null && _rememberCommand(question)) return;
     // setup runs on the device: no KI quota, nothing saved until Übernehmen.
     // a photo is a receipt, not an answer to the wizard

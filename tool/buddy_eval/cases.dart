@@ -1,4 +1,4 @@
-// The test catalog: 108 German and 36 English questions a 20-something asks about money, each with
+// The test catalog: 109 German and 37 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -118,6 +118,8 @@ const evalCases = <EvalCase>[
       tools: {'brutto_netto'}, must: [r'Steuerklasse|Schätzung|ungefähr|etwa']),
   EvalCase('d14', 'deutschland', 'Was bringt mir eine Gehaltserhöhung von 3.000 auf 3.300 € brutto netto?',
       tools: {'brutto_netto'}),
+  EvalCase('d15', 'deutschland', 'Lohnt sich für mich dieses Jahr eine Steuererklärung? Ich habe im September angefangen, 3.500 € brutto.',
+      tools: {'steuer_schaetzung'}, must: [r'Schätzung|geschätzt|ungefähr|etwa|rund']),
   EvalCase('d01', 'deutschland', 'Was ist der Unterschied zwischen brutto und netto?', general: true, must: [r'brutto', r'netto']),
   EvalCase('d02', 'deutschland', 'Welche Steuerklasse habe ich als Single?', general: true, must: [r'\b(I|1)\b']),
   EvalCase('d03', 'deutschland', 'Was ist eine Betriebsrente?', general: true, must: [r'Arbeitgeber']),

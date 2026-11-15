@@ -12,6 +12,7 @@ import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
+import 'tax_estimate.dart';
 import 'buddy_service.dart';
 import 'db.dart';
 
@@ -55,6 +56,7 @@ class BuddyTools {
     'kuendigungsfrist',
     'brutto_netto',
     'auffaelligkeiten',
+    'steuer_schaetzung',
     'kategorie_vorschlagen',
     'erinnerung_vorschlagen',
     'zuruecklegen_vorschlagen',
@@ -85,6 +87,7 @@ class BuddyTools {
         'zuruecklegen_vorschlagen' => _propose(BuddyProposal.save(input)),
         'brutto_netto' => _bruttoNetto(input),
         'auffaelligkeiten' => _auffaelligkeiten(),
+        'steuer_schaetzung' => _steuer(input),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -446,6 +449,50 @@ class BuddyTools {
           ? 'Ohne Beginn geschätzt: Nach der Mindestlaufzeit ist ein Vertrag jederzeit mit einem Monat Frist kündbar.'
           : 'Die Mindestlaufzeit ist vorbei: jederzeit mit höchstens einem Monat Frist kündbar.',
       'hinweis': hint,
+    };
+  }
+
+  // the tax return estimate: the saved profile, what the model learned in
+  // the chat, and the bookings that may count
+  Map<String, dynamic> _steuer(Map<String, dynamic> input) {
+    final year = (input['jahr'] as num?)?.toInt() ?? today.year;
+    var p = TaxEstimate.profile();
+    double? n(String k) => (input[k] as num?)?.toDouble();
+    p = p.copyWith(
+      grossMonth: n('brutto_monat') ?? (n('brutto_jahr') != null ? n('brutto_jahr')! / 12 : null),
+      monthsWorked: (input['monate_gearbeitet'] as num?)?.toInt(),
+      km: n('km_einfach'),
+      officeDaysPerWeek: n('buerotage_pro_woche'),
+      homeDaysPerWeek: n('homeoffice_tage_pro_woche'),
+      taxClass: (input['steuerklasse'] as num?)?.toInt(),
+      church: input['kirchensteuer'] as bool?,
+    );
+    if (p.grossMonth <= 0) {
+      return {
+        'fehlt': 'brutto_monat',
+        'hinweis': 'Ohne Bruttogehalt keine Schätzung. Frag danach, oder ob die Person eine Abrechnung fotografieren will.',
+      };
+    }
+    final counted = TaxEstimate.counted(tx, year);
+    final receipts = counted.fold<int>(0, (s, c) => s + c.tx.amountCents) / 100;
+    final r = TaxEstimate.compute(p, receipts: receipts);
+    return {
+      'jahr': year,
+      ...r.toJson(),
+      'annahmen': {
+        'bruttoMonat': p.grossMonth,
+        'monateGearbeitet': p.monthsWorked,
+        'kmEinfach': p.km,
+        'buerotageProWoche': p.officeDaysPerWeek,
+        'homeofficeTageProWoche': p.homeDaysPerWeek,
+        'steuerklasse': p.taxClass,
+      },
+      'belegeAusBuchungen': [
+        for (final c in counted.take(12)) {'was': c.tx.note ?? c.tx.category, 'art': c.kind, 'betrag': c.tx.amountCents / 100}
+      ],
+      'regeln2026': 'Pendlerpauschale 0,38 € ab dem ersten km, Homeoffice 6 € am Tag bis 210 Tage, '
+          'Arbeitnehmer-Pauschbetrag 1.230 €, Kontoführung 16 € pauschal.',
+      'hinweis': 'Schätzung, keine Steuerberatung. Abgabe kostenlos über ELSTER. In der App unter Profil › Steuer.',
     };
   }
 

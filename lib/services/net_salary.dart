@@ -89,6 +89,46 @@ class NetSalary {
     return r;
   }
 
+  // the taxes of one year of [income], with the given Werbungskosten (at
+  // least the 1,230 € allowance). Used for the payslip (one month as a year)
+  // and for the tax return estimate (the real year, real costs).
+  static ({double tax, double soli, double church}) yearTax(
+    double income, {
+    int taxClass = 1,
+    int children = 0,
+    int? age,
+    bool church = false,
+    String state = '',
+    double additional = averageAdditional,
+    bool student = false,
+    double werbungskosten = 1230,
+  }) {
+    final saxony = state.toLowerCase().startsWith('sachsen') && !state.toLowerCase().contains('anhalt');
+    final capKv = math.min(income, bbgKvPv), capRv = math.min(income, bbgRvAv);
+    final childless = children == 0 && (age == null || age >= 23);
+    final care = careRate(children: children, childlessSurcharge: childless, saxony: saxony);
+
+    // Vorsorgepauschale (PAP 2026: UPEVP, MVSPKVPV, MVSPHB)
+    final vspR = capRv * rv;
+    final vspKvPv = student ? 0.0 : capKv * (kvReduced + additional / 200 + care);
+    final vspAlv = student ? 0.0 : capRv * av;
+    final vspHb = math.min(1900.0, vspAlv + vspKvPv);
+    final vsp = math.max(vspR + vspKvPv, vspR + vspHb).ceilToDouble();
+
+    // Werbungskosten (at least 1,230 €), Sonderausgaben 36 €, single parents (II)
+    final efa = taxClass == 2 ? 4260.0 + 240.0 * math.max(0, children - 1) : 0.0;
+    final zve = math.max(0.0, income - math.max(1230.0, werbungskosten) - 36 - efa - vsp);
+    final split = taxClass == 3 ? 2 : 1;
+    final tax = (tariff(zve / split) * split).toDouble();
+
+    // solidarity surcharge with its threshold and the softening zone
+    final free = solzFree * split;
+    final soli = tax <= free ? 0.0 : math.min(tax * 0.055, (tax - free) * 0.119);
+    final bwBy = RegExp(r'baden|bayern|bw\b|by\b', caseSensitive: false).hasMatch(state);
+    final kist = church ? tax * (bwBy ? 0.08 : 0.09) : 0.0;
+    return (tax: tax, soli: soli, church: kist);
+  }
+
   static NetResult compute(
     double grossMonth, {
     int taxClass = 1,
@@ -130,24 +170,9 @@ class NetSalary {
     final childless = children == 0 && (age == null || age >= 23);
     final care = careRate(children: children, childlessSurcharge: childless, saxony: saxony);
 
-    // Vorsorgepauschale (PAP 2026: UPEVP, MVSPKVPV, MVSPHB)
-    final vspR = capRv * rv;
-    final vspKvPv = student ? 0.0 : capKv * (kvReduced + additional / 200 + care);
-    final vspAlv = student ? 0.0 : capRv * av;
-    final vspHb = math.min(1900.0, vspAlv + vspKvPv);
-    final vsp = math.max(vspR + vspKvPv, vspR + vspHb).ceilToDouble();
-
-    // fixed allowances: Werbungskosten 1,230 €, Sonderausgaben 36 €, single parents (II)
-    final efa = taxClass == 2 ? 4260.0 + 240.0 * math.max(0, children - 1) : 0.0;
-    final zve = math.max(0.0, year - 1230 - 36 - efa - vsp);
-    final split = taxClass == 3 ? 2 : 1;
-    final tax = (tariff(zve / split) * split).toDouble();
-
-    // solidarity surcharge with its threshold and the softening zone
-    final free = solzFree * split;
-    final soli = tax <= free ? 0.0 : math.min(tax * 0.055, (tax - free) * 0.119);
-    final bwBy = RegExp(r'baden|bayern|bw\b|by\b', caseSensitive: false).hasMatch(state);
-    final kist = church ? tax * (bwBy ? 0.08 : 0.09) : 0.0;
+    final t = yearTax(year,
+        taxClass: taxClass, children: children, age: age, church: church, state: state, additional: additional, student: student);
+    final tax = t.tax, soli = t.soli, kist = t.church;
     if (church && children > 0) notes.add('Mit Kindern ist die Kirchensteuer etwas niedriger als hier.');
 
     double month(double v) => (v / 12 * 100).floor() / 100;

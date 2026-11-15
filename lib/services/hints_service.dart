@@ -52,9 +52,42 @@ class Hint {
   final String? question;
 
   const Hint(this.id, this.kind, this.title, this.text, this.target, {this.urgent = false, this.question});
+
+  // how much this hint matters right now: what is at stake and how soon it
+  // has to be done. The app shows the highest first, Buddy opens with it.
+  int get weight => (urgent ? 100 : 0) + (HintsService.weights[kind] ?? 10);
 }
 
 class HintsService {
+  // money that is going out by mistake comes first, then what runs out soon,
+  // then moments and plans, then plain information
+  static const weights = {
+    HintKind.stillCharging: 90,
+    HintKind.doubleCharge: 85,
+    HintKind.lowMonth: 80,
+    HintKind.budgetOver: 70,
+    HintKind.trialEnds: 70,
+    HintKind.bankExpires: 65,
+    HintKind.salaryIn: 60,
+    HintKind.monthReview: 55,
+    HintKind.priceUp: 55,
+    HintKind.bigExpense: 50,
+    HintKind.goalReached: 50,
+    HintKind.goalDue: 45,
+    HintKind.bankFees: 45,
+    HintKind.goalBehind: 40,
+    HintKind.budgetClose: 40,
+    HintKind.splitNew: 35,
+    HintKind.weekPlan: 30,
+    HintKind.upcoming: 20,
+  };
+
+  // the one hint that counts today, if any: for Buddy's opening and the home tip
+  static Hint? top(List<Hint> hints, {bool askable = false}) {
+    final list = askable ? hints.where((h) => h.question != null || h.target == HintTarget.buddy).toList() : hints;
+    return list.isEmpty ? null : list.first;
+  }
+
   static Box get _box => Hive.box('settings');
 
   static Set<String> get dismissed => ((_box.get('hintsDismissed') as List?) ?? const []).cast<String>().toSet();
@@ -360,7 +393,12 @@ class HintsService {
           HintTarget.splits));
     }
 
-    out.sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0));
+    // stable: equal weights keep the order they were found in
+    final order = {for (var i = 0; i < out.length; i++) out[i]: i};
+    out.sort((a, b) {
+      final w = b.weight.compareTo(a.weight);
+      return w != 0 ? w : order[a]!.compareTo(order[b]!);
+    });
     return out;
   }
 }
