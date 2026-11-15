@@ -35,6 +35,10 @@ class HomeScreen extends StatefulWidget {
   // switch shell tab from anywhere (e.g. Buddy action → Überblick / Prognose)
   static final goTab = ValueNotifier<int?>(null);
 
+  // the menu for adding by hand (quick entry, receipt, keypad, transfer);
+  // lives in the Konto tab since Buddy took over adding from the nav bar
+  static VoidCallback? addMenu;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -55,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    HomeScreen.addMenu = _showAddMenu;
     // the chat from before sign-up continues here (before the Buddy tab loads it)
     BuddyHistory.adoptGuest();
     // friends who joined through the invite link: bonus questions for Buddy
@@ -272,27 +277,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _navItem(Icons.insights_rounded, tr('Überblick'), 0),
         _navItem(Icons.account_balance_wallet_outlined, tr('Konto'), 1),
         _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
-        Semantics(
-          button: true,
-          label: tr('Schnell erfassen. Lange drücken für mehr.'),
-          excludeSemantics: true,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              showSmartEntry(context);
-            },
-            onLongPress: () {
-              HapticFeedback.heavyImpact();
-              _showAddMenu();
-            },
-            child: SizedBox(
-              width: 44,
-              height: 48,
-              child: Icon(Icons.add_rounded, size: 24, color: night ? const Color(0xFFA79C93) : const Color(0xFFCFC4BB)),
-            ),
-          ),
-        ),
       ]),
       ),
     );

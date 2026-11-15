@@ -172,7 +172,13 @@ class BuddyEntries {
     final verb = RegExp(r'gekauft|verkauft|überwiesen|ueberwiesen|bezahlt|gezahlt|ausgegeben|bekommen|erhalten|'
             r'eingezahlt|abgehoben|umgebucht|geschickt|eingekauft|getankt|kostete|gekostet|zurückbekommen')
         .hasMatch(t);
-    return amount && verb;
+    if (amount && verb) return true;
+    // the short form people type into a quick-add field: "Kaffee 3,50",
+    // "12 € Döner gestern", "+2400 Gehalt" (a few words, one amount)
+    final words = t.trim().split(RegExp(r'\s+'));
+    if (words.length > 5 || t.contains('?')) return false;
+    if (RegExp(r'^(wie|was|wo|wann|warum|kann|soll|how|what|can|should)\b').hasMatch(t.trim())) return false;
+    return QuickParser.parse(text) != null && RegExp(r'[a-zäöüß]{2,}').hasMatch(t);
   }
 
   static List<String> get _categories => <String>{

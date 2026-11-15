@@ -1238,11 +1238,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
-  // the guest's opening: the landing page's question in copper light, and
-  // one remark in Buddy's voice so you hear how he talks
-  Widget _guestHero() => CopperLight(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
+  // the guest's opening: one question, one line, nothing else competing
+  Widget _guestHero() => Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text.rich(
               TextSpan(children: [
@@ -1260,38 +1258,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              tr('Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.'),
-              style: const TextStyle(fontSize: 15.5, height: 1.45, color: Color(0xDBFFF7F0)),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              decoration: BoxDecoration(
-                color: CopperLight.card,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0x1FFFFFFF)),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  const BrandMark(size: 18, inverse: true),
-                  const SizedBox(width: 6),
-                  Text(tr('Buddy'),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
-                ]),
-                const SizedBox(height: 8),
-                Text.rich(
-                  TextSpan(children: [
-                    TextSpan(text: tr('Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ')),
-                    const TextSpan(text: '29,90 €', style: TextStyle(fontWeight: FontWeight.w700)),
-                    TextSpan(text: tr(' ab.')),
-                  ]),
-                  style: const TextStyle(fontSize: 15, height: 1.4, fontWeight: FontWeight.w500, color: Colors.white),
-                ),
-              ]),
+              tr('Frag Buddy. Ohne Anmeldung.'),
+              style: const TextStyle(fontSize: 17, height: 1.4, color: Color(0xDBFFF7F0)),
             ),
           ]),
-        ),
       );
+
+  // three short ways in, as small pills right above the input
+  static List<({String label, String question})> get _guestStarts => [
+        (label: tr('Erste Gehaltsabrechnung?'), question: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
+        (label: tr('Wie viel Notgroschen?'), question: tr('Wie viel Notgroschen brauche ich?')),
+        (label: tr('Lohnt sich ein ETF?'), question: tr('Was ist ein ETF-Sparplan?')),
+      ];
 
   String get _statusLabel {
     if (BuddyScreen.debugStatus != null) return BuddyScreen.debugStatus!;
@@ -1303,7 +1281,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   String? get _quotaLine {
     if (_guest) {
       final left = GuestBuddy.left();
-      if (_live != true) return tr('Offline: Grundlagen ohne KI');
+      if (_live != true) return tr('Ohne KI');
       if (left == 0) return tr('KI für heute aufgebraucht, Grundlagen gehen weiter');
       return left == 1 ? tr('Noch 1 KI-Antwort heute') : tr('Noch {n} KI-Antworten heute', {'n': left});
     }
@@ -1326,23 +1304,38 @@ class _BuddyScreenState extends State<BuddyScreen> {
         .take(3)
         .toList();
     if (_guest) {
-      return ListView(padding: EdgeInsets.zero, children: [
-        _guestHero(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _sectionLabel(tr('Wo stehst du gerade?')),
-            const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 8, children: [for (final s in others) _stageChip(s)]),
-            const SizedBox(height: 18),
-            _sectionLabel(tr('Oder frag einfach')),
-            const SizedBox(height: 8),
-            for (final s in chips) _suggestion(s),
-            const SizedBox(height: 10),
-            _trustLine(),
-          ]),
+      // the question on top, the ways in at the bottom next to the input
+      return LayoutBuilder(
+        builder: (context, box) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: box.maxHeight),
+            // one copper surface from the question down to the ways in
+            child: IntrinsicHeight(
+              child: CopperLight(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  _guestHero(),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+                    child: Wrap(spacing: 8, runSpacing: 8, children: [
+                      for (final g in _guestStarts)
+                        ActionChip(
+                          key: Key('start-${g.label}'),
+                          label: Text(g.label),
+                          onPressed: () => _send(g.question),
+                          labelStyle: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                          side: const BorderSide(color: Color(0x33FFFFFF)),
+                          backgroundColor: CopperLight.card,
+                          shape: const StadiumBorder(),
+                        ),
+                    ]),
+                  ),
+                ]),
+              ),
+            ),
+          ),
         ),
-      ]);
+      );
     }
     final brief = _brief();
     return ListView(
@@ -2457,7 +2450,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             )
           else
             Text(
-              [if (note != null) note, tr('Buddy kann sich irren, keine Anlageberatung')].join(' · '),
+              [if (note != null) note, tr('Kann sich irren, keine Anlageberatung')].join(' · '),
               textAlign: TextAlign.center,
               maxLines: 2,
               style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3),
