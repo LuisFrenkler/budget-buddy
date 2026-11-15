@@ -17,6 +17,7 @@ class BuddyLogScreen extends StatelessWidget {
         'goal' => Icons.flag_outlined,
         'cancel' => Icons.mark_email_read_outlined,
         'category' => Icons.label_outline_rounded,
+        'save' => Icons.savings_outlined,
         _ => Icons.notifications_none_rounded,
       };
 

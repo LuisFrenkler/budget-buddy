@@ -10,6 +10,7 @@ import '../models/transaction.dart';
 import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
+import 'net_salary.dart';
 import 'buddy_service.dart';
 import 'db.dart';
 
@@ -51,8 +52,10 @@ class BuddyTools {
     'sparziel_vorschlagen',
     'kuendigung_vorbereiten',
     'kuendigungsfrist',
+    'brutto_netto',
     'kategorie_vorschlagen',
     'erinnerung_vorschlagen',
+    'zuruecklegen_vorschlagen',
     'diagramm',
   };
 
@@ -77,6 +80,8 @@ class BuddyTools {
         'sparziel_vorschlagen' => _propose(BuddyProposal.goal(input, today: today)),
         'kuendigung_vorbereiten' => _propose(BuddyProposal.cancel(input)),
         'kuendigungsfrist' => _frist(input),
+        'zuruecklegen_vorschlagen' => _propose(BuddyProposal.save(input)),
+        'brutto_netto' => _bruttoNetto(input),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -438,6 +443,33 @@ class BuddyTools {
           ? 'Ohne Beginn geschätzt: Nach der Mindestlaufzeit ist ein Vertrag jederzeit mit einem Monat Frist kündbar.'
           : 'Die Mindestlaufzeit ist vorbei: jederzeit mit höchstens einem Monat Frist kündbar.',
       'hinweis': hint,
+    };
+  }
+
+  Map<String, dynamic> _bruttoNetto(Map<String, dynamic> input) {
+    final month = (input['brutto_monat'] as num?)?.toDouble() ?? ((input['brutto_jahr'] as num?)?.toDouble() ?? 0) / 12;
+    if (month <= 0) return {'fehler': 'brutto_monat oder brutto_jahr fehlt'};
+    final r = NetSalary.compute(
+      month,
+      taxClass: (input['steuerklasse'] as num?)?.toInt() ?? 1,
+      children: (input['kinder'] as num?)?.toInt() ?? 0,
+      age: (input['alter'] as num?)?.toInt(),
+      church: input['kirchensteuer'] == true,
+      state: '${input['bundesland'] ?? ''}',
+      additional: (input['zusatzbeitrag'] as num?)?.toDouble() ?? NetSalary.averageAdditional,
+      student: input['werkstudent'] == true,
+    );
+    return {
+      ...r.toJson(),
+      'annahmen': {
+        'steuerklasse': (input['steuerklasse'] as num?)?.toInt() ?? 1,
+        'zusatzbeitragProzent': (input['zusatzbeitrag'] as num?)?.toDouble() ?? NetSalary.averageAdditional,
+        'kirchensteuer': input['kirchensteuer'] == true,
+        'gesetzlichVersichert': true,
+        'stand': 'Lohnsteuer 2026 nach dem Programmablaufplan des Finanzministeriums',
+      },
+      'hinweis': 'Schätzung. Die Abrechnung nutzt den genauen Zusatzbeitrag der Krankenkasse und z. B. '
+          'Betriebsrente oder Freibeträge.',
     };
   }
 

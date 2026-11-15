@@ -1,5 +1,6 @@
 import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
+import '../services/buddy_journal.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
 import '../services/price_service.dart';
@@ -277,7 +278,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
         freeCents: BuddyService.freeCents(),
-      ).where((h) => h.urgent || h.kind == HintKind.salaryIn || h.kind == HintKind.goalReached).firstOrNull;
+      ).where((h) =>
+              h.urgent ||
+              h.kind == HintKind.salaryIn ||
+              h.kind == HintKind.goalReached ||
+              h.kind == HintKind.monthReview).firstOrNull;
     } catch (_) {
       return;
     }
@@ -781,6 +786,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           _finish(answer, question);
         });
         _persist();
+        if (!_guest && !answer.offline) BuddyJournal.add(question, answer.text);
         _scrollDown();
         HapticFeedback.lightImpact();
         if (_speakNext) {
@@ -1872,6 +1878,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ProposalKind.cancel => Icons.mark_email_read_outlined,
       ProposalKind.category => Icons.label_outline_rounded,
       ProposalKind.reminder => Icons.notifications_none_rounded,
+      ProposalKind.save => Icons.savings_outlined,
     };
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),

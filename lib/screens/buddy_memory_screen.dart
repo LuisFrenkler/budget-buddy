@@ -9,6 +9,7 @@ import '../services/life_stages.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
+import '../services/buddy_journal.dart';
 
 class BuddyMemoryScreen extends StatelessWidget {
   const BuddyMemoryScreen({super.key});
@@ -28,6 +29,7 @@ class BuddyMemoryScreen extends StatelessWidget {
     if (ok == true) {
       HapticFeedback.mediumImpact();
       await BuddyMemory.clear();
+      await BuddyJournal.clear();
     }
   }
 
@@ -37,6 +39,7 @@ class BuddyMemoryScreen extends StatelessWidget {
       valueListenable: BuddyMemory.changed,
       builder: (context, _, __) {
         final facts = BuddyMemory.all().reversed.toList();
+        final talks = BuddyJournal.forAgent();
         final stage = LifeStages.current;
         return Scaffold(
           appBar: AppBar(title: Text(tr('Was Buddy weiß'))),
@@ -107,8 +110,23 @@ class BuddyMemoryScreen extends StatelessWidget {
                     ),
                   ),
                   ],
+              if (talks.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                Text(tr('Worüber ihr gesprochen habt'),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(tr('Damit Buddy beim nächsten Mal anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage lang.'),
+                    style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
+                const SizedBox(height: 8),
+                for (final t in talks.take(6))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Text('${Dates.dayMonth(DateTime.parse('${t['am']}'))} · ${t['frage']}',
+                        maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5)),
+                  ),
+              ],
               const SizedBox(height: 24),
-              if (facts.isNotEmpty)
+              if (facts.isNotEmpty || talks.isNotEmpty)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),

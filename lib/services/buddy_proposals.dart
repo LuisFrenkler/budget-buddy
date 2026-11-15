@@ -16,8 +16,9 @@ import 'cancellation_service.dart';
 import 'category_rules.dart';
 import 'db.dart';
 import 'goals_service.dart';
+import 'goal_move.dart';
 
-enum ProposalKind { budget, goal, cancel, category, reminder }
+enum ProposalKind { budget, goal, cancel, category, reminder, save }
 
 class BuddyProposal {
   final ProposalKind kind;
@@ -86,6 +87,18 @@ class BuddyProposal {
       case ProposalKind.reminder:
         final id = await BuddyTasks.add('${data['text']}', due: data['datum'] as DateTime?);
         return (tr('Notiert. Buddy erinnert dich.'), {if (id != null) 'taskId': id});
+      case ProposalKind.save:
+        final goal = GoalsService.all().where((g) => g.id == data['goalId']).firstOrNull;
+        if (goal == null) throw tr('Das Sparziel gibt es nicht mehr.');
+        final r = await GoalMove.apply(goal: goal, cents: data['cents'] as int, take: false);
+        if (r.moved <= 0) return (tr('{x} ist schon voll.', {'x': goal.name}), <String, dynamic>{});
+        return (
+          r.booked
+              ? tr('{x} auf {y} umgebucht. Richte die Überweisung bei deiner Bank genauso ein.',
+                  {'x': Money.format(r.moved), 'y': r.potName ?? tr('Sparkonto')})
+              : tr('{x} für {y} zurückgelegt.', {'x': Money.format(r.moved), 'y': goal.name}),
+          {'goalId': goal.id, 'cents': r.moved}
+        );
     }
   }
 
@@ -118,7 +131,7 @@ class BuddyProposal {
       if (until != null) tr('bis {x}/{y}', {'x': until.month.toString().padLeft(2, '0'), 'y': until.year}),
       if (monthly != null) tr('{x} im Monat', {'x': Money.format(monthly)}),
     ];
-    return BuddyProposal(ProposalKind.goal, 'Sparziel $name', parts.join(' · '),
+    return BuddyProposal(ProposalKind.goal, tr('Sparziel {x}', {'x': name}), parts.join(' · '),
         {'name': name, 'cents': cents, 'bis': until, 'monthlyCents': monthly});
   }
 
@@ -146,12 +159,29 @@ class BuddyProposal {
         {'haendler': merchant, 'kategorie': category});
   }
 
+  // put an amount aside for a savings goal now, e.g. right after payday
+  static BuddyProposal save(Map<String, dynamic> input) {
+    final name = '${input['ziel'] ?? ''}'.trim().toLowerCase();
+    final cents = _cents(input['betrag']);
+    final goals = GoalsService.all().where((g) => !g.reached).toList();
+    if (goals.isEmpty) throw const FormatException('es gibt kein offenes Sparziel; schlag zuerst eins vor');
+    final goal = goals.where((g) => g.name.toLowerCase().contains(name) || name.contains(g.name.toLowerCase())).firstOrNull ??
+        (goals.length == 1 ? goals.first : null);
+    if (goal == null) {
+      throw FormatException('ziel nicht gefunden, offen sind: ${goals.map((g) => g.name).join(', ')}');
+    }
+    final left = goal.remainingCents;
+    return BuddyProposal(ProposalKind.save, tr('{x} zurücklegen', {'x': goal.name}),
+        tr('{x} jetzt, danach fehlen noch {y}', {'x': Money.format(cents), 'y': Money.format((left - cents).clamp(0, left))}),
+        {'goalId': goal.id, 'cents': cents});
+  }
+
   static BuddyProposal reminder(Map<String, dynamic> input) {
     final text = '${input['text'] ?? ''}'.trim();
     if (text.isEmpty) throw const FormatException('text fehlt');
     final date = DateTime.tryParse('${input['datum'] ?? ''}');
     final when = date == null ? tr('ohne Datum') : '${date.day}.${date.month}.${date.year}';
-    return BuddyProposal(ProposalKind.reminder, 'Erinnerung', '$text · $when', {'text': text, 'datum': date});
+    return BuddyProposal(ProposalKind.reminder, tr('Erinnerung'), '$text · $when', {'text': text, 'datum': date});
   }
 }
 

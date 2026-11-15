@@ -18,6 +18,7 @@ import 'account_service.dart';
 import 'backend_service.dart';
 import 'buddy_check.dart';
 import 'buddy_declined.dart';
+import 'buddy_journal.dart';
 import 'buddy_memory.dart';
 import 'buddy_proposals.dart';
 import 'buddy_tasks.dart';
@@ -366,7 +367,10 @@ class BuddyService {
     ];
     Map<String, dynamic> context;
     try {
-      context = _context();
+      context = {
+        ..._context(),
+        'fruehereGespraeche': BuddyJournal.forAgent(current: [for (final m in history) if (m.fromUser) m.text]),
+      };
     } catch (_) {
       context = {};
     }

@@ -199,6 +199,12 @@ class BuddyAgent {
     if (stage != null) lines.add('Lebenslage: ${jsonEncode(stage)}');
     final open = (context['offeneAufgaben'] as List?)?.take(5).toList();
     if (open != null && open.isNotEmpty) lines.add('Offene Aufgaben: ${jsonEncode(open)}');
+    final earlier = (context['fruehereGespraeche'] as List?)?.take(8).toList();
+    if (earlier != null && earlier.isNotEmpty) {
+      lines.add('Frühere Gespräche, neueste zuerst: ${jsonEncode(earlier)}\n'
+          'Knüpf daran an, wenn es zur Frage passt, oder frag einmal kurz nach, ob ein Schritt von damals '
+          'geklappt hat. Nicht in jeder Antwort, und erfinde nichts dazu, was nicht dasteht.');
+    }
     final declined = (context['abgelehnt'] as List?)?.take(8).toList();
     if (declined != null && declined.isNotEmpty) {
       lines.add('Vorschläge, die die Person verworfen hat: ${jsonEncode(declined)}\n'
@@ -481,6 +487,16 @@ Zeigen: Wenn ein Verlauf über Monate, eine Aufteilung nach Kategorien oder ein 
 die Antwort klarer macht, zeig ein Diagramm mit „diagramm“. Höchstens eins pro Antwort,
 und nur wenn es wirklich hilft.
 
+Gehalt ist da: Fragt die Person, wie viel sie vom Gehalt zurücklegen soll, schau mit
+„monatsprognose“ und „ziele_und_vermoegen“, was nach den Fixkosten frei ist, nenn eine Summe
+und leg sie mit „zuruecklegen_vorschlagen“ auf ihr wichtigstes Sparziel (zuerst Notgroschen).
+Hat sie kein Ziel, schlag eins vor. Empfiehl zusätzlich einen Dauerauftrag zum Gehaltstag.
+
+Monatsabschluss: Bittet die Person, einen Monat abzuschließen, hol „monatsverlauf“ (und bei
+Bedarf „ausgaben“), dann: eine Sache, die gut lief, mit Zahl; eine, die nicht lief, mit Zahl;
+ein Plan für den neuen Monat mit höchstens zwei Karten (Budget, Sparziel oder Erinnerung).
+Ein Diagramm der letzten Monate passt hier gut. Kein Vortrag, kein Zeugnis.
+
 Offene Aufgaben: Im Kontext stehen Schritte, die noch offen sind. Wenn eine davon zur Frage
 passt oder schon länger als eine Woche offen ist, frag in einem Satz danach. Nicht in jeder
 Antwort.
@@ -688,6 +704,43 @@ oder Passwörter.''';
       },
     },
     {
+      'name': 'brutto_netto',
+      'description': 'Rechnet ein Bruttogehalt in Netto um, Lohnsteuer 2026 nach dem amtlichen Programmablaufplan '
+          'plus Sozialabgaben, Steuerklasse I bis IV, gesetzlich versichert. Für jede Frage nach Netto, Gehalt, '
+          'Gehaltserhöhung, Jobangebot oder Gehaltsabrechnung. Frag nach Steuerklasse oder Kirche nur, wenn es '
+          'die Antwort wirklich ändert; sonst Klasse I ohne Kirchensteuer und sag das dazu.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties': {
+          'brutto_monat': {'type': 'number'},
+          'brutto_jahr': {'type': 'number', 'description': 'statt brutto_monat, wenn ein Jahresgehalt genannt ist'},
+          'steuerklasse': {'type': 'integer', 'enum': [1, 2, 3, 4]},
+          'kinder': {'type': 'integer'},
+          'alter': {'type': 'integer'},
+          'kirchensteuer': {'type': 'boolean'},
+          'bundesland': {'type': 'string'},
+          'zusatzbeitrag': {'type': 'number', 'description': 'Zusatzbeitrag der Krankenkasse in Prozent'},
+          'werkstudent': {'type': 'boolean'},
+        },
+      },
+    },
+    {
+      'name': 'zuruecklegen_vorschlagen',
+      'description': 'Schlägt vor, jetzt einen Betrag für ein bestehendes Sparziel zurückzulegen, etwa direkt nach '
+          'dem Gehalt. Mit Sparkonto in der App wird umgebucht, sonst nur gezählt. Für ein neues Ziel erst '
+          'sparziel_vorschlagen.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'required': ['ziel', 'betrag'],
+        'properties': {
+          'ziel': {'type': 'string', 'description': 'Name des Sparziels'},
+          'betrag': {'type': 'number', 'description': 'Euro'},
+        },
+      },
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -755,6 +808,8 @@ oder Passwörter.''';
     'sparziel_vorschlagen': 'dein Sparziel',
     'kuendigung_vorbereiten': 'die Kündigung',
     'kuendigungsfrist': 'die Kündigungsfrist',
+    'brutto_netto': 'die Gehaltsrechnung',
+    'zuruecklegen_vorschlagen': 'deine Sparrate',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',
