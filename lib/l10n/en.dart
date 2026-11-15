@@ -2561,4 +2561,17 @@ const en = <String, String>{
   'Testmodus: nichts abgebucht. Im Store über App Store, Google Play oder Stripe.': 'Test mode: nothing is charged. In the store release, payment goes through the App Store, Google Play or Stripe.',
   'Plus endet sofort. Gezahltes kommt in 14 Tagen zurück, abzüglich der genutzten Zeit.': 'Plus ends now. What you paid comes back within 14 days, minus the time you already used.',
   'Plus bleibt bis {x}, danach keine Abbuchung.': 'Plus stays until {x}, then nothing more is charged.',
+  'Für diesen Monat gibt es noch zu wenig Verlauf.': 'Not enough history for this month yet.',
+  'Mein {month} mit Ahead.': 'My {month} with Ahead.',
+  'Monats-Story teilen': 'Share month story',
+  'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n- Lohnsteuer: {tax}{soli}\n- Sozialabgaben: {social}\n\nSteuerklasse {cls}, Lohnsteuer 2026. Kann um ein paar Euro abweichen.':
+      'From **{gross}** gross, about **{net}** net is left each month.\n- Wage tax: {tax}{soli}\n- Social contributions: {social}\n\nTax class {cls}, wage tax 2026. It can differ by a few euros.',
+  'Im Schnitt gibst du **{x} mehr aus**, als reinkommt.': 'On average you\'re **spending {x} more** than comes in.',
+  'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz. Größte Position: {b} ({c} %).':
+      'Your portfolio is worth **{x}**, {y} of {z} on {a} invested. Largest position: {b} ({c} %).',
+  'Keine Versicherung erkannt. Privathaftpflicht zuerst, unter Vermögen.':
+      'No insurance found. Liability cover first, under Wealth.',
+  'Versicherungs-Check:\n{x}\n\n{y}': 'Insurance check:\n{x}\n\n{y}',
+  'Altersvorsorge ist noch nicht eingerichtet.': 'Retirement planning isn\'t set up yet.',
+  '{x} läuft schon länger': '{x} has been running a while',
 };

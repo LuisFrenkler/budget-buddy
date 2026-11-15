@@ -42,12 +42,10 @@ class LocalBuddy {
     final r = NetSalary.compute(gross,
         taxClass: cls, church: RegExp(r'kirch|church').hasMatch(q));
     return tr(
-        'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n\n'
+        'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n'
         '- Lohnsteuer: {tax}{soli}\n'
-        '- Sozialabgaben: {social} (Rente, Arbeitslosen-, Kranken- und Pflegeversicherung)\n\n'
-        'Gerechnet für Steuerklasse {cls}, gesetzlich versichert mit durchschnittlichem Zusatzbeitrag, '
-        'Lohnsteuer 2026. Deine Abrechnung kann um ein paar Euro abweichen.\n\n'
-        'Nächster Schritt: Leg deine erste Abrechnung daneben und vergleich Steuerklasse und Netto.',
+        '- Sozialabgaben: {social}\n\n'
+        'Steuerklasse {cls}, Lohnsteuer 2026. Kann um ein paar Euro abweichen.',
         {
           'gross': Money.format((gross * 100).round()),
           'net': Money.format((r.net * 100).round()),
@@ -342,8 +340,7 @@ class LocalBuddy {
     if (s.past.isEmpty)
       return tr('Dafür brauche ich mindestens einen vollen Monat an Daten.');
     if (surplus <= 0) {
-      return tr(
-          'Im Schnitt gibst du gerade **{x} mehr aus**, als reinkommt. Bevor du sparst, lohnt ein Blick auf deine größten Kategorien.',
+      return tr('Im Schnitt gibst du **{x} mehr aus**, als reinkommt.',
           {'x': _eur(-surplus)});
     }
     final base = tr(
@@ -468,7 +465,7 @@ class LocalBuddy {
           ..sort((a, b) => b.valueCents.compareTo(a.valueCents)))
         .first;
     return tr(
-        'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz.\n\n- Größte Position: {b} ({c} %)\n- Faustregel: breit gestreut und langfristig, und vorher drei Monatsausgaben als Notgroschen.',
+        'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz. Größte Position: {b} ({c} %).',
         {
           'x': _eur(s.depotCents),
           'y': gain >= 0 ? tr('ein Plus') : tr('ein Minus'),
@@ -551,7 +548,7 @@ class LocalBuddy {
     ]);
     if (r.found.isEmpty) {
       return tr(
-          'Keine Versicherung in den Buchungen oder unter Vermögen erkannt. Die Privathaftpflicht ist für fast alle die wichtigste.\n\nNächster Schritt: Trag sie unter Vermögen ein.');
+          'Keine Versicherung erkannt. Privathaftpflicht zuerst, unter Vermögen.');
     }
     final listed = [
       for (final f in r.found.take(6))
@@ -561,16 +558,13 @@ class LocalBuddy {
     final extra = notes.isEmpty
         ? tr('Privathaftpflicht ist da. Keine doppelte Deckung erkannt.')
         : notes.map((n) => '- $n').join('\n');
-    return tr(
-        'Versicherungs-Check (allgemein, keine Beratung):\n{x}\n\n{y}\n\nNächster Schritt: Unter Vermögen eintragen oder Doppeltes streichen.',
-        {'x': listed, 'y': extra});
+    return tr('Versicherungs-Check:\n{x}\n\n{y}', {'x': listed, 'y': extra});
   }
 
   static String _vorsorge(FinanceSnapshot s) {
     final v = s.vorsorge;
     if (v == null) {
-      return tr(
-          'Altersvorsorge ist noch nicht eingerichtet. Trag unter Vorsorge deine Rente ein, dann rechne ich die Lücke. Das ist eine Orientierung, keine Beratung.');
+      return tr('Altersvorsorge ist noch nicht eingerichtet.');
     }
     if (v.gapClosed) {
       return tr(

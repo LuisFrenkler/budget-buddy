@@ -9,9 +9,11 @@ import '../models/budget.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
+import '../utils/merchant.dart';
 import '../utils/money.dart';
 import 'cancellation_service.dart';
 import 'contracts.dart';
+import 'sub_tips.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
@@ -28,6 +30,7 @@ enum HintKind {
   budgetClose,
   priceUp,
   upcoming,
+  subTip,
   trialEnds,
   bankExpires,
   bigExpense,
@@ -106,6 +109,7 @@ class HintsService {
     HintKind.splitNew: 35,
     HintKind.weekPlan: 30,
     HintKind.upcoming: 20,
+    HintKind.subTip: 24,
   };
 
   // the one hint that counts today, if any: for Buddy's opening and the home tip
@@ -502,6 +506,21 @@ class HintsService {
             tr('{x} werden voraussichtlich am {y} abgebucht.', {'x': Money.format(c.monthlyCents), 'y': Dates.dayMonth(c.nextDate)}),
             HintTarget.contracts));
       }
+    }
+
+    // a subscription with a known cheaper plan, after 6 months: once a year
+    // (the id includes the year, so dismissing it lasts until next year)
+    for (final c in contracts) {
+      final tip = SubTips.forName(c.name);
+      if (tip == null) continue;
+      if (today.difference(c.payments.first.date).inDays < 183) continue;
+      out.add(Hint(
+          'abo-tip-${today.year}-${Merchant.key(c.name)}',
+          HintKind.subTip,
+          tr('{x} läuft schon länger', {'x': tip.provider}),
+          tip.text,
+          HintTarget.contracts,
+          question: tr('Wie spare ich bei {x}?', {'x': tip.provider})));
     }
 
     // an expense of the last three days far above the usual in its category

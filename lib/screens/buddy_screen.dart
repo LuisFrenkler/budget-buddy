@@ -39,6 +39,7 @@ import '../widgets/buddy_orb.dart';
 import '../widgets/buddy_text.dart';
 import '../widgets/life_stage_sheet.dart';
 import '../widgets/share_card.dart';
+import '../widgets/recap_story.dart';
 import 'auth_screens.dart';
 import 'buddy_actions.dart';
 import 'buddy_log_screen.dart';
@@ -51,7 +52,6 @@ import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 import '../l10n/l10n.dart';
-import '../services/notification_service.dart';
 import '../widgets/buddy_chart.dart';
 import '../services/buddy_tasks.dart';
 import '../services/buddy_first_look.dart';
@@ -61,6 +61,7 @@ import '../services/money_accounts.dart';
 import '../services/ledger_busy.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
+import '../services/recap_service.dart';
 import '../utils/money.dart';
 
 export '../widgets/buddy_text.dart' show RichMarkdown;
@@ -174,6 +175,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _thinking = false;
   bool? _live;
   StreamSubscription<String>? _sub;
+  // bumped on stop or a new answer, so a late chunk cannot resume a stopped one
+  int _answerGen = 0;
   // a photo picked for the next message (receipt, bank or broker screenshot)
   ({Uint8List bytes, String type})? _photo;
   // setup chat (Vorsorge, Sparziel, Depot) that ends in a confirm card
@@ -217,8 +220,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
     _restore();
-    // steps the app already sees done tick themselves off
-    if (!_guest) LifeProgress.sync();
+    // tick life-stage progress after the first frame so Buddy paints instantly
+    if (!_guest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) LifeProgress.sync();
+      });
+    }
     // the setup talk needs no server: it starts right away
     final onboarding = !_guest && _onboard();
     (_guest ? GuestBuddy.live() : BuddyService.live()).then((v) {
@@ -761,22 +768,22 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _spokenInput = false;
   bool _speakNext = false;
 
-  // stop generation like ChatGPT: keep whatever already arrived
+  // stop generation: keep text that already arrived, drop an empty bubble
   void _stop() {
+    _answerGen++;
     _sub?.cancel();
     _sub = null;
+    BuddyService.activity.value = null;
     if (!mounted) return;
     setState(() {
       _thinking = false;
       if (_messages.isNotEmpty && !_messages.last.fromUser) {
-        _messages.last.streaming = false;
-        if (_messages.last.text.trim().isEmpty) {
-          _messages.last
-            ..text = tr('Gestoppt.')
-            ..error = false;
-        }
+        final last = _messages.last;
+        last.streaming = false;
+        if (last.text.trim().isEmpty) _messages.removeLast();
       }
     });
+    _persist();
   }
 
   Future<void> _send(String text) async {
@@ -790,6 +797,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (_photo == null && BuddyHelp.matches(question)) return _help(question);
     // privacy is answered from the app's own list, never improvised
     if (_photo == null && DataMap.matches(question)) return _privacy(question);
+    // "Monatsrückblick" / story share stays on-device
+    if (_photo == null && _wantsMonthStory(question)) {
+      _shareMonthStory();
+      return;
+    }
     if (_guest) return _sendGuest(question);
     if (_photo == null && BuddyOnboarding.active && question.isNotEmpty && await _runOnboarding(question)) return;
     if (_photo == null && _rememberCommand(question)) return;
@@ -893,6 +905,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       bool degraded = false,
       bool countsQuestion = false,
       bool anyErrorFallsBack = false}) {
+    final gen = ++_answerGen;
     _sub?.cancel();
     setState(() {
       answer
@@ -908,7 +921,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     });
     _sub = pieces.listen(
       (piece) {
-        if (!mounted) return;
+        if (!mounted || gen != _answerGen) return;
         if (piece == BuddyService.restart) {
           // a number didn't hold up: the checked answer replaces this one
           setState(() {
@@ -922,7 +935,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         _scrollDown();
       },
       onError: (e) {
-        if (!mounted) return;
+        if (!mounted || gen != _answerGen) return;
         final text = '$e';
         final limit = text.contains('ausgelastet') ||
             text.contains('Tageslimit') ||
@@ -944,6 +957,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         });
       },
       onDone: () {
+        if (gen != _answerGen) return;
         // only an answer that arrived uses up one of the free questions
         if (countsQuestion && !answer.error && !answer.degraded) PlusService.count(PlusFeature.aiQuestion);
         if (!mounted || answer.error) return;
@@ -1085,6 +1099,33 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
+  bool _wantsMonthStory(String q) {
+    final t = q.toLowerCase();
+    return t.contains('monatsrückblick') ||
+        t.contains('monats-story') ||
+        t.contains('monatsstory') ||
+        t.contains('month story') ||
+        t.contains('monthly recap') ||
+        (t.contains('story') && (t.contains('monat') || t.contains('teilen')));
+  }
+
+  // month as a story card (percentages only), opened from Buddy's menu or chat
+  void _shareMonthStory() {
+    final now = DateTime.now();
+    final month = DateTime(now.year, now.month);
+    final recap = RecapService.build(DB.getTx(), month);
+    if (recap == null) {
+      _snack(tr('Für diesen Monat gibt es noch zu wenig Verlauf.'));
+      return;
+    }
+    final name = Dates.months[month.month - 1];
+    showStoryShare(
+      context,
+      recap,
+      fallbackText: tr('Mein {month} mit Ahead.', {'month': name}),
+    );
+  }
+
   // ---------------------------------------------------------------- layout
 
   @override
@@ -1181,6 +1222,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen()));
                 case 'stage':
                   _openStage(LifeStages.current ?? LifeStages.firstJob);
+                case 'story':
+                  _shareMonthStory();
                 case 'new':
                   _newChat();
                 default:
@@ -1189,6 +1232,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             },
             itemBuilder: (_) => [
               PopupMenuItem(value: 'stage', child: _menuRow(Icons.flag_outlined, tr('Lebenslage'))),
+              PopupMenuItem(value: 'story', child: _menuRow(Icons.auto_stories_outlined, tr('Monats-Story teilen'))),
               PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Buddy weiß'))),
               PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Buddy getan hat'))),
               if (_messages.isNotEmpty)
@@ -2218,9 +2262,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.text,
+                        color: AppColors.surfaceAlt,
                       ),
-                      child: Icon(Icons.stop_rounded, size: 20, color: AppColors.bg),
+                      child: Icon(Icons.stop_rounded, size: 18, color: AppColors.text),
                     ),
                   ),
                 )

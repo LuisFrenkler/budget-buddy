@@ -71,6 +71,8 @@ class BuddyTips {
         if (today.difference(c.payments.first.date).inDays < 183) continue;
         final key = 'subTipYear_${Merchant.key(c.name)}';
         if (box.get(key) == year) continue;
+        final gone = box.get('hintsDismissed');
+        if (gone is List && gone.contains('abo-tip_$year-${Merchant.key(c.name)}')) continue;
         box.put(key, year);
         return BuddyTip(tip.text, tr('Wie spare ich bei {x}?', {'x': tip.provider}));
       }

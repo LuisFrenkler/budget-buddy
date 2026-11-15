@@ -6,14 +6,15 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Weniger Text in der ganzen App: restliche Screens (Connections, Goals, Depot, …) weiter kürzen
-2. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
-3. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
-4. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
-5. Datenübersicht: Serverstandort eintragen, sobald der Server steht
-6. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
+1. Weniger Text in der ganzen App: restliche Screens weiter kürzen
+2. Leistungs-Check: weitere Startzeit-Messung und Optimierung
+3. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
+4. Datenübersicht: Serverstandort eintragen, sobald der Server steht
+5. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
+- Monatsrückblick als Story direkt aus Buddy (Menü + „Monatsrückblick“ im Chat)
+- LifeProgress.sync nach dem ersten Frame (Buddy-Tab startet schneller)
 - Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
 - Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern
 - Calm Buddy-Start nach Login: Zahl, eine Bemerkung, drei Wege; Composer „Nachricht an Buddy“; Stopp während Streaming
