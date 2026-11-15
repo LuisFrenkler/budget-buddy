@@ -729,7 +729,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         tiles.add(_forYouTile(
           Icons.pie_chart_rounded,
           tr('Budgets knapp'),
-          tr('{tight} {x} knapp oder drüber', {'tight': tight, 'x': tight == 1 ? tr('Kategorie') : tr('Kategorien')}),
+          tr('{tight} {x} knapp oder drüber', {'tight': tight, 'x': L10n.isDe ? (tight == 1 ? tr('Kategorie') : tr('Kategorien')) : (tight == 1 ? tr('Kategorie') : tr('Kategorien')).toLowerCase()}),
           () => widget.onOpen(1, segment: 1),
           subtitleColor: AppColors.warningText,
         ));
@@ -1082,7 +1082,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 ? tr('Noch keine Positionen')
                 : invested == 0
                     ? tr('Ohne Kaufpreis')
-                    : '${Money.percent(gain / invested * 100, digits: 2)} gesamt',
+                    : tr('{x} gesamt', {'x': Money.percent(gain / invested * 100, digits: 2)}),
             up: !hasHoldings || invested == 0 || gain == 0 ? null : gain > 0,
             onTap: () => widget.onOpen(2),
           ),
