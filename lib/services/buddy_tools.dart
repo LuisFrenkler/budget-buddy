@@ -50,6 +50,7 @@ class BuddyTools {
     'budget_vorschlagen',
     'sparziel_vorschlagen',
     'kuendigung_vorbereiten',
+    'kuendigungsfrist',
     'kategorie_vorschlagen',
     'erinnerung_vorschlagen',
     'diagramm',
@@ -75,6 +76,7 @@ class BuddyTools {
         'budget_vorschlagen' => _propose(BuddyProposal.budget(input)),
         'sparziel_vorschlagen' => _propose(BuddyProposal.goal(input, today: today)),
         'kuendigung_vorbereiten' => _propose(BuddyProposal.cancel(input)),
+        'kuendigungsfrist' => _frist(input),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -346,6 +348,107 @@ class BuddyTools {
       'summeProMonat': _round(monthly),
       'dauerauftraege': snapshot['wiederkehrend'] ?? const [],
     };
+  }
+
+  // When can a contract end at the earliest? German rules for consumer
+  // contracts, as an estimate: the contract itself has the exact dates.
+  // - since 1 March 2022 (§ 309 Nr. 9 BGB): at most 24 months minimum term,
+  //   after that cancellable any time with at most one month's notice
+  // - phone and internet (§ 56 TKG, since Dec 2021): the same after the minimum term
+  // - subscriptions billed monthly: usually to the end of the paid month
+  // - insurance: usually three months before the end of the insurance year
+  Map<String, dynamic> _frist(Map<String, dynamic> input) {
+    final who = '${input['anbieter'] ?? ''}'.trim();
+    if (who.isEmpty) return {'fehler': 'anbieter fehlt'};
+    final contracts = [for (final c in (snapshot['vertraegeUndAbos'] as List?) ?? const []) (c as Map).cast<String, dynamic>()];
+    final found = contracts.where((c) => '${c['name']}'.toLowerCase().contains(who.toLowerCase()) ||
+        who.toLowerCase().contains('${c['name']}'.toLowerCase())).firstOrNull;
+    final art = '${input['art'] ?? (found == null ? 'sonstiges' : _artOf('${found['kategorie']}', '${found['name']}'))}';
+    DateTime? month(String? s) {
+      if (s == null || s.isEmpty) return null;
+      final m = RegExp(r'^(\d{4})-(\d{2})(?:-(\d{2}))?').firstMatch(s);
+      return m == null ? null : DateTime(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3] ?? '1'));
+    }
+
+    final start = month(input['beginn'] as String?) ?? month(found?['seit'] as String?);
+    final minMonths = (input['mindestlaufzeit_monate'] as num?)?.toInt();
+    final next = month(found?['naechste'] as String?);
+    final base = <String, dynamic>{
+      'anbieter': found?['name'] ?? who,
+      'erkannt': found != null,
+      'art': art,
+      if (start != null) 'beginn': _day(start),
+      if (found != null) 'proMonat': found['proMonat'],
+      if (next != null) 'naechsteZahlung': _day(next),
+    };
+    const hint = 'Schätzung nach den gesetzlichen Regeln. Die genaue Frist steht im Vertrag oder im Kundenkonto. '
+        'Online abgeschlossene Verträge müssen einen Knopf „Verträge hier kündigen“ haben (§ 312k BGB).';
+    DateTime addMonths(DateTime d, int m) {
+      final last = DateTime(d.year, d.month + m + 1, 0).day;
+      return DateTime(d.year, d.month + m, d.day > last ? last : d.day);
+    }
+
+    if (art == 'versicherung') {
+      return {
+        ...base,
+        'regel': 'Meist zum Ende des Versicherungsjahres, mit drei Monaten Frist. Nach einer Beitragserhöhung '
+            'oder einem Schaden gibt es oft ein Sonderkündigungsrecht.',
+        'hinweis': hint,
+      };
+    }
+    if (art == 'abo') {
+      return {
+        ...base,
+        'regel': 'Monatlich kündbar, das Abo läuft bis zum Ende des bezahlten Monats.',
+        if (next != null) 'endetFruehestens': _day(next.subtract(const Duration(days: 1))),
+        if (next != null) 'kuendigenBis': _day(next.subtract(const Duration(days: 1))),
+        'hinweis': hint,
+      };
+    }
+    final old = start != null && start.isBefore(DateTime(2022, 3, 1)) && art != 'handy_internet';
+    if (old) {
+      return {
+        ...base,
+        'altvertrag': true,
+        'regel': 'Vertrag von vor März 2022: Er durfte sich noch um bis zu zwölf Monate verlängern, mit bis zu drei '
+            'Monaten Frist. Das genaue Datum steht im Vertrag.',
+        'hinweis': hint,
+      };
+    }
+    final months = minMonths ?? (art == 'strom_gas' ? 12 : 24);
+    final minEnd = start == null ? null : addMonths(start, months);
+    final noticeEnd = addMonths(today, 1);
+    if (minEnd != null && minEnd.isAfter(noticeEnd)) {
+      return {
+        ...base,
+        'mindestlaufzeitMonate': months,
+        if (minMonths == null) 'mindestlaufzeitGeschaetzt': true,
+        'endetFruehestens': _day(minEnd),
+        'kuendigenBis': _day(addMonths(minEnd, -1)),
+        'tageBisKuendigung': addMonths(minEnd, -1).difference(today).inDays,
+        'regel': 'Bis zum Ende der Mindestlaufzeit gebunden, danach monatlich kündbar.',
+        'hinweis': hint,
+      };
+    }
+    return {
+      ...base,
+      'endetFruehestens': _day(noticeEnd),
+      'kuendigenBis': 'jederzeit',
+      'regel': start == null
+          ? 'Ohne Beginn geschätzt: Nach der Mindestlaufzeit ist ein Vertrag jederzeit mit einem Monat Frist kündbar.'
+          : 'Die Mindestlaufzeit ist vorbei: jederzeit mit höchstens einem Monat Frist kündbar.',
+      'hinweis': hint,
+    };
+  }
+
+  static String _artOf(String category, String name) {
+    final t = '$category $name'.toLowerCase();
+    if (RegExp(r'versicher|haftpflicht|hausrat|allianz|huk|ergo').hasMatch(t)) return 'versicherung';
+    if (RegExp(r'netflix|spotify|disney|youtube|prime|apple|icloud|dazn|audible|chatgpt|abo').hasMatch(t)) return 'abo';
+    if (RegExp(r'telekom|vodafone|o2|1&1|congstar|handy|internet|mobilfunk').hasMatch(t)) return 'handy_internet';
+    if (RegExp(r'strom|gas|stadtwerke|vattenfall|eon|e\.on|energie').hasMatch(t)) return 'strom_gas';
+    if (RegExp(r'fitx|mcfit|fitness|gym|urban sports|sport').hasMatch(t)) return 'fitness';
+    return 'sonstiges';
   }
 
   Map<String, dynamic> _prognose() => {

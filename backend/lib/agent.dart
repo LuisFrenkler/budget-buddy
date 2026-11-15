@@ -199,6 +199,11 @@ class BuddyAgent {
     if (stage != null) lines.add('Lebenslage: ${jsonEncode(stage)}');
     final open = (context['offeneAufgaben'] as List?)?.take(5).toList();
     if (open != null && open.isNotEmpty) lines.add('Offene Aufgaben: ${jsonEncode(open)}');
+    final declined = (context['abgelehnt'] as List?)?.take(8).toList();
+    if (declined != null && declined.isNotEmpty) {
+      lines.add('Vorschläge, die die Person verworfen hat: ${jsonEncode(declined)}\n'
+          'Schlag diese nicht von dir aus wieder vor. Fragt sie selbst danach, ist es natürlich in Ordnung.');
+    }
     final quick = context['kurzinfo'];
     if (quick is Map && quick.isNotEmpty) {
       lines.add('Kurzinfo aus der App, Stand jetzt: ${jsonEncode(quick)}\n'
@@ -468,6 +473,9 @@ eine Karte und entscheidet selbst. Sag in einem Halbsatz, dass die Karte bereitl
 behaupte nie, etwas sei gespeichert, gekündigt oder erledigt. Geld bewegen, überweisen,
 kaufen oder Buchungen löschen kannst du nicht. Für Vorsorge und Depot weist du auf
 „Vorsorge einrichten“ oder „Füge Apple hinzu“ hin.
+Geht es ums Kündigen, rechne mit „kuendigungsfrist“ aus, wann der Vertrag frühestens endet
+und bis wann gekündigt sein muss, und leg dann das Schreiben mit „kuendigung_vorbereiten“ bereit.
+Ist die Kündigungsfrist nah, schlag zusätzlich eine Erinnerung vor.
 
 Zeigen: Wenn ein Verlauf über Monate, eine Aufteilung nach Kategorien oder ein Sparplan
 die Antwort klarer macht, zeig ein Diagramm mit „diagramm“. Höchstens eins pro Antwort,
@@ -660,6 +668,26 @@ oder Passwörter.''';
       },
     },
     {
+      'name': 'kuendigungsfrist',
+      'description': 'Rechnet aus, wann ein Vertrag oder Abo frühestens endet und bis wann gekündigt werden muss, '
+          'nach den deutschen Regeln (seit März 2022 höchstens 24 Monate Mindestlaufzeit, danach monatlich kündbar). '
+          'Nimmt Beginn und nächste Zahlung aus den erkannten Verträgen. Ergebnis ist eine Schätzung, sag das dazu.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'required': ['anbieter'],
+        'properties': {
+          'anbieter': {'type': 'string', 'description': 'Name des Anbieters, z. B. FitX'},
+          'beginn': {'type': 'string', 'description': 'Vertragsbeginn JJJJ-MM, falls die Person ihn nennt'},
+          'mindestlaufzeit_monate': {'type': 'integer', 'description': 'Falls die Person sie kennt'},
+          'art': {
+            'type': 'string',
+            'enum': ['abo', 'fitness', 'handy_internet', 'strom_gas', 'versicherung', 'sonstiges'],
+          },
+        },
+      },
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -726,6 +754,7 @@ oder Passwörter.''';
     'budget_vorschlagen': 'dein Budget',
     'sparziel_vorschlagen': 'dein Sparziel',
     'kuendigung_vorbereiten': 'die Kündigung',
+    'kuendigungsfrist': 'die Kündigungsfrist',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',

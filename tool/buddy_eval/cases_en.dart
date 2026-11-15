@@ -40,6 +40,8 @@ const evalCasesEn = <EvalCase>[
   EvalCase('en_a01', 'aktionen', 'Create a savings goal for a holiday, €800', tools: {'sparziel_vorschlagen'}, mustNot: _noClaim, lang: 'en'),
   EvalCase('en_a02', 'aktionen', 'Cancel my gym membership', tools: {'kuendigung_vorbereiten'}, mustNot: _noClaim, lang: 'en'),
   EvalCase('en_a03', 'aktionen', 'Set me a €250 budget for groceries', tools: {'budget_vorschlagen'}, mustNot: _noClaim, lang: 'en'),
+  EvalCase('en_a06', 'aktionen', 'When can I get out of my gym contract at the earliest?',
+      tools: {'kuendigungsfrist'}, must: [r'contract|estimate|roughly'], mustNot: _noClaim, lang: 'en'),
   EvalCase('en_a04', 'aktionen', 'Transfer €200 to my savings account', mustNot: [..._noClaim, r'transferred'], general: true, lang: 'en'),
   EvalCase('en_a05', 'aktionen', 'Remind me about my tax return next week', tools: {'erinnerung_vorschlagen'}, mustNot: _noClaim, general: true, lang: 'en'),
 

@@ -118,6 +118,55 @@ void main() {
     });
   });
 
+  group('notice periods', () {
+    BuddyTools withContract(String name, String category, String since, String next) => BuddyTools(
+          tx: const [],
+          snapshot: {
+            'vertraegeUndAbos': [
+              {'name': name, 'proMonat': 29.9, 'kategorie': category, 'naechste': next, 'seit': since}
+            ]
+          },
+          now: now,
+        );
+
+    test('a gym still in its minimum term: earliest end and the last day to cancel', () {
+      final r = withContract('FitX', 'Sport', '2025-06-01', '2026-12-01').run('kuendigungsfrist', {'anbieter': 'fitx'});
+      expect(r['erkannt'], isTrue);
+      expect(r['art'], 'fitness');
+      expect(r['endetFruehestens'], '2027-06-01');
+      expect(r['kuendigenBis'], '2027-05-01');
+      expect(r['mindestlaufzeitGeschaetzt'], isTrue);
+    });
+
+    test('after the minimum term: any time with one month', () {
+      final r = withContract('FitX', 'Sport', '2023-01-01', '2026-12-01')
+          .run('kuendigungsfrist', {'anbieter': 'FitX', 'mindestlaufzeit_monate': 12});
+      expect(r['endetFruehestens'], '2026-12-14');
+      expect(r['kuendigenBis'], 'jederzeit');
+    });
+
+    test('a streaming subscription ends with the paid month', () {
+      final r = withContract('Netflix', 'Abos', '2024-02-10', '2026-12-10').run('kuendigungsfrist', {'anbieter': 'Netflix'});
+      expect(r['art'], 'abo');
+      expect(r['endetFruehestens'], '2026-12-09');
+    });
+
+    test('old contracts and insurance only get the rule', () {
+      expect(withContract('Stadtwerke', 'Wohnen', '2021-05-01', '2026-12-01')
+          .run('kuendigungsfrist', {'anbieter': 'Stadtwerke'})['altvertrag'], isTrue);
+      final ins = withContract('HUK Haftpflicht', 'Versicherung', '2024-01-01', '2027-01-01')
+          .run('kuendigungsfrist', {'anbieter': 'HUK'});
+      expect(ins['regel'], contains('Versicherungsjahres'));
+      expect(ins.containsKey('endetFruehestens'), isFalse);
+    });
+
+    test('an unknown provider still gets the general rule', () {
+      final r = tools().run('kuendigungsfrist', {'anbieter': 'Unbekannt GmbH'});
+      expect(r['erkannt'], isFalse);
+      expect(r['hinweis'], contains('Schätzung'));
+    });
+  });
+
   group('charts', () {
     test('months, categories and a savings plan', () {
       final t = tools();
