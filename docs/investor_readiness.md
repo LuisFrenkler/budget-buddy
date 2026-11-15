@@ -52,3 +52,5 @@ YC nimmt das heute nicht. Ein Accelerator mit Produktfokus vielleicht als „kom
 - „Launch-fertig“, solange Signing, Live-Billing, kommerzielle Bank und Anwaltspass offen sind.
 - Zwei Marken oder zwei Gratis-Quotas im selben Gespräch.
 - Vorsorge oder Versicherungs-Check als regulierte Beratung. Der Produkttext sagt Orientierung. Dabei bleiben.
+
+Die nächsten 30 Tage stehen in `docs/optimization_playbook.md`.
