@@ -272,7 +272,7 @@ class HintsService {
           'periodic-${pp.name}-${pp.next.year}-${pp.next.month}',
           HintKind.periodicDue,
           tr('{x}: {y} {z}', {'x': pp.name, 'y': Money.format(pp.cents), 'z': _inDays(days)}),
-          tr('Kommt nicht jeden Monat, deshalb leicht vergessen. Ab jetzt {x} im Monat zurücklegen, dann tut es nächstes Mal nicht weh.',
+          tr('Nicht jeden Monat, leicht vergessen. Ab jetzt {x} im Monat zurücklegen.',
               {'x': Money.format(pp.monthlyCents)}),
           HintTarget.buddy,
           question: tr('{x} kommt bald mit {y}. Wie lege ich für solche Jahreszahlungen am besten zurück?',
@@ -324,9 +324,9 @@ class HintsService {
           HintKind.dunning,
           d.collector ? tr('Zahlung an ein Inkassobüro') : tr('Mahngebühr bei {x}', {'x': who}),
           d.collector
-              ? tr('{x} an {y}. Prüf zuerst, ob die Forderung stimmt, bevor du weiter zahlst. Die Verbraucherzentrale hilft dabei.',
+              ? tr('{x} an {y}. Prüf die Forderung, bevor du weiter zahlst. Die Verbraucherzentrale hilft.',
                   {'x': Money.format(d.tx.amountCents), 'y': who})
-              : tr('{x} für eine verspätete Zahlung. Prüf, welche Rechnung offen ist, und zahl sie, bevor Inkasso daraus wird.',
+              : tr('{x}, verspätete Zahlung. Offene Rechnung zahlen, bevor daraus Inkasso wird.',
                   {'x': Money.format(d.tx.amountCents)}),
           HintTarget.buddy,
           urgent: d.collector,
@@ -355,7 +355,7 @@ class HintsService {
           'returned-${r.back.id}',
           HintKind.returnedDebit,
           tr('Lastschrift von {x} ging zurück', {'x': r.merchant}),
-          tr('{x} sind wieder auf deinem Konto, die Rechnung ist aber noch offen. Meist folgt eine Mahnung mit Gebühr.',
+          tr('{x} sind zurück, die Rechnung bleibt offen. Oft folgt eine Mahnung mit Gebühr.',
               {'x': Money.format(r.cents)}),
           HintTarget.buddy,
           question: tr('Eine Lastschrift von {x} über {y} ist zurückgegangen. Was muss ich jetzt tun?',
@@ -447,7 +447,7 @@ class HintsService {
           'salary-up-${today.year}-${today.month}',
           HintKind.salaryUp,
           tr('Dein Gehalt ist gestiegen: +{x}', {'x': Money.format(raise.raiseCents)}),
-          tr('Leg die Hälfte, {x} im Monat, gleich per Dauerauftrag zurück. Dann merkst du es nicht und hast trotzdem mehr.',
+          tr('Die Hälfte ({x} im Monat) sofort per Dauerauftrag zurücklegen.',
               {'x': Money.format(half)}),
           HintTarget.buddy,
           question: tr('Mein Gehalt ist um {x} im Monat gestiegen. Wie viel davon sollte ich sparen und wofür?',
@@ -482,7 +482,7 @@ class HintsService {
             'still-${c.name}-${c.last.date.toIso8601String().substring(0, 10)}',
             HintKind.stillCharging,
             tr('{x} bucht trotz Kündigung ab', {'x': c.name}),
-            tr('Du hast am {x} gekündigt, am {y} kamen trotzdem {z}. Fordere das Geld zurück; eine Lastschrift kannst du 8 Wochen lang bei deiner Bank zurückgeben.', {'x': Dates.dayMonth(sent), 'y': Dates.dayMonth(c.last.date), 'z': Money.format(c.monthlyCents)}),
+            tr('Am {x} gekündigt, am {y} trotzdem {z}. Zurückfordern. Lastschrift 8 Wochen bei der Bank zurückgeben.', {'x': Dates.dayMonth(sent), 'y': Dates.dayMonth(c.last.date), 'z': Money.format(c.monthlyCents)}),
             HintTarget.contracts,
             urgent: true));
       }

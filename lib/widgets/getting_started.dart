@@ -65,7 +65,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
         Text(MoneyAccounts.several ? tr('Wie viel ist gerade auf {x}?', {'x': (widget.account ?? MoneyAccounts.main).name}) : tr('Wie viel ist gerade auf deinem Konto?'),
             style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, height: 1.2)),
         SizedBox(height: 6),
-        Text(tr('Wie in deiner Banking-App. Danach rechnet Ahead weiter.'),
+        Text(tr('Wie in der Banking-App. Ab da rechnet Ahead weiter.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         SizedBox(height: 18),
         TextField(
@@ -166,7 +166,7 @@ class GettingStartedCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               Text(
                   complete
-                      ? tr('Buchung, Kontostand und Budget stehen. Als Nächstes: Polster und Vorsorge.')
+                      ? tr('Buchung, Kontostand, Budget stehen. Weiter: Polster und Vorsorge.')
                       : tr('{done} von {total} erledigt', {'done': done, 'total': total}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),

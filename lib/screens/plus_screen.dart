@@ -196,7 +196,7 @@ class _PlusScreenState extends State<PlusScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          tr('Immer gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.'),
+                          tr('Gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.'),
                           style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
                         ),
                       ),
