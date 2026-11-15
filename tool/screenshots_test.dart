@@ -41,8 +41,9 @@ Future<void> _shot(WidgetTester tester, String name) async {
   await tester.runAsync(() async {
     final image = await boundary.toImage(pixelRatio: 3);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    Directory('build/screens/3x').createSync(recursive: true);
-    File('build/screens/3x/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
+    final dir = 'build/screens/3x${_lang == 'de' ? '' : '/$_lang'}';
+    Directory(dir).createSync(recursive: true);
+    File('$dir/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
   });
 }
 
@@ -197,13 +198,18 @@ void main() {
 
   testWidgets('08 light mode chat', (tester) async {
     await tester.runAsync(() => BuddyHistory.save([
-      SavedMessage(true, 'Was ist eine Betriebsrente?', DateTime.now()),
+      SavedMessage(true, _lang == 'de' ? 'Was ist eine Betriebsrente?' : 'What is a company pension?', DateTime.now()),
       SavedMessage(
           false,
-          '**Altersvorsorge über deinen Arbeitgeber**, oft mit Zuschuss.\n\n'
-              '1. Ein Teil deines Bruttos fließt in einen Vertrag.\n'
-              '2. Spart der Arbeitgeber Sozialabgaben, gibt er meist 15 Prozent dazu.\n\n'
-              'Nächster Schritt: Frag die Personalabteilung nach Zuschuss und Kosten.',
+          _lang == 'de'
+              ? '**Altersvorsorge über deinen Arbeitgeber**, oft mit Zuschuss.\n\n'
+                  '1. Ein Teil deines Bruttos fließt in einen Vertrag.\n'
+                  '2. Spart der Arbeitgeber Sozialabgaben, gibt er meist 15 Prozent dazu.\n\n'
+                  'Nächster Schritt: Frag die Personalabteilung nach Zuschuss und Kosten.'
+              : '**Retirement savings through your employer**, often with a top-up.\n\n'
+                  '1. Part of your gross pay goes into a plan.\n'
+                  '2. If your employer saves social contributions, they usually add 15 percent.\n\n'
+                  'Next step: Ask HR about the top-up and the costs.',
           DateTime.now()),
     ]));
     await _pump(tester, const BuddyScreen(tab: true), dark: false);
