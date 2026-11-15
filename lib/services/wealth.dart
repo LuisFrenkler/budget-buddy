@@ -13,14 +13,40 @@ class Debt {
   final String id;
   final String name;
   final int cents;
-  const Debt({required this.id, required this.name, required this.cents});
+  final double? ratePercent; // yearly interest, if known
+  const Debt(
+      {required this.id,
+      required this.name,
+      required this.cents,
+      this.ratePercent});
 
-  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'cents': cents};
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name': name,
+        'cents': cents,
+        if (ratePercent != null) 'ratePercent': ratePercent,
+      };
   factory Debt.fromMap(Map m) => Debt(
         id: '${m['id']}',
         name: '${m['name'] ?? ''}',
         cents: (m['cents'] as num? ?? 0).toInt(),
+        ratePercent: (m['ratePercent'] as num?)?.toDouble(),
       );
+
+  String? get rateLabel {
+    final r = ratePercent;
+    if (r == null) return null;
+    final n = r == r.roundToDouble() ? '${r.round()}' : '$r';
+    return tr('{x} % Zins', {'x': n});
+  }
+
+  static double? parseRate(String s) {
+    final t = s.trim().replaceAll('%', '').replaceAll(',', '.');
+    if (t.isEmpty) return null;
+    final v = double.tryParse(t);
+    if (v == null || v < 0 || v > 100) return null;
+    return v;
+  }
 }
 
 class Policy {
@@ -120,10 +146,12 @@ class Wealth {
     final netDelta = netThen != null ? netNow - netThen : null;
 
     if (netDelta != null && netDelta > 0) {
-      return tr('Nettovermögen +{x} seit letzter Woche', {'x': Money.format(netDelta)});
+      return tr('Nettovermögen +{x} seit letzter Woche',
+          {'x': Money.format(netDelta)});
     }
     if (cashDelta > 0) {
-      return tr('Konto +{x} seit letzter Woche', {'x': Money.format(cashDelta)});
+      return tr(
+          'Konto +{x} seit letzter Woche', {'x': Money.format(cashDelta)});
     }
     return null;
   }
@@ -146,8 +174,9 @@ class Wealth {
         targetCents: target, haveCents: have, fixedMonthlyCents: monthly);
   }
 
-  static int get emergencyExtraCents =>
-      Hive.isBoxOpen('settings') ? (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0 : 0;
+  static int get emergencyExtraCents => Hive.isBoxOpen('settings')
+      ? (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0
+      : 0;
 
   static Future<void> setEmergencyExtra(int cents) =>
       _box.put('emergencyExtraCents', cents < 0 ? 0 : cents);
@@ -163,7 +192,8 @@ class Wealth {
       final last = months[1].rate;
       final prev = months[2].rate;
       if (last != null && prev != null && last > prev && last > 0) {
-        return tr('Sparquote letzten Monat: {last} %, höher als im Monat davor', {'last': last});
+        return tr('Sparquote letzten Monat: {last} %, höher als im Monat davor',
+            {'last': last});
       }
     }
     return null;
