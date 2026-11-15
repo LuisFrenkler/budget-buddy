@@ -39,7 +39,7 @@ _flutter.buildConfig = {"engineRevision":"78fc3012e45889657f72359b005af7beac47ba
 
 // Load main.dart.js under a URL that changes with every build, so a browser
 // can never keep running an old copy from its cache.
-const buildId = "20261115152522"; // set by tool/build_web.sh
+const buildId = "20261115175030"; // set by tool/build_web.sh
 for (const build of _flutter.buildConfig.builds) {
   if (build.mainJsPath) build.mainJsPath += "?v=" + buildId;
 }
