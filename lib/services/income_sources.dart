@@ -14,7 +14,10 @@ class IncomeSource {
   final int months; // complete months of the last three it paid in
   final bool regular;
   final DateTime last;
-  const IncomeSource(this.name, this.kind, this.monthlyCents, this.months, this.regular, this.last);
+  final int day; // the usual day of the month it comes
+  final String key;
+  const IncomeSource(this.name, this.kind, this.monthlyCents, this.months, this.regular, this.last,
+      {this.day = 1, this.key = ''});
 }
 
 class IncomeSources {
@@ -41,12 +44,13 @@ class IncomeSources {
     final months = [for (var m = 1; m <= 3; m++) DateTime(today.year, today.month - m)];
     final from = months.last;
     final groups = <String, List<Transaction>>{};
+    final keys = <List<Transaction>, String>{};
     for (final t in tx) {
       if (!t.isEarning || t.category == 'Umbuchung' || t.date.isBefore(from) || t.date.isAfter(today)) continue;
       final kind = _kind(t);
       // a salary keeps its source even when the payer's text changes a little
       final key = kind == 'sonstiges' || kind == 'nebenjob' ? '$kind|${Merchant.key(t.note ?? t.category)}' : kind;
-      groups.putIfAbsent(key, () => []).add(t);
+      keys[groups.putIfAbsent(key, () => [])..add(t)] = key;
     }
     final out = <IncomeSource>[];
     for (final g in groups.values) {
@@ -65,6 +69,8 @@ class IncomeSources {
         paid.length,
         regular,
         g.last.date,
+        day: (g.map((t) => t.date.day).toList()..sort())[g.length ~/ 2],
+        key: keys[g] ?? '',
       ));
     }
     out.sort((a, b) => b.monthlyCents.compareTo(a.monthlyCents));
@@ -74,4 +80,22 @@ class IncomeSources {
   // what comes in every month, from the regular sources only
   static int regularMonthly(List<IncomeSource> s) =>
       s.where((x) => x.regular).fold<int>(0, (sum, x) => sum + x.monthlyCents);
+
+  // regular sources that have not come this month although their day is a
+  // few days past (salary on the 28th: from the 3rd of next month nothing)
+  static List<IncomeSource> missing(List<Transaction> tx, {DateTime? now, int graceDays = 4}) {
+    final today = now ?? DateTime.now();
+    final sources = detect(tx, now: today).where((s) => s.regular);
+    final out = <IncomeSource>[];
+    for (final s in sources) {
+      final last = DateTime(today.year, today.month + 1, 0).day;
+      final due = DateTime(today.year, today.month, s.day > last ? last : s.day);
+      if (today.difference(due).inDays < graceDays) continue;
+      // already here this month (or just before the month began, e.g. on the 31st)
+      final since = due.subtract(const Duration(days: 7));
+      if (!s.last.isBefore(since)) continue;
+      out.add(s);
+    }
+    return out;
+  }
 }

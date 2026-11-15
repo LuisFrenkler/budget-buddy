@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'feedback_report.dart';
+import 'tool_report.dart';
 
 double _pct(List<num> xs, double p) {
   if (xs.isEmpty) return 0;
@@ -80,6 +81,7 @@ void main(List<String> args) {
   if (_pct(first, .5) > 1500) {
     stdout.writeln('\n**Erstes Wort im Median über 1,5 s.** Prüfen: Modellwahl, Zahl der Schritte, Cache-Quote.');
   }
+  stdout.writeln('\n${toolReport(rows)}');
   if (args.length > 1) {
     final feedback = <Map<String, dynamic>>[];
     for (final l in File(args[1]).readAsLinesSync()) {

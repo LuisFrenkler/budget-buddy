@@ -727,6 +727,10 @@ class BuddyTools {
             'zuletzt': _day(x.last),
           }
       ],
+      'ausstehendeEinnahmen': [
+        for (final m in IncomeSources.missing(tx, now: today))
+          {'name': m.name, 'art': m.kind, 'sonstUm': m.day, 'betrag': m.monthlyCents / 100}
+      ],
       'hinweisEinnahmen': 'Die Prognose rechnet nur mit regelmäßigen Einnahmen (mindestens zwei der letzten drei Monate). '
           'Einmalige wie Bonus oder Steuererstattung zählen nicht mit.',
       if (risk != null)

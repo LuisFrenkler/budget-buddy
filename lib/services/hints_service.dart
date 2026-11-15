@@ -15,6 +15,7 @@ import 'contracts.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
+import 'income_sources.dart';
 import 'oddities.dart';
 import 'overdraft.dart';
 import 'tax_estimate.dart';
@@ -44,6 +45,7 @@ enum HintKind {
   overdraft,
   returnedDebit,
   dunning,
+  incomeMissing,
 }
 
 // where tapping a hint leads
@@ -72,6 +74,7 @@ class HintsService {
   static const weights = {
     HintKind.stillCharging: 90,
     HintKind.dunning: 89,
+    HintKind.incomeMissing: 75,
     HintKind.overdraft: 88,
     HintKind.returnedDebit: 86,
     HintKind.doubleCharge: 85,
@@ -256,6 +259,20 @@ class HintsService {
           question: d.collector
               ? tr('Ich habe Geld an ein Inkassobüro ({x}) gezahlt. Was muss ich jetzt prüfen?', {'x': who})
               : tr('Ich habe eine Mahngebühr von {x} bezahlt. Wie verhindere ich das in Zukunft?', {'x': who})));
+    }
+
+    // money that comes every month is late this time
+    for (final m in IncomeSources.missing(tx, now: today).take(2)) {
+      final who = m.kind == 'gehalt' ? tr('Dein Gehalt') : m.name;
+      out.add(Hint(
+          'income-missing-${m.key}-$month',
+          HintKind.incomeMissing,
+          tr('{x} ist noch nicht da', {'x': who}),
+          tr('Sonst kommt es um den {d}., meist {x}. Frag kurz beim Absender nach, bevor es knapp wird.',
+              {'d': m.day, 'x': Money.format(m.monthlyCents)}),
+          HintTarget.buddy,
+          urgent: m.kind == 'gehalt',
+          question: tr('{x} ist diesen Monat noch nicht gekommen. Was mache ich, und reicht mein Geld bis dahin?', {'x': who})));
     }
 
     // a direct debit came back: the bill is still open

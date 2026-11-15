@@ -63,4 +63,32 @@ class Overdraft {
     if (lowest >= 0) return null;
     return OverdraftRisk(payday, lowest, dueCents, [for (final c in due.take(3)) c.name], daily);
   }
+
+  // the first day within [horizon] days on which the balance is expected
+  // below zero: today's balance, minus the contracts due by then, minus the
+  // ordinary daily spending; null when it holds (or the salary comes first)
+  static DateTime? firstNegativeDay(List<Transaction> tx,
+      {required int balanceCents, DateTime? now, int horizon = 3}) {
+    final today = now ?? DateTime.now();
+    final day = DateTime(today.year, today.month, today.day);
+    final payday = nextPayday(tx, day);
+    final contracts = Contracts.detect(tx, now: day);
+    final paid = {for (final c in contracts) for (final p in c.payments) p.id};
+    var spent = 0;
+    for (final t in tx) {
+      if (t.isIncome || t.category == 'Umbuchung' || paid.contains(t.id)) continue;
+      final age = day.difference(DateTime(t.date.year, t.date.month, t.date.day)).inDays;
+      if (age >= 1 && age <= 90) spent += t.amountCents;
+    }
+    final daily = spent ~/ 90;
+    for (var i = 1; i <= horizon; i++) {
+      final d = day.add(Duration(days: i));
+      if (payday != null && !d.isBefore(payday)) return null;
+      final due = contracts
+          .where((c) => c.nextDate.isAfter(day) && !c.nextDate.isAfter(d))
+          .fold<int>(0, (s, c) => s + c.monthlyCents);
+      if (balanceCents - due - daily * i < 0) return d;
+    }
+    return null;
+  }
 }

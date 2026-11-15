@@ -24,6 +24,7 @@ import 'buddy_service.dart';
 import 'buddy_tasks.dart';
 import 'cancellation_service.dart';
 import 'contracts.dart';
+import 'overdraft.dart';
 import 'db.dart';
 import 'goals_service.dart';
 import 'hints_service.dart';
@@ -211,7 +212,7 @@ class NotificationService {
           NotifyTopic.spending,
         HintKind.salaryIn || HintKind.salaryUp || HintKind.taxReturn || HintKind.goalReached || HintKind.monthReview || HintKind.goalBehind => NotifyTopic.buddy,
         HintKind.doubleCharge || HintKind.bankFees || HintKind.returnedDebit || HintKind.dunning => NotifyTopic.contracts,
-        HintKind.overdraft => NotifyTopic.spending,
+        HintKind.overdraft || HintKind.incomeMissing => NotifyTopic.spending,
         HintKind.weekPlan => NotifyTopic.buddy,
         HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,
         _ => null, // the rest is planned ahead as a reminder
@@ -284,6 +285,7 @@ class NotificationService {
           for (final t in BuddyTasks.open(now: today))
             if (t.due != null) (text: t.text, due: t.due!)
         ],
+        balanceCents: BuddyService.cashCents(),
         now: today,
       ).where((r) => topic(r.topic) || r.payload.startsWith('buddy:'));
       for (final r in planned) {
@@ -349,6 +351,8 @@ class NotificationService {
     DateTime? bankValidUntil,
     // reminders the person asked Buddy for
     List<({String text, DateTime due})> tasks = const [],
+    // the cash today, for the morning warning before the account dips below zero
+    int? balanceCents,
     required DateTime now,
   }) {
     final out = <Reminder>[];
@@ -363,6 +367,23 @@ class NotificationService {
       }
     }
     DateTime before(DateTime d, int days, int hour) => DateTime(d.year, d.month, d.day - days, hour);
+
+    // the morning of the day the account would dip below zero, at 8
+    if (balanceCents != null) {
+      final d = Overdraft.firstNegativeDay(tx, balanceCents: balanceCents, now: now);
+      if (d != null) {
+        final when = at(d, 8);
+        if (when.isAfter(now)) {
+          out.add(Reminder(
+              _idFor('overdraft-$d'),
+              when,
+              tr('Heute rutscht dein Konto ins Minus'),
+              tr('Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.'),
+              NotifyTopic.spending,
+              'buddy:${tr('Mein Konto rutscht heute ins Minus. Was kann ich jetzt noch tun?')}'));
+        }
+      }
+    }
 
     final weekly = WeeklyReportService.nextReady(now);
     out.add(Reminder(_idFor('weekly-$weekly'), weekly, tr('Dein Wochenbericht ist da'),
