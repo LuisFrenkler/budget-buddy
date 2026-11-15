@@ -46,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     (
       icon: Icons.receipt_long_rounded,
       title: 'Abos im Griff.\nErhöhungen auch.',
-      text: 'BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
+      text: 'Ahead erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
     ),
   ];
 
@@ -71,58 +71,82 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // copper light behind the brand moment; the rest of the app stays calm
     return Scaffold(
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  child: Row(children: [BrandMark(size: 40), SizedBox(width: 12), Wordmark(size: 22)]),
-                ),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pages,
-                    itemCount: _slides.length,
-                    onPageChanged: (i) => setState(() => _page = i),
-                    itemBuilder: (_, i) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: _slide(_slides[i]),
-                    ),
+      backgroundColor: CopperLight.top,
+      body: CopperLight(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
+                child: Row(children: [
+                  BrandMark(size: 40, inverse: true),
+                  SizedBox(width: 12),
+                  _WelcomeWordmark(),
+                ]),
+              ),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pages,
+                  itemCount: _slides.length,
+                  onPageChanged: (i) => setState(() => _page = i),
+                  itemBuilder: (_, i) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _slide(_slides[i]),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      for (int i = 0; i < _slides.length; i++)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.only(right: 6),
-                          width: i == _page ? 22 : 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: i == _page ? AppColors.primary : AppColors.border,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    for (int i = 0; i < _slides.length; i++)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: const EdgeInsets.only(right: 6),
+                        width: i == _page ? 22 : 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: i == _page ? Colors.white : Colors.white.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                    ]),
-                    const SizedBox(height: 28),
-                    _PrimaryButton('Konto erstellen', onPressed: () => _open(const SignUpScreen())),
-                    const SizedBox(height: 10),
-                    _SecondaryButton('Ich habe schon ein Konto', onPressed: () => _open(const SignInScreen())),
-                    const SizedBox(height: 12),
-                    Text('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
+                      ),
                   ]),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 28),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF17120E),
+                      minimumSize: const Size.fromHeight(52),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: () => _open(const SignUpScreen()),
+                    child: const Text('Konto erstellen'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
+                      minimumSize: const Size.fromHeight(52),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                    onPressed: () => _open(const SignInScreen()),
+                    child: const Text('Ich habe schon ein Konto'),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.72), fontSize: 12, height: 1.35)),
+                ]),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -148,17 +172,45 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         Container(
           width: 56,
           height: 56,
-          decoration:
-              BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(18)),
-          child: Icon(s.icon, color: AppColors.primary, size: 28),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+          ),
+          child: Icon(s.icon, color: Colors.white, size: 28),
         ),
         const SizedBox(height: 24),
         Text(s.title,
-            style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, letterSpacing: -1.2, height: 1.08)),
+            style: TextStyle(
+              fontFamily: AppFonts.display,
+              fontSize: 40,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -1.4,
+              height: 1.02,
+              color: Colors.white,
+            )),
         const SizedBox(height: 14),
-        Text(s.text, style: TextStyle(fontSize: 17, color: AppColors.textDim, height: 1.45)),
+        Text(s.text,
+            style: TextStyle(fontSize: 17, color: Colors.white.withValues(alpha: 0.82), height: 1.45)),
         const SizedBox(height: 28),
       ],
+    );
+  }
+}
+
+// cream wordmark for the copper welcome ground
+class _WelcomeWordmark extends StatelessWidget {
+  const _WelcomeWordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: 'Ahead', style: TextStyle(color: Colors.white)),
+        TextSpan(text: '.', style: TextStyle(color: AppColors.peach)),
+      ]),
+      style: TextStyle(
+          fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.9),
     );
   }
 }
@@ -597,7 +649,11 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           children: [
             Text(name != null ? 'Hallo $name' : 'Los geht\'s',
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -1)),
             const SizedBox(height: 8),
             Text('Wähle, wie du starten willst. Du kannst alles später ändern.',
                 style: TextStyle(fontSize: 17, color: AppColors.textDim)),
@@ -649,7 +705,12 @@ class _AuthScaffold extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           children: [
-            Text(title, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -1)),
+            Text(title,
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 34,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -1)),
             const SizedBox(height: 8),
             Text(subtitle, style: TextStyle(fontSize: 16, color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 28),
@@ -740,25 +801,6 @@ class _PrimaryButton extends StatelessWidget {
       child: busy
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class _SecondaryButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  const _SecondaryButton(this.label, {this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(54),
-        backgroundColor: AppColors.surfaceAlt,
-        foregroundColor: AppColors.text,
-      ),
-      onPressed: onPressed,
-      child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
     );
   }
 }

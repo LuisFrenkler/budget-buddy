@@ -641,8 +641,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final shown = tiles.take(3).toList();
     return [
       const SizedBox(height: 28),
-      const Text('Für dich',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+      Text('Für dich',
+          style: TextStyle(
+              fontFamily: AppFonts.display,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4)),
       const SizedBox(height: 8),
       Material(
         color: AppColors.surface,
@@ -927,7 +931,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         children: [
@@ -1070,8 +1074,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(name == null || name.isEmpty ? 'Dein Überblick' : 'Hallo $name',
-          style: const TextStyle(
-              fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+          style: TextStyle(
+              fontFamily: AppFonts.display,
+              fontSize: 30,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.8)),
       const SizedBox(height: 8),
       Text(
         'Bank verbinden oder erste Ausgabe erfassen.',
@@ -1083,7 +1090,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+          border: Border.all(color: AppColors.hairline),
         ),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1092,11 +1099,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.14),
+                color: AppColors.brand.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.account_balance_rounded,
-                  color: AppColors.primary, size: 22),
+                  color: AppColors.brandText, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1118,8 +1125,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
           FilledButton(
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: () {
               HapticFeedback.selectionClick();
