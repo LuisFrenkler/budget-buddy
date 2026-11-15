@@ -51,6 +51,9 @@ class BuddyService {
   static bool _serverAgent = false;
   // what Buddy is looking at while he works ("deine Ausgaben"), for the chat
   static final activity = ValueNotifier<String?>(null);
+  // in-flight SSE client; Stop closes it so the server stops streaming
+  static http.Client? _liveClient;
+  static int _askGen = 0;
   // seams for tests
   @visibleForTesting
   static http.Client Function() client = http.Client.new;
@@ -279,9 +282,21 @@ class BuddyService {
         );
       }, FinanceSnapshot.plusOff);
 
+  // Stop: drop the open request so tokens stop arriving
+  static void cancelAsk() {
+    _askGen++;
+    activity.value = null;
+    final c = _liveClient;
+    _liveClient = null;
+    try {
+      c?.close();
+    } catch (_) {}
+  }
+
   // Buddy's answer to the last user message, piece by piece
   static Stream<String> ask(List<ChatMessage> history,
       {required bool live}) async* {
+    final gen = ++_askGen;
     if (!live) {
       // offline: the answer is ready at once; hand it out in small pieces so
       // it reads like the live one
@@ -293,14 +308,16 @@ class BuddyService {
         ],
       );
       for (final word in RegExp(r'\S+\s*').allMatches(text)) {
-        await Future.delayed(const Duration(milliseconds: 18));
+        if (gen != _askGen) return;
+        await Future.delayed(const Duration(milliseconds: 36));
+        if (gen != _askGen) return;
         yield word.group(0)!;
       }
       return;
     }
 
     if (_serverAgent) {
-      yield* _agent(history);
+      yield* _agent(history, gen: gen);
       return;
     }
 
@@ -322,9 +339,11 @@ class BuddyService {
             {'role': m.fromUser ? 'user' : 'assistant', 'text': m.text}
         ],
       });
-    final client = http.Client();
+    final conn = client();
+    _liveClient = conn;
     try {
-      final res = await client.send(req).timeout(const Duration(seconds: 30));
+      final res = await conn.send(req).timeout(const Duration(seconds: 30));
+      if (gen != _askGen) return;
       if (res.statusCode != 200) {
         final body = await res.stream.bytesToString();
         throw _error(body, res.statusCode);
@@ -332,13 +351,15 @@ class BuddyService {
       await for (final line in res.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())) {
+        if (gen != _askGen) return;
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
         if (event['t'] != null) yield event['t'] as String;
         if (event['error'] != null) throw '${event['error']}';
       }
     } finally {
-      client.close();
+      if (identical(_liveClient, conn)) _liveClient = null;
+      conn.close();
     }
   }
 
@@ -416,7 +437,7 @@ class BuddyService {
   // set when the last answer was rewritten after the number check
   static bool lastCorrected = false;
 
-  static Stream<String> _agent(List<ChatMessage> history) async* {
+  static Stream<String> _agent(List<ChatMessage> history, {required int gen}) async* {
     final messages = <Map<String, dynamic>>[
       for (final m in history)
         if (m.text.trim().isNotEmpty)
@@ -455,6 +476,7 @@ class BuddyService {
         '${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}${_turnSeq++}';
     try {
       for (var step = 0; step < maxSteps; step++) {
+        if (gen != _askGen) return;
         final req =
             http.Request('POST', Uri.parse('${BackendService.base}/ai/agent'))
               ..headers.addAll({
@@ -469,10 +491,12 @@ class BuddyService {
                 'step': step
               });
         final conn = client();
+        _liveClient = conn;
         Map<String, dynamic>? done;
         var stepWrote = false;
         try {
           final res = await conn.send(req).timeout(const Duration(seconds: 30));
+          if (gen != _askGen) return;
           if (res.statusCode != 200) {
             final body = await res.stream.bytesToString();
             throw _error(body, res.statusCode);
@@ -480,6 +504,7 @@ class BuddyService {
           await for (final line in res.stream
               .transform(utf8.decoder)
               .transform(const LineSplitter())) {
+            if (gen != _askGen) return;
             if (!line.startsWith('data: ')) continue;
             final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
             if (event['t'] != null) {
@@ -495,6 +520,7 @@ class BuddyService {
             if (event['error'] != null) throw '${event['error']}';
           }
         } finally {
+          if (identical(_liveClient, conn)) _liveClient = null;
           conn.close();
         }
         if (done == null)

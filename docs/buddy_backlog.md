@@ -10,6 +10,7 @@ kurz berichten. Erledigtes wandert nach unten.
 2. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
+- Stop bricht HTTP/SSE wirklich ab; Streaming-Updates gedrosselt (~50 ms)
 - Buddy ChatGPT-clean: Thinking-Zeile (Orb + „Prüft …“), max. 2 Follow-ups, kurze Tool-Status
 - Persona auf die Regeln gekürzt, die die Antwort ändern
 - Weitere Textkürzungen auf Screens und Widgets

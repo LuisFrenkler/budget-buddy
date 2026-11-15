@@ -2192,7 +2192,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(
-                child: Text(tr('Soll ich mit deinen echten Zahlen rechnen?'),
+                child: Text(tr('Mit deinen Zahlen rechnen?'),
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
               ),
               IconButton(
@@ -2205,7 +2205,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Text(
-                tr('Mit einem kostenlosen Konto sehe ich deine Ausgaben und was bis Monatsende bleibt. Der Chat kommt mit.'),
+                tr('Kostenloses Konto. Ich sehe deine Ausgaben und was bis Monatsende bleibt.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
               ),
             ),

@@ -14,7 +14,7 @@ class FirstLook {
   const FirstLook(this.points, this.step, this.followUps);
 
   String get text {
-    final b = StringBuffer(tr('Ich hab mir deine Zahlen angeschaut. Das fällt mir auf:'))..write('\n\n');
+    final b = StringBuffer(tr('Mir fällt auf:'))..write('\n\n');
     for (var i = 0; i < points.length; i++) {
       b.writeln('${i + 1}. ${points[i]}');
     }
