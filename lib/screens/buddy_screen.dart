@@ -177,6 +177,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
   StreamSubscription<String>? _sub;
   // bumped on stop or a new answer, so a late chunk cannot resume a stopped one
   int _answerGen = 0;
+  // throttle token paints (~50 ms) so streaming does not rebuild every fragment
+  Timer? _flushTimer;
+  String? _pendingPiece;
+  DateTime? _lastScrollAt;
   // a photo picked for the next message (receipt, bank or broker screenshot)
   ({Uint8List bytes, String type})? _photo;
   // setup chat (Vorsorge, Sparziel, Depot) that ends in a confirm card
@@ -438,7 +442,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     VoiceInput.listening.removeListener(_onFocus);
     if (VoiceInput.listening.value) VoiceInput.stop();
     _sub?.cancel();
+    _flushTimer?.cancel();
     _cheerTimer?.cancel();
+    BuddyService.cancelAsk();
+    GuestBuddy.cancelAsk();
     _input.dispose();
     _focus.dispose();
     // shell owns the controller when Buddy is a tab
@@ -782,9 +789,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // stop generation: keep text that already arrived, drop an empty bubble
   void _stop() {
     _answerGen++;
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _pendingPiece = null;
     _sub?.cancel();
     _sub = null;
-    BuddyService.activity.value = null;
+    BuddyService.cancelAsk();
+    GuestBuddy.cancelAsk();
     if (!mounted) return;
     setState(() {
       _thinking = false;
@@ -905,9 +916,34 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // a ready answer, handed out in small pieces so it reads like a live one
   static Stream<String> _typed(String text) async* {
     for (final word in RegExp(r'\S+\s*').allMatches(text)) {
-      await Future.delayed(const Duration(milliseconds: 16));
+      await Future.delayed(const Duration(milliseconds: 36));
       yield word.group(0)!;
     }
+  }
+
+  void _flushPending(_Message answer, int gen, {bool jump = true}) {
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    final chunk = _pendingPiece;
+    _pendingPiece = null;
+    if (chunk == null || chunk.isEmpty) return;
+    if (!mounted || gen != _answerGen) return;
+    setState(() => answer.text += chunk);
+    _scrollDownThrottled(jump: jump);
+  }
+
+  void _scrollDownThrottled({bool jump = false}) {
+    final now = DateTime.now();
+    final last = _lastScrollAt;
+    if (last != null && now.difference(last) < const Duration(milliseconds: 280)) {
+      if (jump && _scroll.hasClients) {
+        _scroll.jumpTo(_scroll.position.maxScrollExtent);
+        _lastScrollAt = now;
+      }
+      return;
+    }
+    _lastScrollAt = now;
+    _scrollDown(jump: jump);
   }
 
   // runs one answer stream into [answer]; [onLimit] retries offline when the
@@ -919,6 +955,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
       bool countsQuestion = false,
       bool anyErrorFallsBack = false}) {
     final gen = ++_answerGen;
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _pendingPiece = null;
     _sub?.cancel();
     setState(() {
       answer
@@ -937,6 +976,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
         if (!mounted || gen != _answerGen) return;
         if (piece == BuddyService.restart) {
           // a number didn't hold up: the checked answer replaces this one
+          _flushTimer?.cancel();
+          _flushTimer = null;
+          _pendingPiece = null;
           setState(() {
             answer
               ..text = ''
@@ -944,11 +986,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
           });
           return;
         }
-        setState(() => answer.text += piece);
-        _scrollDown();
+        _pendingPiece = '${_pendingPiece ?? ''}$piece';
+        _flushTimer ??= Timer(const Duration(milliseconds: 50), () {
+          _flushPending(answer, gen);
+        });
       },
       onError: (e) {
         if (!mounted || gen != _answerGen) return;
+        _flushPending(answer, gen, jump: false);
         final text = '$e';
         final limit = text.contains('ausgelastet') ||
             text.contains('Tageslimit') ||
@@ -971,6 +1016,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       },
       onDone: () {
         if (gen != _answerGen) return;
+        _flushPending(answer, gen, jump: false);
         // only an answer that arrived uses up one of the free questions
         if (countsQuestion && !answer.error && !answer.degraded) PlusService.count(PlusFeature.aiQuestion);
         if (!mounted || answer.error) return;
