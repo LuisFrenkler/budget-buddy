@@ -17,6 +17,9 @@ Transaction _t(String note, String cat, int cents, DateTime d,
         isIncome: income,
         note: note);
 
+// offline answers open on the figure: a bold amount, or the affordability light
+final _leads = RegExp(r'^(?:🟢|🟡|🔴) |\*\*(?:€\s?)?[−-]?\d');
+
 void main() {
   final now = DateTime(2026, 10, 20);
   final tx = [
@@ -47,17 +50,25 @@ void main() {
     expect(s.toJson()['monate'], hasLength(6));
   });
 
-  test('saving tips point at what grew this month', () {
+  test('saving tips lead with a bold number', () {
     final a = LocalBuddy.answer('Wo kann ich sparen?', s);
+    expect(a, matches(_leads));
     expect(a, contains('Lebensmittel'));
     expect(a, contains('Netflix'));
   });
 
-  test('affordability uses the average surplus', () {
+  test('affordability leads with a traffic light or a bold number', () {
     final a = LocalBuddy.answer('Kann ich mir 800 € Urlaub leisten?', s);
     // past months: 3.000 € in, 1.213,99 € out
+    expect(a, matches(_leads));
     expect(a, contains('1.786,01'));
     expect(a, contains('1 Monat'));
+  });
+
+  test('month free cash leads with a bold number', () {
+    final a = LocalBuddy.answer('Wie viel bleibt bis Monatsende?', s);
+    expect(a, matches(_leads));
+    expect(a, contains('Monatsende'));
   });
 
   test('lists contracts', () {
