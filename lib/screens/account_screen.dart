@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/sync_pill.dart';
@@ -138,7 +139,17 @@ class _AccountScreenState extends State<AccountScreen> {
                             Text(tr('Konto'),
                                 style: TextStyle(fontFamily: AppFonts.display, 
                                     fontSize: 22, fontWeight: FontWeight.w600)),
-                            SizedBox(width: 12),
+                            // adding by hand: quick entry, receipt, keypad, transfer
+                            IconButton(
+                              key: const Key('add-booking'),
+                              tooltip: tr('Buchung hinzufügen'),
+                              onPressed: () {
+                                HapticFeedback.selectionClick();
+                                HomeScreen.addMenu?.call();
+                              },
+                              icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.textDim),
+                            ),
+                            SizedBox(width: 4),
                             // shrinks rather than overflows with large text or a long bank name
                             Expanded(
                               child: Align(
