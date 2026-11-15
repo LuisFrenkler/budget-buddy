@@ -253,7 +253,7 @@ class TypingDots extends StatefulWidget {
 }
 
 class _TypingDotsState extends State<TypingDots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))
     ..repeat();
 
   @override
@@ -271,18 +271,16 @@ class _TypingDotsState extends State<TypingDots> with SingleTickerProviderStateM
         builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [
           for (int i = 0; i < 3; i++)
             Builder(builder: (_) {
+              // a slow fade, one dot at a time, no bounce
               final phase = ((_c.value * 3) - i) % 3;
-              final lift = phase < 1 ? Curves.easeInOut.transform(1 - (phase - 0.5).abs() * 2) : 0.0;
-              return Transform.translate(
-                offset: Offset(0, -4 * lift),
+              final on = phase < 1 ? 0.35 + 0.65 * (1 - (phase - 0.5).abs() * 2) : 0.35;
+              return Opacity(
+                opacity: on,
                 child: Container(
-                  width: 7,
-                  height: 7,
+                  width: 6,
+                  height: 6,
                   margin: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: BoxDecoration(
-                    color: Color.lerp(AppColors.textDim, AppColors.brand, lift),
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: AppColors.textDim, shape: BoxShape.circle),
                 ),
               );
             }),

@@ -433,16 +433,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
     // the most important hint of the day beats the general tip
     Hint? top;
     try {
-      top = HintsService.top(
-          HintsService.current(
-            tx: tx,
-            budgets: DB.getBudgets(),
-            goals: GoalsService.all(),
-            subscription: PlusService.subscription.value,
-            bankValidUntil: Settings.bankValidUntil,
-            freeCents: f?.freeCents,
-            balanceCents: BuddyService.cashCents(),
-          ).where((h) => h.weight >= 45 && h.question != null).toList());
+      final best = HintsService.top(HintsService.current(
+        tx: tx,
+        budgets: DB.getBudgets(),
+        goals: GoalsService.all(),
+        subscription: PlusService.subscription.value,
+        bankValidUntil: Settings.bankValidUntil,
+        freeCents: f?.freeCents,
+        balanceCents: BuddyService.cashCents(),
+      ));
+      // urgent hints still win; a yearly subscription tip speaks only when nothing heavier is waiting
+      if (best != null && best.question != null && (best.weight >= 45 || best.kind == HintKind.subTip)) {
+        top = best;
+      }
     } catch (_) {}
     final tip = top != null
         ? BuddyTip('${top.title}${RegExp(r'[.!?]$').hasMatch(top.title) ? '' : '.'} ${top.text}', top.question!)

@@ -86,6 +86,40 @@ void main() {
     expect(HintsService.current(tx: const [], budgets: nov, goals: const [], now: DateTime(2026, 11, 20)), hasLength(1));
   });
 
+  test('a subscription with a savings tip, older than 6 months, once a year', () {
+    final now = DateTime(2026, 10, 20);
+    final netflix = [
+      for (var m = 1; m <= 10; m++)
+        _tx('n$m', 1299, 'Unterhaltung', DateTime(2026, m, 5), note: 'Netflix'),
+    ];
+    final tip = HintsService.build(tx: netflix, budgets: const [], goals: const [], now: now)
+        .where((h) => h.kind == HintKind.subTip)
+        .single;
+    expect(tip.text, contains('Netflix'));
+    expect(tip.id, 'abo-tip-2026-netflix');
+    expect(tip.question, contains('Netflix'));
+    // three months is a contract, not yet a yearly tip
+    final fresh = [
+      for (var m = 8; m <= 10; m++)
+        _tx('s$m', 1099, 'Unterhaltung', DateTime(2026, m, 5), note: 'Spotify'),
+    ];
+    expect(
+        HintsService.build(tx: fresh, budgets: const [], goals: const [], now: now)
+            .where((h) => h.kind == HintKind.subTip),
+        isEmpty);
+    // next year is a new id
+    final later = [
+      for (var m = 1; m <= 10; m++)
+        _tx('n$m', 1299, 'Unterhaltung', DateTime(2027, m, 5), note: 'Netflix'),
+    ];
+    expect(
+        HintsService.build(tx: later, budgets: const [], goals: const [], now: DateTime(2027, 10, 20))
+            .where((h) => h.kind == HintKind.subTip)
+            .single
+            .id,
+        'abo-tip-2027-netflix');
+  });
+
   test('news from shared groups, one hint per group', () {
     final hints = HintsService.build(tx: const [], budgets: const [], goals: const [], splitNews: [
       (group: 'WG', groupId: 'g1', title: 'Pizza', cents: 3000, by: 'Lisa'),
