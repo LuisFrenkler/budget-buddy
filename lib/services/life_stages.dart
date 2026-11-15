@@ -46,37 +46,28 @@ class LifeStages {
       'Gehaltsabrechnung prüfen',
       'Stimmen Steuerklasse, Kasse und Abzüge?',
       'Hilf mir, meine erste Gehaltsabrechnung zu prüfen. Worauf muss ich achten?',
-      'So prüfst du deine erste Gehaltsabrechnung in fünf Minuten:\n'
-          '- **Steuerklasse**: Ledig ist Klasse I. Steht da etwas anderes, frag in der Personalabteilung nach.\n'
-          '- **Steuer-ID und Krankenkasse**: richtig eingetragen?\n'
-          '- **Sozialabgaben**: Renten-, Kranken-, Pflege- und Arbeitslosenversicherung. Zusammen grob ein Fünftel deines Bruttos.\n'
-          '- **Zuschüsse**: Vermögenswirksame Leistungen oder Betriebsrente, falls vereinbart.\n'
-          '- **Netto**: Kommt genau dieser Betrag auf deinem Konto an?\n\n'
-          'Nächster Schritt: Schick mir ein Foto der Abrechnung, dann gehe ich sie mit dir durch.',
+      'Zuerst die **Steuerklasse**: ledig ist Klasse I, sonst frag in der Personalabteilung. '
+          'Steuer-ID und Krankenkasse müssen stimmen, die Sozialabgaben liegen grob bei einem Fünftel vom Brutto. '
+          'Vermögenswirksame Leistungen oder Betriebsrente nur, wenn vereinbart, und das **Netto** muss genau so ankommen.\n\n'
+          'Nächster Schritt: Schick mir ein Foto, dann gehe ich die Abrechnung mit dir durch.',
     ),
     LifeStep(
       'betriebsrente',
       'Betriebsrente klären',
       'Zuschuss vom Arbeitgeber mitnehmen',
       'Lohnt sich die Betriebsrente bei meinem ersten Job? Was sollte ich die Personalabteilung fragen?',
-      'Bei der Betriebsrente fließt ein Teil deines Bruttos in einen Vertrag über deinen Arbeitgeber. '
-          'Spart er dadurch Sozialabgaben, muss er in der Regel **15 Prozent** dazugeben, viele zahlen mehr.\n\n'
-          'Frag die Personalabteilung:\n'
-          '- Wie viel gibt der Arbeitgeber dazu?\n'
-          '- Welche Kosten hat der Vertrag?\n'
-          '- Was passiert bei einem Jobwechsel?\n\n'
-          'Nächster Schritt: Mit diesen drei Antworten können wir zusammen rechnen, ob es sich für dich lohnt.',
+      'Bei der Betriebsrente fließt ein Teil des Bruttos über den Arbeitgeber in einen Vertrag. '
+          'Spart er dabei Sozialabgaben, gibt er meist **15 Prozent** dazu, oft mehr. '
+          'Frag nach Zuschuss, Kosten und was bei einem Jobwechsel passiert.\n\n'
+          'Nächster Schritt: Mit den drei Antworten rechnen wir, ob es sich lohnt.',
     ),
     LifeStep(
       'notgroschen',
       'Notgroschen aufbauen',
       'Drei Monatsausgaben, sofort erreichbar',
       'Wie hoch sollte mein Notgroschen sein und wie baue ich ihn auf?',
-      'Ein Notgroschen fängt Unerwartetes ab: Waschmaschine kaputt, Umzug, Probezeit vorbei. '
-          'Faustregel: **drei Monatsausgaben** auf einem Tagesgeldkonto.\n\n'
-          '- Bei 1.500 Euro Ausgaben im Monat sind das 4.500 Euro.\n'
-          '- Bau ihn zuerst auf, bevor du investierst.\n'
-          '- Ein Dauerauftrag direkt nach dem Gehalt macht es automatisch.\n\n'
+      'Faustregel: **drei Monatsausgaben** auf dem Tagesgeld, bei 1.500 Euro Ausgaben also 4.500 Euro, und das vor jedem Investieren. '
+          'Er fängt Waschmaschine, Umzug oder das Ende der Probezeit ab. Ein Dauerauftrag direkt nach dem Gehalt füllt ihn von allein.\n\n'
           'Nächster Schritt: Sag „Sparziel Notgroschen 4500“, dann lege ich das Ziel an, sobald du bestätigst.',
     ),
     LifeStep(
@@ -84,22 +75,18 @@ class LifeStages {
       'Sparrate festlegen',
       'Ein fester Betrag direkt nach dem Gehalt',
       'Wie viel sollte ich von meinem Gehalt jeden Monat sparen?',
-      'Ein guter Start sind **10 bis 20 Prozent** deines Nettos, direkt am Zahltag per Dauerauftrag.\n\n'
-          '- Erst den Notgroschen füllen, dann langfristig anlegen, zum Beispiel mit einem breit gestreuten ETF-Sparplan.\n'
-          '- Lieber klein anfangen und jährlich erhöhen als gar nicht.\n'
-          '- Gehaltserhöhung? Die Hälfte davon in die Sparrate.\n\n'
-          'Nächster Schritt: Mit Konto rechne ich dir aus deinen echten Ausgaben aus, was realistisch ist.',
+      'Start mit **10 bis 20 Prozent** vom Netto, per Dauerauftrag am Zahltag. '
+          'Erst den Notgroschen, dann einen breit gestreuten ETF-Sparplan. Lieber klein anfangen und jährlich erhöhen, und von einer Gehaltserhöhung die Hälfte in die Sparrate.\n\n'
+          'Nächster Schritt: Mit Konto rechne ich aus deinen Ausgaben, was realistisch ist.',
     ),
     LifeStep(
       'steuer',
       'Steuererklärung im ersten Jahr',
       'Oft gibt es Geld zurück',
       'Lohnt sich für mich im ersten Jobjahr eine Steuererklärung?',
-      'Im ersten Jobjahr lohnt sich die Steuererklärung oft. Wenn du nicht das ganze Jahr gearbeitet hast, '
-          'wurde meist zu viel Lohnsteuer abgezogen.\n\n'
-          '- Fahrtkosten, Arbeitsmittel und Umzug für den Job sind Werbungskosten.\n'
-          '- Mit ELSTER kostet es nichts.\n\n'
-          'Nächster Schritt: Sammle Belege für Arbeitsweg und Arbeitsmittel ab jetzt in einem Ordner.',
+      'Im ersten Jahr lohnt sich die Steuererklärung oft, weil ohne volles Jahr meist zu viel Lohnsteuer abgezogen wurde. '
+          'Fahrtkosten, Arbeitsmittel und ein Umzug für den Job zählen, und ELSTER ist kostenlos.\n\n'
+          'Nächster Schritt: Belege für Arbeitsweg und Arbeitsmittel ab jetzt sammeln.',
     ),
   ]);
 
@@ -109,9 +96,8 @@ class LifeStages {
       'Kaution einplanen',
       'Höchstens drei Kaltmieten',
       'Wie viel Geld brauche ich für die Kaution und den Umzug?',
-      'Die Mietkaution ist höchstens **drei Monatskaltmieten** und darf in drei Raten gezahlt werden.\n\n'
-          '- Dazu kommen oft eine doppelte Miete, Transporter, Möbel.\n'
-          '- Plane ein Umzugsbudget, statt den Notgroschen zu leeren.\n\n'
+      'Die Kaution ist höchstens **drei Monatskaltmieten** und darf in drei Raten gezahlt werden. '
+          'Dazu oft doppelte Miete, Transporter und Möbel, also ein Umzugsbudget, nicht den Notgroschen leeren.\n\n'
           'Nächster Schritt: Sag „Sparziel Umzug 2000“, dann lege ich es an, sobald du bestätigst.',
     ),
     LifeStep(
@@ -119,11 +105,9 @@ class LifeStages {
       'Verträge ummelden',
       'Strom, Internet, Versicherungen',
       'Welche Verträge muss ich beim Umzug ummelden oder kündigen?',
-      'Beim Umzug lohnt der Blick auf alle Verträge:\n'
-          '- Strom und Internet: Umzug melden, oft gibt es ein Sonderkündigungsrecht.\n'
-          '- Haftpflicht und Hausrat: neue Adresse und Wohnfläche angeben.\n'
-          '- Rundfunkbeitrag, Bank, Arbeitgeber: Adresse ändern.\n\n'
-          'Nächster Schritt: Unter Verträge zeige ich dir, was regelmäßig von deinem Konto abgeht.',
+      'Strom und Internet ummelden, oft mit Sonderkündigung, und Haftpflicht und Hausrat die neue Adresse und Wohnfläche geben. '
+          'Rundfunkbeitrag, Bank und Arbeitgeber brauchen nur die neue Adresse.\n\n'
+          'Nächster Schritt: Unter Verträge zeige ich, was regelmäßig abgeht.',
     ),
   ]);
 
@@ -134,19 +118,17 @@ class LifeStages {
       'Kosten fair aufteilen',
       'Hälfte oder nach Einkommen',
       'Wie teilen wir gemeinsame Kosten fair auf, wenn wir zusammenziehen?',
-      'Zwei übliche Wege:\n'
-          '- **Halbe-halbe**: einfach, passt bei ähnlichem Einkommen.\n'
-          '- **Nach Einkommen**: wer mehr verdient, trägt anteilig mehr. Fühlt sich bei großem Unterschied oft fairer an.\n\n'
-          'Nächster Schritt: Unter Geteilt legst du eine Gruppe an, dann rechne ich mit, wer wem was schuldet.',
+      '**Halbe-halbe** passt bei ähnlichem Einkommen. Bei großem Unterschied trägt, wer mehr verdient, anteilig mehr, das fühlt sich oft fairer an.\n\n'
+          'Nächster Schritt: Unter Geteilt eine Gruppe anlegen, dann rechne ich mit, wer wem was schuldet.',
     ),
     LifeStep(
       'konto',
       'Gemeinsames Konto?',
       'Für Miete und Einkäufe',
       'Brauchen wir ein Gemeinschaftskonto, wenn wir zusammenziehen?',
-      'Ein gemeinsames Konto für Miete, Strom und Einkäufe macht vieles einfacher. Jeder zahlt einen festen Betrag ein, '
-          'der Rest bleibt auf den eigenen Konten.\n\n'
-          'Nächster Schritt: Legt fest, welche Kosten gemeinsam sind, und rechnet den Monatsbetrag pro Person aus.',
+      'Ein Gemeinschaftskonto für Miete, Strom und Einkäufe hält den Rest getrennt. '
+          'Jeder zahlt einen festen Betrag ein.\n\n'
+          'Nächster Schritt: Gemeinsame Kosten und Monatsbetrag festlegen.',
     ),
   ]);
 
@@ -157,17 +139,16 @@ class LifeStages {
       'Was ist das?',
       'Gefördert für die Rente sparen',
       'Was ist das Altersvorsorgedepot und lohnt es sich für mich?',
-      'Das Altersvorsorgedepot ist ein geplantes, staatlich gefördertes Depot für die Altersvorsorge. '
-          'Nach aktuellem Plan startet es am **1. Januar 2027**. Details können sich bis dahin noch ändern.\n\n'
-          'Nächster Schritt: Rechne mit „Vorsorge einrichten“ deine grobe Rentenlücke aus, dann weißt du, wie viel du brauchst.',
+      'Geplantes, staatlich gefördertes Depot — Start laut Plan **1. Januar 2027**. Details können sich noch ändern.\n\n'
+          'Nächster Schritt: Mit „Vorsorge einrichten“ die Rentenlücke grob rechnen.',
     ),
     LifeStep(
       'luecke',
       'Rentenlücke berechnen',
       'Wie viel fehlt im Alter?',
       'Vorsorge einrichten',
-      'Mit „Vorsorge einrichten“ frage ich dich nach Alter, Nettogehalt und Wunschrente und rechne eine grobe Lücke aus. '
-          'Das ist eine Orientierung, keine Rentenberatung.',
+      'Mit „Vorsorge einrichten“ rechne ich aus Alter, Netto und Wunschrente eine grobe Lücke. '
+          'Orientierung, keine Rentenberatung.',
     ),
   ]);
 
