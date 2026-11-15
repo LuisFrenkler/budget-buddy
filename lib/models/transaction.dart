@@ -10,6 +10,9 @@ class Transaction {
   final String? note;
   // the account it was booked on; null = the main account
   final String? accountId;
+  // the bank's own text (counterparty and purpose), kept on the device so
+  // Buddy can explain cryptic bookings; null for manual entries
+  final String? raw;
 
   // money back for a purchase (a return, a refund): it comes in, but under the
   // spending category it reverses, so it lowers that spending instead of
@@ -33,15 +36,16 @@ class Transaction {
     required this.isIncome,
     this.note,
     this.accountId,
+    this.raw,
   });
 
   // the same booking on another account (or the main one for null)
   Transaction onAccount(String? account) => Transaction(
-      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: account);
+      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: account, raw: raw);
 
   // the same booking under another category, on the same account
   Transaction withCategory(String category) => Transaction(
-      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: accountId);
+      id: id, amountCents: amountCents, category: category, date: date, isIncome: isIncome, note: note, accountId: accountId, raw: raw);
 
   // convert to map for saving to hive
   Map<String, dynamic> toMap() {
@@ -53,6 +57,7 @@ class Transaction {
       'isIncome': isIncome,
       'note': note,
       if (accountId != null) 'accountId': accountId,
+      if (raw != null) 'raw': raw,
     };
   }
 
@@ -70,6 +75,7 @@ class Transaction {
       isIncome: map['isIncome'],
       note: map['note'],
       accountId: map['accountId'] as String?,
+      raw: map['raw'] as String?,
     );
   }
 

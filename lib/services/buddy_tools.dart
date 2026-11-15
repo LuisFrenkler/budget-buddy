@@ -10,6 +10,9 @@ import '../models/transaction.dart';
 import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
+import 'affordability.dart';
+import 'booking_text.dart';
+import 'emergency_plan.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
 import 'tax_estimate.dart';
@@ -60,6 +63,9 @@ class BuddyTools {
     'kategorie_vorschlagen',
     'erinnerung_vorschlagen',
     'zuruecklegen_vorschlagen',
+    'notgroschen',
+    'leisten',
+    'buchung_erklaeren',
     'diagramm',
   };
 
@@ -88,6 +94,9 @@ class BuddyTools {
         'brutto_netto' => _bruttoNetto(input),
         'auffaelligkeiten' => _auffaelligkeiten(),
         'steuer_schaetzung' => _steuer(input),
+        'notgroschen' => _notgroschen(),
+        'leisten' => _leisten(input),
+        'buchung_erklaeren' => _erklaeren(input),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -493,6 +502,130 @@ class BuddyTools {
       'regeln2026': 'Pendlerpauschale 0,38 € ab dem ersten km, Homeoffice 6 € am Tag bis 210 Tage, '
           'Arbeitnehmer-Pauschbetrag 1.230 €, Kontoführung 16 € pauschal.',
       'hinweis': 'Schätzung, keine Steuerberatung. Abgabe kostenlos über ELSTER. In der App unter Profil › Steuer.',
+    };
+  }
+
+  // the Notgroschen goal among the saved goals, if there is one
+  Map? _emergencyGoal() {
+    final goals = (snapshot['sparziele'] as List?) ?? const [];
+    return goals
+        .whereType<Map>()
+        .where((g) => RegExp(r'notgroschen|notfall|puffer|reserve|polster|emergency', caseSensitive: false)
+            .hasMatch('${g['name']}'))
+        .firstOrNull;
+  }
+
+  Map<String, dynamic> _notgroschen() {
+    double eur(int c) => c / 100;
+    final plan = EmergencyPlan.compute(tx, now: today);
+    if (plan.monthlyCents <= 0) {
+      return {'fehler': 'Noch zu wenig Verlauf: es gibt keine Ausgaben aus den letzten drei Monaten.'};
+    }
+    final goal = _emergencyGoal();
+    final onAccounts = ((((snapshot['vermoegen'] as Map?)?['notgroschenVorhanden']) as num?) ?? 0) * 100;
+    final inGoal = (((goal?['gespart'] as num?) ?? 0) * 100);
+    final have = math.max(onAccounts, inGoal).round();
+    final missing = math.max(0, plan.targetCents - have);
+    final rate12 = (missing / 12 / 100).ceil() * 100;
+    final out = <String, dynamic>{
+      'monatImNotfall': eur(plan.monthlyCents),
+      if (!plan.fromAverage) ...{
+        'fixkosten': [for (final p in plan.fixed.take(10)) {'name': p.name, 'betrag': eur(p.cents)}],
+        'lebenshaltung': [for (final p in plan.living) {'kategorie': p.name, 'betrag': eur(p.cents)}],
+      } else
+        'grundlage': 'Durchschnitt aller Ausgaben der letzten drei Monate (noch keine Verträge erkannt)',
+      if (plan.skipped.isNotEmpty)
+        'imNotfallPausierbar': [for (final p in plan.skipped.take(8)) {'name': p.name, 'betrag': eur(p.cents)}],
+      'monate': plan.months,
+      'warum': plan.irregularIncome
+          ? 'Das Einkommen schwankt um mehr als ein Viertel zwischen den Monaten, deshalb sechs Monate.'
+          : 'Regelmäßiges Einkommen: drei Monate reichen als Notgroschen.',
+      'zielEmpfohlen': eur(plan.targetCents),
+      'spanne': {'dreiMonate': eur(plan.lowCents), 'sechsMonate': eur(plan.highCents)},
+      'vorhanden': eur(have),
+      'fehlt': eur(missing),
+      if (missing > 0) 'rateFuer12Monate': eur(rate12),
+      'sparziel': goal == null ? null : {'name': goal['name'], 'ziel': goal['ziel'], 'gespart': goal['gespart']},
+      'hinweis': 'Auf ein Tagesgeldkonto, getrennt vom Girokonto. Erst wenn er voll ist, langfristig anlegen.',
+    };
+    if (goal == null && missing > 0) {
+      out['karte'] = _propose(BuddyProposal.goal({
+        'name': tr('Notgroschen'),
+        'betrag': plan.targetCents / 100,
+        'monatlich': rate12 / 100,
+      }, today: today));
+    } else if (goal != null) {
+      final set = (((goal['ziel'] as num?) ?? 0) * 100).round();
+      if (set > 0 && (set - plan.targetCents).abs() > plan.targetCents * 0.2) {
+        out['zielAbweichung'] = 'Das gespeicherte Ziel (${goal['ziel']} €) weicht um mehr als 20 % von der Empfehlung ab. '
+            'Sag das und lass die Person entscheiden; ändern kann sie es unter Sparziele.';
+      }
+    }
+    return out;
+  }
+
+  Map<String, dynamic> _leisten(Map<String, dynamic> input) {
+    double eur(int c) => c / 100;
+    final amount = (((input['betrag'] as num?) ?? 0) * 100).round();
+    if (amount <= 0) return {'fehler': 'betrag fehlt'};
+    var months = 0;
+    final m = RegExp(r'^(\d{4})-(\d{2})$').firstMatch('${input['monat'] ?? ''}');
+    if (m != null) {
+      months = (int.parse(m.group(1)!) - today.year) * 12 + int.parse(m.group(2)!) - today.month;
+      if (months < 0) return {'fehler': 'monat liegt in der Vergangenheit'};
+    }
+    final f = snapshot['prognose'] as Map?;
+    if (f?['vorhanden'] != true) {
+      return {'fehler': 'Noch keine Monatsprognose: Es fehlen Einnahmen oder Kontostand. Frag nach dem Kontostand.'};
+    }
+    int c(Object? v) => (((v as num?) ?? 0) * 100).round();
+    final usual = _usual();
+    final w = snapshot['vermoegen'] as Map?;
+    final spare = math.max(0, c(w?['notgroschenVorhanden']) - c(w?['notgroschenZiel']));
+    final r = Affordability.check(
+      amountCents: amount,
+      freeCents: c(f!['freiBisMonatsende']),
+      goalsMonthCents: c(f['sparzieleMonat']),
+      surplusCents: usual.months == 0 ? 0 : usual.income - usual.spent,
+      spareSavingsCents: w?['notgroschenZiel'] == null ? 0 : spare,
+      months: months,
+    );
+    return {
+      'was': '${input['was'] ?? ''}',
+      'betrag': eur(amount),
+      'ampel': r.light,
+      'wann': months == 0 ? 'diesen Monat' : 'in $months Monaten',
+      'freiOhneEtwasAnzufassen': eur(r.roomCents),
+      'freiMitSparrateUndRuecklagen': eur(r.withSavingsCents),
+      'puffer': eur(Affordability.bufferCents),
+      'gruende': r.reasons,
+      if (r.monthsToSave != null) 'monateSparen': r.monthsToSave,
+      if (r.ratePerMonthCents != null) 'rateProMonat': eur(r.ratePerMonthCents!),
+      'regeln': 'gruen = aus dem freien Geld mit 50 € Puffer; gelb = nur mit Sparrate aussetzen oder Ersparnissen '
+          'über dem Notgroschen; rot = ginge an den Notgroschen oder ins Minus. Bei gelb/rot biete ein Sparziel '
+          'mit rateProMonat an (sparziel_vorschlagen).',
+    };
+  }
+
+  Map<String, dynamic> _erklaeren(Map<String, dynamic> input) {
+    final q = '${input['suchtext'] ?? ''}'.toLowerCase().trim();
+    if (q.isEmpty) return {'fehler': 'suchtext fehlt'};
+    final hits = [
+      for (final t in tx)
+        if ('${t.note ?? ''} ${t.raw ?? ''}'.toLowerCase().contains(q)) t
+    ]..sort((a, b) => b.date.compareTo(a.date));
+    if (hits.isEmpty) return {'gefunden': 0, 'hinweis': 'Keine Buchung mit diesem Text gefunden.'};
+    final t = hits.first;
+    return {
+      'gefunden': hits.length,
+      'buchung': {
+        'datum': _day(t.date),
+        'betrag': t.amountCents / 100 * (t.isIncome ? 1 : -1),
+        'titel': t.note ?? t.category,
+        'kategorie': t.category,
+        if (t.raw != null) 'textDerBank': t.raw,
+      },
+      'erklaerung': BookingText.explain(raw: t.raw, note: t.note, income: t.isIncome),
     };
   }
 

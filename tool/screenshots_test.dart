@@ -9,6 +9,8 @@ import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/screens/buddy_memory_screen.dart';
 import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/screens/tax_screen.dart';
+import 'package:budget_buddy/screens/transaction_screen.dart';
+import 'package:budget_buddy/services/bank_sync.dart';
 import 'package:budget_buddy/services/db.dart';
 import 'package:budget_buddy/utils/money.dart';
 import 'package:budget_buddy/services/tax_estimate.dart';
@@ -193,6 +195,21 @@ void main() {
     });
     await _pump(tester, const BuddyMemoryScreen());
     await _shot(tester, '05_memory');
+  });
+
+  testWidgets('20 booking explained', (tester) async {
+    final id = '${BankSync.prefix}paypal-netflix';
+    await tester.runAsync(() => DB.addTx(Transaction(
+        id: id,
+        amountCents: 1399,
+        category: 'Unterhaltung',
+        date: DateTime(2026, 11, 3),
+        isIncome: false,
+        note: 'Netflix',
+        raw: 'PayPal Europe S.a.r.l. et Cie S.C.A PP.8231.PP . NETFLIX, Ihr Einkauf bei NETFLIX '
+            'Mandatsref. 4GJ2224BYP3MA Gläubiger-ID LU96ZZZ0000000000000000058')));
+    await _pump(tester, TransactionScreen(id: id));
+    await _shot(tester, '20_booking');
   });
 
   testWidgets('18 tax', (tester) async {

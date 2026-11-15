@@ -546,6 +546,7 @@ class _AddScreenState extends State<AddScreen> {
           isIncome: _isIncome,
           note: note,
           accountId: _account == MoneyAccount.main ? null : _account,
+          raw: _isEdit ? widget.tx!.raw : null,
         ));
         if (note != null) {
           await CategoryRules.remember(note, _category!, isIncome: _isIncome);

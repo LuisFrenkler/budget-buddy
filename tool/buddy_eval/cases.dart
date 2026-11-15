@@ -1,4 +1,4 @@
-// The test catalog: 111 German and 37 English questions a 20-something asks about money, each with
+// The test catalog: 116 German and 39 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -42,13 +42,13 @@ const evalCases = <EvalCase>[
   EvalCase('z24', 'zahlen', 'Wie viel gebe ich für Freizeit aus, verglichen mit letztem Monat?', tools: {'ausgaben'}),
   EvalCase('z25', 'zahlen', 'Was sind meine Fixkosten im Monat?', tools: {'monatsprognose', 'vertraege_und_abos'}),
   EvalCase('z26', 'zahlen', 'Wie viel habe ich schon für den Urlaub gespart?', tools: {'ziele_und_vermoegen'}),
-  EvalCase('z27', 'zahlen', 'Wie viel fehlt noch zum Notgroschen?', tools: {'ziele_und_vermoegen'}),
+  EvalCase('z27', 'zahlen', 'Wie viel fehlt noch zum Notgroschen?', tools: {'ziele_und_vermoegen', 'notgroschen'}),
   EvalCase('z28', 'zahlen', 'Wie viele Male war ich diesen Monat bei Lieferando?', tools: {'buchungen_suchen', 'ausgaben'}),
   EvalCase('z29', 'zahlen', 'Wie hoch waren meine Ausgaben im Durchschnitt pro Monat?', tools: {'monatsverlauf'}),
   EvalCase('z30', 'zahlen', 'Wie viel habe ich für Technik ausgegeben?', tools: _spend),
 
   // --- werkzeuge: choosing and combining the right ones ---------------------
-  EvalCase('w01', 'werkzeuge', 'Kann ich mir im Juli einen Urlaub für 1.200 € leisten?', tools: _plan),
+  EvalCase('w01', 'werkzeuge', 'Kann ich mir im Juli einen Urlaub für 1.200 € leisten?', tools: {..._plan, 'leisten'}),
   EvalCase('w02', 'werkzeuge', 'Was wäre, wenn ich jeden Monat 150 € mehr spare?', allTools: {'was_waere_wenn'}),
   EvalCase('w03', 'werkzeuge', 'Wie viel muss ich monatlich sparen, um bis Juni 2.000 € zu haben?', tools: {'sparplan'}),
   EvalCase('w04', 'werkzeuge', 'Ich überlege, ein neues Handy für 900 € zu kaufen. Geht das diesen Monat?',
@@ -67,6 +67,13 @@ const evalCases = <EvalCase>[
   EvalCase('w14', 'werkzeuge', 'Wie lange würde mein Geld reichen, wenn ich meinen Job verliere?',
       tools: {'konten', 'monatsverlauf', 'monatsprognose'}),
   EvalCase('w15', 'werkzeuge', 'Lohnt sich das Fitnessstudio für mich noch?', tools: {'buchungen_suchen', 'vertraege_und_abos', 'ausgaben'}),
+  EvalCase('w22', 'werkzeuge', 'Kann ich mir neue Kopfhörer für 250 € leisten?', allTools: {'leisten'},
+      must: [r'[Gg]rün|[Gg]elb|[Rr]ot']),
+  EvalCase('w23', 'werkzeuge', 'Wie hoch sollte mein Notgroschen mit meinen echten Fixkosten sein?', allTools: {'notgroschen'}),
+  EvalCase('w24', 'werkzeuge', 'Was ist das für eine Abbuchung von PayPal?', allTools: {'buchung_erklaeren'}),
+  EvalCase('w25', 'werkzeuge', 'Was bedeutet „Abschluss“ auf meinem Kontoauszug?', tools: {'buchung_erklaeren'},
+      must: [r'Gebühr|Zins']),
+  EvalCase('w26', 'werkzeuge', 'Geht sich ein Laptop für 1.400 € im März aus?', allTools: {'leisten'}),
 
   // --- aktionen: suggests, never claims to have done it ---------------------
   EvalCase('a01', 'aktionen', 'Leg ein Sparziel Urlaub über 800 € an', tools: {'sparziel_vorschlagen'}, mustNot: _noClaim),
@@ -127,7 +134,7 @@ const evalCases = <EvalCase>[
   EvalCase('d01', 'deutschland', 'Was ist der Unterschied zwischen brutto und netto?', general: true, must: [r'brutto', r'netto']),
   EvalCase('d02', 'deutschland', 'Welche Steuerklasse habe ich als Single?', general: true, must: [r'\b(I|1)\b']),
   EvalCase('d03', 'deutschland', 'Was ist eine Betriebsrente?', general: true, must: [r'Arbeitgeber']),
-  EvalCase('d04', 'deutschland', 'Wie viel Notgroschen sollte ich haben?', general: true, must: [r'(drei|3) .*(Monat|Ausgaben)|Monatsausgaben']),
+  EvalCase('d04', 'deutschland', 'Wie viel Notgroschen sollte ich haben?', tools: {'notgroschen'}, must: [r'(drei|sechs|3|6) Monat|Monatsausgaben|Notfall-Monat']),
   EvalCase('d05', 'deutschland', 'Was sind Sozialabgaben?', general: true, must: [r'Renten|Kranken']),
   EvalCase('d06', 'deutschland', 'Wie kündige ich einen Handyvertrag richtig?', general: true, must: [r'Frist|Kündigung']),
   EvalCase('d07', 'deutschland', 'Was ist das Altersvorsorgedepot?', general: true),

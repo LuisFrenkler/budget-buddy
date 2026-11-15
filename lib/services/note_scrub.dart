@@ -31,6 +31,7 @@ class NoteScrub {
         isIncome: t.isIncome,
         note: next == t.category ? null : next,
         accountId: t.accountId,
+        raw: t.raw,
       ));
       n++;
     }
