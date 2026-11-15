@@ -761,6 +761,24 @@ class _BuddyScreenState extends State<BuddyScreen> {
   bool _spokenInput = false;
   bool _speakNext = false;
 
+  // stop generation like ChatGPT: keep whatever already arrived
+  void _stop() {
+    _sub?.cancel();
+    _sub = null;
+    if (!mounted) return;
+    setState(() {
+      _thinking = false;
+      if (_messages.isNotEmpty && !_messages.last.fromUser) {
+        _messages.last.streaming = false;
+        if (_messages.last.text.trim().isEmpty) {
+          _messages.last
+            ..text = tr('Gestoppt.')
+            ..error = false;
+        }
+      }
+    });
+  }
+
   Future<void> _send(String text) async {
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
@@ -1294,12 +1312,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // --------------------------------------------------------------- welcome
 
-  // the empty chat fits one screen: who Buddy is, where you stand, three
-  // ways in, and the input right below
+  // Logged-in start: one number, one remark, three ways in. Nothing else.
+  // Life stages, tasks and notify prompts surface in the chat when Buddy asks.
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
-    final stage = _guest ? null : LifeStages.current;
-    final others = LifeStages.all.where((s) => s.id != stage?.id).toList();
     final chips = (_guest ? BuddyScreen.guestSuggestions : BuddySuggestions.pick(BuddyService.snapshot(), max: 5))
         .take(3)
         .toList();
@@ -1339,41 +1355,40 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
     final brief = _brief();
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
       children: [
-        // Buddy in the middle, the one number that matters right under him
-        Center(child: BuddyOrb(size: 92, mood: _mood)),
-        const SizedBox(height: 20),
+        Center(child: BuddyOrb(size: 88, mood: _mood)),
+        const SizedBox(height: 22),
         if (brief.free != null) ...[
           Text(
-            name != null ? tr('Hey {name}. Bis Monatsende sind noch', {'name': name}) : tr('Bis Monatsende sind noch'),
+            name != null ? tr('Hey {name}', {'name': name}) : tr('Noch frei'),
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontFamily: AppFonts.display,
-                fontSize: 26,
+                fontSize: 22,
                 fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
-                letterSpacing: -0.8,
-                height: 1.12,
-                color: AppColors.text),
+                letterSpacing: -0.6,
+                height: 1.15,
+                color: AppColors.textDim),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(brief.free!,
                 style: TextStyle(
                     fontFamily: AppFonts.display,
-                    fontSize: 62,
+                    fontSize: 64,
                     fontWeight: FontWeight.w500,
                     letterSpacing: -3,
                     height: 1.02,
                     color: AppColors.glow)),
           ),
-          const SizedBox(height: 6),
-          Text(tr('frei. Das sind etwa {x} pro Tag.', {'x': brief.perDay!}),
+          const SizedBox(height: 8),
+          Text(tr('etwa {x} pro Tag', {'x': brief.perDay!}),
               textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textDim)),
         ] else ...[
           Text(
-            name != null ? tr('Hey {name}, was steht an?', {'name': name}) : tr('Hey, was steht an?'),
+            name != null ? tr('Hey {name}', {'name': name}) : tr('Hey'),
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontFamily: AppFonts.display,
@@ -1383,41 +1398,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 height: 1.1,
                 color: AppColors.text),
           ),
-          const SizedBox(height: 10),
-          Text(tr('Ich sag dir, was du jetzt tun kannst, mit deinen echten Zahlen.'),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45)),
+          const SizedBox(height: 8),
+          Text(tr('Was steht an?'),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: AppColors.textDim, height: 1.4)),
         ],
-        const SizedBox(height: 24),
         if (brief.tip != null) ...[
+          const SizedBox(height: 28),
           _remark(brief.tip!),
-          const SizedBox(height: 18),
         ],
-        if (_offerNotify) ...[
-          _notifyOffer(),
-          const SizedBox(height: 18),
-        ],
-        // what is still open from earlier: Buddy keeps track
-        ValueListenableBuilder<int>(
-          valueListenable: BuddyTasks.changed,
-          builder: (_, __, ___) {
-            final open = BuddyTasks.open();
-            if (open.isEmpty) return const SizedBox.shrink();
-            return Padding(padding: const EdgeInsets.only(bottom: 18), child: _openTask(open.first));
-          },
-        ),
-        if (stage != null) ...[
-          _stageProgress(stage),
-          const SizedBox(height: 18),
-        ],
-        _sectionLabel(stage == null ? tr('Wo stehst du gerade?') : tr('Andere Lebenslagen')),
-        const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 8, children: [for (final s in others) _stageChip(s)]),
-        const SizedBox(height: 18),
-        _sectionLabel(tr('Oder frag einfach')),
-        const SizedBox(height: 8),
+        const SizedBox(height: 28),
         for (final s in chips) _suggestion(s),
-        const SizedBox(height: 10),
-        _trustLine(),
       ],
     );
   }
@@ -1443,196 +1433,41 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
   }
 
-  // after a week Buddy asks once whether he may speak up on his own
-  bool get _offerNotify {
-    if (_guest || _settings.get('notifyOfferDone') == true) return false;
-    final first = DateTime.tryParse('${_settings.get('buddyFirstSeen') ?? ''}');
-    if (first == null || DateTime.now().difference(first).inDays < 7) return false;
-    if (!NotificationService.canAsk) return false;
-    return !NotificationService.enabled.value || !NotificationService.topic(NotifyTopic.buddy);
-  }
-
-  Widget _notifyOffer() => Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-        decoration: BoxDecoration(
-          color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-              tr('Soll ich mich melden, wenn dein Gehalt da ist, ein Budget kippt oder ein Abo teurer wird? Sonntags gibt es einen kurzen Rückblick. Höchstens einmal am Tag.'),
-              style: TextStyle(
-                  fontFamily: AppFonts.display, fontSize: 17, height: 1.35, letterSpacing: -0.2, color: AppColors.text)),
-          const SizedBox(height: 10),
-          Row(children: [
-            TextButton(
-              onPressed: () => setState(() => _settings.put('notifyOfferDone', true)),
-              child: Text(tr('Lieber nicht')),
-            ),
-            const Spacer(),
-            FilledButton(
-              style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
-              onPressed: () async {
-                HapticFeedback.mediumImpact();
-                final ok = NotificationService.enabled.value || await NotificationService.enable();
-                if (ok) {
-                  await NotificationService.setTopic(NotifyTopic.buddy, true);
-                  await NotificationService.setTopic(NotifyTopic.weekly, true);
-                }
-                await _settings.put('notifyOfferDone', true);
-                if (mounted) setState(() {});
-                if (!ok && mounted && NotificationService.problem.isNotEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(NotificationService.problem)));
-                }
-              },
-              child: Text(tr('Ja, gern')),
-            ),
-          ]),
-        ]),
-      );
-
-  Widget _openTask(BuddyTask t) => Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.hairline),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(t.due != null ? tr('Erinnerung') : tr('Noch offen'),
-              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.glow)),
-          const SizedBox(height: 4),
-          Text(t.text, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.35)),
-          const SizedBox(height: 10),
-          Row(children: [
-            TextButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                BuddyTasks.done(t.id);
-              },
-              child: Text(tr('Erledigt')),
-            ),
-            const Spacer(),
-            FilledButton(
-              style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
-              onPressed: () => _send(tr('Hilf mir bei diesem Schritt: {x}', {'x': t.text})),
-              child: Text(tr('Hilf mir dabei')),
-            ),
-          ]),
-        ]),
-      );
-
-  // one remark in Buddy's voice with the step that goes with it
-  Widget _remark(BuddyTip tip) => Container(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-        decoration: BoxDecoration(
-          color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
-          boxShadow: ThemeController.isDark.value
-              ? null
-              : const [BoxShadow(color: Color(0x14783C14), blurRadius: 30, offset: Offset(0, 12))],
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tip.text,
-              style: TextStyle(
-                  fontFamily: AppFonts.display,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w400,
-                  height: 1.35,
-                  letterSpacing: -0.2,
-                  color: AppColors.text)),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(onPressed: () => _send(tip.question), child: Text(tip.question)),
-          ),
-        ]),
-      );
-
-  Widget _stageChip(LifeStage s) => Material(
-        color: AppColors.surface,
-        shape: StadiumBorder(side: BorderSide(color: AppColors.border)),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: () => _openStage(s),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(s.icon, size: 17, color: AppColors.brand),
-              const SizedBox(width: 7),
-              Text(s.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-            ]),
-          ),
-        ),
-      );
-
-  // quiet headings like on the landing page, no shouting caps
-  Widget _sectionLabel(String text) => Text(text,
-      style: TextStyle(
-          fontFamily: AppFonts.display, fontSize: 18, letterSpacing: -0.4, fontWeight: FontWeight.w700, color: AppColors.text));
-
-  Widget _stageProgress(LifeStage s) {
-    final done = LifeStages.progress(s);
-    final next = s.steps.where((st) => !LifeStages.isDone(s, st)).firstOrNull;
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
+  // one calm remark + a single soft next step (ChatGPT-style, not a sales card)
+  Widget _remark(BuddyTip tip) => Material(
+        color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
         borderRadius: BorderRadius.circular(22),
-        onTap: () => _openStage(s),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(s.icon, color: AppColors.brand, size: 20),
-              const SizedBox(width: 8),
-              Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
-              const Spacer(),
-              Text(tr('{done} von {all}', {'done': done, 'all': s.steps.length}),
-                  style: TextStyle(color: AppColors.textDim, fontSize: 12.5, fontWeight: FontWeight.w600)),
-            ]),
-            const SizedBox(height: 12),
-            Row(children: [
-              for (var i = 0; i < s.steps.length; i++)
-                Expanded(
-                  child: Container(
-                    height: 5,
-                    margin: EdgeInsets.only(right: i < s.steps.length - 1 ? 4 : 0),
-                    decoration: BoxDecoration(
-                      color: LifeStages.isDone(s, s.steps[i]) ? AppColors.brand : AppColors.surfaceAlt,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-            ]),
-            if (next != null) ...[
-              const SizedBox(height: 14),
-              Text(tr('Als Nächstes'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
-              const SizedBox(height: 2),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => _send(tip.question),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(tip.text,
+                  style: TextStyle(
+                      fontFamily: AppFonts.display,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w400,
+                      height: 1.35,
+                      letterSpacing: -0.2,
+                      color: AppColors.text)),
+              const SizedBox(height: 10),
               Row(children: [
-                Expanded(child: Text(next.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15))),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: AppColors.brand,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () => _send(next.prompt),
-                  child: Text(tr('Loslegen')),
-                ),
+                Text(tip.question,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.primaryText)),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryText),
               ]),
-            ] else ...[
-              const SizedBox(height: 12),
-              Text(tr('Alles erledigt. Stark.'),
-                  style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700)),
-            ],
-          ]),
+            ]),
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Widget _suggestion(BuddyChip s) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -1654,19 +1489,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ),
         ),
       );
-
-  Widget _trustLine() {
-    final text = _guest
-        ? tr('Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Mit Konto rechnet Buddy mit deinen echten Zahlen.')
-        : _live == false
-            ? tr('Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.')
-            : tr('Buddy bereitet vor, du entscheidest. Nichts wird gespeichert, bevor du es bestätigst.');
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(_guest ? Icons.lock_outline_rounded : Icons.verified_user_outlined, size: 16, color: AppColors.textDim),
-      const SizedBox(width: 8),
-      Expanded(child: Text(text, style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4))),
-    ]);
-  }
 
   Widget _aiOffBanner() {
     return Material(
@@ -2372,7 +2194,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   decoration: InputDecoration(
                     hintText: VoiceInput.listening.value
                         ? tr('Ich höre zu …')
-                        : (_guest ? tr('Frag Buddy etwas …') : tr('Frag Buddy oder erzähl was …')),
+                        : tr('Nachricht an Buddy'),
                     hintMaxLines: 1,
                     filled: false,
                     isDense: true,
@@ -2384,8 +2206,25 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              // empty field: talk instead of typing; with text: send
-              if (!canSend && !_thinking && _photo == null)
+              // ChatGPT-style: while Buddy writes, the send button becomes Stop
+              if (_thinking)
+                Semantics(
+                  button: true,
+                  label: tr('Stoppen'),
+                  child: GestureDetector(
+                    onTap: _stop,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.text,
+                      ),
+                      child: Icon(Icons.stop_rounded, size: 20, color: AppColors.bg),
+                    ),
+                  ),
+                )
+              else if (!canSend && _photo == null)
                 ValueListenableBuilder<bool>(
                   valueListenable: VoiceInput.listening,
                   builder: (_, on, __) => Semantics(

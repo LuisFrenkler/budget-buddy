@@ -65,7 +65,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
         Text(MoneyAccounts.several ? tr('Wie viel ist gerade auf {x}?', {'x': (widget.account ?? MoneyAccounts.main).name}) : tr('Wie viel ist gerade auf deinem Konto?'),
             style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, height: 1.2)),
         SizedBox(height: 6),
-        Text(tr('Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.'),
+        Text(tr('Wie in deiner Banking-App. Danach rechnet Ahead weiter.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         SizedBox(height: 18),
         TextField(
@@ -105,9 +105,9 @@ class GettingStartedCard extends StatelessWidget {
   GettingStartedCard({super.key});
 
   static Map<OnboardingStep, (IconData, String, String)> get _steps => {
-    OnboardingStep.booking: (Icons.edit_note_rounded, tr('Erste Ausgabe'), tr('Tipp „Kaffee 3,20“ oder Bank verbinden')),
-    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, tr('Kontostand oder Bank'), tr('Damit Vermögen und „noch frei“ stimmen')),
-    OnboardingStep.budget: (Icons.pie_chart_rounded, tr('Budget setzen'), tr('Limits aus deinen Umsätzen vorschlagen')),
+    OnboardingStep.booking: (Icons.edit_note_rounded, tr('Erste Ausgabe'), tr('Tipp oder Bank')),
+    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, tr('Kontostand oder Bank'), tr('Damit die Zahlen stimmen')),
+    OnboardingStep.budget: (Icons.pie_chart_rounded, tr('Budget setzen'), tr('Monatliche Limits')),
   };
 
   Future<void> _open(BuildContext context, OnboardingStep s) async {
