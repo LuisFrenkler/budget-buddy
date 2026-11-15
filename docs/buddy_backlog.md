@@ -6,16 +6,16 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Gehaltsabrechnung: Werte über die Monate vergleichen (Steuerklasse, Krankenkasse geändert?)
-2. Schulden-Lawine: Reihenfolge zum Abbezahlen (teuerste zuerst) als Plan-Karte
-3. Ratenkäufe: Tilgungsplan („in 4 Monaten frei“) aus bezahlten Raten und Restbetrag, wenn bekannt
+1. Ratenkäufe: Tilgungsplan („in 4 Monaten frei“) aus bezahlten Raten und Restbetrag, wenn bekannt
+2. Jahreszahlungen in der Monatsprognose als „Rücklage“ mitrechnen
+3. Englische Texte im ganzen App-Durchlauf prüfen (automatischer Klick-Test wie beim Plus-Fix)
 4. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
 5. Screenshot-Test „08 light mode chat“ hängt: Ursache finden (wartet vermutlich auf Netzwerk)
 6. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
 7. Abo-Spartipp auch als Hinweis, wenn ein Abo mit Tipp länger als 6 Monate läuft (einmal im Jahr)
 8. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
-9. Jahreszahlungen in der Monatsprognose als „Rücklage“ mitrechnen
-10. Englische Texte im ganzen App-Durchlauf prüfen (automatischer Klick-Test wie beim Plus-Fix)
+9. Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern, damit der Plan ohne Nachfrage rechnet
+10. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
 
 ## Erledigt
 - Zahlen-Check, verworfene Vorschläge, Kündigungsfristen
@@ -33,3 +33,4 @@ kurz berichten. Erledigtes wandert nach unten.
 - Ausbleibende Einnahmen (Gehalt, Kindergeld), Push am Morgen vor dem Minus, Werkzeug-Auswertung (Kosten, Tempo)
 - Ratenkäufe (Klarna, PayPal, Finanzierung) als Monatssumme, Nachfrage eine Woche nach einer Karte, Versicherungs-Check nach Art
 - Plus-Kauf verlangt kein neues Konto mehr (Fix), Jahreszahlungen mit Rücklage, Ziel-Feier mit nächstem Schritt
+- Gehaltsabrechnungen im Monatsvergleich (Steuerklasse, Kirchensteuer, Krankenkasse, Betriebsrente), Schulden-Plan (Lawine)

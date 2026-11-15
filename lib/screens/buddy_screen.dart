@@ -5,6 +5,7 @@ import '../services/buddy_journal.dart';
 import '../services/life_progress.dart';
 import '../services/buddy_onboarding.dart';
 import '../services/payslip_check.dart';
+import '../services/payslip_history.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
 import '../services/price_service.dart';
@@ -537,7 +538,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
     try {
       final slip = await PayslipCheck.read(photo.bytes, photo.type);
       PlusService.count(PlusFeature.receiptScan);
+      final versus = PayslipHistory.compareText(slip);
       answer.text = PayslipCheck.answer(slip);
+      if (versus != null) {
+        // the comparison goes above the next step
+        final i = answer.text.lastIndexOf('\n\n');
+        answer.text = '${answer.text.substring(0, i)}\n\n$versus${answer.text.substring(i)}';
+      }
+      unawaited(PayslipHistory.add(slip));
       answer.followUps = [tr('Was bedeutet meine Steuerklasse?'), tr('Lohnt sich eine Steuererklärung für mich?')];
       if (!answer.text.contains('⚠︎')) {
         BuddyTasks.doneByText(tr('Abrechnung prüfen'));

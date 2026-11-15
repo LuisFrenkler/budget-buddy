@@ -849,6 +849,24 @@ oder Passwörter.''';
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
     },
     {
+      'name': 'schulden_plan',
+      'description': 'Plan zum Abbezahlen aller gespeicherten Schulden: teuerster Zins zuerst (Lawine), ohne bekannten '
+          'Zins die kleinste zuerst. Gibt Reihenfolge, Monat der Schuldenfreiheit je Posten und geschätzte Zinsen '
+          'zurück. Zinssätze, die die Person nennt, unter zinsen mitgeben (Name: Prozent pro Jahr).',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties': {
+          'extraProMonat': {'type': 'number', 'description': 'Euro, die zusätzlich in die Tilgung gehen'},
+          'zinsen': {
+            'type': 'object',
+            'description': 'Zinssatz pro Schuld in Prozent pro Jahr, z. B. {"Dispo": 12.9, "Kreditkarte": 18}',
+            'additionalProperties': {'type': 'number'},
+          },
+        },
+      },
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -925,6 +943,7 @@ oder Passwörter.''';
     'buchung_erklaeren': 'die Buchung',
     'versicherungen_pruefen': 'deine Versicherungen',
     'jahreszahlungen': 'deine Jahreszahlungen',
+    'schulden_plan': 'deinen Schulden-Plan',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',

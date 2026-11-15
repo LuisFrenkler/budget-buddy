@@ -10,6 +10,7 @@ import '../utils/dates.dart';
 import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import '../services/buddy_journal.dart';
+import '../services/payslip_history.dart';
 
 class BuddyMemoryScreen extends StatelessWidget {
   const BuddyMemoryScreen({super.key});
@@ -30,6 +31,7 @@ class BuddyMemoryScreen extends StatelessWidget {
       HapticFeedback.mediumImpact();
       await BuddyMemory.clear();
       await BuddyJournal.clear();
+      await PayslipHistory.clear();
     }
   }
 

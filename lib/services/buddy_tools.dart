@@ -12,6 +12,7 @@ import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
 import 'affordability.dart';
 import 'booking_text.dart';
+import 'debt_plan.dart';
 import 'emergency_plan.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
@@ -74,6 +75,7 @@ class BuddyTools {
     'buchung_erklaeren',
     'versicherungen_pruefen',
     'jahreszahlungen',
+    'schulden_plan',
     'diagramm',
   };
 
@@ -107,6 +109,7 @@ class BuddyTools {
         'buchung_erklaeren' => _erklaeren(input),
         'versicherungen_pruefen' => _versicherungen(),
         'jahreszahlungen' => _jahreszahlungen(),
+        'schulden_plan' => _schuldenPlan(input),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -646,6 +649,55 @@ class BuddyTools {
         if (t.raw != null) 'textDerBank': t.raw,
       },
       'erklaerung': BookingText.explain(raw: t.raw, note: t.note, income: t.isIncome),
+    };
+  }
+
+  Map<String, dynamic> _schuldenPlan(Map<String, dynamic> input) {
+    int c(Object? v) => (((v as num?) ?? 0) * 100).round();
+    final rates = <String, double>{
+      for (final e in ((input['zinsen'] as Map?) ?? const {}).entries)
+        if (e.value is num) '${e.key}'.toLowerCase(): (e.value as num).toDouble()
+    };
+    double? rateFor(String name) {
+      final n = name.toLowerCase();
+      for (final e in rates.entries) {
+        if (n.contains(e.key) || e.key.contains(n)) return e.value;
+      }
+      return null;
+    }
+
+    final items = <DebtItem>[
+      for (final d in (((snapshot['vermoegen'] as Map?)?['schulden'] as List?) ?? const []).whereType<Map>())
+        DebtItem('${d['name']}', c(d['betrag']), ratePercent: rateFor('${d['name']}')),
+      // running instalments: their rate is the minimum, the rest is unknown
+      for (final r in Installments.detect(tx, now: today))
+        if (r.paidCount > 0)
+          DebtItem(r.shop == null ? r.provider : '${r.provider} (${r.shop})', 0,
+              ratePercent: rateFor(r.provider), minCents: r.monthlyCents),
+    ];
+    final withAmount = items.where((d) => d.cents > 0).toList();
+    if (withAmount.isEmpty) {
+      return {
+        'schulden': const [],
+        if (items.isNotEmpty) 'ratenOhneRestbetrag': [for (final d in items) {'name': d.name, 'proMonat': d.minCents / 100}],
+        'hinweis': 'Keine Schulden mit Betrag gespeichert. Frag nach Betrag und Zinssatz (Dispo, Kreditkarte, Kredit) '
+            'oder biete an, sie unter Vermögen einzutragen.',
+      };
+    }
+    final extra = c(input['extraProMonat']);
+    final r = DebtPlan.compute(withAmount, extraCents: extra);
+    return {
+      'reihenfolge': [
+        for (final s in r.order) {'name': s.name, 'frei': 'nach ${s.month} Monaten', if (s.ratePercent != null) 'zins': s.ratePercent}
+      ],
+      'monateBisSchuldenfrei': r.tooSlow ? null : r.months,
+      'zinsenGesamtGeschaetzt': r.interestCents / 100,
+      'extraProMonat': extra / 100,
+      if (r.tooSlow) 'warnung': 'Mit diesem Betrag sinken die Schulden nicht in 30 Jahren. Mehr pro Monat nötig oder Schuldnerberatung.',
+      if (withAmount.any((d) => d.ratePercent == null))
+        'ohneZinssatz': [for (final d in withAmount.where((d) => d.ratePercent == null)) d.name],
+      'regel': 'Teuerster Zins zuerst (Lawine), ohne bekannten Zins die kleinste zuerst. Fehlt der Zins, frag danach. '
+          'Bei Überforderung: kostenlose Schuldnerberatung (Verbraucherzentrale, Caritas, Diakonie).',
     };
   }
 
