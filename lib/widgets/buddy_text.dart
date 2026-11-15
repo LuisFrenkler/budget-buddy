@@ -62,7 +62,7 @@ class _RichMarkdownState extends State<RichMarkdown> {
       r.dispose();
     }
     _recognizers.clear();
-    final base = TextStyle(color: widget.color ?? AppColors.text, fontSize: widget.fontSize, height: 1.5);
+    final base = TextStyle(color: widget.color ?? AppColors.text, fontSize: widget.fontSize, height: 1.55);
     // models like long dashes even when asked not to: a comma reads the same
     final lines = widget.text.replaceAll(' — ', ', ').replaceAll('—', ', ').split('\n');
     // trailing empty lines while streaming would make the caret jump
@@ -156,34 +156,19 @@ class _RichMarkdownState extends State<RichMarkdown> {
       } else if (_stepLine.hasMatch(t)) {
         // "Nächster Schritt:" or, in English, "Next step:"
         final rest = t.replaceFirst(_stepLine, '').trim();
-        // Buddy's signature, like on the landing page: a stamp with a copper
-        // frame and the label as a small tag; in Night it glows a little
-        final night = ThemeController.isDark.value;
+        // a quiet copper rail, not a framed stamp: the step is still the accent
         children.add(Container(
-          margin: const EdgeInsets.only(top: 12),
-          padding: const EdgeInsets.fromLTRB(12, 10, 14, 12),
+          margin: const EdgeInsets.only(top: 14),
+          padding: const EdgeInsets.fromLTRB(12, 1, 2, 1),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            color: night ? const Color(0x14D9813F) : AppColors.surface,
-            border: Border.all(color: night ? const Color(0xFFD9813F) : AppColors.brand, width: night ? 1.5 : 2),
-            boxShadow: night ? const [BoxShadow(color: Color(0x2ED9813F), blurRadius: 24)] : null,
+            border: Border(left: BorderSide(color: AppColors.brand.withValues(alpha: 0.9), width: 2)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-              decoration: BoxDecoration(
-                  color: night ? AppColors.peach : AppColors.brand, borderRadius: BorderRadius.circular(6)),
-              child: Text(tr('Nächster Schritt').toUpperCase(),
-                  style: TextStyle(
-                      fontSize: 10.5,
-                      letterSpacing: 0.8,
-                      fontWeight: FontWeight.w800,
-                      color: night ? const Color(0xFF1A0E07) : Colors.white,
-                      height: 1)),
-            ),
-            const SizedBox(height: 7),
+            Text(tr('Nächster Schritt'),
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 1.2, color: AppColors.brandText)),
+            const SizedBox(height: 4),
             Text.rich(TextSpan(children: spans(rest, caret: caret)),
-                style: base.copyWith(fontWeight: FontWeight.w600)),
+                style: base.copyWith(fontWeight: FontWeight.w500, height: 1.4)),
             if (!widget.streaming && (widget.onStepHelp != null || widget.onStepDone != null))
               Padding(
                 padding: const EdgeInsets.only(top: 10),

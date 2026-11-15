@@ -1236,18 +1236,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
             Positioned.fill(child: _messages.isEmpty ? _welcome() : _chat()),
             Positioned(
               right: 16,
-              bottom: 10,
+              bottom: 12,
               child: AnimatedScale(
                 scale: _away && _messages.isNotEmpty ? 1 : 0,
                 duration: const Duration(milliseconds: 180),
                 child: Material(
-                  color: AppColors.surfaceAlt,
-                  shape: const CircleBorder(),
-                  elevation: 2,
+                  color: AppColors.surface,
+                  shape: CircleBorder(side: BorderSide(color: AppColors.hairline)),
                   child: IconButton(
                     tooltip: tr('Zur neuesten Nachricht'),
                     onPressed: () => _scrollDown(),
-                    icon: const Icon(Icons.arrow_downward_rounded, size: 20),
+                    icon: const Icon(Icons.arrow_downward_rounded, size: 18),
                   ),
                 ),
               ),
@@ -1265,35 +1264,28 @@ class _BuddyScreenState extends State<BuddyScreen> {
         // without a back button the tab's title keeps the page margin
         titleSpacing: widget.tab ? 20 : 0,
         title: Row(children: [
-          BuddyOrb(size: 34, mood: _mood),
-          const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Buddy'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-            // tippen schaltet die KI um, wenn der Server sie anbietet
-            InkWell(
-              onTap: _live == true ? _toggleAi : null,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: _thinking ? AppColors.brand : (_aiOn ? AppColors.positive : AppColors.textDim),
-                      shape: BoxShape.circle,
-                    ),
+          BuddyOrb(size: 28, mood: _mood),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(tr('Buddy'),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.4, height: 1.15)),
+              // connection only; "schreibt" and tool lines live in the thread
+              InkWell(
+                onTap: _live == true ? _toggleAi : null,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    _statusLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, height: 1.2, color: AppColors.textDim, fontWeight: FontWeight.w400),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _thinking ? tr('schreibt …') : _statusLabel,
-                    style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
-                  ),
-                ]),
+                ),
               ),
-            ),
-          ]),
+            ]),
+          ),
         ]),
         actions: [
           PopupMenuButton<String>(
@@ -1496,10 +1488,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final brief = _startBrief ?? (free: null, perDay: null, tip: null);
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
       children: [
-        Center(child: BuddyOrb(size: 88, mood: _mood)),
-        const SizedBox(height: 22),
+        Center(child: BuddyOrb(size: 52, mood: _mood)),
+        const SizedBox(height: 18),
         if (brief.free != null) ...[
           Text(
             name != null ? tr('Hey {name}', {'name': name}) : tr('Noch frei'),
@@ -1518,36 +1510,36 @@ class _BuddyScreenState extends State<BuddyScreen> {
             child: Text(brief.free!,
                 style: TextStyle(
                     fontFamily: AppFonts.display,
-                    fontSize: 64,
+                    fontSize: 56,
                     fontWeight: FontWeight.w500,
-                    letterSpacing: -3,
+                    letterSpacing: -2.2,
                     height: 1.02,
                     color: AppColors.glow)),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(tr('etwa {x} pro Tag', {'x': brief.perDay!}),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textDim)),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 14.5, color: AppColors.textDim, height: 1.3)),
         ] else ...[
           Text(
             name != null ? tr('Hey {name}', {'name': name}) : tr('Hey'),
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontFamily: AppFonts.display,
-                fontSize: 32,
-                fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
-                letterSpacing: -1.2,
-                height: 1.1,
+                fontSize: 30,
+                fontWeight: ThemeController.isDark.value ? FontWeight.w400 : FontWeight.w500,
+                letterSpacing: -0.8,
+                height: 1.15,
                 color: AppColors.text),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(tr('Was steht an?'),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: AppColors.textDim, height: 1.4)),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
         ],
         if (brief.tip != null) ...[
-          const SizedBox(height: 28),
+          const SizedBox(height: 22),
           _remark(brief.tip!),
         ],
-        const SizedBox(height: 28),
+        const SizedBox(height: 16),
         for (final s in chips) _suggestion(s),
       ],
     );
@@ -1588,85 +1580,61 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
   }
 
-  // one calm remark + a single soft next step (ChatGPT-style, not a sales card)
-  Widget _remark(BuddyTip tip) => Material(
-        color: ThemeController.isDark.value ? const Color(0x0FFFFFFF) : const Color(0xB8FFFFFF),
-        borderRadius: BorderRadius.circular(22),
+  // one remark and the question that opens it, as text, not a card
+  Widget _remark(BuddyTip tip) => InkWell(
+        onTap: () => _send(tip.question),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tip.text,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, height: 1.4, letterSpacing: -0.15, color: AppColors.text)),
+            const SizedBox(height: 6),
+            Text(tip.question, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5, height: 1.3, color: AppColors.brandText)),
+          ]),
+        ),
+      );
+
+  Widget _suggestion(BuddyChip s) => Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () => _send(tip.question),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: ThemeController.isDark.value ? const Color(0x1CFFFFFF) : Colors.white),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(tip.text,
-                  style: TextStyle(
-                      fontFamily: AppFonts.display,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400,
-                      height: 1.35,
-                      letterSpacing: -0.2,
-                      color: AppColors.text)),
-              const SizedBox(height: 10),
-              Row(children: [
-                Text(tip.question,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.primaryText)),
-                const SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryText),
-              ]),
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _send(s.text),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(s.icon, color: AppColors.textDim, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(s.text,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15.5, color: AppColors.text, height: 1.35)),
+              ),
             ]),
           ),
         ),
       );
 
-  Widget _suggestion(BuddyChip s) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => _send(s.text),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
-              child: Row(children: [
-                Icon(s.icon, color: AppColors.brand, size: 18),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(s.text,
-                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15.5, color: AppColors.text, height: 1.25)),
-                ),
-                Icon(Icons.chevron_right_rounded, color: AppColors.textDim.withValues(alpha: 0.55), size: 20),
-              ]),
-            ),
-          ),
-        ),
-      );
-
-  Widget _aiOffBanner() {
-    return Material(
-      color: AppColors.surfaceAlt,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+  Widget _aiOffBanner() => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 2, 8, 0),
         child: Row(children: [
-          Icon(Icons.cloud_off_outlined, size: 18, color: AppColors.textDim),
-          const SizedBox(width: 10),
           Expanded(
             child: Text(
               tr('KI ist aus. Buddy antwortet offline aus deinen Daten.'),
-              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
+              style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
             ),
           ),
-          TextButton(onPressed: _toggleAi, child: Text(tr('Einschalten'))),
+          TextButton(
+            style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact, foregroundColor: AppColors.brandText, padding: const EdgeInsets.symmetric(horizontal: 10)),
+            onPressed: _toggleAi,
+            child: Text(tr('Einschalten')),
+          ),
         ]),
-      ),
-    );
-  }
+      );
 
   // ------------------------------------------------------------------ chat
 
@@ -1679,7 +1647,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return ListView.builder(
       controller: _scroll,
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       itemCount: count,
       itemBuilder: (_, i) {
         if (i == _messages.length) return _signUpCard();
@@ -1704,14 +1672,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ? tr('Gestern')
             : Dates.dayMonth(at);
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 14),
+      padding: const EdgeInsets.only(top: 16, bottom: 12),
       child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
-          child: Text(label,
-              style: TextStyle(fontSize: 11.5, color: AppColors.textDim, fontWeight: FontWeight.w600)),
-        ),
+        child: Text(label,
+            style: TextStyle(fontSize: 12, letterSpacing: 0.2, color: AppColors.textDim, fontWeight: FontWeight.w500)),
       ),
     );
   }
@@ -1728,12 +1692,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width.clamp(0, 480) * 0.8),
             child: Container(
-              margin: const EdgeInsets.only(bottom: 14),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                // warm muted fill: the person's words, not an ink bubble
-                color: ThemeController.isDark.value ? AppColors.surfaceAlt : const Color(0xFFE8DDD4),
-                borderRadius: BorderRadius.circular(18),
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
                 if (m.image != null)
@@ -1743,8 +1706,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ),
                 if (m.image != null && m.text.isNotEmpty) const SizedBox(height: 8),
                 if (m.text.isNotEmpty)
-                  Text(m.text,
-                      style: TextStyle(color: AppColors.text, fontSize: 15.5, height: 1.4)),
+                  Text(m.text, style: TextStyle(color: AppColors.text, fontSize: 15.5, height: 1.45)),
               ]),
             ),
           ),
@@ -1757,7 +1719,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     // no assistant block until the first token: a one-line thinking row instead
     if (text.isEmpty && m.streaming && !m.error) return _thinkingRow();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 26),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             if (m.checkIn)
               Padding(
@@ -1867,24 +1829,28 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
-  // orb plus one short line until the first token. Tools replace "schreibt …".
+  // one quiet line until the first token. Tools replace "schreibt …".
   Widget _thinkingRow() => ValueListenableBuilder<String?>(
         valueListenable: BuddyService.activity,
         builder: (_, looking, __) {
           final line = looking == null || looking.trim().isEmpty ? tr('schreibt …') : buddyToolLine(looking);
           return Padding(
-            padding: const EdgeInsets.only(top: 2, bottom: 16),
+            padding: const EdgeInsets.only(top: 4, bottom: 18),
             child: Semantics(
               container: true,
               liveRegion: true,
               label: line,
               child: ExcludeSemantics(
                 child: Row(children: [
-                  const BuddyOrb(size: 20, mood: BuddyMood.thinking),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
+                  ),
                   const SizedBox(width: 10),
                   Flexible(
                     child: Text(line,
-                        style: TextStyle(fontSize: 14, height: 1.3, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+                        style: TextStyle(fontSize: 14, height: 1.35, color: AppColors.textDim, fontWeight: FontWeight.w400)),
                   ),
                 ]),
               ),
@@ -1900,12 +1866,22 @@ class _BuddyScreenState extends State<BuddyScreen> {
           if (looking == null || looking.trim().isEmpty) return const SizedBox.shrink();
           final line = buddyToolLine(looking);
           return Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 10),
             child: Semantics(
               liveRegion: true,
               label: line,
-              child: Text(line,
-                  style: TextStyle(fontSize: 13, height: 1.3, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+              child: Row(children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: AppColors.brand.withValues(alpha: 0.85), shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(line,
+                      style: TextStyle(fontSize: 13, height: 1.35, color: AppColors.textDim, fontWeight: FontWeight.w400)),
+                ),
+              ]),
             ),
           );
         },
@@ -1913,15 +1889,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // under an answer: read aloud, and for live answers thumbs up or down
   Widget _answerTools(_Message m) => Padding(
-        padding: const EdgeInsets.only(top: 6),
+        padding: const EdgeInsets.only(top: 2),
         child: Row(children: [
           ValueListenableBuilder<String?>(
             valueListenable: BuddyVoice.speaking,
             builder: (_, now, __) => IconButton(
               tooltip: now == m.text ? tr('Stopp') : tr('Vorlesen'),
               visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               iconSize: 18,
-              color: now == m.text ? AppColors.glow : AppColors.textDim,
+              color: now == m.text ? AppColors.brandText : AppColors.textDim,
               icon: Icon(now == m.text ? Icons.stop_circle_outlined : Icons.volume_up_outlined),
               onPressed: () => BuddyVoice.toggle(m.text),
             ),
@@ -1939,6 +1917,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
             IconButton(
               tooltip: tr('Gute Antwort'),
               visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               iconSize: 18,
               color: AppColors.textDim,
               icon: const Icon(Icons.thumb_up_alt_outlined),
@@ -1951,6 +1931,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
             IconButton(
               tooltip: tr('Schlechte Antwort'),
               visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               iconSize: 18,
               color: AppColors.textDim,
               icon: const Icon(Icons.thumb_down_alt_outlined),
@@ -2297,7 +2279,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (_photo != null)
             Align(
@@ -2325,25 +2307,22 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.fromLTRB(4, 4, 5, 4),
+            padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
             decoration: BoxDecoration(
-              // a white pill on paper in Glow, a glass pill in Night
-              color: ThemeController.isDark.value ? const Color(0x12FFFFFF) : Colors.white,
-              borderRadius: BorderRadius.circular(28),
+              color: ThemeController.isDark.value ? const Color(0x14FFFFFF) : AppColors.surface,
+              borderRadius: BorderRadius.circular(26),
               border: Border.all(
-                  color: _focus.hasFocus
-                      ? AppColors.textDim.withValues(alpha: 0.6)
-                      : (ThemeController.isDark.value ? const Color(0x21FFFFFF) : AppColors.border)),
-              boxShadow: ThemeController.isDark.value
-                  ? null
-                  : const [BoxShadow(color: Color(0x1A783C14), blurRadius: 30, offset: Offset(0, 10))],
+                  color: _focus.hasFocus ? AppColors.brand.withValues(alpha: 0.55) : AppColors.hairline),
             ),
             child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
               if (!_guest)
                 IconButton(
                   tooltip: tr('Foto senden'),
                   onPressed: _thinking ? null : _pickPhoto,
-                  icon: Icon(Icons.add_rounded, color: AppColors.textDim),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  icon: Icon(Icons.add_rounded, color: AppColors.textDim, size: 22),
                 )
               else
                 const SizedBox(width: 10),
@@ -2368,7 +2347,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                    contentPadding: const EdgeInsets.fromLTRB(4, 11, 4, 11),
                   ),
                 ),
               ),
@@ -2381,13 +2360,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   child: GestureDetector(
                     onTap: _stop,
                     child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.surfaceAlt,
-                      ),
-                      child: Icon(Icons.stop_rounded, size: 18, color: AppColors.text),
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.text),
+                      child: Icon(Icons.stop_rounded, size: 16, color: AppColors.bg),
                     ),
                   ),
                 )
@@ -2401,17 +2377,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       onTap: _voice,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
-                        width: 40,
-                        height: 40,
+                        width: 34,
+                        height: 34,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: on ? AppColors.brand : AppColors.surfaceAlt,
-                          boxShadow: on
-                              ? [BoxShadow(color: AppColors.brand.withValues(alpha: 0.5), blurRadius: 14, spreadRadius: 1)]
-                              : null,
+                          color: on ? AppColors.brand : Colors.transparent,
                         ),
                         child: Icon(on ? Icons.stop_rounded : Icons.mic_none_rounded,
-                            size: 21, color: on ? Colors.white : AppColors.text),
+                            size: 22, color: on ? Colors.white : AppColors.textDim),
                       ),
                     ),
                   ),
@@ -2423,25 +2396,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   enabled: canSend,
                   child: GestureDetector(
                     onTap: () => _send(_input.text),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: canSend ? null : AppColors.surfaceAlt,
-                        gradient: canSend
-                            ? const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [Color(0xFFF4B98A), Color(0xFFB06030)])
-                            : null,
-                        boxShadow: canSend && ThemeController.isDark.value
-                            ? const [BoxShadow(color: Color(0x80D9813F), blurRadius: 18)]
-                            : null,
-                      ),
-                      child:
-                          Icon(Icons.arrow_upward_rounded, size: 21, color: canSend ? Colors.white : AppColors.textDim),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.brand),
+                      child: const Icon(Icons.arrow_upward_rounded, size: 20, color: Colors.white),
                     ),
                   ),
                 ),
