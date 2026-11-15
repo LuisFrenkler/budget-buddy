@@ -522,13 +522,13 @@ class BuddyService {
           said.clear();
           wrote = false;
           lastCorrected = true;
-          activity.value = 'deine Zahlen noch einmal';
+          activity.value = 'Zahlen noch einmal';
           yield restart;
           continue;
         }
         toolbox ??= tools();
         _lastTools = toolbox;
-        activity.value = '${calls.first['zeigt'] ?? 'deine Zahlen'}';
+        activity.value = '${calls.first['zeigt'] ?? 'Zahlen'}';
         messages.add({'role': 'assistant', 'content': done['content']});
         messages.add({
           'role': 'user',

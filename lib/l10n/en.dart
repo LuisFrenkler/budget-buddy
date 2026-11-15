@@ -1162,7 +1162,7 @@ const en = <String, String>{
   'Buddy meldet sich': 'Buddy checks in',
   'Buddy denkt nach': 'Buddy is thinking',
   'schaut in {x} …': 'looking at {x} …',
-  'prüft {x} …': 'checking {x} …',
+  'Prüft {x}…': 'Checking {x}…',
   'KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen': 'AI not available right now · answer from Buddy\'s basic knowledge',
   'KI gerade ausgelastet · Antwort offline aus deinen Daten': 'AI busy right now · answer offline from your data',
   'Ohne KI · aus Buddys Grundwissen': 'Without AI · from Buddy\'s basic knowledge',
