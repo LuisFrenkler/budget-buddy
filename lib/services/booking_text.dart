@@ -19,6 +19,10 @@ class BookingText {
         'Bezahlt mit dem Handy, technisch eine ganz normale Kartenzahlung.'),
     (RegExp(r'r[üu]cklastschrift|rueckbelastung|r[üu]ckbuchung', caseSensitive: false),
         'Eine Lastschrift ging zurück, meist weil das Konto nicht gedeckt war oder du widersprochen hast. Das kostet oft Gebühren; melde dich beim Händler, bevor er mahnt.'),
+    (RegExp(r'inkasso|creditreform|intrum|riverty|pair finance|lowell|coeo', caseSensitive: false),
+        'Eine Zahlung an ein Inkassobüro. Prüf, ob die Forderung stimmt und ob die Gebühren angemessen sind; die Verbraucherzentrale hilft dabei.'),
+    (RegExp(r'mahngeb[üu]hr|mahnkosten|mahnung|s[äa]umniszuschlag', caseSensitive: false),
+        'Eine Gebühr, weil eine Rechnung zu spät bezahlt wurde. Ein Dauerauftrag oder eine Erinnerung verhindert das nächste Mal.'),
     (RegExp(r'auslandseinsatz|fremdw[äa]hrung|currency|w[äa]hrungsumrechnung', caseSensitive: false),
         'Eine Gebühr der Bank für eine Zahlung in fremder Währung oder im Ausland. Eine Karte ohne Auslandsgebühr spart das.'),
     (RegExp(r'abschluss|rechnungsabschluss|entgeltabrechnung|kontof[üu]hrung|kontoentgelt', caseSensitive: false),
@@ -56,8 +60,17 @@ class BookingText {
       }
     } else {
       var viaWallet = false;
-      for (final (i, (re, sentence)) in _rules.indexed) {
+      // a debt collector matters more than how it was paid
+      final collector = _rules.indexWhere((r) => r.$2.startsWith('Eine Zahlung an ein Inkassobüro'));
+      final order = [
+        if (_rules[collector].$1.hasMatch(text)) collector,
+        for (var i = 0; i < _rules.length; i++)
+          if (i != collector) i
+      ];
+      for (final i in order) {
+        final (re, sentence) = _rules[i];
         if (!re.hasMatch(text)) continue;
+        if (i == collector) viaWallet = true;
         // PayPal and Klarna pull the debit themselves, their sentence says so
         if (i == _rules.length - 1 && viaWallet) continue;
         if (i <= 1) viaWallet = true;

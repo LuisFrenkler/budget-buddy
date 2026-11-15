@@ -101,15 +101,27 @@ class GuestBuddy {
   static String offline(String question) {
     final net = LocalBuddy.netAnswer(question.toLowerCase());
     if (net != null) return net;
+    final q = question.toLowerCase();
+    // "What is a tax class?" asks for the word, not for the payslip step
+    final term = _term(q);
+    final asksWord = RegExp(r'^(was (ist|sind|bedeutet|heißt|heisst)|erklär|what( i|\x27)s|what are|what does|explain|define)\b')
+        .hasMatch(q.trim());
+    if (asksWord && term != null) return _termAnswer(term);
     final step = LifeStages.stepFor(question);
     if (step != null) return step.offline;
-    final q = question.toLowerCase();
-    for (final t in Glossary.terms) {
-      final words = t.words.map((w) => w.toLowerCase());
-      if (words.any((w) => RegExp('(^|[^a-zäöüß])${RegExp.escape(w)}([^a-zäöüß]|\$)').hasMatch(q))) {
-        return tr('**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.', {'x': t.term, 'y': t.text});
-      }
-    }
+    if (term != null) return _termAnswer(term);
     return tr('Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.');
   }
+
+  static GlossaryTerm? _term(String q) {
+    for (final t in Glossary.terms) {
+      final words = t.words.map((w) => w.toLowerCase());
+      if (words.any((w) => RegExp('(^|[^a-zäöüß])${RegExp.escape(w)}([^a-zäöüß]|\$)').hasMatch(q))) return t;
+    }
+    return null;
+  }
+
+  static String _termAnswer(GlossaryTerm t) => tr(
+      '**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.',
+      {'x': t.term, 'y': t.text});
 }

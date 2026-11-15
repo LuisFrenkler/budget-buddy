@@ -112,4 +112,12 @@ void main() {
       expect(hit, isNull, reason: 'German "${hit?.group(0)}" in: $a');
     });
   }
+
+  test('a question for a word gets the word, in both languages', () {
+    expect(GuestBuddy.offline('What is a tax class?'), startsWith('**Tax class**:'));
+    L10n.lang.value = 'de';
+    expect(GuestBuddy.offline('Was ist eine Steuerklasse?'), startsWith('**Steuerklasse**:'));
+    // the payslip step still answers the practical question
+    expect(GuestBuddy.offline('Wie prüfe ich die Steuerklasse auf meiner Gehaltsabrechnung'), isNot(startsWith('**Steuerklasse**')));
+  });
 }

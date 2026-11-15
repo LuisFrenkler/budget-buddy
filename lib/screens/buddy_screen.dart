@@ -1994,10 +1994,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ProposalKind.reminder => Icons.notifications_none_rounded,
       ProposalKind.save => Icons.savings_outlined,
     };
+    // one card is one unit for a screen reader; buttons say which card they act on
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: dropped ? 0.55 : 1,
-      child: Container(
+      child: Semantics(
+        container: true,
+        child: Container(
         margin: const EdgeInsets.only(top: 8),
         padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
         decoration: BoxDecoration(
@@ -2027,8 +2030,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
           if (done != null)
             Row(children: [
               Expanded(
-                child: Text('✓ $done',
-                    style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35)),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text('✓ $done',
+                      semanticsLabel: tr('Erledigt: {x}', {'x': done}),
+                      style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35)),
+                ),
               ),
               if (p.kind != ProposalKind.cancel)
                 TextButton(
@@ -2046,7 +2053,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   final p = m.proposals[i];
                   BuddyDeclined.add(p.kind.name, '${p.title} (${p.detail})');
                 },
-                child: Text(tr('Verwerfen')),
+                child: Text(tr('Verwerfen'), semanticsLabel: tr('{x} verwerfen', {'x': p.title})),
               ),
               const Spacer(),
               FilledButton(
@@ -2064,10 +2071,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     }
                   }
                 },
-                child: Text(tr(p.confirm)),
+                child: Text(tr(p.confirm), semanticsLabel: '${tr(p.confirm)}: ${p.title}'),
               ),
             ]),
         ]),
+      ),
       ),
     );
   }

@@ -12,9 +12,32 @@ class BuddyChartCard extends StatelessWidget {
   final BuddyChart chart;
   const BuddyChartCard(this.chart, {super.key});
 
+  // what the chart shows, in one sentence for a screen reader
+  static String describe(BuddyChart c) {
+    final rows = c.rows.take(8);
+    final parts = switch (c.kind) {
+      ChartKind.months => [
+          for (final r in rows)
+            tr('{x}: Einnahmen {y}, Ausgaben {z}', {'x': r.label, 'y': Money.format(r.a), 'z': Money.format(r.b)})
+        ],
+      ChartKind.categories => [for (final r in rows) '${r.label} ${Money.format(r.a)}'],
+      ChartKind.plan => rows.isEmpty
+          ? <String>[]
+          : [
+              tr('nach {x} Monaten {y} von {z}',
+                  {'x': c.rows.length, 'y': Money.format(c.rows.last.a), 'z': Money.format(c.rows.last.b)})
+            ],
+    };
+    return tr('Diagramm {x}: {y}', {'x': c.title, 'y': parts.join('; ')});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Semantics(
+      container: true,
+      label: describe(chart),
+      excludeSemantics: true,
+      child: Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
@@ -31,6 +54,7 @@ class BuddyChartCard extends StatelessWidget {
           ChartKind.plan => _plan(),
         },
       ]),
+      ),
     );
   }
 
