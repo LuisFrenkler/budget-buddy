@@ -37,18 +37,9 @@ Gleicher Zeilenbau überall: `product_event 2026-11-16 waitlist_signup`.
 - Bank: `backend/server.dart`, `_callback`, nachdem die Session gespeichert ist. Eine Zeile, ohne Bankname und ohne IBAN.
 - Trial und Paid: `PlusService._store`. Trial, solange `inTrial`. Paid, wenn die Probezeit vorbei ist und eine Zahlungsfrist schon erreicht wurde. Einmal pro Installation (`lib/services/product_events.dart`). Stripe und die Stores bleiben die Zahl, die du zitierst. Der Demo-Checkout ohne `STRIPE_SECRET_KEY` ist kein Umsatz.
 - D1/D7: `ProductEvents.noteOpen` in `main`, nach dem Öffnen der Settings-Box. Tut nichts, bis `activated` den Anker-Tag geschrieben hat.
+- Activated: `ProductEvents.noteAnswer` am Ende von `BuddyService.ask` (LocalBuddy, Agent, `/ai/chat`) und in `GuestBuddy` (Live-Stream sowie Offline mit Zahl). Nicht für `BuddyAppGuide` (zitiert den Plus-Preis). Nach einem `\u0000restart` zählt nur der Text danach.
 
-**Noch nicht angeschlossen: `activated`**
-
-`BuddyService.ask` wird gerade um die App-Hilfe (`BuddyAppGuide`) erweitert. Dort jetzt eine Zeile reinzuschreiben kollidiert mit dieser Änderung. Der Aufruf, sobald `ask` stillsteht:
-
-```dart
-await ProductEvents.noteAnswer(text);
-```
-
-Nur für die fertige Antwort von LocalBuddy, dem Agenten oder `/ai/chat`. Nicht für `BuddyAppGuide`: der zitiert `4,99 €` und würde sonst jede Preisfrage als Aktivierung zählen. Kommt im Stream `BuddyService.restart` (`\u0000restart`), zählt nur der Text danach.
-
-`ProductEvents.send` ist null. Nichts verlässt das Telefon, bis ein `POST /events` existiert. Bis dahin stehen `activated`, `d1`, `d7`, `trial_start` und `paid` nur auf dem jeweiligen Gerät (`debugPrint` und die Settings-Keys `pe_*`). Im Montagsblatt steht dort „nicht erhoben“, nicht eine Schätzung.
+`ProductEvents.send` ist null. Nichts verlässt das Telefon, bis ein `POST /events` existiert. Bis dahin stehen `activated`, `d1`, `d7`, `trial_start` und `paid` nur auf dem jeweiligen Gerät (`debugPrint` und die Settings-Keys `pe_*`).
 
 Referral als Kanal zählt erst, wenn `ref` auf einem fremden Gerät ankommt. Unbekannte Codes speichert `Growth.join` nicht.
 

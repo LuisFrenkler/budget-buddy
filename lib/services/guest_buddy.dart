@@ -10,10 +10,12 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 import 'backend_service.dart';
+import 'buddy_app_guide.dart';
 import 'glossary.dart';
 import 'life_stages.dart';
 import '../l10n/l10n.dart';
 import 'local_buddy.dart';
+import 'product_events.dart';
 
 class GuestBuddy {
   static const perDay = 3;
@@ -86,6 +88,7 @@ class GuestBuddy {
       });
     final conn = http.Client();
     _liveClient = conn;
+    final said = StringBuffer();
     try {
       final res = await conn.send(req).timeout(const Duration(seconds: 30));
       if (gen != _askGen) return;
@@ -105,9 +108,13 @@ class GuestBuddy {
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
         if (event['left'] is int) await _setLeft(event['left'] as int);
-        if (event['t'] != null) yield event['t'] as String;
+        if (event['t'] != null) {
+          said.write(event['t'] as String);
+          yield event['t'] as String;
+        }
         if (event['error'] != null) throw '${event['error']}';
       }
+      if (gen == _askGen) await ProductEvents.noteAnswer(said.toString());
     } finally {
       if (identical(_liveClient, conn)) _liveClient = null;
       conn.close();
@@ -116,8 +123,14 @@ class GuestBuddy {
 
   // without the AI: life stage steps and money words, otherwise an honest note
   static String offline(String question) {
+    final guide = BuddyAppGuide.answerOrNull(question);
+    if (guide != null) return guide;
     final net = LocalBuddy.netAnswer(question.toLowerCase());
-    if (net != null) return net;
+    if (net != null) {
+      // fire-and-forget: offline guest path is sync for the UI
+      unawaited(ProductEvents.noteAnswer(net));
+      return net;
+    }
     final q = question.toLowerCase();
     // "What is a tax class?" asks for the word, not for the payslip step
     final term = _term(q);
@@ -125,7 +138,10 @@ class GuestBuddy {
         .hasMatch(q.trim());
     if (asksWord && term != null) return _termAnswer(term);
     final step = LifeStages.stepFor(question);
-    if (step != null) return step.offline;
+    if (step != null) {
+      unawaited(ProductEvents.noteAnswer(step.offline));
+      return step.offline;
+    }
     if (term != null) return _termAnswer(term);
     return tr('Die KI ist ohne Konto gerade nicht da. Offline gehen Erster Job, Umzug, Zusammenziehen und Begriffe wie ETF oder Steuerklasse.\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.');
   }

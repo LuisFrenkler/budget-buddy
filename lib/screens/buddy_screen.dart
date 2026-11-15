@@ -1,5 +1,6 @@
 import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
+import '../services/buddy_app_guide.dart';
 import '../services/buddy_help.dart';
 import '../services/buddy_journal.dart';
 import '../services/life_progress.dart';
@@ -320,6 +321,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
     setState(() {
       _messages.add(_Message(true, question));
       _messages.add(answer);
+    });
+    _persist();
+    _scrollDown();
+  }
+
+  void _appGuide(String question) {
+    _input.clear();
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, BuddyAppGuide.answerOrNull(question) ?? ''));
     });
     _persist();
     _scrollDown();
@@ -816,6 +827,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _speakNext = _spokenInput && question == _input.text.trim();
     _spokenInput = false;
     HapticFeedback.selectionClick();
+    if (_photo == null && BuddyAppGuide.matches(question)) return _appGuide(question);
     if (_photo == null && BuddyHelp.matches(question)) return _help(question);
     // privacy is answered from the app's own list, never improvised
     if (_photo == null && DataMap.matches(question)) return _privacy(question);

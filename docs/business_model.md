@@ -2,7 +2,7 @@
 
 Stand 15. Nov 2026. Gesprächsunterlage, keine Traction-Folie.
 
-Preise, Trial und Produkt-Quotas stehen in `PlusService` (`lib/services/plus_service.dart`) und in denselben Konstanten auf dem Server: 30 Fragen, 3 Scans, 1 Ziel. `docs/launch.md` nennt 5 Gratis-Fragen im Monat. Das ist die veraltete Checkliste, nicht eine zweite Wahrheit.
+Preise, Trial und Produkt-Quotas stehen in `PlusService` (`lib/services/plus_service.dart`) und in denselben Konstanten auf dem Server: 30 Fragen, 3 Scans, 1 Ziel. Dieselbe Zahl steht in `docs/launch.md`.
 
 **Traction: keine.** Kein Store, keine veröffentlichte Waitlist-Zahl, kein Umsatz, kein D7. Der Demo-Modus der Landing antwortet mit Platz 128 von 412. Das ist fest verdrahtet und keine Pipeline.
 
@@ -12,7 +12,7 @@ Preise, Trial und Produkt-Quotas stehen in `PlusService` (`lib/services/plus_ser
 
 Job: Das Gehalt ist da. Welche eine Sache tue ich diese Woche mit dem Geld? Nicht das Haushaltsbuch führen. Nicht das Depot optimieren.
 
-Landing, derselbe Satz: „Was mach ich jetzt mit meinem Gehalt?“ Store-Entwurf enger: Alltagsgeld, nicht Depot-Tracker. App und Landing heißen Ahead. Der Beschreibungstitel in `docs/store_listing_de.md` sagt BudgetBuddy, Rechtstexte und die Package-ID auch. Im Gespräch ein Name: Ahead.
+Landing, derselbe Satz: „Was mach ich jetzt mit meinem Gehalt?“ Store-Entwurf enger: Alltagsgeld, nicht Depot-Tracker. App, Landing und der Store-Entwurf heißen Ahead. Rechtstexte und die Package-ID sagen noch BudgetBuddy. Im Gespräch ein Name: Ahead.
 
 ## 2. Kunde
 
@@ -163,7 +163,7 @@ Die Haltung ist das Produkt, nicht eine fehlende Lizenz.
 - KI kann in den USA laufen. Auftragsverarbeitung und AGB sind offen (`launch.md`, SHOULD). Vault ist AES mit dem Passwort des Nutzers. Kontonummern gehen nicht ans Modell.
 - Firma: eine Person in Hamburg. Kein HRB, keine USt-Id. Für einen Soft Launch tragbar. Für eine Runde fehlt die Gesellschaft und ein Anwaltspass. Der Cap-Table ist der Name im Impressum.
 - Zahlungsbereitschaft unbekannt. 4,99 € ist ein App-Store-Preis wie viele andere. Die Gratis-Tiefe plus Offline-Antwort kann die Decke unverkäuflich machen. Dann ist die Geschichte Nutzung, nicht SaaS. Die hübschere nicht aussuchen.
-- Im Gespräch eine Zahl und ein Name: 30 / 3 / 1 aus `PlusService`, Marke Ahead. Die 5 in `launch.md` und das BudgetBuddy im Store-Beschreibungstitel, in den Rechtstexten und in der Package-ID sind der alte Stand. Beides nicht daneben stellen.
+- Im Gespräch eine Zahl und ein Name: 30 / 3 / 1 aus `PlusService`, Marke Ahead. Rechtstexte und die Package-ID sagen noch BudgetBuddy. Die 5-Fragen-Zeile ist aus `launch.md` raus. Beides nicht wieder daneben stellen.
 - Metriken sind nicht instrumentiert. Ohne die Zähler aus Abschnitt 8 ist jede Kurve erfunden.
 - Distribution ist eine Person, die das Produkt gebaut hat. Das beantwortet nicht, wer die ersten tausend Weekly holt. Ein unfairer Kanal ist nicht dokumentiert.
 - Weg zur Venture-Größe: nicht beschrieben. DE-Soft-Launch ist der Plan. Ein Satz „DACH, dann stoppen oder weiter“ fehlt absichtlich, solange er nur eine TAM wäre.

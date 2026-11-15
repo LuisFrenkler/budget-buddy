@@ -16,6 +16,7 @@ import '../models/transaction.dart';
 import '../utils/theme.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'buddy_app_guide.dart';
 import 'buddy_check.dart';
 import 'buddy_declined.dart';
 import 'buddy_journal.dart';
@@ -32,6 +33,7 @@ import 'ledger_busy.dart';
 import 'forecast_service.dart';
 import 'local_buddy.dart';
 import 'plus_service.dart';
+import 'product_events.dart';
 import 'quick_parser.dart';
 import 'recurring_service.dart';
 import 'split_service.dart';
@@ -297,22 +299,26 @@ class BuddyService {
   static Stream<String> ask(List<ChatMessage> history,
       {required bool live}) async* {
     final gen = ++_askGen;
-    if (!live) {
-      // offline: the answer is ready at once; hand it out in small pieces so
-      // it reads like the live one
-      final text = LocalBuddy.answer(
-        history.last.text,
-        snapshot(),
-        history: [
-          for (final m in history) (fromUser: m.fromUser, text: m.text)
-        ],
-      );
+    final guide = history.isEmpty ? null : BuddyAppGuide.answerOrNull(history.last.text);
+    if (guide != null || !live) {
+      // app help and offline answers are ready at once; hand them out in
+      // small pieces so they read like the live one
+      final text = guide ??
+          LocalBuddy.answer(
+            history.last.text,
+            snapshot(),
+            history: [
+              for (final m in history) (fromUser: m.fromUser, text: m.text)
+            ],
+          );
       for (final word in RegExp(r'\S+\s*').allMatches(text)) {
         if (gen != _askGen) return;
         await Future.delayed(const Duration(milliseconds: 36));
         if (gen != _askGen) return;
         yield word.group(0)!;
       }
+      // app-help can name the Plus price; that is not an activation
+      if (guide == null && gen == _askGen) await ProductEvents.noteAnswer(text);
       return;
     }
 
@@ -341,6 +347,7 @@ class BuddyService {
       });
     final conn = client();
     _liveClient = conn;
+    final said = StringBuffer();
     try {
       final res = await conn.send(req).timeout(const Duration(seconds: 30));
       if (gen != _askGen) return;
@@ -354,9 +361,13 @@ class BuddyService {
         if (gen != _askGen) return;
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
-        if (event['t'] != null) yield event['t'] as String;
+        if (event['t'] != null) {
+          said.write(event['t'] as String);
+          yield event['t'] as String;
+        }
         if (event['error'] != null) throw '${event['error']}';
       }
+      if (gen == _askGen) await ProductEvents.noteAnswer(said.toString());
     } finally {
       if (identical(_liveClient, conn)) _liveClient = null;
       conn.close();
@@ -532,14 +543,20 @@ class BuddyService {
         ];
         if (calls.isEmpty) {
           // the number check, once per answer and only while a step is left
-          if (checked || step >= maxSteps - 1) return;
+          if (checked || step >= maxSteps - 1) {
+            if (gen == _askGen) await ProductEvents.noteAnswer(said.toString());
+            return;
+          }
           checked = true;
           final lang = L10n.lang.value;
           final loose = BuddyCheck.loose(said.toString(),
               data: looked,
               texts: [for (final m in history) m.text],
               lang: lang);
-          if (loose.isEmpty) return;
+          if (loose.isEmpty) {
+            if (gen == _askGen) await ProductEvents.noteAnswer(said.toString());
+            return;
+          }
           messages.add({'role': 'assistant', 'content': done['content']});
           messages.add({
             'role': 'user',
