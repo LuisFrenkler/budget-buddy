@@ -11,19 +11,19 @@ class BuddyHelp {
 
   static ({String text, List<String> chips}) answer({bool guest = false}) {
     final text = guest
-        ? tr('Ich bin Buddy, dein Coach fürs Geld. Ohne Konto erkläre ich dir Begriffe und Regeln, zum Beispiel:\n\n'
-            '- **Brutto und Netto:** was von deinem Gehalt bleibt, nach den Regeln 2026\n'
-            '- **Erster Job:** Abrechnung, Betriebsrente, Notgroschen, Sparrate\n'
+        ? tr('Ohne Konto erkläre ich Begriffe und Regeln. Zum Beispiel:\n\n'
+            '- **Brutto und Netto:** was vom Gehalt bleibt\n'
+            '- **Erster Job:** Abrechnung, Notgroschen, Sparrate\n'
             '- **Begriffe:** ETF, Steuerklasse, Schufa, Dispo\n\n'
-            'Mit einem kostenlosen Konto rechne ich mit deinen echten Zahlen.\n\n'
+            'Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.\n\n'
             'Nächster Schritt: Frag mich, was von 3.000 € brutto netto bleibt.')
-        : tr('Ich rechne mit deinen echten Zahlen und sag dir, was als Nächstes dran ist. Zum Beispiel:\n\n'
-            '- **Dein Monat:** was bis Monatsende frei ist, und ob du dir etwas leisten kannst\n'
-            '- **Sparen:** Sparziele, Notgroschen, Sparrate nach dem Gehalt, Abos und Bankgebühren, die zu viel kosten\n'
-            '- **Verträge:** Kündigungsfristen ausrechnen und das Schreiben vorbereiten\n'
-            '- **Gehalt und Steuer:** Brutto-Netto 2026, deine Abrechnung prüfen (Foto reicht), Steuererstattung schätzen\n'
-            '- **Planen:** Wochenplan, Monatsabschluss, Rentenlücke grob\n\n'
-            'Ich schlage vor, du entscheidest: Gespeichert wird erst, wenn du auf Übernehmen tippst, und fast alles kannst du zurücknehmen.\n\n'
+        : tr('Ich rechne mit deinen Zahlen. Zum Beispiel:\n\n'
+            '- **Monat:** was bis Monatsende frei ist\n'
+            '- **Sparen:** Ziele, Notgroschen, Sparrate\n'
+            '- **Verträge:** Frist und Kündigung\n'
+            '- **Gehalt:** Brutto-Netto, Abrechnung, Steuer\n'
+            '- **Plan:** Woche, Monatsabschluss, Rente\n\n'
+            'Gespeichert wird erst, wenn du auf Übernehmen tippst.\n\n'
             'Nächster Schritt: Frag mich, was diesen Monat noch frei ist.');
     final chips = guest
         ? [tr('Was bleibt von 3.000 € brutto netto?'), tr('Wie viel Notgroschen brauche ich?'), tr('Was ist ein ETF-Sparplan?')]

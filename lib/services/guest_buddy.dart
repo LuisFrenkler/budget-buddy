@@ -48,6 +48,18 @@ class GuestBuddy {
       _box?.put(usedKey, {'day': _today(now ?? DateTime.now()), 'n': perDay - left.clamp(0, perDay)});
 
   static bool? _live;
+  static http.Client? _liveClient;
+  static int _askGen = 0;
+
+  static void cancelAsk() {
+    _askGen++;
+    final c = _liveClient;
+    _liveClient = null;
+    try {
+      c?.close();
+    } catch (_) {}
+  }
+
   static Future<bool> live() async {
     if (_live != null) return _live!;
     try {
@@ -61,6 +73,7 @@ class GuestBuddy {
 
   // the answer, piece by piece; throws a readable message when it fails
   static Stream<String> ask(List<({bool fromUser, String text})> history) async* {
+    final gen = ++_askGen;
     final req = http.Request('POST', Uri.parse('${BackendService.base}/ai/guest'))
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode({
@@ -71,9 +84,11 @@ class GuestBuddy {
             {'role': m.fromUser ? 'user' : 'assistant', 'text': m.text}
         ],
       });
-    final client = http.Client();
+    final conn = http.Client();
+    _liveClient = conn;
     try {
-      final res = await client.send(req).timeout(const Duration(seconds: 30));
+      final res = await conn.send(req).timeout(const Duration(seconds: 30));
+      if (gen != _askGen) return;
       if (res.statusCode != 200) {
         final body = await res.stream.bytesToString();
         if (res.statusCode == 429) await _setLeft(0);
@@ -86,6 +101,7 @@ class GuestBuddy {
         throw msg;
       }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (gen != _askGen) return;
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
         if (event['left'] is int) await _setLeft(event['left'] as int);
@@ -93,7 +109,8 @@ class GuestBuddy {
         if (event['error'] != null) throw '${event['error']}';
       }
     } finally {
-      client.close();
+      if (identical(_liveClient, conn)) _liveClient = null;
+      conn.close();
     }
   }
 
