@@ -1,3 +1,4 @@
+import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
@@ -731,6 +732,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _sub = pieces.listen(
       (piece) {
         if (!mounted) return;
+        if (piece == BuddyService.restart) {
+          // a number didn't hold up: the checked answer replaces this one
+          setState(() {
+            answer
+              ..text = ''
+              ..corrected = true;
+          });
+          return;
+        }
         setState(() => answer.text += piece);
         _scrollDown();
       },
@@ -1665,7 +1675,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                                       const TypingDots(),
                                       const SizedBox(width: 10),
                                       Flexible(
-                                        child: Text(tr('schaut in {x} …', {'x': looking}),
+                                        child: Text(tr('schaut in {x} …', {'x': tr(looking)}),
                                             style: TextStyle(fontSize: 13.5, color: AppColors.textDim)),
                                       ),
                                     ]),
@@ -1695,6 +1705,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
                             : tr('KI gerade ausgelastet · Antwort offline aus deinen Daten'))
                         : (_guest ? tr('Ohne KI · aus Buddys Grundwissen') : tr('Ohne KI berechnet aus deinen Daten')),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+              ),
+            if (m.corrected && !m.streaming && !m.error)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.verified_outlined, size: 13, color: AppColors.textDim),
+                  const SizedBox(width: 4),
+                  Flexible(
+                      child: Text(tr('Buddy hat eine Zahl nachgeprüft'),
+                          style: TextStyle(fontSize: 11, color: AppColors.textDim))),
+                ]),
               ),
             if (!m.streaming)
               for (final c in m.charts) BuddyChartCard(c),
@@ -1899,7 +1920,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
           else
             Row(children: [
               TextButton(
-                onPressed: () => setState(() => m.proposalDropped.add(i)),
+                onPressed: () {
+                  setState(() => m.proposalDropped.add(i));
+                  final p = m.proposals[i];
+                  BuddyDeclined.add(p.kind.name, '${p.title} (${p.detail})');
+                },
                 child: Text(tr('Verwerfen')),
               ),
               const Spacer(),
@@ -2266,6 +2291,7 @@ class _Message {
   bool streaming = false;
   bool restored = false; // from last time: no entry animation
   bool checkIn = false; // Buddy spoke first
+  bool corrected = false; // rewritten after the number check
   List<BuddyAction> actions = const []; // next steps under an answer
   List<BuddyProposal> proposals = const []; // what Buddy's tools propose, confirmed by the user
   final Map<int, String> proposalDone = {}; // proposal index -> what was done

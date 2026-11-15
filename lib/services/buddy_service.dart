@@ -16,6 +16,8 @@ import '../models/transaction.dart';
 import '../utils/theme.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'buddy_check.dart';
+import 'buddy_declined.dart';
 import 'buddy_memory.dart';
 import 'buddy_proposals.dart';
 import 'buddy_tasks.dart';
@@ -309,6 +311,7 @@ class BuddyService {
         'erinnerungen': BuddyMemory.textsForAgent(),
         if (LifeStages.snapshot() != null) 'lebenslage': LifeStages.snapshot(),
         'offeneAufgaben': BuddyTasks.forAgent(),
+        'abgelehnt': BuddyDeclined.forAgent(),
         'sprache': L10n.lang.value,
       };
 
@@ -351,6 +354,11 @@ class BuddyService {
 
   static int _turnSeq = 0;
 
+  // sent instead of a text piece: forget what came so far, a checked answer follows
+  static const restart = '\u0000restart';
+  // set when the last answer was rewritten after the number check
+  static bool lastCorrected = false;
+
   static Stream<String> _agent(List<ChatMessage> history) async* {
     final messages = <Map<String, dynamic>>[
       for (final m in history)
@@ -371,6 +379,11 @@ class BuddyService {
       context = {...context, 'kurzinfo': toolbox.kurzinfo()};
     } catch (_) {}
     var wrote = false;
+    // for the number check: what this answer says and what it looked at
+    final said = StringBuffer();
+    final looked = <Object?>[if (context['kurzinfo'] != null) context['kurzinfo']];
+    var checked = false;
+    lastCorrected = false;
     // one id per answer, so the server can time the whole answer across steps
     final turn = '${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}${_turnSeq++}';
     try {
@@ -396,6 +409,7 @@ class BuddyService {
               if (!stepWrote && wrote) yield '\n\n';
               activity.value = null;
               stepWrote = wrote = true;
+              said.write(event['t'] as String);
               yield event['t'] as String;
             }
             if (event['step'] != null) done = (event['step'] as Map).cast<String, dynamic>();
@@ -406,7 +420,23 @@ class BuddyService {
         }
         if (done == null) throw tr('Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.');
         final calls = [for (final c in (done['tools'] as List? ?? const [])) (c as Map).cast<String, dynamic>()];
-        if (calls.isEmpty) return;
+        if (calls.isEmpty) {
+          // the number check, once per answer and only while a step is left
+          if (checked || step >= maxSteps - 1) return;
+          checked = true;
+          final lang = L10n.lang.value;
+          final loose = BuddyCheck.loose(said.toString(),
+              data: looked, texts: [for (final m in history) m.text], lang: lang);
+          if (loose.isEmpty) return;
+          messages.add({'role': 'assistant', 'content': done['content']});
+          messages.add({'role': 'user', 'content': BuddyCheck.recheck(loose, lang: lang)});
+          said.clear();
+          wrote = false;
+          lastCorrected = true;
+          activity.value = 'deine Zahlen noch einmal';
+          yield restart;
+          continue;
+        }
         toolbox ??= tools();
         _lastTools = toolbox;
         activity.value = '${calls.first['zeigt'] ?? 'deine Zahlen'}';
@@ -417,6 +447,7 @@ class BuddyService {
             for (final c in calls)
               () {
                 final result = toolbox!.run('${c['name']}', (c['input'] as Map?)?.cast<String, dynamic>() ?? const {});
+                looked.add(result);
                 return {
                   'type': 'tool_result',
                   'tool_use_id': c['id'],

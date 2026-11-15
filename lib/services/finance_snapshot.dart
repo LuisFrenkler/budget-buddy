@@ -288,6 +288,7 @@ class FinanceSnapshot {
             'proMonat': _eur(c.monthlyCents),
             'kategorie': c.category,
             'naechste': _day(c.nextDate),
+            'seit': _day(c.payments.first.date),
           }
       ],
       if (contracts.length > 20) 'weitereVertraege': contracts.length - 20,
