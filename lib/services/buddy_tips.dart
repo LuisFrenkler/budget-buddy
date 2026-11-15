@@ -1,14 +1,17 @@
 // Buddy's short tip on Start: the one thing in the user's own numbers worth
 // a look right now, with the question that leads into the chat. Null when
 // nothing stands out; the card then shows its general questions.
+import 'package:hive/hive.dart';
 import '../models/budget.dart';
 import '../models/transaction.dart';
+import '../utils/merchant.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'category_coach.dart';
 import 'contracts.dart';
 import 'forecast_service.dart';
 import 'goals_service.dart';
+import 'sub_tips.dart';
 import 'vorsorge.dart';
 import 'wealth.dart';
 import 'db.dart';
@@ -58,7 +61,21 @@ class BuddyTips {
       return BuddyTip(tr('{x} ist teurer geworden.', {'x': c.name}),
           tr('Sollte ich {x} kündigen oder behalten?', {'x': c.name}));
     }
-    // 4. free cash this month is running low
+    // 4. known Abo with a cheaper path, running >6 months: once per calendar year
+    if (Hive.isBoxOpen('settings')) {
+      final box = Hive.box('settings');
+      final year = today.year;
+      for (final c in contracts) {
+        final tip = SubTips.forName(c.name);
+        if (tip == null) continue;
+        if (today.difference(c.payments.first.date).inDays < 183) continue;
+        final key = 'subTipYear_${Merchant.key(c.name)}';
+        if (box.get(key) == year) continue;
+        box.put(key, year);
+        return BuddyTip(tip.text, tr('Wie spare ich bei {x}?', {'x': tip.provider}));
+      }
+    }
+    // 5. free cash this month is running low
     final forecast = ForecastService.build(tx,
         goals: GoalsService.all(), balanceCents: balanceCents, now: today);
     if (forecast != null && forecast.freeCents >= 0 && forecast.pace == ForecastPace.tight) {
@@ -66,7 +83,7 @@ class BuddyTips {
           tr('Noch {x} frei bis Monatsende, eher knapp.', {'x': Money.format(forecast.freeCents)}),
           tr('Wie viel ist diesen Monat noch frei?'));
     }
-    // 5. many purchases at one place this month: small amounts add up
+    // 6. many purchases at one place this month: small amounts add up
     final shops = <String, ({String name, int count, int cents})>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
@@ -81,14 +98,14 @@ class BuddyTips {
       return BuddyTip(tr('Du warst diesen Monat {x}× bei {y}, zusammen {z}.', {'x': s.count, 'y': s.name, 'z': Money.format(s.cents)}),
           'Wie kann ich bei ${s.name} sparen?');
     }
-    // 6. emergency fund still thin
+    // 7. emergency fund still thin
     final emergency = Wealth.emergency(tx, now: today);
     if (emergency.targetCents > 0 && emergency.progress < 0.5) {
       return BuddyTip(
           tr('Dein Notgroschen steht bei {x} % von {y}.', {'x': (emergency.progress * 100).round(), 'y': Money.format(emergency.targetCents)}),
           'Wie baue ich einen Notgroschen auf?');
     }
-    // 7. vorsorge gap once configured
+    // 8. vorsorge gap once configured
     if (Vorsorge.configured) {
       final r = Vorsorge.build(input: Vorsorge.load(), holdings: DB.getHoldings(), goals: GoalsService.all());
       if (!r.gapClosed && r.gapMonthlyCents > 5000) {
@@ -97,7 +114,7 @@ class BuddyTips {
             tr('Wie schließe ich meine Rentenlücke?'));
       }
     }
-    // 8. several open subscriptions, gentle nudge
+    // 9. several open subscriptions, gentle nudge
     if (contracts.length >= 3) {
       return BuddyTip(tr('Du hast {x} laufende Verträge, zusammen {y} im Monat.', {'x': contracts.length, 'y': Money.format(Contracts.monthlyTotal(contracts))}),
           tr('Welche Abos und Verträge habe ich?'));

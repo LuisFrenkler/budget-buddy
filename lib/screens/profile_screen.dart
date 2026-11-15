@@ -142,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.savings_outlined,
                   title: tr('Sparquote'),
-                  subtitle: tr('Wie viel vom Einkommen übrig bleibt'),
+                  subtitle: tr('Vom Einkommen übrig'),
                   value: rate == null ? '–' : '$rate %',
                   onTap: () => _explainRate(tx),
                 ),
@@ -157,14 +157,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SettingsRow(
                     icon: Icons.manage_accounts_rounded,
                     title: tr('Mein Konto'),
-                    subtitle: tr('Name, E-Mail, Sicherheit'),
+                    subtitle: tr('Name und Sicherheit'),
                     onTap: _openAccount,
                   )
                 else
                   SettingsRow(
                     icon: Icons.person_add_alt_1_rounded,
                     title: tr('Konto erstellen'),
-                    subtitle: tr('Für Bank und neue Geräte'),
+                    subtitle: tr('Für Bank und Sync'),
                     onTap: _signUp,
                   ),
                 ValueListenableBuilder<bool>(
@@ -196,22 +196,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.savings_rounded,
                   title: tr('Budgets'),
-                  subtitle: tr('Limits im Konto'),
+                  subtitle: tr('Monatliche Limits'),
                   onTap: () => _toAccount(1),
                 ),
                 SettingsRow(
                   icon: Icons.pie_chart_outline_rounded,
                   title: tr('Kategorien'),
-                  subtitle: tr('Ausgaben sortieren'),
+                  subtitle: tr('Sortierung'),
                   onTap: () => _toAccount(2),
                 ),
               ]),
 
               SectionLabel(tr('Erscheinungsbild')),
               SettingsGroup([
-                _switch(Icons.dark_mode_rounded, tr('Dunkler Modus'), tr('Ganze App'),
+                _switch(Icons.dark_mode_rounded, tr('Dunkler Modus'), null,
                     ThemeController.isDark.value, _toggleDarkMode),
-                _switch(Icons.visibility_off_rounded, tr('Beträge verbergen'), tr('Auch auf dem Start'),
+                _switch(Icons.visibility_off_rounded, tr('Beträge verbergen'), null,
                     Settings.hideAmounts.value, (v) async {
                   await Settings.setHideAmounts(v);
                   if (mounted) setState(() {});
@@ -229,19 +229,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.flag_rounded,
                   title: tr('Sparziele'),
-                  subtitle: tr('Urlaub, Notgroschen, …'),
+                  subtitle: tr('Urlaub, Notgroschen'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.receipt_long_rounded,
                   title: tr('Verträge & Abos'),
-                  subtitle: tr('Aus Buchungen erkannt'),
+                  subtitle: tr('Erkannt'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContractsScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.call_split_rounded,
                   title: tr('Geteilte Ausgaben'),
-                  subtitle: tr('Mit Freunden teilen'),
+                  subtitle: tr('Mit Freunden'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
                 ),
               ]),
@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               SectionLabel(tr('Privatsphäre & KI')),
               SettingsGroup([
                 _switch(Icons.cloud_outlined, tr('Buddy mit KI'),
-                    tr('Nur mit deiner Zustimmung'), BuddyService.hasConsent, (v) async {
+                    tr('Nur mit Zustimmung'), BuddyService.hasConsent, (v) async {
                   await BuddyService.live();
                   await BuddyService.setConsent(v);
                   if (mounted) setState(() {});
@@ -257,13 +257,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.bookmark_outline_rounded,
                   title: tr('Was Buddy weiß'),
-                  subtitle: tr('Nur was du bestätigt hast, jederzeit löschbar'),
+                  subtitle: tr('Von dir bestätigt'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.privacy_tip_outlined,
                   title: tr('Wo deine Daten liegen'),
-                  subtitle: tr('Wer was lesen kann, und was gerade an ist'),
+                  subtitle: tr('Übersicht'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen())),
                 ),
               ]),
@@ -273,19 +273,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.card_giftcard_rounded,
                   title: tr('Freunde einladen'),
-                  subtitle: tr('Mehr Buddy-Fragen für jede Person, die mitmacht'),
+                  subtitle: tr('Mehr Buddy-Fragen'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InviteScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.chat_bubble_outline_rounded,
                   title: tr('Feedback zur Testversion'),
-                  subtitle: tr('Was hakt, was fehlt, was gefällt'),
+                  subtitle: tr('Was hakt oder fehlt'),
                   onTap: _sendFeedback,
                 ),
                 SettingsRow(
                   icon: Icons.checklist_rounded,
                   title: tr('Soft-Launch Tipps'),
-                  subtitle: tr('Was du als Tester ausprobieren kannst'),
+                  subtitle: tr('Zum Ausprobieren'),
                   onTap: _softLaunchTips,
                 ),
                 SettingsRow(
@@ -674,11 +674,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) setState(() {});
   }
 
-  Widget _switch(IconData icon, String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+  Widget _switch(IconData icon, String title, String? subtitle, bool value, ValueChanged<bool> onChanged) {
     return SettingsRow(
       icon: icon,
       title: title,
-      subtitle: subtitle,
+      subtitle: (subtitle == null || subtitle.isEmpty) ? null : subtitle,
       trailing: Switch(value: value, onChanged: onChanged),
     );
   }

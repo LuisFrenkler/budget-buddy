@@ -108,7 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final colors = passwordStrengthScale;
     return _AuthScaffold(
       title: tr('Konto erstellen'),
-      subtitle: tr('Damit sind deine Bankverbindungen nur für dich sichtbar.'),
+      subtitle: tr('Bank und Sicherung nur für dich.'),
       children: [
         AutofillGroup(
           child: Column(children: [
@@ -161,7 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ]),
         const SizedBox(height: 10),
         Text(
-          tr('Wichtig: Dein Passwort verschlüsselt die Cloud-Sicherung. Vergisst du es, kann niemand, auch wir nicht, deine Daten wiederherstellen.'),
+          tr('Passwort = Schlüssel zur Cloud. Ohne Passwort kein Wiederherstellen, auch nicht durch uns.'),
           style: TextStyle(fontSize: 12, color: AppColors.warningText, height: 1.35),
         ),
         const SizedBox(height: 18),
