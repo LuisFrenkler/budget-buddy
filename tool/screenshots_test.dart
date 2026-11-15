@@ -10,6 +10,7 @@ import 'package:budget_buddy/screens/buddy_memory_screen.dart';
 import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/screens/tax_screen.dart';
 import 'package:budget_buddy/screens/transaction_screen.dart';
+import 'package:budget_buddy/screens/contracts_screen.dart';
 import 'package:budget_buddy/services/bank_sync.dart';
 import 'package:budget_buddy/services/db.dart';
 import 'package:budget_buddy/utils/money.dart';
@@ -195,6 +196,19 @@ void main() {
     });
     await _pump(tester, const BuddyMemoryScreen());
     await _shot(tester, '05_memory');
+  });
+
+  testWidgets('21 contract tip', (tester) async {
+    await tester.runAsync(() async {
+      for (final m in [8, 9, 10, 11]) {
+        await DB.addTx(Transaction(
+            id: 'nf$m', amountCents: 1399, category: 'Unterhaltung', date: DateTime(2026, m, 3), isIncome: false, note: 'Netflix'));
+      }
+    });
+    await _pump(tester, const ContractsScreen());
+    await tester.tap(find.text('Netflix').first);
+    await tester.pump(const Duration(milliseconds: 600));
+    await _shot(tester, '21_contract_tip');
   });
 
   testWidgets('20 booking explained', (tester) async {

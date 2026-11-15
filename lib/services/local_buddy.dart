@@ -10,6 +10,7 @@ import 'finance_snapshot.dart';
 import 'forecast_service.dart';
 import 'goals_service.dart';
 import 'scenario_service.dart';
+import 'sub_tips.dart';
 import '../l10n/l10n.dart';
 import 'affordability.dart';
 import 'net_salary.dart';
@@ -162,6 +163,8 @@ class LocalBuddy {
     if (subs.isNotEmpty) {
       final sum = subs.fold<int>(0, (a, c) => a + c.monthlyCents);
       tips.add(tr('- **Abos**: {x} kosten zusammen {y} im Monat ({z} im Jahr). Brauchst du alle?', {'x': subs.map((c) => c.name).join(', '), 'y': _eur(sum), 'z': _eur(sum * 12)}));
+      final tip = subs.map((c) => SubTips.forName(c.name)).whereType<SubTip>().firstOrNull;
+      if (tip != null) tips.add('- ${tip.text}');
     }
     if (tips.isEmpty) {
       final top = _top(avg, 1);

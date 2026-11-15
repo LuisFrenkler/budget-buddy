@@ -1,12 +1,17 @@
 // How fast and how expensive Buddy is, from the server's metrics.jsonl.
 //
 //   ssh root@SERVER "cd /opt/ahead/deploy && docker compose exec -T server cat /app/.data/metrics.jsonl" > metrics.jsonl
-//   dart run tool/buddy_eval/stats.dart metrics.jsonl
+//   dart run tool/buddy_eval/stats.dart metrics.jsonl [feedback.jsonl]
+//
+// With feedback.jsonl (same folder on the server) the report adds the thumbs,
+// the reasons of the thumbs down and which tools sit in bad answers.
 //
 // Goals from the plan: first word under 1.5 s (median), under 4 s (p90);
 // a free user (30 questions) costs well under 0.30 $ a month.
 import 'dart:convert';
 import 'dart:io';
+
+import 'feedback_report.dart';
 
 double _pct(List<num> xs, double p) {
   if (xs.isEmpty) return 0;
@@ -74,5 +79,14 @@ void main(List<String> args) {
   stdout.writeln('Teuerste Konten: ${heavy.take(3).map((e) => '${e.key} ${usd(e.value)}').join(', ')}');
   if (_pct(first, .5) > 1500) {
     stdout.writeln('\n**Erstes Wort im Median über 1,5 s.** Prüfen: Modellwahl, Zahl der Schritte, Cache-Quote.');
+  }
+  if (args.length > 1) {
+    final feedback = <Map<String, dynamic>>[];
+    for (final l in File(args[1]).readAsLinesSync()) {
+      try {
+        feedback.add(jsonDecode(l) as Map<String, dynamic>);
+      } catch (_) {}
+    }
+    stdout.writeln('\n${feedbackReport(feedback)}');
   }
 }
