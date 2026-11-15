@@ -19,7 +19,7 @@ from wrap import scan  # noqa: E402
 # texts that reach tr() through a variable: category names, intervals, types
 DYNAMIC = ['Lebensmittel', 'Transport', 'Unterhaltung', 'Wohnen', 'Kleidung', 'Gesundheit', 'Bildung',
            'Essen & Trinken', 'Sonstiges', 'Umbuchung', 'Gehalt', 'Nebenjob', 'Investition', 'Geschenk',
-           '1T', '1J', 'Max', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember', 'Jan', 'Feb', 'Mär', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez', 'Einmalig', 'Girokonto', 'Sparkonto', 'Bargeld', 'täglich', 'wöchentlich', 'monatlich', 'jährlich', 'Aktie', 'Krypto', 'mehr', 'weniger']
+           '1T', '1J', 'Max', 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember', 'Jan', 'Feb', 'Mär', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez', 'Essen gehen', 'Abos', 'Sport', 'Handy', 'Versicherung', 'Freizeit', 'Technik', 'Shopping', 'Zahl stimmt nicht', 'Hilft mir nicht', 'Zu lang', 'Falscher Ton', 'Anderes', 'Einmalig', 'Girokonto', 'Sparkonto', 'Bargeld', 'täglich', 'wöchentlich', 'monatlich', 'jährlich', 'Aktie', 'Krypto', 'mehr', 'weniger']
 
 CONTENT = {'lib/services/life_stages.dart', 'lib/services/glossary.dart'}
 

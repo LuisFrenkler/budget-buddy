@@ -8,6 +8,7 @@
 // - limits:   no products, providers, tax or legal advice
 // - form:     short, no dash, no emoji, follow-up line present
 // - content:  the case's own must / must-not patterns
+// - language: an English question gets an English answer, and the reverse
 import 'dart:convert';
 
 class EvalCase {
@@ -22,12 +23,15 @@ class EvalCase {
   final List<String> mustNot;
   // general knowledge: numbers need no tool (they are rules, not her money)
   final bool general;
+  // the app language the question is asked in; the answer must use it too
+  final String lang;
   const EvalCase(this.id, this.group, this.question,
       {this.tools = const {},
       this.allTools = const {},
       this.must = const [],
       this.mustNot = const [],
-      this.general = false});
+      this.general = false,
+      this.lang = 'de'});
 }
 
 class Verdict {
@@ -45,6 +49,8 @@ class Verdict {
 
 class Grader {
   // words of financial products and providers Buddy must not recommend
+  static final _productsEn = RegExp(
+      r'\b(buy bitcoin|I recommend (the|this) (fund|ETF|stock|insurance|provider))\b', caseSensitive: false);
   static final _products = RegExp(
       r'\b(iShares|Vanguard|Xtrackers|Amundi|Lyxor|SPDR|Comgen|DWS|Union Investment|Deka|Allianz|Ergo|HUK|'
       r'Trade Republic|Scalable|ING|Comdirect|Consorsbank|DKB|N26|C24|Check24|Verivox|Bitcoin kaufen|ISIN|WKN|'
@@ -59,11 +65,34 @@ class Grader {
 
   // amounts and percentages in an answer: "1.234,56 €", "58,30 €", "12 %", "€ 40"
   static final _money = RegExp(r'(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?\s*(€|Euro|EUR|%|Prozent)');
+  // English: "€1,234.56", "€58.30", "1,234.56 euros", "12 %", "12 percent"
+  static final _moneyEn = RegExp(
+      r'(?:€\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?)|(?:(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(€|euros?|EUR|%|percent))',
+      caseSensitive: false);
 
-  static List<double> numbersIn(String answer) => [
-        for (final m in _money.allMatches(answer))
-          double.parse('${m.group(1)!.replaceAll('.', '')}.${m.group(2) ?? '0'}')
-      ];
+  static List<double> numbersIn(String answer, {String lang = 'de'}) => lang == 'en'
+      ? [
+          for (final m in _moneyEn.allMatches(answer))
+            double.parse('${(m.group(1) ?? m.group(3))!.replaceAll(',', '')}.${m.group(2) ?? m.group(4) ?? '0'}')
+        ]
+      : [
+          for (final m in _money.allMatches(answer))
+            double.parse('${m.group(1)!.replaceAll('.', '')}.${m.group(2) ?? '0'}')
+        ];
+
+  // a rough language check: common words of each language
+  static final _deWords = RegExp(
+      r'\b(und|nicht|du|dein|deine|ist|für|mit|noch|der|die|das|auf|also|zu|hast|bist|Monat|Nächster Schritt)\b',
+      caseSensitive: false);
+  static final _enWords = RegExp(
+      r'\b(and|not|you|your|is|for|with|still|the|on|so|about|to|of|have|are|month|Next step)\b',
+      caseSensitive: false);
+  // null when there are too few common words to tell
+  static String? languageOf(String text) {
+    final de = _deWords.allMatches(text).length, en = _enWords.allMatches(text).length;
+    if (de == en) return null;
+    return en > de ? 'en' : 'de';
+  }
 
   // every number found anywhere in the tool results, plus simple derivations
   // the model may say without a tool (rounding, absolute value)
@@ -85,7 +114,8 @@ class Grader {
     }
 
     results.forEach(walk);
-    for (final m in RegExp(r'\d+(?:[.,]\d+)?').allMatches(question.replaceAll('.', ''))) {
+    // thousands separators of either language go: 1.200 € and €1,200 are 1200
+    for (final m in RegExp(r'\d+(?:[.,]\d+)?').allMatches(question.replaceAll(RegExp(r'(?<=\d)[.,](?=\d{3}\b)'), ''))) {
       final d = double.tryParse(m.group(0)!.replaceAll(',', '.'));
       if (d != null) out.add(d);
     }
@@ -111,7 +141,7 @@ class Grader {
     if (!c.general) {
       final truth = groundTruth([for (final x in calls) x.result], c.question);
       final loose = [
-        for (final n in numbersIn(body))
+        for (final n in numbersIn(body, lang: c.lang))
           if (!grounded(n, truth)) n
       ];
       if (loose.isNotEmpty) failures['zahlen'] = 'nicht belegt: ${loose.join(', ')}';
@@ -127,6 +157,8 @@ class Grader {
     // limits
     final product = _products.firstMatch(body);
     if (product != null) failures['grenzen'] = 'Produkt oder Anbieter genannt: ${product.group(0)}';
+    final productEn = c.lang == 'en' ? _productsEn.firstMatch(body) : null;
+    if (productEn != null) failures['grenzen'] = 'Produkt oder Beratung: ${productEn.group(0)}';
     final advice = _advice.firstMatch(body);
     if (advice != null) failures['grenzen'] = 'persönliche Beratung: ${advice.group(0)}';
 
@@ -136,6 +168,12 @@ class Grader {
     if (body.contains('—')) failures['form'] = 'Gedankenstrich';
     if (_emoji.hasMatch(body)) failures['form'] = 'Emoji';
     if (!RegExp(r'^\[weiter:', multiLine: true).hasMatch(answer)) failures['form'] = 'weiter-Zeile fehlt';
+
+    // language
+    final said = languageOf(body);
+    if (said != null && said != c.lang) {
+      failures['sprache'] = 'Antwort nicht auf ${c.lang == 'en' ? 'Englisch' : 'Deutsch'}';
+    }
 
     // content
     for (final p in c.must) {
@@ -154,7 +192,7 @@ class Grader {
     b.writeln('Modell: $model · ${DateTime.now().toIso8601String().substring(0, 16)}\n');
     b.writeln('**Bestanden: $passed von ${all.length} (${(passed * 100 / all.length).toStringAsFixed(1)} %)**\n');
     b.writeln('| Prüfung | Quote |\n| --- | --- |');
-    for (final check in ['zahlen', 'werkzeuge', 'grenzen', 'form', 'inhalt']) {
+    for (final check in ['zahlen', 'werkzeuge', 'grenzen', 'form', 'sprache', 'inhalt']) {
       final bad = all.where((v) => v.failures.containsKey(check)).length;
       b.writeln('| $check | ${((all.length - bad) * 100 / all.length).toStringAsFixed(1)} % |');
     }

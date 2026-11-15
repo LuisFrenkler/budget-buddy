@@ -25,7 +25,7 @@ import 'net.dart';
 class PlusProducts {
   final String monthly;
   final String yearly;
-  const PlusProducts({this.monthly = 'budgetbuddy_plus_monthly', this.yearly = 'budgetbuddy_plus_yearly'});
+  const PlusProducts({this.monthly = 'ahead_plus_monthly', this.yearly = 'ahead_plus_yearly'});
 
   bool known(String id) => id == monthly || id == yearly;
   String plan(String id) => id == yearly ? 'yearly' : 'monthly';

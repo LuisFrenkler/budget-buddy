@@ -2,7 +2,9 @@
 // app actually works (local data, account server, bank access via Enable
 // Banking, Buddy via Anthropic, market data, store payments) and should be
 // reviewed by a lawyer before the app is published.
+import '../l10n/l10n.dart';
 import 'legal_info.dart';
+import 'legal_texts_en.dart';
 
 class LegalSection {
   final String heading;
@@ -20,7 +22,9 @@ class LegalTexts {
   static String get _contact => '${LegalInfo.provider}\n${LegalInfo.address}\n'
       'E-Mail: ${LegalInfo.email}${LegalInfo.phone.isEmpty ? '' : '\nTelefon: ${LegalInfo.phone}'}';
 
-  static LegalDoc get imprint => LegalDoc('Impressum', [
+  static LegalDoc get imprint => L10n.isDe ? _imprintDe : LegalTextsEn.imprint;
+
+  static LegalDoc get _imprintDe => LegalDoc('Impressum', [
         LegalSection('Angaben gemäß § 5 DDG', _contact),
         if (LegalInfo.representative.isNotEmpty) LegalSection('Vertreten durch', LegalInfo.representative),
         if (LegalInfo.register.isNotEmpty) LegalSection('Registereintrag', LegalInfo.register),
@@ -40,7 +44,9 @@ class LegalTexts {
                 'wir jedoch keine Gewähr übernehmen. Sie ersetzen keine Beratung.'),
       ]);
 
-  static LegalDoc get privacy => LegalDoc('Datenschutzerklärung', [
+  static LegalDoc get privacy => L10n.isDe ? _privacyDe : LegalTextsEn.privacy;
+
+  static LegalDoc get _privacyDe => LegalDoc('Datenschutzerklärung', [
         LegalSection(
             'Auf einen Blick',
             'Ahead ist so gebaut, dass nur du deine Finanzdaten lesen kannst. Umsätze, Budgets, '
@@ -163,7 +169,9 @@ class LegalTexts {
                 '${LegalInfo.authority}.'),
       ]);
 
-  static LegalDoc get terms => LegalDoc('Nutzungsbedingungen', [
+  static LegalDoc get terms => L10n.isDe ? _termsDe : LegalTextsEn.terms;
+
+  static LegalDoc get _termsDe => LegalDoc('Nutzungsbedingungen', [
         LegalSection(
             '1. Geltung',
             'Diese Bedingungen gelten für die Nutzung der App Ahead, angeboten von ${LegalInfo.provider}. '
@@ -212,7 +220,9 @@ class LegalTexts {
                 'unberührt.'),
       ]);
 
-  static LegalDoc get withdrawal => LegalDoc('Widerrufsbelehrung', [
+  static LegalDoc get withdrawal => L10n.isDe ? _withdrawalDe : LegalTextsEn.withdrawal;
+
+  static LegalDoc get _withdrawalDe => LegalDoc('Widerrufsbelehrung', [
         const LegalSection(
             'Widerrufsrecht',
             'Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. '
@@ -253,7 +263,9 @@ class LegalTexts {
                 '(*) Unzutreffendes streichen.'),
       ]);
 
-  static const notes = LegalDoc('Wichtige Hinweise', [
+  static LegalDoc get notes => L10n.isDe ? _notesDe : LegalTextsEn.notes;
+
+  static const _notesDe = LegalDoc('Wichtige Hinweise', [
     LegalSection(
         'Keine Anlageberatung',
         'Depotwerte, Kursverläufe und Auswertungen dienen nur deiner Übersicht. Sie sind keine Empfehlung '

@@ -1784,7 +1784,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ];
 
   Future<void> _dislike(_Message m) async {
-    final reasons = [tr('Zahl stimmt nicht'), tr('Hilft mir nicht'), tr('Zu lang'), tr('Falscher Ton'), tr('Anderes')];
+    // German keys go to the server, so feedback counts the same in both languages
+    const reasons = ['Zahl stimmt nicht', 'Hilft mir nicht', 'Zu lang', 'Falscher Ton', 'Anderes'];
     String? reason;
     final note = TextEditingController();
     final sent = await showModalBottomSheet<bool>(
@@ -1800,7 +1801,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             const SizedBox(height: 14),
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final r in reasons)
-                ChoiceChip(label: Text(r), selected: reason == r, onSelected: (_) => set(() => reason = r)),
+                ChoiceChip(label: Text(tr(r)), selected: reason == r, onSelected: (_) => set(() => reason = r)),
             ]),
             const SizedBox(height: 14),
             TextField(

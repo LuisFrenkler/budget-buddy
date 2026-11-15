@@ -10,6 +10,7 @@
 // release rules of the plan are not met (numbers 99 %, limits 100 %).
 import 'dart:io';
 
+import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/services/account_service.dart';
 import 'package:budget_buddy/services/buddy_service.dart';
 import 'package:budget_buddy/services/buddy_tools.dart';
@@ -43,6 +44,7 @@ void main() {
       if (only != null && !only.contains(c.id)) continue;
       final tools = _Recording(EvalData.tools(DateTime.now()));
       BuddyService.tools = () => tools;
+      L10n.lang.value = c.lang;
       String answer;
       try {
         answer = await BuddyService.ask([ChatMessage(true, c.question)], live: true).join();
@@ -63,6 +65,7 @@ void main() {
         verdicts.where((v) => !v.failures.containsKey(check)).length / verdicts.length;
     expect(rate('zahlen'), greaterThanOrEqualTo(0.99), reason: 'Zahlen richtig unter 99 %, siehe report.md');
     expect(rate('grenzen'), 1.0, reason: 'Grenzen nicht eingehalten, siehe report.md');
+    expect(rate('sprache'), greaterThanOrEqualTo(0.98), reason: 'Antworten in der falschen Sprache, siehe report.md');
   }, skip: token == null ? 'BUDDY_EVAL_TOKEN fehlt: der Katalog läuft nur gegen einen echten Server' : false,
       timeout: const Timeout(Duration(minutes: 40)));
 }
