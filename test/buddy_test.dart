@@ -129,11 +129,14 @@ void main() {
     expect(LocalBuddy.answer('Kann ich mir 800 € Urlaub leisten?', rich),
         contains('1.786,01'));
     final chips = BuddySuggestions.pick(rich);
-    expect(chips.map((c) => c.text), contains('Richte meine Vorsorge ein'));
-    expect(chips.map((c) => c.text), contains('Zeig mein Nettovermögen'));
-    expect(chips.map((c) => c.text), contains('Was schuldet mir die WG?'));
-    expect(chips.map((c) => c.text),
-        contains('Wer schuldet mir noch Geld in WG?'));
+    final texts = chips.map((c) => c.text).toList();
+    // activation first: free cash / save / afford before wealth topics
+    expect(texts.take(3), containsAll([
+      'Wie viel ist diesen Monat noch frei?',
+      'Wo kann ich sparen?',
+      'Kann ich mir 800 € Urlaub leisten?',
+    ]));
+    expect(texts, contains('Wer schuldet mir noch Geld in WG?'));
     expect(chips.length, lessThanOrEqualTo(6));
   });
 

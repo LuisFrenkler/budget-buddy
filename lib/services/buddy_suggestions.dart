@@ -1,5 +1,6 @@
 // Suggested Buddy questions on Start and in the chat welcome, grounded in
 // snapshot domains (depot, splits, vorsorge, wealth) plus stable fallbacks.
+// Activation first (Lenny/YC): free cash, save, afford — then context.
 import 'package:flutter/material.dart';
 import 'category_coach.dart';
 import 'finance_snapshot.dart';
@@ -8,21 +9,30 @@ import '../l10n/l10n.dart';
 typedef BuddyChip = ({IconData icon, String text});
 
 class BuddySuggestions {
-  /// Always surfaced on Start and in the empty Buddy welcome.
-  static List<BuddyChip> get anchors => [
-    (icon: Icons.elderly_rounded, text: tr('Richte meine Vorsorge ein')),
-    (icon: Icons.account_balance_rounded, text: tr('Zeig mein Nettovermögen')),
-    (icon: Icons.group_rounded, text: tr('Was schuldet mir die WG?')),
-  ];
+  /// First value: a euro answer. Surfaced before deeper wealth topics.
+  static List<BuddyChip> get activation => [
+        (icon: Icons.account_balance_wallet_rounded, text: tr('Wie viel ist diesen Monat noch frei?')),
+        (icon: Icons.savings_rounded, text: tr('Wo kann ich sparen?')),
+        (icon: Icons.flight_takeoff_rounded, text: tr('Kann ich mir 800 € Urlaub leisten?')),
+      ];
+
+  /// Always available, but after activation and live context.
+  static List<BuddyChip> get deeper => [
+        (icon: Icons.receipt_long_rounded, text: tr('Welche Abos und Verträge habe ich?')),
+        (icon: Icons.account_balance_rounded, text: tr('Zeig mein Nettovermögen')),
+        (icon: Icons.group_rounded, text: tr('Was schuldet mir die WG?')),
+        (icon: Icons.elderly_rounded, text: tr('Richte meine Vorsorge ein')),
+      ];
+
+  /// @deprecated use [activation] — kept for callers that still name anchors.
+  static List<BuddyChip> get anchors => activation;
 
   static List<BuddyChip> get fallback => [
-    (icon: Icons.flight_takeoff_rounded, text: tr('Kann ich mir 800 € Urlaub leisten?')),
-    (icon: Icons.savings_rounded, text: tr('Wo kann ich sparen?')),
-    (icon: Icons.receipt_long_rounded, text: tr('Welche Abos und Verträge habe ich?')),
-    (icon: Icons.account_balance_wallet_rounded, text: tr('Wie viel ist diesen Monat noch frei?')),
-  ];
+        ...activation,
+        ...deeper,
+      ];
 
-  /// Up to [max] chips: anchors, then context-specific, then fallbacks without duplicates.
+  /// Up to [max] chips: activation, then context-specific, then deeper, no duplicates.
   static List<BuddyChip> pick(FinanceSnapshot s, {int max = 6}) {
     final out = <BuddyChip>[];
     void add(BuddyChip c) {
@@ -31,7 +41,7 @@ class BuddySuggestions {
       out.add(c);
     }
 
-    for (final a in anchors) {
+    for (final a in activation) {
       add(a);
     }
 
@@ -58,7 +68,7 @@ class BuddySuggestions {
     if (s.depotCents > 0) {
       add((
         icon: Icons.show_chart_rounded,
-        text: 'Wie steht mein Depot?',
+        text: tr('Wie steht mein Depot?'),
       ));
     }
 
@@ -72,7 +82,7 @@ class BuddySuggestions {
       } else {
         add((
           icon: Icons.elderly_rounded,
-          text: 'Wie steht meine Altersvorsorge?',
+          text: tr('Wie steht meine Altersvorsorge?'),
         ));
       }
     }
@@ -82,7 +92,7 @@ class BuddySuggestions {
       if (missing > 0) {
         add((
           icon: Icons.savings_outlined,
-          text: 'Wie baue ich meinen Notgroschen auf?',
+          text: tr('Wie baue ich meinen Notgroschen auf?'),
         ));
       }
     } else if (s.depotCents > 0 || s.balanceCents > 50000) {
@@ -97,12 +107,12 @@ class BuddySuggestions {
       final g = openGoals.first;
       add((
         icon: Icons.flag_rounded,
-        text: 'Wie steht mein Sparziel ${g.name}?',
+        text: tr('Wie steht mein Sparziel {x}?', {'x': g.name}),
       ));
     }
 
-    for (final f in fallback) {
-      add(f);
+    for (final d in deeper) {
+      add(d);
     }
     return out.take(max).toList();
   }
