@@ -167,7 +167,18 @@ class Grader {
     if (words > 150) failures['form'] = '$words Wörter';
     if (body.contains('—')) failures['form'] = 'Gedankenstrich';
     if (_emoji.hasMatch(body)) failures['form'] = 'Emoji';
-    if (!RegExp(r'^\[weiter:', multiLine: true).hasMatch(answer)) failures['form'] = 'weiter-Zeile fehlt';
+    final next = RegExp(r'^\[weiter:\s*(.*?)\]?\s*$', multiLine: true).firstMatch(answer);
+    if (next == null) {
+      failures['form'] = 'weiter-Zeile fehlt';
+    } else {
+      final chips = next.group(1)!.split('|').map((x) => x.trim()).where((x) => x.isNotEmpty).toList();
+      if (chips.length < 2 || chips.length > 4) failures['form'] = '${chips.length} weiter-Vorschläge';
+      final long = chips.where((x) => x.split(RegExp(r'\s+')).length > 6).firstOrNull;
+      if (long != null) failures['form'] = 'weiter-Vorschlag zu lang: $long';
+    }
+    // one question back at most, not an interview
+    final asks = RegExp(r'[^.!?\n]{3,}\?').allMatches(body).length;
+    if (asks > 1) failures['form'] = '$asks Rückfragen';
 
     // language
     final said = languageOf(body);

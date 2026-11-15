@@ -10,6 +10,15 @@ class DoubleCharge {
   String get merchant => second.note ?? second.category;
 }
 
+// a direct debit that came back: the money is here again, the bill is not paid
+class ReturnedDebit {
+  final Transaction back; // the money coming back
+  final Transaction? debit; // the original debit, when it is in the bookings
+  const ReturnedDebit(this.back, this.debit);
+  String get merchant => debit?.note ?? back.note ?? back.category;
+  int get cents => back.amountCents;
+}
+
 class BankFee {
   final String kind; // konto, dispo, ausland, sonstige
   final int cents; // in the period
@@ -83,4 +92,34 @@ class Oddities {
   // fees of [days] as a year
   static int yearly(List<BankFee> fees, {int days = 90}) =>
       (fees.fold<int>(0, (s, f) => s + f.cents) * 365 / days).round();
+
+  static final _returned = RegExp(
+      r'r[üu]cklastschrift|r[üu]ckbelastung|lastschriftr[üu]ckgabe|r[üu]ckgabe lastschrift|retoure lastschrift|'
+      r'sepa[\s-]?r[üu]ckgabe|returned debit|chargeback|r-transaktion',
+      caseSensitive: false);
+
+  // money back in the last [days] that the bank marks as a returned debit,
+  // or that exactly reverses a debit of the same merchant within ten days
+  static List<ReturnedDebit> returnedDebits(List<Transaction> tx, {DateTime? now, int days = 14}) {
+    final today = now ?? DateTime.now();
+    final out = <ReturnedDebit>[];
+    for (final t in tx) {
+      if (!t.isIncome || t.date.isAfter(today) || today.difference(t.date).inDays > days) continue;
+      final marked = _returned.hasMatch('${t.note ?? ''} ${t.raw ?? ''}');
+      Transaction? debit;
+      for (final d in tx) {
+        if (d.isIncome || d.amountCents != t.amountCents || d.date.isAfter(t.date)) continue;
+        if (t.date.difference(d.date).inDays > 10) continue;
+        final k = _key(d.note);
+        if (k.length >= 3 && (_key(t.note).contains(k) || _key(t.raw).contains(k))) debit = d;
+      }
+      // a plain refund of a purchase is no returned debit: it needs the bank's word or a debit text
+      final debitText = debit != null &&
+          RegExp(r'lastschrift|mandat|sepa|direct debit', caseSensitive: false).hasMatch(debit.raw ?? '');
+      final refund = RegExp(r'erstattung|refund|gutschrift|r[üu]ckzahlung|storno', caseSensitive: false)
+          .hasMatch('${t.note ?? ''} ${t.raw ?? ''}');
+      if (marked || (debitText && !refund)) out.add(ReturnedDebit(t, debit));
+    }
+    return out;
+  }
 }

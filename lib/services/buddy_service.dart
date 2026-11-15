@@ -118,6 +118,14 @@ class BuddyService {
     );
   }
 
+  // the cash on the accounts today, when the person told the app the balance
+  static int? cashCents() => _try(() {
+        if (!OnboardingService.balanceKnown) return null;
+        final tx = DB.getTx();
+        if (tx.isEmpty) return null;
+        return LedgerBusy.cashOr(DB.balanceOf(tx) + MoneyAccounts.openingTotal);
+      }, null);
+
   // what the month leaves after fixed costs, when the balance is known
   static int? freeCents() => _try(() {
         if (!OnboardingService.balanceKnown) return null;

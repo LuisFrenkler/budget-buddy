@@ -612,7 +612,8 @@ oder Passwörter.''';
     {
       'name': 'monatsprognose',
       'description': 'Was bis Monatsende frei ist und pro Tag, übliches Einkommen, Fixkosten, was schon '
-          'ausgegeben ist, noch fällige Fixkosten, dazu die Budgets mit Stand.',
+          'ausgegeben ist, noch fällige Fixkosten, dazu die Budgets mit Stand. Droht das Konto vor dem nächsten '
+          'Gehalt ins Minus zu rutschen, steht das unter minusVorDemGehalt: dann sag es zuerst.',
       'input_schema': {'type': 'object', 'properties': {}, 'additionalProperties': false},
     },
     {
@@ -749,7 +750,8 @@ oder Passwörter.''';
     },
     {
       'name': 'auffaelligkeiten',
-      'description': 'Sucht doppelte Abbuchungen (gleicher Händler, gleicher Betrag, innerhalb von drei Tagen) und '
+      'description': 'Sucht doppelte Abbuchungen (gleicher Händler, gleicher Betrag, innerhalb von drei Tagen), '
+          'zurückgegangene Lastschriften (Rechnung noch offen) und '
           'Bankgebühren (Kontoführung, Dispozinsen, Auslandseinsatz) samt Hochrechnung aufs Jahr. Für Fragen wie '
           '„Wurde ich doppelt belastet?“, „Was kostet mich meine Bank?“ und beim Sparen.',
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},

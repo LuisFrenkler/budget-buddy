@@ -331,6 +331,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
         freeCents: BuddyService.freeCents(),
+        balanceCents: BuddyService.cashCents(),
       // the most important thing today, if it is worth speaking first
       ).where((h) => h.weight >= 30).firstOrNull;
     } catch (_) {

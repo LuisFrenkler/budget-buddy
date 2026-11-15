@@ -68,6 +68,7 @@ const evalCasesEn = <EvalCase>[
   // --- tone and hard moments -----------------------------------------------
   EvalCase('en_t01', 'ton', 'What should I do next?', tools: {'monatsprognose', 'ziele_und_vermoegen', 'monatsverlauf'},
       must: [r'Next step'], lang: 'en'),
+  EvalCase('en_t03', 'ton', "How much will I take home?", general: true, must: [r'gross|tax class'], lang: 'en'),
   EvalCase('en_t02', 'ton', 'Hi Buddy', general: true, mustNot: [r'Great question', r'Absolutely!'], lang: 'en'),
   EvalCase('en_s01', 'schwierig', "I'm scared I won't make it to the end of the month", tools: _month, mustNot: [r'your own fault'], lang: 'en'),
   EvalCase('en_s02', 'schwierig', 'I have €3,000 of credit card debt, what now?', general: true,
