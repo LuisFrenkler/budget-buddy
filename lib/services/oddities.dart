@@ -122,4 +122,23 @@ class Oddities {
     }
     return out;
   }
+
+  static final _dunning = RegExp(
+      r'mahngeb[üu]hr|mahnung|mahnkosten|inkasso|zahlungserinnerung|s[äa]umniszuschlag|verzugszins|'
+      r'collection agency|reminder fee|late fee',
+      caseSensitive: false);
+  static final _collector = RegExp(r'inkasso|collection agency|eos\b|creditreform|inf?oscore|riverty|pair finance|'
+      r'coeo|intrum|lowell',
+      caseSensitive: false);
+
+  // fees for paying late, or money to a debt collector, in the last [days]
+  static List<({Transaction tx, bool collector})> dunning(List<Transaction> tx, {DateTime? now, int days = 30}) {
+    final today = now ?? DateTime.now();
+    return [
+      for (final t in tx)
+        if (!t.isIncome && !t.date.isAfter(today) && today.difference(t.date).inDays <= days)
+          if (_dunning.hasMatch('${t.note ?? ''} ${t.raw ?? ''}') || _collector.hasMatch('${t.note ?? ''} ${t.raw ?? ''}'))
+            (tx: t, collector: _collector.hasMatch('${t.note ?? ''} ${t.raw ?? ''}'))
+    ]..sort((a, b) => b.tx.date.compareTo(a.tx.date));
+  }
 }

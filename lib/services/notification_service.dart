@@ -210,7 +210,7 @@ class NotificationService {
         HintKind.budgetOver || HintKind.budgetClose || HintKind.budgetUnreal || HintKind.bigExpense || HintKind.lowMonth =>
           NotifyTopic.spending,
         HintKind.salaryIn || HintKind.salaryUp || HintKind.taxReturn || HintKind.goalReached || HintKind.monthReview || HintKind.goalBehind => NotifyTopic.buddy,
-        HintKind.doubleCharge || HintKind.bankFees || HintKind.returnedDebit => NotifyTopic.contracts,
+        HintKind.doubleCharge || HintKind.bankFees || HintKind.returnedDebit || HintKind.dunning => NotifyTopic.contracts,
         HintKind.overdraft => NotifyTopic.spending,
         HintKind.weekPlan => NotifyTopic.buddy,
         HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,

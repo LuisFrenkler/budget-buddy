@@ -752,7 +752,7 @@ oder Passwörter.''';
     {
       'name': 'auffaelligkeiten',
       'description': 'Sucht doppelte Abbuchungen (gleicher Händler, gleicher Betrag, innerhalb von drei Tagen), '
-          'zurückgegangene Lastschriften (Rechnung noch offen) und '
+          'zurückgegangene Lastschriften (Rechnung noch offen), Mahngebühren und Zahlungen an Inkassobüros und '
           'Bankgebühren (Kontoführung, Dispozinsen, Auslandseinsatz) samt Hochrechnung aufs Jahr. Für Fragen wie '
           '„Wurde ich doppelt belastet?“, „Was kostet mich meine Bank?“ und beim Sparen.',
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},

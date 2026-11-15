@@ -659,6 +659,10 @@ class BuddyTools {
         for (final f in fees) {'art': f.kind, 'summe': eur(f.cents), 'anzahl': f.count}
       ],
       'bankgebuehrenImJahrGeschaetzt': eur(Oddities.yearly(fees)),
+      'mahnungenUndInkasso': [
+        for (final d in Oddities.dunning(tx, now: today, days: 60))
+          {'an': d.tx.note ?? d.tx.category, 'betrag': eur(d.tx.amountCents), 'datum': _day(d.tx.date), 'inkasso': d.collector}
+      ],
       'zurueckgegangeneLastschriften': [
         for (final r in Oddities.returnedDebits(tx, now: today, days: 30))
           {'haendler': r.merchant, 'betrag': eur(r.cents), 'datum': _day(r.back.date)}

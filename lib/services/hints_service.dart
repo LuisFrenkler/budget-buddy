@@ -43,6 +43,7 @@ enum HintKind {
   goalBehind,
   overdraft,
   returnedDebit,
+  dunning,
 }
 
 // where tapping a hint leads
@@ -70,6 +71,7 @@ class HintsService {
   // then moments and plans, then plain information
   static const weights = {
     HintKind.stillCharging: 90,
+    HintKind.dunning: 89,
     HintKind.overdraft: 88,
     HintKind.returnedDebit: 86,
     HintKind.doubleCharge: 85,
@@ -233,6 +235,27 @@ class HintsService {
             question: tr('Mein Konto rutscht vor dem Gehalt ins Minus. Wie komme ich ohne Dispo bis zum {d}?',
                 {'d': Dates.dayMonth(risk.payday)})));
       }
+    }
+
+    // a reminder fee or a debt collector: something is unpaid, act before it grows
+    final dun = Oddities.dunning(tx, now: today);
+    if (dun.isNotEmpty) {
+      final d = dun.first;
+      final who = d.tx.note ?? tr(d.tx.category);
+      out.add(Hint(
+          'dunning-${d.tx.id}',
+          HintKind.dunning,
+          d.collector ? tr('Zahlung an ein Inkassobüro') : tr('Mahngebühr bei {x}', {'x': who}),
+          d.collector
+              ? tr('{x} an {y}. Prüf zuerst, ob die Forderung stimmt, bevor du weiter zahlst. Die Verbraucherzentrale hilft dabei.',
+                  {'x': Money.format(d.tx.amountCents), 'y': who})
+              : tr('{x} für eine verspätete Zahlung. Prüf, welche Rechnung offen ist, und zahl sie, bevor Inkasso daraus wird.',
+                  {'x': Money.format(d.tx.amountCents)}),
+          HintTarget.buddy,
+          urgent: d.collector,
+          question: d.collector
+              ? tr('Ich habe Geld an ein Inkassobüro ({x}) gezahlt. Was muss ich jetzt prüfen?', {'x': who})
+              : tr('Ich habe eine Mahngebühr von {x} bezahlt. Wie verhindere ich das in Zukunft?', {'x': who})));
     }
 
     // a direct debit came back: the bill is still open
