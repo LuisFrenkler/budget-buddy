@@ -1625,20 +1625,23 @@ class _BuddyScreenState extends State<BuddyScreen> {
       );
 
   Widget _suggestion(BuddyChip s) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.only(bottom: 6),
         child: Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             onTap: () => _send(s.text),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
               child: Row(children: [
-                Icon(s.icon, color: AppColors.brand, size: 19),
+                Icon(s.icon, color: AppColors.brand, size: 18),
                 const SizedBox(width: 12),
-                Expanded(child: Text(s.text, style: const TextStyle(fontWeight: FontWeight.w600))),
-                Icon(Icons.arrow_forward_rounded, color: AppColors.textDim, size: 17),
+                Expanded(
+                  child: Text(s.text,
+                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15.5, color: AppColors.text, height: 1.25)),
+                ),
+                Icon(Icons.chevron_right_rounded, color: AppColors.textDim.withValues(alpha: 0.55), size: 20),
               ]),
             ),
           ),
