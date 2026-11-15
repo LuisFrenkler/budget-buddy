@@ -6,10 +6,18 @@ import 'package:budget_buddy/models/transaction.dart';
 import 'package:budget_buddy/services/finance_snapshot.dart';
 import 'package:budget_buddy/services/guest_buddy.dart';
 import 'package:budget_buddy/services/local_buddy.dart';
+import 'package:budget_buddy/services/wealth.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Transaction _t(String note, String cat, int cents, DateTime d, {bool income = false}) =>
-    Transaction(id: '$note$d$cents', amountCents: cents, category: cat, date: d, isIncome: income, note: note);
+Transaction _t(String note, String cat, int cents, DateTime d,
+        {bool income = false}) =>
+    Transaction(
+        id: '$note$d$cents',
+        amountCents: cents,
+        category: cat,
+        date: d,
+        isIncome: income,
+        note: note);
 
 // words that only show up in a German sentence
 final _german = RegExp(
@@ -25,11 +33,17 @@ void main() {
       _t('Salary', 'Gehalt', 300000, DateTime(2026, m, 1), income: true),
       _t('Rent', 'Wohnen', 90000, DateTime(2026, m, 3)),
       _t('Netflix', 'Unterhaltung', 1399, DateTime(2026, m, 12)),
-      _t('REWE', 'Lebensmittel', m == 10 ? 60000 : 30000, DateTime(2026, m, 15)),
+      _t('REWE', 'Lebensmittel', m == 10 ? 60000 : 30000,
+          DateTime(2026, m, 15)),
     ],
   ];
   final goal = Goal(
-      id: 'g1', name: 'Holiday', emoji: '🏖️', targetCents: 80000, savedCents: 20000, createdAt: DateTime(2026, 1, 1));
+      id: 'g1',
+      name: 'Holiday',
+      emoji: '🏖️',
+      targetCents: 80000,
+      savedCents: 20000,
+      createdAt: DateTime(2026, 1, 1));
   final s = FinanceSnapshot.build(
     tx: tx,
     openingCents: 100000,
@@ -46,7 +60,7 @@ void main() {
         ausgleich: [(von: 'Anna', an: 'Me', cents: 2500)],
       ),
     ],
-    debts: [(name: 'Student loan', cents: 50000)],
+    debts: [const Debt(id: 'd1', name: 'Student loan', cents: 50000)],
     emergencyTargetCents: 300000,
     emergencyHaveCents: 50000,
   );
@@ -72,6 +86,7 @@ void main() {
     'What are my recurring payments?',
     'Do I have Plus?',
     'Hello',
+    'Do I have insurance I don\'t need?',
   ];
 
   for (final q in questions) {
@@ -86,6 +101,23 @@ void main() {
   test('the affordability answer starts with a traffic light', () {
     final a = LocalBuddy.answer('Can I afford a 800 € holiday?', s);
     expect(a, matches(RegExp(r'^(🟢|🟡|🔴) \*\*(Green|Yellow|Red):')));
+  });
+
+  test('offline insurance check names types in English', () {
+    final ins = FinanceSnapshot.build(
+      tx: tx,
+      openingCents: 100000,
+      budgets: const [],
+      holdings: const [],
+      now: now,
+      policies: [(name: 'Handyversicherung Display', monthlyCents: 999)],
+    );
+    final a = LocalBuddy.answer('Do I have insurance I don\'t need?', ins);
+    expect(a, contains('Insurance check'));
+    expect(a, contains('Phone insurance'));
+    expect(a, contains('Personal liability'));
+    final hit = _german.firstMatch(a);
+    expect(hit, isNull, reason: 'German "${hit?.group(0)}" in: $a');
   });
 
   test('a short English follow-up goes back to the last topic', () {
@@ -114,10 +146,15 @@ void main() {
   }
 
   test('a question for a word gets the word, in both languages', () {
-    expect(GuestBuddy.offline('What is a tax class?'), startsWith('**Tax class**:'));
+    expect(GuestBuddy.offline('What is a tax class?'),
+        startsWith('**Tax class**:'));
     L10n.lang.value = 'de';
-    expect(GuestBuddy.offline('Was ist eine Steuerklasse?'), startsWith('**Steuerklasse**:'));
+    expect(GuestBuddy.offline('Was ist eine Steuerklasse?'),
+        startsWith('**Steuerklasse**:'));
     // the payslip step still answers the practical question
-    expect(GuestBuddy.offline('Wie prüfe ich die Steuerklasse auf meiner Gehaltsabrechnung'), isNot(startsWith('**Steuerklasse**')));
+    expect(
+        GuestBuddy.offline(
+            'Wie prüfe ich die Steuerklasse auf meiner Gehaltsabrechnung'),
+        isNot(startsWith('**Steuerklasse**')));
   });
 }

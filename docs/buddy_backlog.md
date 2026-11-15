@@ -6,18 +6,20 @@ l10n), Übersetzungen, Testfälle im Katalog, committen, Demo veröffentlichen,
 kurz berichten. Erledigtes wandert nach unten.
 
 ## Offen
-1. Weniger Text in der ganzen App: Untertitel und Erklärsätze auf jedem Bildschirm prüfen und kürzen
-2. Startbildschirm nach dem Anmelden genauso ruhig: Zahl, eine Bemerkung, drei Wege, sonst nichts
-3. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
-4. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
-5. Abo-Spartipp auch als Hinweis, wenn ein Abo mit Tipp länger als 6 Monate läuft (einmal im Jahr)
-6. Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
-7. Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern
-8. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
-9. Datenübersicht: Serverstandort eintragen, sobald der Server steht
-10. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
+1. Weniger Text in der ganzen App: restliche Screens (Connections, Goals, Depot, …) weiter kürzen
+2. Leistungs-Check: Startzeit der App und des Buddy-Tabs messen und optimieren
+3. Monatsrückblick als teilbare Karte (Story) direkt aus dem Chat
+4. Abrechnungs-Verlauf als kleine Grafik (Brutto, Netto, Abzüge über die Monate)
+5. Datenübersicht: Serverstandort eintragen, sobald der Server steht
+6. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
+- Versicherungs-Check offline (LocalBuddy) und als Eintrag in der Vermögens-Ansicht
+- Schulden: Zinssatz pro Schuld in der Vermögens-Ansicht speichern
+- Calm Buddy-Start nach Login: Zahl, eine Bemerkung, drei Wege; Composer „Nachricht an Buddy“; Stopp während Streaming
+- Persona kürzer (ChatGPT/Claude-Stil, max. ~80 Wörter); LocalBuddy-Überblick gekürzt
+- Abo-Spartipp einmal im Jahr, wenn bekanntes Abo >6 Monate läuft
+- Profil-/Auth-/Getting-Started-Texte gekürzt
 - Zahlen-Check, verworfene Vorschläge, Kündigungsfristen
 - Gesprächsgedächtnis, Brutto-Netto 2026, Monatsabschluss, Sparrate
 - Gehaltsabrechnung prüfen, Sparziel-Rückstand

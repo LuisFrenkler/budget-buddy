@@ -3,6 +3,8 @@
 // disability cover when the income matters, the same cover twice is wasted,
 // and a few kinds are rarely worth it at 20 to 30. No providers, no tariffs:
 // Buddy asks the questions, the person decides.
+import '../l10n/l10n.dart';
+
 class InsuranceFinding {
   final String name;
   final String type; // haftpflicht, hausrat, bu, ...
@@ -14,31 +16,46 @@ class InsuranceReport {
   final List<String> twice; // types paid more than once
   final List<String> rarelyNeeded; // types often not worth it when young
   final bool liabilityMissing;
-  const InsuranceReport(this.found, this.twice, this.rarelyNeeded, this.liabilityMissing);
+  const InsuranceReport(
+      this.found, this.twice, this.rarelyNeeded, this.liabilityMissing);
 }
 
 class InsuranceCheck {
   static final _types = <String, RegExp>{
     // the more specific ones first: a Kfz-Haftpflicht is no private liability
     'kfz': RegExp(r'kfz|autoversicherung|kasko', caseSensitive: false),
-    'tier': RegExp(r'tierhalter|hundehaftpflicht|pferdehaftpflicht|tierkranken', caseSensitive: false),
+    'tier': RegExp(r'tierhalter|hundehaftpflicht|pferdehaftpflicht|tierkranken',
+        caseSensitive: false),
     'haftpflicht': RegExp(r'haftpflicht|\bphv\b', caseSensitive: false),
     'hausrat': RegExp(r'hausrat', caseSensitive: false),
     'bu': RegExp(r'berufsunf[äa]hig|\bbu\b', caseSensitive: false),
     'rechtsschutz': RegExp(r'rechtsschutz', caseSensitive: false),
     'zahnzusatz': RegExp(r'zahnzusatz|zahnversicherung', caseSensitive: false),
-    'handy': RegExp(r'handyversicherung|smartphone.?versicherung|displayschutz|gadget', caseSensitive: false),
+    'handy': RegExp(
+        r'handyversicherung|smartphone.?versicherung|displayschutz|gadget',
+        caseSensitive: false),
     'unfall': RegExp(r'unfallversicherung', caseSensitive: false),
     'risikoleben': RegExp(r'risikolebens', caseSensitive: false),
-    'kapitalleben': RegExp(r'kapitallebens|lebensversicherung', caseSensitive: false),
-    'reise': RegExp(r'reiseversicherung|reiser[üu]cktritt|reisegep[äa]ck|auslandskranken', caseSensitive: false),
+    'kapitalleben':
+        RegExp(r'kapitallebens|lebensversicherung', caseSensitive: false),
+    'reise': RegExp(
+        r'reiseversicherung|reiser[üu]cktritt|reisegep[äa]ck|auslandskranken',
+        caseSensitive: false),
     'glas': RegExp(r'glasversicherung', caseSensitive: false),
     'restschuld': RegExp(r'restschuld', caseSensitive: false),
-    'private_rente': RegExp(r'private rentenversicherung|fondsgebundene rente|riester|r[üu]rup', caseSensitive: false),
+    'private_rente': RegExp(
+        r'private rentenversicherung|fondsgebundene rente|riester|r[üu]rup',
+        caseSensitive: false),
   };
 
   // often not worth it for people starting out (Verbraucherzentrale, Stiftung Warentest)
-  static const rarely = {'handy', 'glas', 'restschuld', 'kapitalleben', 'unfall'};
+  static const rarely = {
+    'handy',
+    'glas',
+    'restschuld',
+    'kapitalleben',
+    'unfall'
+  };
 
   static String? typeOf(String name) {
     for (final e in _types.entries) {
@@ -58,9 +75,45 @@ class InsuranceCheck {
     }
     return InsuranceReport(
       found,
-      [for (final e in count.entries) if (e.value > 1) e.key],
-      {for (final f in found) if (rarely.contains(f.type)) f.type}.toList(),
+      [
+        for (final e in count.entries)
+          if (e.value > 1) e.key
+      ],
+      {
+        for (final f in found)
+          if (rarely.contains(f.type)) f.type
+      }.toList(),
       !count.containsKey('haftpflicht'),
     );
   }
+
+  static String label(String type) => switch (type) {
+        'kfz' => tr('Kfz'),
+        'tier' => tr('Tierhalter'),
+        'haftpflicht' => tr('Privathaftpflicht'),
+        'hausrat' => tr('Hausrat'),
+        'bu' => tr('Berufsunfähigkeit'),
+        'rechtsschutz' => tr('Rechtsschutz'),
+        'zahnzusatz' => tr('Zahnzusatz'),
+        'handy' => tr('Handyversicherung'),
+        'unfall' => tr('Unfallversicherung'),
+        'risikoleben' => tr('Risikoleben'),
+        'kapitalleben' => tr('Kapitallebensversicherung'),
+        'reise' => tr('Reiseversicherung'),
+        'glas' => tr('Glasversicherung'),
+        'restschuld' => tr('Restschuldversicherung'),
+        'private_rente' => tr('Private Rente'),
+        _ => type,
+      };
+
+  // short lines for LocalBuddy and the wealth view, same rules as the tool
+  static List<String> notes(InsuranceReport r) => [
+        if (r.liabilityMissing)
+          tr('Privathaftpflicht fehlt. Die ist für fast alle die wichtigste.'),
+        for (final t in r.twice)
+          tr('{x} mehr als einmal. Doppelte Deckung bringt nichts.',
+              {'x': label(t)}),
+        for (final t in r.rarelyNeeded)
+          tr('{x} lohnt sich oft nicht mit Anfang 20.', {'x': label(t)}),
+      ];
 }
