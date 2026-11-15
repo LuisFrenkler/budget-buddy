@@ -11,6 +11,7 @@ import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
 import 'net_salary.dart';
+import 'oddities.dart';
 import 'buddy_service.dart';
 import 'db.dart';
 
@@ -53,6 +54,7 @@ class BuddyTools {
     'kuendigung_vorbereiten',
     'kuendigungsfrist',
     'brutto_netto',
+    'auffaelligkeiten',
     'kategorie_vorschlagen',
     'erinnerung_vorschlagen',
     'zuruecklegen_vorschlagen',
@@ -82,6 +84,7 @@ class BuddyTools {
         'kuendigungsfrist' => _frist(input),
         'zuruecklegen_vorschlagen' => _propose(BuddyProposal.save(input)),
         'brutto_netto' => _bruttoNetto(input),
+        'auffaelligkeiten' => _auffaelligkeiten(),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -443,6 +446,28 @@ class BuddyTools {
           ? 'Ohne Beginn geschätzt: Nach der Mindestlaufzeit ist ein Vertrag jederzeit mit einem Monat Frist kündbar.'
           : 'Die Mindestlaufzeit ist vorbei: jederzeit mit höchstens einem Monat Frist kündbar.',
       'hinweis': hint,
+    };
+  }
+
+  Map<String, dynamic> _auffaelligkeiten() {
+    double eur(int c) => c / 100;
+    final doubles = Oddities.doubles(tx, now: today, days: 60);
+    final fees = Oddities.fees(tx, now: today);
+    return {
+      'doppelteAbbuchungen': [
+        for (final d in doubles)
+          {
+            'haendler': d.merchant,
+            'betrag': eur(d.cents),
+            'daten': [_day(d.first.date), _day(d.second.date)],
+          }
+      ],
+      'bankgebuehren90Tage': [
+        for (final f in fees) {'art': f.kind, 'summe': eur(f.cents), 'anzahl': f.count}
+      ],
+      'bankgebuehrenImJahrGeschaetzt': eur(Oddities.yearly(fees)),
+      'hinweis': 'Doppelt kann gewollt sein (zwei Tickets). Eine Lastschrift lässt sich 8 Wochen lang bei der Bank '
+          'zurückholen, bei Karte über den Händler oder die Bank.',
     };
   }
 

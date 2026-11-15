@@ -15,6 +15,8 @@ import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/tx_row.dart';
 import '../l10n/l10n.dart';
+import 'buddy_screen.dart';
+import '../widgets/buddy_orb.dart';
 
 // Details of one booking: amount, date, category (changeable with one tap),
 // where it came from, and how much went to the same counterparty lately.
@@ -117,9 +119,12 @@ class TransactionScreen extends StatelessWidget {
                 ),
               ]),
               ..._counterparty(context, tx, all),
+              // ask Buddy about exactly this booking
+              const SizedBox(height: 24),
+              _askBuddy(context, tx),
               // an expense paid for others: split it in a group
               if (!tx.isIncome) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
@@ -351,4 +356,30 @@ class TransactionScreen extends StatelessWidget {
       action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.addTx(tx)),
     ));
   }
+
+  // the question for Buddy that fits this booking
+  static String buddyQuestion(Transaction tx) {
+    final what = tx.note?.trim().isNotEmpty == true ? tx.note!.trim() : tr(tx.category);
+    final amount = Money.format(tx.amountCents);
+    if (tx.isIncome) {
+      return tr('Ich habe {x} von {y} bekommen. Was mache ich am besten damit?', {'x': amount, 'y': what});
+    }
+    return tr('Ich habe am {d} {x} bei {y} ausgegeben. Wie passt das in meinen Monat, und kann ich mir das öfter leisten?',
+        {'d': Dates.dayMonth(tx.date), 'x': amount, 'y': what});
+  }
+
+  Widget _askBuddy(BuildContext context, Transaction tx) => FilledButton.icon(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(50),
+          backgroundColor: AppColors.surfaceAlt,
+          foregroundColor: AppColors.text,
+        ),
+        onPressed: () {
+          final q = buddyQuestion(tx);
+          Navigator.of(context).popUntil((r) => r.isFirst);
+          BuddyScreen.ask.value = q;
+        },
+        icon: const BuddyOrb(size: 20),
+        label: Text(tx.isIncome ? tr('Buddy fragen, was ich damit mache') : tr('Kann ich mir das leisten?')),
+      );
 }
