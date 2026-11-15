@@ -59,4 +59,18 @@ void main() {
     expect(TransactionScreen.buddyQuestion(_t('b', 50000, 'Oma', DateTime(2026, 11, 14), cat: 'Geschenk', income: true)),
         contains('Was mache ich am besten damit'));
   });
+
+  test('hints are ranked: money going out by mistake before plans', () {
+    final tx = [
+      _t('a', 4999, 'Zalando', DateTime(2026, 11, 12)),
+      _t('b', 4999, 'Zalando', DateTime(2026, 11, 14)),
+    ];
+    final hints = HintsService.build(tx: tx, budgets: const [], goals: const [], freeCents: 30000, now: now);
+    expect(hints.first.kind, HintKind.doubleCharge);
+    expect(hints.map((h) => h.kind).toList().indexOf(HintKind.weekPlan), greaterThan(0));
+    for (var i = 1; i < hints.length; i++) {
+      expect(hints[i - 1].weight, greaterThanOrEqualTo(hints[i].weight));
+    }
+    expect(HintsService.top(hints, askable: true)!.kind, HintKind.doubleCharge);
+  });
 }

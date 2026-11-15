@@ -58,6 +58,8 @@ const evalCasesEn = <EvalCase>[
   EvalCase('en_d02', 'deutschland', 'Which tax class am I in as a single person in Germany?', general: true, must: [r'\b(I|1|one)\b'], lang: 'en'),
   EvalCase('en_d04', 'deutschland', "I got a job offer for €48,000 gross a year. What's left per month?",
       tools: {'brutto_netto'}, must: [r'tax class|estimate|roughly|about'], lang: 'en'),
+  EvalCase('en_d05', 'deutschland', 'Is a tax return worth it for me this year? I started in September, €3,500 gross.',
+      tools: {'steuer_schaetzung'}, must: [r'estimate|roughly|about|around'], lang: 'en'),
   EvalCase('en_d03', 'deutschland', 'What is a company pension (bAV)?', general: true, must: [r'employer'], lang: 'en'),
 
   // --- tone and hard moments -----------------------------------------------

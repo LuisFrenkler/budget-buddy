@@ -34,6 +34,7 @@ import 'splits_screen.dart';
 import 'contracts_screen.dart';
 import 'goals_screen.dart';
 import 'wealth_screen.dart';
+import 'tax_screen.dart';
 import 'vorsorge_screen.dart';
 import 'account_settings_screen.dart';
 import '../services/avatar_service.dart';
@@ -310,6 +311,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: tr('Vorsorge'),
                     subtitle: tr('Rentenlücke grob schätzen'),
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
+                  ),
+                  SettingsRow(
+                    icon: Icons.receipt_long_rounded,
+                    title: tr('Steuer {y}', {'y': DateTime.now().year}),
+                    subtitle: tr('Was mit der Steuererklärung zurückkommt'),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TaxScreen())),
                   ),
                   SettingsRow(
                     icon: Icons.swap_vert_rounded,

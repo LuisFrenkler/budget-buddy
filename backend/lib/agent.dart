@@ -740,6 +740,28 @@ oder Passwörter.''';
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
     },
     {
+      'name': 'steuer_schaetzung',
+      'description': 'Schätzt die Steuererstattung für ein Jahr (Regeln 2026): Fahrtkosten, Homeoffice, Belege aus den '
+          'Buchungen (Fortbildung, Arbeitsmittel, Gewerkschaft, Umzug, Bewerbung) und den Effekt, wenn nur ein Teil des '
+          'Jahres gearbeitet wurde. Nimmt gespeicherte Angaben; was die Person im Gespräch nennt, gib mit. Fehlt das '
+          'Brutto, frag danach.',
+      'input_schema': {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties': {
+          'jahr': {'type': 'integer'},
+          'brutto_monat': {'type': 'number'},
+          'brutto_jahr': {'type': 'number'},
+          'monate_gearbeitet': {'type': 'integer', 'description': 'im Jahr, z. B. 4 beim Start im September'},
+          'km_einfach': {'type': 'number', 'description': 'Arbeitsweg in km, einfache Strecke'},
+          'buerotage_pro_woche': {'type': 'number'},
+          'homeoffice_tage_pro_woche': {'type': 'number'},
+          'steuerklasse': {'type': 'integer', 'enum': [1, 2, 3, 4]},
+          'kirchensteuer': {'type': 'boolean'},
+        },
+      },
+    },
+    {
       'name': 'zuruecklegen_vorschlagen',
       'description': 'Schlägt vor, jetzt einen Betrag für ein bestehendes Sparziel zurückzulegen, etwa direkt nach '
           'dem Gehalt. Mit Sparkonto in der App wird umgebucht, sonst nur gezählt. Für ein neues Ziel erst '
@@ -824,6 +846,7 @@ oder Passwörter.''';
     'kuendigungsfrist': 'die Kündigungsfrist',
     'brutto_netto': 'die Gehaltsrechnung',
     'auffaelligkeiten': 'Auffälligkeiten',
+    'steuer_schaetzung': 'deine Steuer',
     'zuruecklegen_vorschlagen': 'deine Sparrate',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',

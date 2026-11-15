@@ -7,6 +7,11 @@ import 'dart:ui' as ui;
 
 import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/screens/buddy_memory_screen.dart';
+import 'package:budget_buddy/models/transaction.dart';
+import 'package:budget_buddy/screens/tax_screen.dart';
+import 'package:budget_buddy/services/db.dart';
+import 'package:budget_buddy/utils/money.dart';
+import 'package:budget_buddy/services/tax_estimate.dart';
 import 'package:budget_buddy/screens/buddy_screen.dart';
 import 'package:budget_buddy/screens/home_screen.dart';
 import 'package:budget_buddy/screens/auth_screens.dart';
@@ -139,6 +144,28 @@ void main() {
     await _shot(tester, '03_coach_welcome');
   });
 
+  testWidgets('19 onboarding', (tester) async {
+    await tester.runAsync(() async {
+      await Hive.box('settings').put('account', {'id': 'u1', 'name': 'Luis', 'email': 'luis@example.com'});
+    });
+    AccountService.current.value = Account.fromJson({'id': 'u1', 'name': 'Luis', 'email': 'luis@example.com'});
+    await _pump(tester, const BuddyScreen(tab: true));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump(const Duration(milliseconds: 500));
+    await _shot(tester, '19_onboarding_start');
+    for (final chip in [tr('Erster Job'), tr('Am Monatsende'), tr('Notgroschen'), Money.format(300000)]) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+      await tester.drag(find.byType(ListView).first, const Offset(0, -2000));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text(chip).last);
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 80)));
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+    await tester.pump(const Duration(seconds: 1));
+    await _shot(tester, '19_onboarding');
+  });
+
   testWidgets('04 coach chat', (tester) async {
     await tester.runAsync(() => BuddyHistory.save([
       SavedMessage(true, 'Ich hab im Oktober meinen ersten Job angefangen. Wie viel sollte ich sparen?',
@@ -166,6 +193,23 @@ void main() {
     });
     await _pump(tester, const BuddyMemoryScreen());
     await _shot(tester, '05_memory');
+  });
+
+  testWidgets('18 tax', (tester) async {
+    await tester.runAsync(() async {
+      await TaxEstimate.saveProfile(
+          const TaxProfile(grossMonth: 3500, monthsWorked: 4, km: 18, officeDaysPerWeek: 3, homeDaysPerWeek: 2));
+      for (final t in [
+        Transaction(id: 'tx1', amountCents: 4990, category: 'Bildung', date: DateTime(2026, 9, 12), isIncome: false, note: 'Udemy Kurs'),
+        Transaction(id: 'tx2', amountCents: 2499, category: 'Bildung', date: DateTime(2026, 10, 3), isIncome: false, note: 'Fachbuch Thalia'),
+        Transaction(
+            id: 'tx3', amountCents: 38900, category: 'Wohnen', date: DateTime(2026, 8, 28), isIncome: false, note: 'Umzugsunternehmen'),
+      ]) {
+        await DB.addTx(t);
+      }
+    });
+    await _pump(tester, TaxScreen(now: DateTime(2026, 11, 15)));
+    await _shot(tester, '18_tax');
   });
 
   testWidgets('06 share card', (tester) async {

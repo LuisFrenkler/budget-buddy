@@ -52,6 +52,7 @@ import 'wealth_screen.dart';
 import '../widgets/weekly_story.dart';
 import '../services/plus_service.dart';
 import '../l10n/l10n.dart';
+import '../services/hints_service.dart';
 
 // The start screen: one calm money story, Buddy tip, Polster, deeper topics
 // live under "Für dich" and in Profil.
@@ -429,7 +430,22 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ? ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash)
           : null;
     } catch (_) {}
-    final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash);
+    // the most important hint of the day beats the general tip
+    Hint? top;
+    try {
+      top = HintsService.top(
+          HintsService.current(
+            tx: tx,
+            budgets: DB.getBudgets(),
+            goals: GoalsService.all(),
+            subscription: PlusService.subscription.value,
+            bankValidUntil: Settings.bankValidUntil,
+            freeCents: f?.freeCents,
+          ).where((h) => h.weight >= 45 && h.question != null).toList());
+    } catch (_) {}
+    final tip = top != null
+        ? BuddyTip('${top.title}${RegExp(r'[.!?]$').hasMatch(top.title) ? '' : '.'} ${top.text}', top.question!)
+        : BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash);
     final hidden = Settings.hideAmounts.value;
     final String headline;
     final String question;
