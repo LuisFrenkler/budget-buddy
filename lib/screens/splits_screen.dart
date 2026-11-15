@@ -539,7 +539,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: Text(tr('Gerade keine Verbindung')),
-          content: Text(tr('Die anderen bekommen das erst mit, wenn du wieder online bist. Nur von diesem Gerät entfernen?')),
+          content: Text(tr('Die anderen sehen das erst, wenn du wieder online bist. Nur hier entfernen?')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Später'))),
             TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Nur hier entfernen'))),
@@ -781,7 +781,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
                     ),
                 ] else if (mine != 0 && g.expenses.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Text(tr('Sobald alle Ausgaben eingetragen sind, siehst du hier, wer wem wie viel schuldet.'),
+                  Text(tr('Sind alle Ausgaben drin, siehst du hier, wer wem wie viel schuldet.'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
                 ],
                 const SizedBox(height: 18),
@@ -845,7 +845,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
       builder: (context) => AlertDialog(
         title: Text(paid ? tr('Als überwiesen markieren?') : tr('Zahlung erhalten?')),
         content: Text(paid
-            ? tr('Du hast {x} {x2} überwiesen oder bar gegeben? Damit wird der offene Betrag in der Gruppe kleiner.', {'x': who(t.to), 'x2': Money.raw(t.cents)})
+            ? tr('{x} {x2} überwiesen oder bar gegeben? Dann wird der offene Betrag kleiner.', {'x': who(t.to), 'x2': Money.raw(t.cents)})
             : tr('{x} hat dir {x2} gegeben? Damit wird der offene Betrag in der Gruppe kleiner.', {'x': who(t.from), 'x2': Money.raw(t.cents)})),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
@@ -890,7 +890,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         builder: (context) => AlertDialog(
           backgroundColor: AppColors.surface,
           title: Text(tr('Gemeinsam rechnen')),
-          content: Text(tr('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein kostenloses Ahead-Konto.')),
+          content: Text(tr('Damit alle denselben Stand sehen, braucht jeder ein kostenloses Ahead-Konto.')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Später'))),
             TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Konto erstellen'))),
@@ -924,7 +924,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text(tr('Leute einladen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            Text(tr('Andere brauchen ein kostenloses Konto, tippen unter „Geteilt“ auf „Mit Code beitreten“ und wählen ihren Namen.'),
+            Text(tr('Die anderen: kostenloses Konto, unter Geteilt auf „Mit Code beitreten“, dann den Namen wählen.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             Center(
@@ -1017,7 +1017,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
         backgroundColor: AppColors.surface,
         title: Text('$found gefunden'),
         content: Text(
-          tr('Platz „{found}“ ist vorbereitet. Schick den Code {code}. Beim Beitreten wählt die Person den Namen „{found2}“.', {'found': found, 'code': group.code, 'found2': found}),
+          tr('Platz „{found}“ steht bereit. Code: {code}. Beim Beitreten den Namen „{found2}“ wählen.', {'found': found, 'code': group.code, 'found2': found}),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Später'))),

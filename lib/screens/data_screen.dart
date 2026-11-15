@@ -61,7 +61,7 @@ class DataScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
         children: [
           Text(
-            tr('Für jede Art von Daten: wo sie liegen, wer sie lesen kann und wie du sie stoppst. Was gerade an ist, steht oben.'),
+            tr('Pro Datenart: wo sie liegen, wer sie sieht und wie du sie stoppst. Was an ist, steht oben.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4),
           ),
           const SizedBox(height: 14),

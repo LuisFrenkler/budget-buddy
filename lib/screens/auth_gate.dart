@@ -137,7 +137,7 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
                 Text(
                     _bioAvailable
                         ? tr('Entsperr die App mit Face ID, Fingerabdruck oder deinem Code.')
-                        : tr('Dieses Gerät kann gerade nicht biometrisch entsperren. Tippe auf Entsperren zum erneuten Versuch oder fahre ohne Sperre fort (Sperre bleibt in den Einstellungen an).'),
+                        : tr('Biometrie klappt gerade nicht. Nochmal auf Entsperren, oder ohne Sperre weiter (sie bleibt in den Einstellungen an).'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, height: 1.35)),
                 const SizedBox(height: 32),

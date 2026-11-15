@@ -119,7 +119,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         builder: (context, on, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
-            Text(tr('Buddy meldet sich nur, wenn es wirklich zählt: höchstens einmal am Tag und dreimal pro Woche. Kein Spam, keine Werbung.'),
+            Text(tr('Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             SettingsGroup([
@@ -138,8 +138,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
                 child: Text(
                   kIsWeb
-                      ? tr('Dein Browser lässt Ahead keine Mitteilungen schicken. Du kannst das in den Website-Einstellungen ändern (Schloss-Symbol neben der Adresse). Die Hinweise in der App bekommst du trotzdem.')
-                      : tr('Erlaube Mitteilungen für Ahead in den Einstellungen deines Geräts. Die Hinweise in der App bekommst du trotzdem.'),
+                      ? tr('Dein Browser blockiert Mitteilungen. Änder das in den Website-Einstellungen (Schloss neben der Adresse). Hinweise in der App bleiben.')
+                      : tr('Erlaube Mitteilungen für Ahead in den Geräteeinstellungen. Hinweise in der App bleiben.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
                 ),
               ),
@@ -169,13 +169,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             const SizedBox(height: 16),
             Text(
               kIsWeb
-                  ? tr('Im Browser: Hinweise nur, während Ahead offen ist. Geplante Erinnerungen (z. B. Sonntag Wochenbericht, ablaufende Bank-Freigabe) gibt es in der iPhone- und Android-App.')
-                  : tr('Erinnerungen werden auf deinem Gerät geplant. Deine Daten gehen dafür an keinen Server.'),
+                  ? tr('Im Browser nur, solange Ahead offen ist. Geplante Erinnerungen (Wochenbericht, Bank-Freigabe) gibt es in der App.')
+                  : tr('Erinnerungen plant dein Gerät. Dafür gehen keine Daten an einen Server.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
             SectionLabel(tr('WhatsApp')),
             Text(
-              tr('Aus, bis du zustimmst. Versand über die WhatsApp Cloud API von Meta. Nur drei Arten, kein Spam und keine Werbung: Wochenbericht, Budget-Warnung, Split-Erinnerung. Deine Nummer speichern wir nicht im Klartext, nur einen Hash. Abmelden geht mit dem Schalter oder mit „Stop“ in WhatsApp.'),
+              tr('Aus, bis du zustimmst. Versand über WhatsApp (Meta): Wochenbericht, Budget-Warnung, Split-Erinnerung. Kein Spam. Nummer nur als Hash. Abmelden per Schalter oder „Stop“.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 12),

@@ -122,7 +122,7 @@ class ForecastCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary
-                    ? tr('Einkommen aus diesem Monat. Sobald drei volle Monate da sind, rechnen wir mit dem Schnitt.')
+                    ? tr('Einkommen aus diesem Monat. Ab drei vollen Monaten rechnen wir mit dem Schnitt.')
                     : tr('Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),
@@ -137,7 +137,7 @@ class ForecastCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                    tr('Begrenzt durch deinen Kontostand: Auf dem Konto ist gerade weniger, als die Rechnung hergibt (z. B. bevor das Gehalt kommt).'),
+                    tr('Begrenzt durch den Kontostand: gerade weniger auf dem Konto, als die Rechnung hergibt (z. B. vor dem Gehalt).'),
                     style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
               ),
             if (f.due.isNotEmpty) ...[
@@ -166,8 +166,8 @@ class ForecastCard extends StatelessWidget {
                   ForecastPace.relaxed =>
                     tr('Bei deinem üblichen Tempo gibst du bis Monatsende etwa {x} aus. Das passt.', {'x': Money.format(f.paceCents)}),
                   ForecastPace.tight =>
-                    tr('Bei deinem üblichen Tempo wären es bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen schon.', {'x': Money.format(f.paceCents)}),
-                  ForecastPace.over => tr('Du liegst diesen Monat über deinem Budget. Buddy hilft dir, wo es sich am leichtesten sparen lässt.'),
+                    tr('Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.', {'x': Money.format(f.paceCents)}),
+                  ForecastPace.over => tr('Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.'),
                 },
                 style: const TextStyle(height: 1.4),
               ),

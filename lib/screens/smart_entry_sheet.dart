@@ -113,7 +113,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         builder: (ctx) => AlertDialog(
           title: Text(tr('Konto für Beleg-Scan')),
           content: Text(
-              tr('Belege liest Buddy online. Dafür brauchst du ein kostenloses Konto. Tippen geht weiter ohne.')),
+              tr('Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Später'))),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Konto erstellen'))),

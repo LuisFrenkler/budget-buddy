@@ -41,22 +41,22 @@ class CompanyScreen extends StatelessWidget {
         children: [
           _block(
             tr('Über Ahead'),
-            tr('Ahead zeigt, was reinkommt, was regelmäßig weggeht und was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.'),
+            tr('Was reinkommt, was regelmäßig weggeht, was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.'),
             dim,
           ),
           _block(
             tr('Für Nutzer'),
-            tr('Umsätze, Budgets, Ziele und Depot zuerst auf dem Gerät. Mit Konto eine verschlüsselte Kopie, die wir nicht lesen. Keine Werbung, kein Tracking, kein Datenverkauf.'),
+            tr('Auf dem Gerät: Umsätze, Budgets, Ziele, Depot. Mit Konto eine verschlüsselte Kopie, für uns unlesbar. Keine Werbung, kein Tracking, kein Datenverkauf.'),
             dim,
           ),
           _block(
             tr('Für Investoren'),
-            tr('Finanzguru ist eine Haushalts-App, KI als Zusatz. Ahead ist der Coach: die App liefert die Zahlen, für Lebenslagen wie den ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.'),
+            tr('Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.'),
             dim,
           ),
           _block(
             tr('Karriere & Weiterbildung'),
-            tr('Wir bauen selbst und suchen Werkstudenten, Praktika und Leute für Produkt, Flutter oder Backend. Ein paar Sätze reichen.'),
+            tr('Wir bauen selbst. Gesucht: Werkstudenten, Praktika, Produkt, Flutter, Backend. Ein paar Sätze reichen.'),
             dim,
           ),
           SettingsGroup([

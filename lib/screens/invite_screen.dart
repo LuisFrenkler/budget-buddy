@@ -55,7 +55,7 @@ class _InviteScreenState extends State<InviteScreen> {
                   style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: -0.6, height: 1.15)),
               const SizedBox(height: 8),
               Text(
-                tr('Lade bis zu drei Leute ein. Für jede Person, die mitmacht, bekommst du {n} Buddy-Fragen mehr im Monat.',
+                tr('Lad bis zu drei Leute ein. Pro Person, die mitmacht: {n} Buddy-Fragen mehr im Monat.',
                     {'n': i?.bonusPerFriend ?? 5}),
                 style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15.5),
               ),
@@ -94,7 +94,7 @@ class _InviteScreenState extends State<InviteScreen> {
               if (_loading && i == null)
                 const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
               else if (i == null)
-                Text(tr('Dein Einladungslink lädt gerade nicht. Prüf die Verbindung und versuch es gleich noch einmal.'),
+                Text(tr('Einladungslink lädt nicht. Verbindung prüfen und gleich noch einmal.'),
                     style: TextStyle(color: AppColors.textDim))
               else ...[
                 Container(
@@ -131,7 +131,7 @@ class _InviteScreenState extends State<InviteScreen> {
               ],
               const SizedBox(height: 20),
               Text(
-                tr('Wer über deinen Link kommt, sieht deinen Vornamen nicht und bekommt keine Daten von dir. Wir zählen nur, dass jemand mitgemacht hat.'),
+                tr('Über deinen Link sieht niemand deinen Vornamen oder deine Daten. Wir zählen nur, dass jemand mitmacht.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.45),
               ),
             ],

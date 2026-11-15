@@ -155,7 +155,7 @@ class TransactionScreen extends StatelessWidget {
                 ),
               ] else ...[
                 const SizedBox(height: 16),
-                Text(tr('Betrag und Datum kommen von deiner Bank. Die Kategorie kannst du jederzeit ändern, Ahead merkt sie sich für künftige Buchungen.'),
+                Text(tr('Betrag und Datum kommen von der Bank. Die Kategorie kannst du ändern, Ahead merkt sie sich.'),
                     textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ],
             ],
@@ -267,7 +267,7 @@ class TransactionScreen extends StatelessWidget {
               Text(tr('Erstattung, z. B. eine Rücksendung'),
                   style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(tr('Wird mit den Ausgaben dieser Kategorie verrechnet, statt als Einnahme zu zählen.'),
+              Text(tr('Zählt gegen die Ausgaben dieser Kategorie, nicht als Einnahme.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
               const SizedBox(height: 10),
               Wrap(spacing: 8, runSpacing: 8, children: [for (final c in refunds) chip(context, c)]),
@@ -309,7 +309,7 @@ class TransactionScreen extends StatelessWidget {
             Text('$name → $picked merken?', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             Text(
-                tr('{others} ältere {x} noch auf einer anderen Kategorie. Standard: merken und alle anpassen, künftige {name}-Buchungen landen automatisch bei {picked}.', {'others': others.length, 'x': others.length == 1 ? tr('Buchung steht') : tr('Buchungen stehen'), 'name': name, 'picked': picked}),
+                tr('{others} ältere {x} liegen noch woanders. Standard: merken und alle anpassen. Künftige {name}-Buchungen gehen zu {picked}.', {'others': others.length, 'x': others.length == 1 ? tr('Buchung steht') : tr('Buchungen stehen'), 'name': name, 'picked': picked}),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 18),
             FilledButton(

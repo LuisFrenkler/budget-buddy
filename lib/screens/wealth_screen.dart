@@ -56,7 +56,7 @@ class _WealthScreenState extends State<WealthScreen> {
           _section(tr('Sparquote')),
           if (rate == null)
             Text(
-                tr('Sobald Einnahmen und Ausgaben über ein paar Monate da sind, erscheint hier dein Anteil.'),
+                tr('Nach ein paar Monaten mit Einnahmen und Ausgaben erscheint hier dein Anteil.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35))
           else ...[
             Text('$rate %',
@@ -269,7 +269,7 @@ class _WealthScreenState extends State<WealthScreen> {
         decoration: BoxDecoration(
             color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
         child: Text(
-          tr('Sobald Fixkosten oder Ausgaben erkennbar sind, schlägt Buddy einen Notgroschen vor (Richtwert: etwa 3× Monatsausgaben). Spar-Konten zählen mit, das Giro nicht.'),
+          tr('Sind Fixkosten oder Ausgaben erkennbar, schlägt Buddy einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.'),
           style: TextStyle(color: AppColors.textDim, height: 1.35),
         ),
       );

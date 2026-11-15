@@ -144,7 +144,7 @@ Future<void> showGroupBuddy(BuildContext context, SplitGroup g, {required void F
             ),
             const SizedBox(height: 12),
             Text(
-              tr('Die Nachricht enthält nur die Beträge dieser Gruppe und den Gruppencode, nichts aus deinen eigenen Finanzen.'),
+              tr('Nur die Beträge dieser Gruppe und der Gruppencode, nichts aus deinen eigenen Finanzen.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
           ],
