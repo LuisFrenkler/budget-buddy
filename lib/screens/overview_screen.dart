@@ -319,7 +319,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 2),
-                    Text(tr('Einmal eintragen, dann stimmt der Überblick.'),
+                    Text(tr('Einmal eintragen, dann stimmt es.'),
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 13,
@@ -362,7 +362,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       builder: (context) => AlertDialog(
         title: Text(tr('Beispieldaten entfernen?')),
         content: Text(
-            tr('Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. Was du selbst eingetragen hast, bleibt.')),
+            tr('Beispiele weg. Deine eigenen Einträge bleiben.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -403,7 +403,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    tr('Für „noch frei“ brauchst du eine Einnahme (z. B. Gehalt).'),
+                    tr('Für „noch frei“ brauchst du eine Einnahme.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 14),
                   ),
                 ),
@@ -960,8 +960,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
               context, MaterialPageRoute(builder: (_) => const WealthScreen())),
           child: Text(
               debts > 0
-                  ? tr('Konto + Depot − {x} Schulden · tippen', {'x': Money.format(debts)})
-                  : tr('Konto + Depot · Vermögen & Absicherung'),
+                  ? tr('Konto + Depot − {x} Schulden', {'x': Money.format(debts)})
+                  : tr('Konto + Depot'),
               style: TextStyle(
                   color: AppColors.textDim,
                   fontSize: 12.5,
@@ -1173,7 +1173,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
       const SizedBox(height: 8),
       Text(
-        tr('Bank verbinden oder erste Ausgabe erfassen.'),
+        tr('Bank oder erste Ausgabe.'),
         style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
       ),
       const SizedBox(height: 20),
@@ -1234,7 +1234,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               HapticFeedback.selectionClick();
               showSmartEntry(context);
             },
-            child: Text(tr('Oder Ausgabe manuell erfassen')),
+            child: Text(tr('Oder manuell erfassen')),
           ),
           TextButton(
             onPressed: () async {

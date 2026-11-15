@@ -38,7 +38,7 @@ class AccountSettingsScreen extends StatelessWidget {
             Text(tr('Nicht angemeldet'),
                 style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text(tr('Melde dich an, um Bank und Depot zu verbinden und deine Daten zu sichern.'),
+            Text(tr('Anmelden für Bank, Depot und Sicherung.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
             const SizedBox(height: 20),
             FilledButton(
@@ -100,7 +100,7 @@ class AccountSettingsScreen extends StatelessWidget {
           SettingsRow(
             icon: Icons.phonelink_lock_rounded,
             title: tr('Zwei-Faktor'),
-            subtitle: account.totp ? tr('Aktiv · Code aus der Authenticator-App') : tr('Optional · schützt die Anmeldung'),
+            subtitle: account.totp ? tr('Aktiv · Authenticator') : tr('Optional'),
             onTap: () => _edit(
               context,
               account.totp ? _TotpDisableForm() : _TotpEnrollForm(),
@@ -110,13 +110,13 @@ class AccountSettingsScreen extends StatelessWidget {
           SettingsRow(
             icon: Icons.devices_rounded,
             title: tr('Angemeldete Geräte'),
-            subtitle: tr('Einzeln abmelden oder alle'),
+            subtitle: tr('Einzeln oder alle'),
             onTap: () => _sessions(context),
           ),
           SettingsRow(
             icon: Icons.lock_reset_rounded,
             title: tr('Passwort ändern'),
-            subtitle: tr('Meldet alle anderen Geräte ab'),
+            subtitle: tr('Andere Geräte raus'),
             onTap: () => _edit(context, _PasswordForm(), tr('Passwort geändert. Andere Geräte sind abgemeldet.')),
           ),
         ]),
@@ -126,14 +126,14 @@ class AccountSettingsScreen extends StatelessWidget {
           SettingsRow(
             icon: Icons.person_remove_rounded,
             title: tr('Konto löschen'),
-            subtitle: tr('Mit allen Bankverbindungen, endgültig'),
+            subtitle: tr('Mit Banken, endgültig'),
             danger: true,
             onTap: () => deleteAccount(context),
           ),
         ]),
         SizedBox(height: 16),
         Text(
-          tr('Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, Ahead kann sie nicht lesen. Die App-Sperre schützt nur die Anzeige auf diesem Gerät.'),
+          tr('Cloud-Umsätze sind passwortverschlüsselt. Die App-Sperre schützt nur dieses Gerät.'),
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 12),
         ),
@@ -233,7 +233,7 @@ class AccountSettingsScreen extends StatelessWidget {
   // also on Profil, where people look for it first
   static Future<void> logout(BuildContext context) async {
     if (!await _confirm(context, tr('Abmelden?'),
-        tr('Auf diesem Gerät werden die Finanzdaten gelöscht. Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück, sonst sind nur die Daten auf anderen Geräten noch da.'),
+        tr('Finanzdaten auf diesem Gerät weg. Mit Cloud-Sicherung holst du sie beim nächsten Login zurück.'),
         tr('Abmelden'))) {
       return;
     }
@@ -247,11 +247,11 @@ class AccountSettingsScreen extends StatelessWidget {
     final plusNote = plus == null || plus.cancelled
         ? ''
         : plus.fromStore
-            ? tr('\n\nDein Plus-Abo läuft über {storeName} und endet nicht von selbst. Kündige es dort in den Abo-Einstellungen.', {'storeName': StorePurchases.storeName})
+            ? tr('\n\nPlus läuft über {storeName} weiter. Dort kündigen.', {'storeName': StorePurchases.storeName})
             : plus.managed
-                ? tr('\n\nDein Plus-Abo wird mit dem Konto gekündigt.')
+                ? tr('\n\nPlus wird mit dem Konto gekündigt.')
                 : '';
-    final text = tr('Dein Konto, alle Bankverbindungen und die Sicherung in der Cloud werden dauerhaft gelöscht, auch die Umsätze auf diesem Gerät.{plusNote}', {'plusNote': plusNote});
+    final text = tr('Konto, Bankverbindungen, Cloud-Sicherung und die Umsätze hier werden dauerhaft gelöscht.{plusNote}', {'plusNote': plusNote});
     if (!await _confirm(context, tr('Konto löschen?'), text, tr('Weiter'))) return;
     if (!context.mounted) return;
     final password = await _askPassword(context);
@@ -418,7 +418,7 @@ class _NameFormState extends State<_NameForm> with _Saving {
   @override
   Widget build(BuildContext context) => _Sheet(
         title: tr('Name ändern'),
-        text: tr('So spricht Buddy dich an.'),
+        text: tr('So nennt dich Buddy.'),
         error: error,
         busy: busy,
         onSave: () => save(() => AccountService.changeName(_name.text)),
@@ -541,7 +541,7 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
         );
     return _Sheet(
       title: tr('Passwort ändern'),
-      text: tr('Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung. Vergisst du es, ist die Kopie nicht mehr lesbar.'),
+      text: tr('Du bleibst hier angemeldet, andere Geräte nicht. Das Passwort verschlüsselt die Cloud. Ohne es ist die Kopie weg.'),
       error: error,
       busy: busy,
       onSave: _submit,
@@ -705,8 +705,8 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
       title: tr('Zwei-Faktor'),
       action: secret == null ? tr('Weiter') : tr('Aktivieren'),
       text: secret == null
-          ? tr('Der Code schützt nur die Anmeldung. Umsätze auf dem Gerät und in der Cloud bleiben mit deinem Passwort verschlüsselt. Ohne den Code kommst du nicht mehr rein. Ein Zurücksetzen per E-Mail gibt es noch nicht.')
-          : tr('Trag den Schlüssel in deine Authenticator-App ein (Konto manuell hinzufügen) und gib den ersten Code ein. Andere Geräte werden abgemeldet.'),
+          ? tr('Nur die Anmeldung. Umsätze bleiben passwortverschlüsselt. Ohne Code kein Zugang, kein Reset per E-Mail.')
+          : tr('Schlüssel in die Authenticator-App, ersten Code eingeben. Andere Geräte werden abgemeldet.'),
       error: error,
       busy: busy,
       onSave: secret == null ? _start : _confirm,
@@ -878,7 +878,7 @@ class _SessionsSheetState extends State<_SessionsSheet> {
     if (!await AccountSettingsScreen._confirm(
         context,
         tr('Alle Geräte abmelden?'),
-        tr('Jede Anmeldung endet, auch auf diesem Gerät. Die Daten hier werden gelöscht; die verschlüsselte Sicherung holst du mit dem nächsten Login zurück.'),
+        tr('Jede Anmeldung endet, auch hier. Daten hier weg; die Sicherung kommt mit dem nächsten Login zurück.'),
         tr('Alle abmelden'))) {
       return;
     }
@@ -905,7 +905,7 @@ class _SessionsSheetState extends State<_SessionsSheet> {
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(tr('Angemeldete Geräte'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text(tr('Eine gestohlene Sitzung bleibt gültig, bis du sie hier beendest oder das Passwort änderst.'),
+        Text(tr('Gestohlene Sitzung gilt, bis du sie beendest oder das Passwort änderst.'),
             style: TextStyle(color: AppColors.textDim)),
         const SizedBox(height: 12),
         if (_error != null) Text(_error!, style: TextStyle(color: AppColors.errorText, fontSize: 13)),

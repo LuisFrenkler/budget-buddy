@@ -66,7 +66,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
                 style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(
-                tr('Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Sparziel gratis, mit Plus unbegrenzt.', {'x': PlusService.freeAiQuestions, 'x2': PlusService.freeReceiptScans, 'freeGoals': PlusService.freeGoals}),
+                tr('Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Ziel. Plus ohne Limit.', {'x': PlusService.freeAiQuestions, 'x2': PlusService.freeReceiptScans, 'freeGoals': PlusService.freeGoals}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             const FreeTierUsage(),
@@ -79,7 +79,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
                 builder: (context) => AlertDialog(
                   title: Text(tr('Immer gratis')),
                   content: Text(
-                    tr('Konto & Depot, Budgets, Monatsprognose, Verträge inkl. Kündigung, Notgroschen & Vorsorge-Orientierung, Hinweise, geteilte Ausgaben und dein Monatsrückblick.'),
+                    tr('Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.45),
                   ),
                   actions: [
@@ -147,7 +147,7 @@ class _Details extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               sub.cancelled
-                  ? tr('Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.')
+                  ? tr('Alles bis zum Ende. Danach gratis, Daten bleiben.')
                   : trial
                       ? tr('Erste Zahlung am {x}: {x2}. Vorher kündigen kostet nichts.', {'x': Dates.full(sub.trialEnds), 'x2': PlusService.price(sub.plan)})
                       : tr('Nächste Zahlung am {x}: {x2}.', {'x': Dates.full(next), 'x2': PlusService.price(sub.plan)}),
@@ -192,8 +192,8 @@ class _Details extends StatelessWidget {
               icon: Icons.receipt_long_rounded,
               title: tr('Rechnungen ansehen'),
               subtitle: store
-                  ? tr('Die Kaufbelege schickt dir {storeName} per E-Mail', {'storeName': StorePurchases.storeName})
-                  : tr('Als PDF im Kundenportal von Stripe'),
+                  ? tr('Belege per E-Mail von {storeName}', {'storeName': StorePurchases.storeName})
+                  : tr('PDF bei Stripe'),
               onTap: () => _portal(context),
             )
           else if (invoices.isEmpty)
@@ -205,8 +205,8 @@ class _Details extends StatelessWidget {
                 Expanded(
                   child: Text(
                     sub.cancelled
-                        ? tr('Keine. Bei einer Kündigung im Test zahlst du nichts.')
-                        : tr('Noch keine. Die erste kommt am {x}.', {'x': Dates.full(sub.trialEnds)}),
+                        ? tr('Keine. Im Test zahlst du nichts.')
+                        : tr('Noch keine. Erste am {x}.', {'x': Dates.full(sub.trialEnds)}),
                     style: TextStyle(color: AppColors.textDim, fontSize: 13),
                   ),
                 ),
@@ -231,7 +231,7 @@ class _Details extends StatelessWidget {
           _row(
             icon: Icons.restore_rounded,
             title: tr('Käufe wiederherstellen'),
-            subtitle: tr('Nach einem neuen Gerät oder einer Neuinstallation'),
+            subtitle: tr('Neues Gerät oder Neuinstallation'),
             onTap: () async {
               final found = await PlusService.restore();
               if (context.mounted) _snack(context, found ? tr('Dein Plus-Abo ist aktiv') : tr('Kein Abo gefunden'));
@@ -241,7 +241,7 @@ class _Details extends StatelessWidget {
             _row(
               icon: Icons.replay_rounded,
               title: tr('Abo fortsetzen'),
-              subtitle: tr('Läuft dann einfach weiter wie bisher'),
+              subtitle: tr('Läuft weiter wie bisher'),
               onTap: () async {
                 if (store) return StorePurchases.manage();
                 if (!await _attempt(context, PlusService.resume)) return;
@@ -261,8 +261,8 @@ class _Details extends StatelessWidget {
               icon: Icons.undo_rounded,
               title: store ? tr('Erstattung anfragen') : tr('Vertrag widerrufen'),
               subtitle: store
-                  ? tr('Über Erstattungen von Käufen im {storeName} entscheidet der Store', {'storeName': StorePurchases.storeName})
-                  : tr('Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen'),
+                  ? tr('{storeName} entscheidet über die Erstattung', {'storeName': StorePurchases.storeName})
+                  : tr('14 Tage nach Abschluss, ohne Grund'),
               danger: true,
               onTap: () => store ? StorePurchases.requestRefund() : _withdraw(context, sub),
             ),
@@ -278,10 +278,10 @@ class _Details extends StatelessWidget {
         const SizedBox(height: 18),
         Text(
           store
-              ? tr('Gekauft über {storeName}. Zahlung, Kündigung und Belege laufen über {x}.', {'storeName': StorePurchases.storeName, 'x': StorePurchases.platform == 'apple' ? tr('deine Apple-ID') : tr('dein Google-Konto')})
+              ? tr('Über {storeName}. Zahlung, Kündigung und Belege über {x}.', {'storeName': StorePurchases.storeName, 'x': StorePurchases.platform == 'apple' ? tr('deine Apple-ID') : tr('dein Google-Konto')})
               : sub.managed
-              ? tr('Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. Deine Zahlungsdaten liegen nur dort.')
-              : tr('Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.'),
+              ? tr('Zahlung und Rechnungen über Stripe. Zahlungsdaten nur dort.')
+              : tr('Testmodus: nichts abgebucht. Im Store über App Store, Google Play oder Stripe.'),
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
         ),
@@ -503,7 +503,7 @@ class _Details extends StatelessWidget {
         backgroundColor: AppColors.surface,
         title: Text(tr('Vertrag widerrufen?')),
         content: Text(paid
-            ? tr('Plus endet sofort. Bereits gezahlte Beträge erstatten wir dir binnen 14 Tagen, abzüglich des Anteils für die Zeit, in der du Plus schon genutzt hast.')
+            ? tr('Plus endet sofort. Gezahltes kommt in 14 Tagen zurück, abzüglich der genutzten Zeit.')
             : tr('Plus endet sofort. Es entstehen keine Kosten.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
@@ -538,7 +538,7 @@ class _Details extends StatelessWidget {
           Text(
             sub.inTrial(now)
                 ? tr('Du zahlst nichts. Plus bleibt bis {x} aktiv.', {'x': Dates.full(end)})
-                : tr('Plus bleibt bis {x} aktiv, danach wird nichts mehr abgebucht.', {'x': Dates.full(end)}),
+                : tr('Plus bleibt bis {x}, danach keine Abbuchung.', {'x': Dates.full(end)}),
             style: TextStyle(color: AppColors.textDim, height: 1.35),
           ),
           const SizedBox(height: 16),

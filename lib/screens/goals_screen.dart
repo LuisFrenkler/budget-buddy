@@ -31,7 +31,7 @@ int _surplus() {
 Future<void> addGoal(BuildContext context, {String? name, int? cents}) async {
   if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
     return showPlus(context,
-        reason: tr('Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.'));
+        reason: tr('Ein Ziel ist gratis. Plus: beliebig viele.'));
   }
   await showModalBottomSheet(
     context: context,
@@ -86,7 +86,7 @@ class GoalsScreen extends StatelessWidget {
           Text(tr('Worauf sparst du?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(
-            tr('Leg ein Ziel an. Überweise bei der Bank aufs Sparkonto, nach Sync zählt es hier. Ohne Sparkonto trägst du den Stand manuell ein.'),
+            tr('Ziel anlegen. Überweisung aufs Sparkonto zählt nach Sync. Sonst den Stand von Hand.'),
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
           ),
           const SizedBox(height: 24),
@@ -212,7 +212,7 @@ class GoalCard extends StatelessWidget {
 
   Future<void> _openAutopilot(BuildContext context) async {
     if (!PlusService.active.value) {
-      await showPlus(context, reason: tr('Autopilot: Aufrunden & Monatsbeträge, zählt in der App mit'));
+      await showPlus(context, reason: tr('Autopilot: Aufrunden und Monatsbetrag'));
       if (!PlusService.active.value || !context.mounted) return;
     }
     await showModalBottomSheet(
@@ -293,7 +293,7 @@ class GoalCard extends StatelessWidget {
             ),
             if (!MoneyAccounts.several && !take) ...[
               const SizedBox(height: 10),
-              Text(tr('Mit einem Sparkonto in der App zählt die Überweisung nach dem Sync von selbst.'),
+              Text(tr('Mit Sparkonto zählt die Überweisung nach dem Sync.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
             ],
             if (MoneyAccounts.several) ...[
@@ -330,7 +330,7 @@ class GoalCard extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(top: 10),
                 child: Text(
-                  tr('Ohne Sparkonto nur Stand hier. Mit Tagesgeld zählt der Bank-Transfer nach Sync.'),
+                  tr('Ohne Sparkonto nur der Stand hier. Mit Tagesgeld nach dem Sync.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
                 ),
               ),
@@ -411,7 +411,7 @@ void celebrateGoal(BuildContext context, Goal goal) {
             SizedBox(height: 16),
             Text(tr('Ziel erreicht'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
-            Text(tr('{x} für {name} sind zusammen.', {'x': Money.format(goal.targetCents), 'name': goal.name}),
+            Text(tr('{x} für {name}.', {'x': Money.format(goal.targetCents), 'name': goal.name}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             SizedBox(height: 14),
             // what the monthly money does next, so the habit keeps going
@@ -772,7 +772,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             style: const TextStyle(fontFamily: AppFonts.display, fontSize: 21, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         // the user must not think money moves on its own
-        Text(tr('Die App zählt mit, überwiesen wird nichts.'),
+        Text(tr('Zählt mit, überweist nichts.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35)),
         const SizedBox(height: 16),
         Text(tr('Jeden Monat'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
@@ -812,7 +812,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             onChanged: (v) => setState(() => _roundUp = v),
             title: Text(tr('Ausgaben aufrunden'), style: TextStyle(fontWeight: FontWeight.w700)),
             subtitle: Text(
-                tr('Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.{x}{x2}', {'x': _estimate > 0 ? tr(' Bei dir wären das etwa {x} im Monat.', {'x': Money.format(_estimate)}) : '', 'x2': !widget.goal.roundUp && _otherRounding != null ? tr(' Rundet bisher für „{name}“, das hört dann auf.', {'name': _otherRounding!.name}) : ''}),
+                tr('3,20 € werden 0,80 € fürs Ziel.{x}{x2}', {'x': _estimate > 0 ? tr(' Bei dir etwa {x} im Monat.', {'x': Money.format(_estimate)}) : '', 'x2': !widget.goal.roundUp && _otherRounding != null ? tr(' Bisher für „{name}“, das hört dann auf.', {'name': _otherRounding!.name}) : ''}),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
           ),
         ),
@@ -822,7 +822,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-                tr('Ahead zählt mit, bewegt aber kein Geld. Richte für den Monatsbetrag am besten einen Dauerauftrag auf dein Sparkonto ein.'),
+                tr('Ahead bewegt kein Geld. Für den Monatsbetrag einen Dauerauftrag aufs Sparkonto.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
           ),
         ]),

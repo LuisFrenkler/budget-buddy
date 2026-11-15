@@ -113,7 +113,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
           Text(
-              tr('Kontostand, Umsätze und Depot automatisch aktuell, ohne Abtippen.'),
+              tr('Kontostand und Umsätze, automatisch.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 15)),
           if (!_checking && _mode == null) ...[
             const SizedBox(height: 16),
@@ -224,7 +224,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text('$bank trennen?'),
         content: Text(
-            tr('Die Freigabe wird widerrufen. Umsätze und Konten dieser Bank verschwinden aus der App.')),
+            tr('Freigabe weg. Umsätze und Konten dieser Bank verschwinden.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -267,13 +267,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ]),
           const SizedBox(height: 16),
           _point(Icons.visibility_rounded,
-              tr('Nur Lesezugriff, Überweisungen sind nicht möglich')),
+              tr('Nur lesen, keine Überweisung')),
           _point(Icons.lock_rounded,
-              tr('Login direkt bei deiner Bank, Ahead sieht keine Zugangsdaten')),
+              tr('Login bei der Bank. Ahead sieht nichts.')),
           _point(Icons.link_off_rounded,
-              tr('Jederzeit trennbar, Freigabe gilt bis zu 180 Tage')),
+              tr('Trennbar, Freigabe bis 180 Tage')),
           _point(Icons.account_balance_wallet_outlined,
-              tr('Auch dein Trade-Republic-Konto: Guthaben, Kartenzahlungen und Zinsen')),
+              tr('Auch Trade Republic: Guthaben, Karte, Zinsen')),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
@@ -306,7 +306,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 12),
         Text(
-            tr('Dafür brauchst du ein kostenloses Konto. So bleibt deine {x} nur für dich sichtbar.', {'x': depot ? tr('Depotverbindung') : tr('Bankverbindung')}),
+            tr('Dafür ein kostenloses Konto. Deine {x} bleibt nur für dich.', {'x': depot ? tr('Depotverbindung') : tr('Bankverbindung')}),
             style:
                 TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
         const SizedBox(height: 16),
@@ -355,7 +355,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ]),
           const SizedBox(height: 14),
           Text(
-              tr('Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.'),
+              tr('Im Fenster bei der Bank anmelden. Danach geht es hier weiter. Nach 10 Minuten bricht es ab.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 14),
@@ -566,7 +566,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text('$name trennen?'),
         content: Text(
-            tr('Ahead liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, bis du sie löschst.')),
+            tr('Ahead liest es nicht mehr. Positionen bleiben, bis du sie löschst.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -624,9 +624,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           // brokers like Trade Republic have no open interface; Parqet syncs them
           // and passes the depot on with the user's consent
           _step(1, tr('Verbinde dein Depot einmal mit Parqet'),
-              tr('Kostenlos, Parqet hält es dann automatisch aktuell')),
+              tr('Kostenlos, Parqet hält es aktuell')),
           _step(2, tr('Gib es hier für Ahead frei'),
-              tr('Nur Lesezugriff, deine Broker-Zugangsdaten sieht Ahead nie')),
+              tr('Nur lesen. Zugangsdaten sieht Ahead nie.')),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
@@ -647,7 +647,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             ),
           ),
           Text(
-              tr('Ohne Parqet: Exportiere deine Umsätze bei Trade Republic als CSV und lade sie unter Profil → Import, Export & Backup → Depot importieren.'),
+              tr('Ohne Parqet: CSV bei Trade Republic, dann Profil → Import → Depot.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
         ],
@@ -709,7 +709,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 14),
         Text(
-            tr('Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier automatisch weiter. Nach 10 Minuten ohne Freigabe bricht Ahead ab.'),
+            tr('Bei Parqet anmelden und Zugriff erlauben. Danach geht es hier weiter. Nach 10 Minuten bricht es ab.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         const SizedBox(height: 14),
@@ -789,7 +789,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         const SizedBox(height: 10),
         // Parqet gathers all brokers in one place, so one link brings every depot
         Text(
-            tr('Weitere Depots wie Scalable oder ING fügst du in Parqet hinzu. Beim nächsten Aktualisieren erscheinen sie hier, jedes für sich.'),
+            tr('Weitere Depots in Parqet. Beim nächsten Sync erscheinen sie hier.'),
             style:
                 TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4)),
         const SizedBox(height: 18),
@@ -831,7 +831,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-                tr('Keine Verbindung zum Server. Verbinden ist gerade nicht möglich.'),
+                tr('Kein Server. Verbinden geht gerade nicht.'),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13.5,
@@ -840,7 +840,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 6),
         Text(
-            tr('Von Hand erfassen und CSV-Import (Profil → Import, Export & Backup) gehen weiterhin.'),
+            tr('Erfassen und CSV-Import gehen weiter.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         Align(
@@ -868,7 +868,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         : !ok
             ? tr('Gerade nicht erreichbar · Erneut versuchen')
             : _mode == 'demo' && _depotMode == 'demo'
-                ? tr('Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten')
+                ? tr('Demo: Beispielbank und -depot, keine echten Daten')
                 : _mode == 'demo' || _depotMode == 'demo'
                     ? tr('Verbunden · {x} im Demo-Modus', {'x': _mode == 'demo' ? tr('Bank') : tr('Depot')})
                     : tr('Sicher verbunden');
@@ -1113,12 +1113,12 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         title: Text('$name verbunden'),
         content: Text(
           (added == 0
-                  ? tr('Deine Umsätze sind da. Auf dem Start siehst du, was diesen Monat noch frei ist.')
-                  : tr('{added} {x} übernommen. Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.', {'added': added, 'x': added == 1 ? tr('Umsatz') : tr('Umsätze')})) +
+                  ? tr('Umsätze da. Auf dem Start siehst du, was noch frei ist.')
+                  : tr('{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.', {'added': added, 'x': added == 1 ? tr('Umsatz') : tr('Umsätze')})) +
               (smarter > 0
                   ? '\n\n${BankSync.syncedLine(added: 0, smarter: smarter)}.'
                   : '') +
-              tr('\n\nAbos und Miete erkennt Buddy unter Verträge.'),
+              tr('\n\nAbos und Miete unter Verträge.'),
         ),
         actions: [
           TextButton(
@@ -1150,8 +1150,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text('${Settings.bankName} trennen?'),
         content: Text(extras.isEmpty
-            ? tr('Die Freigabe wird widerrufen. Übernommene Bank-Umsätze verschwinden aus der App.')
-            : tr('Die Freigabe wird widerrufen. Eine weitere Bank bleibt verbunden; deren Umsätze bleiben.')),
+            ? tr('Freigabe weg. Übernommene Umsätze verschwinden.')
+            : tr('Freigabe weg. Die andere Bank und ihre Umsätze bleiben.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -1294,7 +1294,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text(tr('Depot trennen?')),
         content: Text(
-            tr('Ahead liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.')),
+            tr('Ahead liest das Depot nicht mehr. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen ganz trennen.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),

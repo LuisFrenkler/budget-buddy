@@ -205,7 +205,7 @@ class _DepotScreenState extends State<DepotScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-                tr('Verbinde dein Depot, dann kommen Positionen und Kurse von selbst.'),
+                tr('Depot verbinden, dann kommen Positionen und Kurse.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
@@ -220,7 +220,7 @@ class _DepotScreenState extends State<DepotScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-                tr('Oder die erste Position selbst eintragen. Der aktuelle Kurs wird vorausgefüllt.'),
+                tr('Oder die erste Position selbst. Kurs wird vorausgefüllt.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: AppColors.textDim, fontSize: 13, height: 1.4)),
@@ -250,7 +250,7 @@ class _DepotScreenState extends State<DepotScreen> {
           tr('Kurse: Stand {x}{x2}', {'x': Dates.stand(oldest), 'x2': typed > 0 ? ' · $typed eingegeben' : ''});
     }
     // the curve shows today's positions through time, not past purchases and sales
-    return Text(tr('{text}\nVerlauf mit heutigem Bestand', {'text': text}),
+    return Text(tr('{text}\nVerlauf, heutiger Bestand', {'text': text}),
         style:
             TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4));
   }
@@ -320,7 +320,7 @@ class _DepotScreenState extends State<DepotScreen> {
       ),
       SizedBox(height: 8),
       Text(
-          tr('Investiert nach Durchschnittspreis, dein Broker kann leicht abweichen.'),
+          tr('Durchschnittspreis. Dein Broker kann abweichen.'),
           style:
               TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
     ];
@@ -553,10 +553,10 @@ class _DepotScreenState extends State<DepotScreen> {
           msg = tr('Alle Kurse aktuell');
         } else if (result.live > 0) {
           msg =
-              tr('{live} {x} aktualisiert · für {failed} gerade kein Live-Kurs, dort gilt der letzte Stand', {'live': result.live, 'x': result.live == 1 ? tr('Kurs') : tr('Kurse'), 'failed': result.failed});
+              tr('{live} {x} aktuell · {failed} ohne Live-Kurs, letzter Stand', {'live': result.live, 'x': result.live == 1 ? tr('Kurs') : tr('Kurse'), 'failed': result.failed});
         } else {
           msg =
-              tr('Gerade keine Live-Kurse erreichbar. Es gelten die letzten bekannten Kurse.');
+              tr('Keine Live-Kurse. Letzter Stand gilt.');
           bg = AppColors.warning;
         }
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -570,7 +570,7 @@ class _DepotScreenState extends State<DepotScreen> {
           SnackBar(
               duration: Duration(milliseconds: 2800),
               content: Text(
-                  tr('Kurse konnten gerade nicht geladen werden. Bitte versuch es gleich noch einmal.')),
+                  tr('Kurse gerade nicht geladen. Gleich noch einmal.')),
               backgroundColor: AppColors.error),
         );
       }
