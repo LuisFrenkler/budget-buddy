@@ -343,7 +343,7 @@
   <div class="w">
     <span>© 2026 Ahead</span>
     <span data-en="Buddy can make mistakes. No investment, tax or legal advice.">Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
-    <a href="#" data-en="Privacy">Datenschutz</a><a href="#" data-en="Legal notice">Impressum</a>
+    <a href="datenschutz.html" data-legal data-en="Privacy">Datenschutz</a><a href="impressum.html" data-legal data-en="Legal notice">Impressum</a>
   </div>
 </footer>
 
@@ -388,6 +388,7 @@
       });
     });
     document.querySelector('meta[name="description"]').content = meta[lang].desc;
+    document.querySelectorAll('[data-legal]').forEach(function (a) { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
     var sw = document.querySelector('[data-lang]');
     sw.textContent = lang === 'en' ? 'DE' : 'EN';
     sw.setAttribute('aria-label', lang === 'en' ? 'Auf Deutsch lesen' : 'Read in English');
