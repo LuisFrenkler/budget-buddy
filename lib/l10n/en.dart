@@ -2687,4 +2687,44 @@ const en = <String, String>{
   'Gratis': 'Free',
   'Plus': 'Plus',
   'Konto, Budgets, Prognose, Verträge und Notgroschen bleiben gratis. Keine Werbung.': 'Account, budgets, forecast, contracts and the emergency fund stay free. No ads.',
+  '**Du bist nicht angemeldet.** Passwort ändern geht erst im Konto. Per E-Mail zurücksetzen geht nicht.\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden. Danach Mein Konto › Sicherheit › Passwort ändern.':
+      '**You\'re not signed in.** You can change the password only inside an account. There\'s no reset by email.\n\nNext step: Profile › Create account, or Sign in. Then My account › Security › Change password.',
+  '**Profil › Mein Konto › Sicherheit › Passwort ändern.** Per E-Mail zurücksetzen geht nicht.\n\nNächster Schritt: Aktuelles Passwort eingeben, das neue zweimal.':
+      '**Profile › My account › Security › Change password.** There\'s no reset by email.\n\nNext step: Enter the current password, then the new one twice.',
+  '**Du bist nicht angemeldet.** Einen Namen und eine E-Mail gibt es erst mit Konto.\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden.':
+      '**You\'re not signed in.** A name and an email exist only with an account.\n\nNext step: Profile › Create account, or Sign in.',
+  '**{name}**, E-Mail **{email}**.\n\nNächster Schritt: Profil › Mein Konto, dort änderst du Name und E-Mail.':
+      '**{name}**, email **{email}**.\n\nNext step: Profile › My account, where you change the name and email.',
+  '**{email}**.\n\nNächster Schritt: Profil › Mein Konto, dort änderst du die E-Mail.':
+      '**{email}**.\n\nNext step: Profile › My account, where you change the email.',
+  '**{name}**.\n\nNächster Schritt: Profil › Mein Konto, dort änderst du den Namen.':
+      '**{name}**.\n\nNext step: Profile › My account, where you change the name.',
+  '**Angemeldet, ohne Namen und E-Mail im Profil.**\n\nNächster Schritt: Profil › Mein Konto.':
+      '**Signed in, with no name or email on the profile.**\n\nNext step: Profile › My account.',
+  '**Profil**, die Karte **Ahead Plus**. Läuft Plus schon, steht dort Mein Abo.\n\nNächster Schritt: Tippe die Karte.':
+      '**Profile**, the **Ahead Plus** card. If Plus is already on, it says My subscription.\n\nNext step: Tap the card.',
+  '**Profil › Privatsphäre & KI › Wo deine Daten liegen.** Die Erklärung findest du unter Profil › Ahead › Unternehmen & Vertrauen › Datenschutzerklärung.\n\nNächster Schritt: Öffne Wo deine Daten liegen.':
+      '**Profile › Privacy & AI › Where your data is.** The policy is under Profile › Ahead › Company & trust › Privacy policy.\n\nNext step: Open Where your data is.',
+  '**Profil › Erweitert › Import, Export & Backup › Als CSV exportieren.**\n\nNächster Schritt: Erweitert aufklappen, dann Als CSV exportieren.':
+      '**Profile › Advanced › Import, export & backup › Export as CSV.**\n\nNext step: Open Advanced, then Export as CSV.',
+  '**Du bist nicht angemeldet.** Hier gibt es kein Konto zum Löschen.\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden, falls das Konto noch woanders besteht.':
+      '**You\'re not signed in.** There\'s no account here to delete.\n\nNext step: Profile › Create account, or Sign in, if the account still exists somewhere else.',
+  '**Profil › Mein Konto › Konto löschen.** Das löscht das Konto endgültig.\n\nNächster Schritt: Mein Konto öffnen und unten Konto löschen tippen.':
+      '**Profile › My account › Delete account.** That deletes the account for good.\n\nNext step: Open My account and tap Delete account at the bottom.',
+  '**Profil › Privatsphäre & KI**, Schalter **Buddy mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\nNächster Schritt: Schalter umlegen.':
+      '**Profile › Privacy & AI**, switch **Buddy with AI**. On, questions go to the AI; off, simple questions stay on the device.\n\nNext step: Flip the switch.',
+  '**Ahead** ist diese App, **Buddy** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\nNächster Schritt: Frag, was diesen Monat noch frei ist.':
+      '**Ahead** is this app, **Buddy** the coach inside it. He works with your numbers and names the next step. Nothing is saved until you tap Apply.\n\nNext step: Ask what\'s still free this month.',
+  '**Du bist schon abgemeldet.**\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden.':
+      '**You\'re already signed out.**\n\nNext step: Profile › Create account, or Sign in.',
+  '**Profil › Mein Konto › Abmelden.** Auch unter Profil › Erweitert.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
+      '**Profile › My account › Sign out.** Also under Profile › Advanced.\n\nNext step: Open My account and tap Sign out.',
+  '**Profil › Mein Konto › Abmelden.** Angemeldet als {who}. Auch unter Profil › Erweitert.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
+      '**Profile › My account › Sign out.** Signed in as {who}. Also under Profile › Advanced.\n\nNext step: Open My account and tap Sign out.',
+  '**Profil › Erweitert › Vermögen & Absicherung**, Abschnitt Notgroschen. Als Sparziel: Profil › Planen › Sparziele.\n\nNächster Schritt: Erweitert aufklappen.':
+      '**Profile › Advanced › Wealth & protection**, section Emergency fund. As a goal: Profile › Plan › Savings goals.\n\nNext step: Open Advanced.',
+  '**Profil › Planen › Verträge & Abos.**\n\nNächster Schritt: Dort siehst du die erkannten Abos.':
+      '**Profile › Plan › Contracts & subscriptions.**\n\nNext step: There you see the subscriptions that were found.',
+  '**Profil › Planen › Geteilte Ausgaben.**\n\nNächster Schritt: Dort steht, wer wem was schuldet.':
+      '**Profile › Plan › Shared expenses.**\n\nNext step: There you see who owes whom.',
 };
