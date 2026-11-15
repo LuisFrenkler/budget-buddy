@@ -97,30 +97,43 @@ class PayslipHistory {
     return '${tr('**Im Vergleich zur letzten Abrechnung:**')}\n${[for (final x in c) '- $x'].join('\n')}';
   }
 
-  // small Buddy chart: brutto vs netto over months (deductions = gap)
+  // brutto, netto and the gap (deductions) for each saved month
   static BuddyChart? chart() {
     final slips = [
       for (final p in all())
-        if (p.brutto != null && (p.netto ?? p.auszahlung) != null) p
+        if (p.brutto != null && p.brutto! > 0 && (p.netto ?? p.auszahlung) != null) p
     ];
     if (slips.length < 2) return null;
-    slips.sort((a, b) => ('${a.monat}').compareTo('${b.monat}'));
-    final rows = <({String label, int a, int b})>[
-      for (final p in slips.take(keep))
+    slips.sort((a, b) => _order(a).compareTo(_order(b)));
+    final shown = slips.length > keep ? slips.sublist(slips.length - keep) : slips;
+    final years = {
+      for (final p in shown)
+        if (RegExp(r'^(\d{4})').firstMatch(p.monat ?? '')?.group(1) case final y?) y
+    };
+    return BuddyChart(ChartKind.payslip, tr('Brutto, Netto, Abzüge'), [
+      for (final p in shown)
         (
-          label: _monthLabel(p.monat),
+          label: _monthLabel(p.monat, withYear: years.length > 1),
           a: (p.brutto! * 100).round(),
           b: ((p.netto ?? p.auszahlung)! * 100).round(),
         )
-    ];
-    return BuddyChart(ChartKind.months, tr('Abrechnung: Brutto und Netto'), rows);
+    ]);
   }
 
-  static String _monthLabel(String? monat) {
-    if (monat == null || monat.isEmpty) return '–';
-    // expect YYYY-MM or similar
-    final m = RegExp(r'(\d{4})-(\d{1,2})').firstMatch(monat);
-    if (m != null) return '${m.group(2)}.${m.group(1)!.substring(2)}';
-    return monat.length > 7 ? monat.substring(0, 7) : monat;
+  static const _names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+
+  static int _order(Payslip p) {
+    final m = RegExp(r'(\d{4})-(\d{1,2})').firstMatch(p.monat ?? '');
+    if (m == null) return 1 << 30;
+    return int.parse(m.group(1)!) * 100 + int.parse(m.group(2)!);
+  }
+
+  static String _monthLabel(String? monat, {required bool withYear}) {
+    final m = RegExp(r'(\d{4})-(\d{1,2})').firstMatch(monat ?? '');
+    if (m == null) return (monat == null || monat.isEmpty) ? '–' : monat;
+    final month = int.tryParse(m.group(2)!);
+    if (month == null || month < 1 || month > 12) return monat!;
+    final name = tr(_names[month - 1]);
+    return withYear ? '$name ${m.group(1)!.substring(2)}' : name;
   }
 }

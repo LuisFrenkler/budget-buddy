@@ -600,7 +600,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
         final i = answer.text.lastIndexOf('\n\n');
         answer.text = '${answer.text.substring(0, i)}\n\n$versus${answer.text.substring(i)}';
       }
-      unawaited(PayslipHistory.add(slip));
+      await PayslipHistory.add(slip);
+      final trend = PayslipHistory.chart();
+      if (trend != null) answer.charts = [trend];
       answer.followUps = [tr('Was bedeutet meine Steuerklasse?'), tr('Lohnt sich eine Steuererklärung für mich?')];
       if (!answer.text.contains('⚠︎')) {
         BuddyTasks.doneByText(tr('Abrechnung prüfen'));
