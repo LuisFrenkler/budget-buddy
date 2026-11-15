@@ -1544,7 +1544,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 color: AppColors.text),
           ),
           const SizedBox(height: 6),
-          Text(tr('Was steht an?'),
+          Text(tr('Frag nach dem Monat, einem Abo oder ob du dir etwas leisten kannst.'),
               textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
         ],
         if (brief.tip != null) ...[

@@ -3675,4 +3675,10 @@ const en = <String, String>{
   '**{x}** Gratis-Fragen übrig. Plus ist nicht aktiv.':
       '**{x}** free questions left. Plus isn\'t active.',
   'Plus ist nicht aktiv. Ein Ziel ist gratis.': 'Plus isn\'t active. One goal is free.',
+
+  'Wie steht mein Depot?': 'How is my portfolio doing?',
+  'Wie steht meine Altersvorsorge?': 'How is my retirement savings?',
+  'Wie baue ich meinen Notgroschen auf?': 'How do I build my emergency fund?',
+  'Wie steht mein Sparziel {x}?': 'How is my {x} savings goal doing?',
+  'Frag nach dem Monat, einem Abo oder ob du dir etwas leisten kannst.': 'Ask about the month, a subscription, or whether you can afford something.',
 };
