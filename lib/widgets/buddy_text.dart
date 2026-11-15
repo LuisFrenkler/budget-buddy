@@ -277,9 +277,9 @@ class _TypingDotsState extends State<TypingDots> with SingleTickerProviderStateM
               return Opacity(
                 opacity: on,
                 child: Container(
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: 5,
+                  height: 5,
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
                   decoration: BoxDecoration(color: AppColors.textDim, shape: BoxShape.circle),
                 ),
               );

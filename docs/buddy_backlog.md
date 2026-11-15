@@ -10,8 +10,10 @@ kurz berichten. Erledigtes wandert nach unten.
 2. Server-Ende-zu-Ende-Test: Server in der Testumgebung starten und Anmeldung, Sicherung, Export prüfen
 
 ## Erledigt
+- Tool-Status auch mitten in der Antwort; Chat ohne lead-Vergrößerung; ruhigere TypingDots
 - Stop bricht HTTP/SSE wirklich ab; Streaming-Updates gedrosselt (~50 ms)
 - Buddy ChatGPT-clean: Thinking-Zeile (Orb + „Prüft …“), max. 2 Follow-ups, kurze Tool-Status
+- Offline LocalBuddy und Help/CTA auf kurze Zahl-zuerst-Antworten
 - Persona auf die Regeln gekürzt, die die Antwort ändern
 - Weitere Textkürzungen auf Screens und Widgets
 - Abrechnungs-Verlauf als Diagramm (Brutto/Netto/Abzüge) über Buddy-Werkzeug `diagramm` art `abrechnung`
