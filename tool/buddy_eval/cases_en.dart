@@ -36,6 +36,7 @@ const evalCasesEn = <EvalCase>[
   EvalCase('en_w08', 'werkzeuge', 'Can I afford €250 headphones?', allTools: {'leisten'},
       must: [r'[Gg]reen|[Yy]ellow|[Rr]ed'], lang: 'en'),
   EvalCase('en_w09', 'werkzeuge', 'What is this PayPal charge on my account?', allTools: {'buchung_erklaeren'}, lang: 'en'),
+  EvalCase('en_w10', 'werkzeuge', 'Do I have insurance I don\'t need?', allTools: {'versicherungen_pruefen'}, lang: 'en'),
   EvalCase('en_w07', 'werkzeuge', 'How long would my money last if I lost my job?',
       tools: {'konten', 'monatsverlauf', 'monatsprognose'}, lang: 'en'),
 
