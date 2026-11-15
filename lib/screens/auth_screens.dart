@@ -286,7 +286,7 @@ class _SignInScreenState extends State<SignInScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: Duration(milliseconds: 4200),
             content: Text(tr(
-                'Deine gesicherten Daten konnten gerade nicht geladen werden. Schreib noch nichts. Tipp auf den roten Hinweis, um es erneut zu versuchen.'))));
+                'Sicherung gerade nicht geladen. Schreib noch nichts. Tipp auf den roten Hinweis zum erneuten Versuch.'))));
       }
     }
   }
@@ -297,7 +297,7 @@ class _SignInScreenState extends State<SignInScreen> {
       title: _challenge == null ? tr('Willkommen zurück') : tr('Code eingeben'),
       subtitle: _challenge == null
           ? tr('Melde dich mit deiner E-Mail an.')
-          : tr('Der Code aus der Authenticator-App schützt nur die Anmeldung. Deine Umsätze bleiben auf dem Gerät.'),
+          : tr('Der Authenticator-Code schützt nur die Anmeldung. Umsätze bleiben auf dem Gerät.'),
       children: [
         if (_challenge == null)
           AutofillGroup(
@@ -384,12 +384,12 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
                   fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.4)),
           const SizedBox(height: 12),
           Text(
-            tr('Es gibt keinen Reset-Link. Dein Passwort ist der Schlüssel zur Cloud-Sicherung. Niemand außer dir kann ihn ersetzen, auch wir nicht.'),
+            tr('Kein Reset-Link. Das Passwort ist der Schlüssel zur Cloud. Niemand kann es ersetzen, auch wir nicht.'),
             style: TextStyle(fontSize: 15, color: AppColors.textDim, height: 1.45),
           ),
           const SizedBox(height: 12),
           Text(
-            tr('Was du tun kannst:\n• Passwort noch einmal in Ruhe versuchen\n• Neues Konto anlegen und lokal neu starten\n• Bei Fragen zur Konto-Löschung schreib uns'),
+            tr('Was du tun kannst:\n• Passwort noch einmal in Ruhe versuchen\n• Neues Konto anlegen, lokal neu starten\n• Zur Kontolöschung uns schreiben'),
             style: TextStyle(fontSize: 15, color: AppColors.text, height: 1.5),
           ),
           const SizedBox(height: 20),
@@ -487,7 +487,7 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
                       border: Border.all(color: const Color(0x1FFFFFFF)),
                     ),
                     child: Text(
-                        tr('Wie wollen wir starten? Am schnellsten geht es mit mir im Chat. Die Bank kannst du jederzeit später verbinden.'),
+                        tr('Wie starten wir? Am schnellsten mit mir im Chat. Die Bank kannst du später verbinden.'),
                         style: const TextStyle(fontSize: 15.5, height: 1.45, color: Colors.white)),
                   ),
                 ]),

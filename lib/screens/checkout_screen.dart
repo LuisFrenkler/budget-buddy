@@ -153,7 +153,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text(
-                tr('In der App läuft Plus über den App Store oder Google Play. Hier kannst du Plus kostenlos ausprobieren, nur auf diesem Gerät.'),
+                tr('In der App läuft Plus über den App Store oder Google Play. Hier testest du Plus gratis, nur auf diesem Gerät.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
@@ -184,8 +184,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const SizedBox(height: 8),
           Text(
               signedIn
-                  ? tr('Die Zahlung läuft über unseren Server, der gerade nicht antwortet. Versuch es gleich noch einmal.')
-                  : tr('Plus gehört zu deinem Konto, damit du es auf jedem Gerät behältst und jederzeit kündigen kannst.'),
+                  ? tr('Unser Server antwortet nicht. Zahlung gleich noch einmal versuchen.')
+                  : tr('Plus hängt an deinem Konto: auf jedem Gerät, jederzeit kündbar.'),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 20),
@@ -431,7 +431,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const Icon(Icons.science_rounded, color: AppColors.warning, size: 18),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(tr('Testmodus: Es wird nichts abgebucht und nichts an einen Zahlungsanbieter gesendet.'),
+            child: Text(tr('Testmodus: nichts abgebucht, nichts an einen Zahlungsanbieter.'),
                 style: TextStyle(fontSize: 12.5, color: AppColors.text)),
           ),
         ]),
@@ -480,7 +480,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                tr('Du wählst im nächsten Schritt auf der sicheren Zahlungsseite von Stripe. Ahead sieht deine Karten- und Kontodaten nie.'),
+                tr('Als Nächstes die sichere Zahlungsseite von Stripe. Ahead sieht Karten- und Kontodaten nie.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4),
               ),
             ),
@@ -1106,7 +1106,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                   const SizedBox(height: 10),
                   Text(
                     sub.inTrial(DateTime.now())
-                        ? tr('Dein Gratis-Test läuft bis {x}. Bis dahin kostet es nichts, und du kannst jederzeit kündigen.', {'x': Dates.full(sub.trialEnds)})
+                        ? tr('Gratis-Test bis {x}. Bis dahin 0 €, jederzeit kündbar.', {'x': Dates.full(sub.trialEnds)})
                         : tr('Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 15, height: 1.4),

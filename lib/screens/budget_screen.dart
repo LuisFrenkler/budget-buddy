@@ -486,14 +486,14 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         Text(
             _editing
                 ? tr('Gilt ab sofort und in den nächsten Monaten.')
-                : tr('Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.'),
+                : tr('Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 16),
         if (!_editing) ...[
           if (_taken.length >= Categories.expense.where((c) => Categories.counts(c['name']!)).length)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(tr('Für diesen Monat hast du schon überall ein Limit. Tippe ein Budget zum Anpassen.'),
+              child: Text(tr('Diesen Monat hat jede Kategorie ein Limit. Tippe eins zum Anpassen.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
             ),
           Wrap(spacing: 8, runSpacing: 8, children: [

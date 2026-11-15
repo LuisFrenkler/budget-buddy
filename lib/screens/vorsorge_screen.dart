@@ -82,7 +82,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
               style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(
-            tr('Buddy schätzt eine monatliche Lücke. Maßgeblich bleibt deine Rentenauskunft der DRV. Keine Steuern, keine Inflation, keine Produktempfehlung.'),
+            tr('Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 13.5),
           ),
           const SizedBox(height: 18),
@@ -159,7 +159,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           ]),
           const SizedBox(height: 10),
           Text(
-            tr('Gib unten mindestens deine erwartete gesetzliche Rente an, ideal aus der DRV-Auskunft. Alternativ kannst du sie grob aus deinem Netto schätzen.'),
+            tr('Trag unten deine gesetzliche Rente ein, am besten aus der DRV-Auskunft. Sonst grob aus dem Netto schätzen.'),
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 13.5),
           ),
           const SizedBox(height: 12),
@@ -199,7 +199,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         Text(
           r.gapClosed
               ? tr('Gedeckt ca. {x} von {x2} · ohne Steuern/Inflation.', {'x': Money.format(r.coveredMonthlyCents), 'x2': Money.format(r.input.desiredNetCents)})
-              : tr('Gedeckt ca. {x}. Zum Schließen grob {x2} / Monat zusätzlich ({yearsLeft} Jahre, ~{x3} % Realrendite). Kaufkraft und Steuern sind nicht eingerechnet.', {'x': Money.format(r.coveredMonthlyCents), 'x2': Money.format(r.saveExtraMonthlyCents), 'yearsLeft': r.yearsLeft, 'x3': (Vorsorge.realReturn * 100).round()}),
+              : tr('Gedeckt ca. {x}. Zum Schließen grob {x2}/Monat extra ({yearsLeft} Jahre, ~{x3} % real). Ohne Kaufkraft und Steuern.', {'x': Money.format(r.coveredMonthlyCents), 'x2': Money.format(r.saveExtraMonthlyCents), 'yearsLeft': r.yearsLeft, 'x3': (Vorsorge.realReturn * 100).round()}),
           style: TextStyle(height: 1.35, color: AppColors.text.withValues(alpha: 0.9)),
         ),
         Align(
@@ -226,7 +226,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
             Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Text(
-              tr('• Kapital (Depot, optional Sparziele ohne Notgroschen) wird über {drawYears} Jahre ohne Rendite aufgeteilt, konservativ für die Entnahmephase.\n\n• Die „extra sparen“-Rate nimmt ~{x} % Realrendite bis zur Rente an (Faustformel, kein Versprechen).\n\n• Netto-Schätzung der gesetzlichen Rente: etwa {x2} % deines heutigen Nettos. Das ist nur ein Platzhalter. Ersetze ihn durch die Zahl aus der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.', {'drawYears': Vorsorge.drawYears, 'x': (Vorsorge.realReturn * 100).round(), 'x2': (Vorsorge.estimateShare * 100).round()}),
+              tr('• Kapital (Depot, Sparziele ohne Notgroschen) teilt sich auf {drawYears} Jahre ohne Rendite auf.\n\n• „Extra sparen“ rechnet mit ~{x} % Realrendite bis zur Rente (Faustformel, kein Versprechen).\n\n• Gesetzliche Rente: etwa {x2} % deines Nettos, nur ein Platzhalter. Ersetze ihn mit der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.', {'drawYears': Vorsorge.drawYears, 'x': (Vorsorge.realReturn * 100).round(), 'x2': (Vorsorge.estimateShare * 100).round()}),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
           ]),
@@ -299,7 +299,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         title: Text(tr('Netto-Gehalt / Monat')),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            tr('Buddy nimmt grob {x} % davon als gesetzliche Rente an (Orientierung für die Mitte der Karriere). Bitte später durch die DRV-Auskunft ersetzen.', {'x': (Vorsorge.estimateShare * 100).round()}),
+            tr('Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.', {'x': (Vorsorge.estimateShare * 100).round()}),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
           const SizedBox(height: 12),

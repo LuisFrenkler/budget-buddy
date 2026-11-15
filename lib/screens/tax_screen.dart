@@ -60,7 +60,7 @@ class _TaxScreenState extends State<TaxScreen> {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
           Text(
-            tr('Buddy sammelt übers Jahr, was du absetzen kannst, und schätzt, was mit der Steuererklärung zurückkommt. Schätzung, keine Steuerberatung.'),
+            tr('Buddy sammelt übers Jahr, was du absetzen kannst, und schätzt die Erstattung. Schätzung, keine Steuerberatung.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
           ),
           const SizedBox(height: 18),
@@ -102,7 +102,7 @@ class _TaxScreenState extends State<TaxScreen> {
           _label(tr('Belege aus deinen Buchungen')),
           if (candidates.isEmpty)
             Text(
-              tr('Noch nichts gefunden. Fachbücher, Kurse, Arbeitsmittel, Gewerkschaft, Bewerbungen und Umzug zum Job tauchen hier auf, sobald sie gebucht sind.'),
+              tr('Noch nichts. Fachbücher, Kurse, Arbeitsmittel, Gewerkschaft, Bewerbung und Umzug zum Job erscheinen hier, sobald gebucht.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
             )
           else
@@ -136,7 +136,7 @@ class _TaxScreenState extends State<TaxScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            tr('Regeln {y}: Pendlerpauschale 0,38 € ab dem ersten Kilometer, Homeoffice 6 € am Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €. Abgeben kannst du kostenlos über ELSTER.',
+            tr('Regeln {y}: Pendlerpauschale 0,38 €/km ab dem 1. km, Homeoffice 6 €/Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €. Abgeben kostenlos über ELSTER.',
                 {'y': _year}),
             style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 12),
           ),

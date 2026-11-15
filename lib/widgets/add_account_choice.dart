@@ -83,7 +83,7 @@ Future<void> _furtherDepot(BuildContext context) async {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(tr('Weiteres Depot'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text(tr('Dein Depot kommt über Parqet. Dort kannst du mehrere Broker gleichzeitig verbinden.'),
+          Text(tr('Dein Depot kommt über Parqet. Dort mehrere Broker auf einmal verbinden.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 16),
           FilledButton.icon(
@@ -93,7 +93,7 @@ Future<void> _furtherDepot(BuildContext context) async {
             label: Text(tr('Broker in Parqet hinzufügen')),
           ),
           const SizedBox(height: 6),
-          Text(tr('Danach in Ahead auf Aktualisieren tippen, dann erscheint das neue Depot für sich.'),
+          Text(tr('Dann in Ahead auf Aktualisieren. Das neue Depot erscheint für sich.'),
               textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
           const SizedBox(height: 14),
           OutlinedButton(

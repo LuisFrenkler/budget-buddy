@@ -72,7 +72,7 @@ class _AccountSheetState extends State<_AccountSheet> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('${a.name} entfernen?'),
-        content: Text(tr('Die Buchungen dieses Kontos wandern auf dein Hauptkonto. Es geht kein Umsatz verloren.')),
+        content: Text(tr('Buchungen wandern aufs Hauptkonto. Kein Umsatz geht verloren.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(

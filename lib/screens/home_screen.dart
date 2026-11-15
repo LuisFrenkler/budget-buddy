@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AlertDialog(
         title: Text(tr('Daten unterscheiden sich')),
         content: Text(
-            tr('Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung von einem anderen Gerät.\n\nEs gibt kein Zusammenführen: eine komplette Kopie gewinnt (Buchungen, Budgets, Depot). Die andere geht verloren.')),
+            tr('Hier sind Änderungen, im Konto eine neuere Sicherung von einem anderen Gerät.\n\nKein Zusammenführen: eine Kopie gewinnt (Buchungen, Budgets, Depot), die andere ist weg.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Kontodaten laden'))),
           TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Gerätedaten behalten'))),

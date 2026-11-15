@@ -355,7 +355,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ]),
           const SizedBox(height: 14),
           Text(
-              tr('Im Fenster bei der Bank anmelden. Danach geht es hier weiter. Nach 10 Minuten bricht es ab.'),
+              tr('Im Fenster bei der Bank anmelden. Danach hier weiter. Nach 10 Minuten bricht es ab.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 14),
@@ -709,7 +709,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 14),
         Text(
-            tr('Bei Parqet anmelden und Zugriff erlauben. Danach geht es hier weiter. Nach 10 Minuten bricht es ab.'),
+            tr('Bei Parqet anmelden, Zugriff erlauben. Danach hier weiter. Nach 10 Minuten bricht es ab.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         const SizedBox(height: 14),
@@ -1294,7 +1294,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text(tr('Depot trennen?')),
         content: Text(
-            tr('Ahead liest das Depot nicht mehr. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen ganz trennen.')),
+            tr('Depot-Zugriff weg. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen trennen.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),

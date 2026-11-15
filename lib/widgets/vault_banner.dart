@@ -117,7 +117,7 @@ class VaultBanner extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      tr('Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. Bis dahin speichere ich nichts in die Cloud.'),
+                      tr('Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. Bis dahin nichts in die Cloud.'),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,

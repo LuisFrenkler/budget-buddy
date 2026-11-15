@@ -58,7 +58,7 @@ class WeeklyReportScreen extends StatelessWidget {
                   Icon(Icons.insights_rounded, size: 48, color: AppColors.primaryText),
                   const SizedBox(height: 16),
                   Text(
-                      tr('Für diese Woche gibt es noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.'),
+                      tr('Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim, height: 1.4)),
                   const SizedBox(height: 20),

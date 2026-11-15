@@ -1896,7 +1896,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               maxLength: 300,
               decoration: InputDecoration(hintText: tr('Was hättest du erwartet? (optional)')),
             ),
-            Text(tr('Deine Frage und Buddys Antwort gehen an Ahead, damit Buddy besser wird. Nichts anderes.'),
+            Text(tr('Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.'),
                 style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 14),
             SizedBox(
@@ -2186,7 +2186,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Text(
-                tr('Mit einem kostenlosen Konto weiß ich, was du ausgibst, und sage dir, was bis Monatsende bleibt. Unser Chat kommt mit.'),
+                tr('Mit einem kostenlosen Konto sehe ich deine Ausgaben und was bis Monatsende bleibt. Der Chat kommt mit.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
               ),
             ),

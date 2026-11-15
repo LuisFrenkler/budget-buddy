@@ -273,7 +273,7 @@ class AccountSettingsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           duration: Duration(milliseconds: 3500),
           content: Text(RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
-              ? tr('Löschen hat nicht geklappt: keine Verbindung zum Server. Bitte versuch es gleich noch einmal.')
+              ? tr('Löschen hat nicht geklappt, keine Verbindung. Gleich noch einmal versuchen.')
               : text)));
     }
   }

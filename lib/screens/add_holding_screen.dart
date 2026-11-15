@@ -183,7 +183,7 @@ class _AddHoldingScreenState extends State<AddHoldingScreen> {
             if (_quoted) ...[
               const SizedBox(height: 8),
               Text(
-                tr('Kaufpreis ist mit dem aktuellen Kurs vorausgefüllt. Passe ihn an, wenn du einen anderen Preis gezahlt hast.'),
+                tr('Kaufpreis ist der aktuelle Kurs. Änder ihn, wenn du einen anderen Preis gezahlt hast.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
               ),
             ],
