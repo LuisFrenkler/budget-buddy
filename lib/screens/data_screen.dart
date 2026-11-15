@@ -7,6 +7,7 @@ import '../l10n/l10n.dart';
 import '../legal/data_map.dart';
 import '../legal/legal_texts.dart';
 import '../services/account_service.dart';
+import '../services/backend_service.dart';
 import '../services/buddy_memory.dart';
 import '../services/buddy_service.dart';
 import '../services/data_export.dart';
@@ -78,7 +79,14 @@ class DataScreen extends StatelessWidget {
           OutlinedButton.icon(
             key: const Key('export-all'),
             onPressed: () async {
-              final json = DataExport.build(status: status ?? current());
+              // with an account, the server's part comes too (when it is reachable)
+              Map<String, dynamic>? server;
+              if (AccountService.current.value != null) {
+                try {
+                  server = await BackendService.exportAccount().timeout(const Duration(seconds: 6));
+                } catch (_) {}
+              }
+              final json = DataExport.build(status: status ?? current(), server: server);
               await saveTextFile('ahead_alle_meine_daten.json', json, text: tr('Alle meine Daten'));
             },
             icon: const Icon(Icons.download_rounded, size: 18),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'l10n/l10n.dart';
+import 'legal/legal_lang.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,6 +52,8 @@ void main() async {
   ThemeController.isDark.value = Settings.darkMode;
   Settings.loadHideAmounts();
   L10n.load();
+  // the legal texts follow the app's language (they stay plain Dart for the server)
+  LegalLang.isDe = () => L10n.isDe;
   // guest mode removed, clear any leftover flag from older installs
   await Settings.setGuest(false);
   PlusService.load();

@@ -3,6 +3,7 @@
 // what is switched on follows the app.
 import 'package:budget_buddy/l10n/l10n.dart';
 import 'package:budget_buddy/legal/data_map.dart';
+import 'package:budget_buddy/legal/legal_lang.dart';
 import 'package:budget_buddy/legal/legal_texts.dart';
 import 'package:budget_buddy/screens/data_screen.dart';
 import 'package:flutter/material.dart';
@@ -72,5 +73,14 @@ void main() {
     if (bank.evaluate().isNotEmpty) expect(tester.getTopLeft(bank).dy, lessThan(offHeading));
     await tester.scrollUntilVisible(find.byKey(const Key('flow-whatsapp')), 200);
     expect(find.byKey(const Key('flow-whatsapp')), findsOneWidget);
+  });
+
+  test('the legal texts follow the app language once the app sets it', () {
+    LegalLang.isDe = () => L10n.isDe;
+    L10n.lang.value = 'en';
+    expect(LegalTexts.privacy.title, 'Privacy policy');
+    L10n.lang.value = 'de';
+    expect(LegalTexts.privacy.title, 'Datenschutzerklärung');
+    LegalLang.isDe = () => true;
   });
 }

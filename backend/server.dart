@@ -657,6 +657,10 @@ Future<void> _handle(HttpRequest req) async {
     case '/auth/account':
       if (req.method != 'DELETE') return _json(req, 405, {'error': 'DELETE only'});
       return _deleteAccount(req);
+    // GET: everything the server keeps about this account (GDPR Art. 15/20)
+    case '/account/export':
+      if (req.method != 'GET') return _json(req, 405, {'error': 'GET only'});
+      return _json(req, 200, await _exportAccount(_user(req)));
     // GET -> {version, updatedAt, data} or 404; POST {data} -> {version}
     case '/vault':
       final id = _user(req)['id'] as String;
@@ -1037,6 +1041,43 @@ Future<void> _disconnect(HttpRequest req) async {
     }
   }
   return _json(req, 200, {'ok': true});
+}
+
+// GET /account/export: what the server holds about one account, without
+// secrets (no tokens, no hashes, no session ids). The vault stays encrypted:
+// only its size and date, the content is the user's own copy.
+Future<Map<String, dynamic>> _exportAccount(Map<String, dynamic> user) async {
+  final id = user['id'] as String;
+  final vault = await _vault.get(id);
+  final plus = _plus[id];
+  return {
+    'konto': Accounts.public(user),
+    'anmeldungen': _accounts.sessions(id),
+    'bankverbindungen': [
+      for (final e in _sessions.entries)
+        if (e.value['owner'] == id)
+          {
+            'bank': e.value['bank'],
+            'gueltigBis': e.value['validUntil'],
+            'konten': [for (final a in (e.value['accounts'] as List? ?? const [])) (a as Map)['name']],
+          }
+    ],
+    'depotverbindungen': [
+      for (final e in _depots.entries)
+        if (e.value['owner'] == id) {'seit': e.value['linkedAt'], 'portfolios': (e.value['portfolioIds'] as List?)?.length ?? 0}
+    ],
+    'plus': plus == null ? null : (plus.toJson()..remove('customer')),
+    'whatsapp': {'eingeschaltet': _whatsapp.optedIn(id)},
+    'sicherung': vault == null
+        ? null
+        : {
+            'version': vault['version'],
+            'stand': vault['updatedAt'],
+            'verschluesselt': true,
+            'zeichen': '${vault['data'] ?? ''}'.length,
+          },
+    'feedback': 'Bewertungen speichern wir ohne Namen; sie lassen sich keinem Konto zuordnen.',
+  };
 }
 
 // DELETE /auth/account {password}: the user, their sign-ins and every bank link
