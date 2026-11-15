@@ -910,7 +910,7 @@ oder Passwörter.''';
       'name': 'diagramm',
       'description': 'Zeigt unter der Antwort ein kleines Diagramm: monate (Einnahmen und Ausgaben je Monat), '
           'kategorien (Ausgaben eines Zeitraums nach Kategorie), sparplan (Weg zu einem Zielbetrag) '
-          'oder abrechnung (Brutto und Netto aus gespeicherten Gehaltsabrechnungen).',
+          'oder abrechnung (Brutto, Netto und Abzüge aus gespeicherten Gehaltsabrechnungen).',
       'input_schema': {
         'type': 'object',
         'additionalProperties': false,

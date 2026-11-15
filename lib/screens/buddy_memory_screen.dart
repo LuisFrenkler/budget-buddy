@@ -11,6 +11,7 @@ import '../utils/theme.dart';
 import '../widgets/buddy_orb.dart';
 import '../services/buddy_journal.dart';
 import '../services/payslip_history.dart';
+import '../widgets/buddy_chart.dart';
 
 class BuddyMemoryScreen extends StatelessWidget {
   const BuddyMemoryScreen({super.key});
@@ -43,6 +44,7 @@ class BuddyMemoryScreen extends StatelessWidget {
         final facts = BuddyMemory.all().reversed.toList();
         final talks = BuddyJournal.forAgent();
         final stage = LifeStages.current;
+        final payChart = PayslipHistory.chart();
         return Scaffold(
           appBar: AppBar(title: Text(tr('Was Buddy weiß'))),
           body: ListView(
@@ -59,6 +61,10 @@ class BuddyMemoryScreen extends StatelessWidget {
                 ),
               ]),
               const SizedBox(height: 24),
+              if (payChart != null) ...[
+                BuddyChartCard(payChart),
+                const SizedBox(height: 8),
+              ],
               if (stage != null) ...[
                 _label(tr('Lebenslage')),
                 _tile(

@@ -2564,6 +2564,7 @@ const en = <String, String>{
   'Für diesen Monat gibt es noch zu wenig Verlauf.': 'Not enough history for this month yet.',
   'Mein {month} mit Ahead.': 'My {month} with Ahead.',
   'Monats-Story teilen': 'Share month story',
+  'Dein Monatsrückblick als Story, nur Prozente.': 'Your monthly review as a story, percentages only.',
   'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n- Lohnsteuer: {tax}{soli}\n- Sozialabgaben: {social}\n\nSteuerklasse {cls}, Lohnsteuer 2026. Kann um ein paar Euro abweichen.':
       'From **{gross}** gross, about **{net}** net is left each month.\n- Wage tax: {tax}{soli}\n- Social contributions: {social}\n\nTax class {cls}, wage tax 2026. It can differ by a few euros.',
   'Im Schnitt gibst du **{x} mehr aus**, als reinkommt.': 'On average you\'re **spending {x} more** than comes in.',
@@ -2574,7 +2575,9 @@ const en = <String, String>{
   'Versicherungs-Check:\n{x}\n\n{y}': 'Insurance check:\n{x}\n\n{y}',
   'Altersvorsorge ist noch nicht eingerichtet.': 'Retirement planning isn\'t set up yet.',
   '{x} läuft schon länger': '{x} has been running a while',
-  'Abrechnung: Brutto und Netto': 'Payslip: gross and net',
   'Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.': 'No saved payslips yet. Send Buddy a photo of one.',
-  'Grau = Brutto, Kupfer = Netto. Die Lücke sind die Abzüge.': 'Grey = gross, copper = net. The gap is deductions.',
+  'Brutto, Netto, Abzüge': 'Gross, net, deductions',
+  'Abzüge': 'Deductions',
+  '{x}: Brutto {y}, Netto {z}, Abzüge {a}': '{x}: gross {y}, net {z}, deductions {a}',
+  'Grau ist Brutto, Kupfer Netto, dunkelgrau die Abzüge.': 'Grey is gross, copper is net, dark grey is deductions.',
 };

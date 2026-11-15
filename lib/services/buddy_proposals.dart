@@ -186,12 +186,13 @@ class BuddyProposal {
 }
 
 // a small chart under an answer; values in cents
-enum ChartKind { months, categories, plan }
+enum ChartKind { months, categories, plan, payslip }
 
 class BuddyChart {
   final ChartKind kind;
   final String title;
-  // months: label, income, spent · categories: label, value · plan: label, value (target per month)
+  // months: label, income, spent · categories: label, value · plan: label, saved, target
+  // payslip: label, brutto, netto (deductions = brutto − netto)
   final List<({String label, int a, int b})> rows;
   const BuddyChart(this.kind, this.title, this.rows);
 }

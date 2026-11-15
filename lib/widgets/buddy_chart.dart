@@ -1,6 +1,7 @@
 // The small charts Buddy shows under an answer: months (income against
-// spending), categories (where the money went) and a savings plan (the way
-// to a target, month by month). Plain bars, the app's colours, no library.
+// spending), categories (where the money went), a savings plan (the way
+// to a target, month by month) and payslips (gross, net, deductions).
+// Plain bars, the app's colours, no library.
 import 'package:flutter/material.dart';
 
 import '../services/buddy_proposals.dart';
@@ -27,6 +28,15 @@ class BuddyChartCard extends StatelessWidget {
               tr('nach {x} Monaten {y} von {z}',
                   {'x': c.rows.length, 'y': Money.format(c.rows.last.a), 'z': Money.format(c.rows.last.b)})
             ],
+      ChartKind.payslip => [
+          for (final r in rows)
+            tr('{x}: Brutto {y}, Netto {z}, Abzüge {a}', {
+              'x': r.label,
+              'y': Money.format(r.a),
+              'z': Money.format(r.b),
+              'a': Money.format(_deduct(r)),
+            })
+        ],
     };
     return tr('Diagramm {x}: {y}', {'x': c.title, 'y': parts.join('; ')});
   }
@@ -52,6 +62,7 @@ class BuddyChartCard extends StatelessWidget {
           ChartKind.months => _months(),
           ChartKind.categories => _categories(),
           ChartKind.plan => _plan(),
+          ChartKind.payslip => _payslip(),
         },
       ]),
       ),
@@ -91,6 +102,51 @@ class BuddyChartCard extends StatelessWidget {
         _key(AppColors.textDim.withValues(alpha: 0.35), tr('Einnahmen')),
         const SizedBox(width: 14),
         _key(_copper, tr('Ausgaben')),
+      ]),
+    ]);
+  }
+
+  static int _deduct(({String label, int a, int b}) r) => (r.a - r.b).clamp(0, r.a);
+
+  Widget _payslip() {
+    final max = chart.rows.fold<int>(1, (m, r) => [m, r.a, r.b, _deduct(r)].reduce((x, y) => x > y ? x : y));
+    String line(({String label, int a, int b}) r) => tr('{x}: Brutto {y}, Netto {z}, Abzüge {a}', {
+          'x': r.label,
+          'y': Money.format(r.a),
+          'z': Money.format(r.b),
+          'a': Money.format(_deduct(r)),
+        });
+    return Column(children: [
+      SizedBox(
+        height: 96,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          for (final r in chart.rows)
+            Expanded(
+              child: Semantics(
+                label: line(r),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.center, children: [
+                  _bar(r.a / max, AppColors.textDim.withValues(alpha: 0.35), 6),
+                  const SizedBox(width: 2),
+                  _bar(r.b / max, _copper, 6),
+                  const SizedBox(width: 2),
+                  _bar(_deduct(r) / max, AppColors.textDim.withValues(alpha: 0.8), 6),
+                ]),
+              ),
+            ),
+        ]),
+      ),
+      const SizedBox(height: 6),
+      Row(children: [
+        for (final r in chart.rows)
+          Expanded(
+              child: Text(r.label,
+                  textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppColors.textDim))),
+      ]),
+      const SizedBox(height: 8),
+      Wrap(spacing: 14, runSpacing: 4, children: [
+        _key(AppColors.textDim.withValues(alpha: 0.35), tr('Brutto')),
+        _key(_copper, tr('Netto')),
+        _key(AppColors.textDim.withValues(alpha: 0.8), tr('Abzüge')),
       ]),
     ]);
   }

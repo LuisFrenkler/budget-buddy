@@ -256,7 +256,7 @@ class BuddyTools {
           'diagramm': 'gezeigt',
           'art': 'abrechnung',
           'monate': c.rows.length,
-          'hinweis': tr('Grau = Brutto, Kupfer = Netto. Die Lücke sind die Abzüge.'),
+          'hinweis': tr('Grau ist Brutto, Kupfer Netto, dunkelgrau die Abzüge.'),
         };
     }
     throw const FormatException(
