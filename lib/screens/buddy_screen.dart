@@ -1,6 +1,8 @@
 import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
+import '../services/buddy_help.dart';
 import '../services/buddy_journal.dart';
+import '../services/life_progress.dart';
 import '../services/buddy_onboarding.dart';
 import '../services/payslip_check.dart';
 import '../services/buddy_wizard.dart';
@@ -212,6 +214,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
     _restore();
+    // steps the app already sees done tick themselves off
+    if (!_guest) LifeProgress.sync();
     // the setup talk needs no server: it starts right away
     final onboarding = !_guest && _onboard();
     (_guest ? GuestBuddy.live() : BuddyService.live()).then((v) {
@@ -255,6 +259,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
       _scrollDown();
     });
     return true;
+  }
+
+  // "Was kannst du alles?": answered on the device, no question used up
+  void _help(String question) {
+    _input.clear();
+    final a = BuddyHelp.answer(guest: _guest);
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, a.text)..followUps = a.chips);
+    });
+    _persist();
+    _scrollDown();
   }
 
   // false when the text was a question of its own, not an answer
@@ -522,7 +538,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
       PlusService.count(PlusFeature.receiptScan);
       answer.text = PayslipCheck.answer(slip);
       answer.followUps = [tr('Was bedeutet meine Steuerklasse?'), tr('Lohnt sich eine Steuererklärung für mich?')];
-      if (!answer.text.contains('⚠︎')) BuddyTasks.doneByText(tr('Abrechnung prüfen'));
+      if (!answer.text.contains('⚠︎')) {
+        BuddyTasks.doneByText(tr('Abrechnung prüfen'));
+        await LifeProgress.payslipChecked();
+        await LifeProgress.sync();
+      }
       BuddyJournal.add(text.isEmpty ? tr('Meine Gehaltsabrechnung') : text, answer.text);
     } catch (e) {
       answer
@@ -550,6 +570,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     HapticFeedback.mediumImpact();
     try {
       final done = await BuddyEntries.apply(e);
+      await LifeProgress.sync();
       if (!mounted) return;
       setState(() => m.applied[i] = done);
       _celebrate();
@@ -696,6 +717,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _speakNext = _spokenInput && question == _input.text.trim();
     _spokenInput = false;
     HapticFeedback.selectionClick();
+    if (_photo == null && BuddyHelp.matches(question)) return _help(question);
     if (_guest) return _sendGuest(question);
     if (_photo == null && BuddyOnboarding.active && question.isNotEmpty && await _runOnboarding(question)) return;
     if (_photo == null && _rememberCommand(question)) return;
@@ -2019,6 +2041,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   HapticFeedback.mediumImpact();
                   try {
                     final said = await p.apply();
+                    await LifeProgress.sync();
                     if (mounted) setState(() => m.proposalDone[i] = said);
                   } catch (e) {
                     if (mounted) {

@@ -16,6 +16,7 @@ import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
 import 'oddities.dart';
+import 'tax_estimate.dart';
 
 enum HintKind {
   budgetOver,
@@ -32,6 +33,9 @@ enum HintKind {
   stillCharging,
   splitNew,
   salaryIn,
+  salaryUp,
+  budgetUnreal,
+  taxReturn,
   monthReview,
   lowMonth,
   goalReached,
@@ -69,6 +73,7 @@ class HintsService {
     HintKind.trialEnds: 70,
     HintKind.bankExpires: 65,
     HintKind.salaryIn: 60,
+    HintKind.salaryUp: 62,
     HintKind.monthReview: 55,
     HintKind.priceUp: 55,
     HintKind.bigExpense: 50,
@@ -77,6 +82,8 @@ class HintsService {
     HintKind.bankFees: 45,
     HintKind.goalBehind: 40,
     HintKind.budgetClose: 40,
+    HintKind.budgetUnreal: 42,
+    HintKind.taxReturn: 44,
     HintKind.splitNew: 35,
     HintKind.weekPlan: 30,
     HintKind.upcoming: 20,
@@ -125,6 +132,56 @@ class HintsService {
       freeCents: freeCents,
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
+  }
+
+  // spending of a category in each of the last three full months; a new
+  // limit when every one was more than 5 % over: the middle month, a bit
+  // trimmed and rounded up to 10 €, but never more than the highest month
+  static ({int averageCents, int suggestCents})? realisticBudget(List<Transaction> tx, String category, int limit,
+      {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final months = [
+      for (var i = 1; i <= 3; i++) DateTime(today.year, today.month - i),
+    ];
+    final spent = [
+      for (final m in months)
+        tx
+            .where((t) => t.category == category && t.date.year == m.year && t.date.month == m.month)
+            .fold<int>(0, (s, t) => s + (t.isIncome ? -t.amountCents : t.amountCents))
+    ];
+    if (spent.any((s) => s <= limit * 1.05)) return null;
+    final sorted = [...spent]..sort();
+    final avg = spent.fold<int>(0, (a, b) => a + b) ~/ 3;
+    var suggest = ((sorted[1] * 0.95) / 1000).ceil() * 1000;
+    if (suggest > sorted.last) suggest = sorted.last;
+    if (suggest <= limit) return null;
+    return (averageCents: avg, suggestCents: suggest);
+  }
+
+  // the salary of the last 40 days against the usual one of the three months
+  // before: a raise when it is at least 3 % and 50 € higher
+  static ({int raiseCents, int nowCents, int beforeCents})? salaryRaise(List<Transaction> tx, {DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final salaries = tx.where((t) => t.isEarning && t.category == 'Gehalt' && t.amountCents >= 50000).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+    if (salaries.length < 4) return null;
+    final latest = salaries.first;
+    if (_daysBetween(latest.date, today) > 40 || _daysBetween(latest.date, today) < 0) return null;
+    // one salary per month: the largest of each month before the latest one
+    final byMonth = <String, int>{};
+    for (final t in salaries.skip(1)) {
+      if (t.date.year == latest.date.year && t.date.month == latest.date.month) continue;
+      final k = '${t.date.year}-${t.date.month}';
+      if ((byMonth[k] ?? 0) < t.amountCents) byMonth[k] = t.amountCents;
+    }
+    final before = byMonth.values.take(3).toList()..sort();
+    if (before.length < 3) return null;
+    final usual = before[1];
+    final diff = latest.amountCents - usual;
+    if (diff < 5000 || diff < usual * 0.03) return null;
+    // a one-off (bonus, holiday pay) is not a raise: it has to be far below double
+    if (latest.amountCents > usual * 1.5) return null;
+    return (raiseCents: diff, nowCents: latest.amountCents, beforeCents: usual);
   }
 
   static int _daysBetween(DateTime a, DateTime b) =>
@@ -184,6 +241,61 @@ class HintsService {
             question: tr('Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?',
                 {'m': m, 'n': n})));
       }
+    }
+
+    // February to July: the tax return for last year, when money comes back
+    if (today.month >= 2 && today.month <= 7) {
+      final last = today.year - 1;
+      final salaries = tx.where((t) => t.isEarning && t.category == 'Gehalt' && t.date.year == last).toList();
+      final profile = TaxEstimate.profile();
+      String? body;
+      if (profile.grossMonth > 0) {
+        final receipts = TaxEstimate.counted(tx, last).fold<int>(0, (s, c) => s + c.tx.amountCents) / 100;
+        final back = TaxEstimate.compute(profile, receipts: receipts).refund;
+        if (back >= 50) {
+          body = tr('Nach deinen Angaben kommen rund {x} zurück. Abgeben geht kostenlos über ELSTER.',
+              {'x': Money.format((back * 100).round())});
+        }
+      } else if (salaries.isNotEmpty) {
+        final months = salaries.map((t) => t.date.month).toSet().length;
+        if (months < 12) {
+          body = tr('Du hast {y} nur {n} Monate verdient. Dann kommt meist Lohnsteuer zurück.', {'y': last, 'n': months});
+        }
+      }
+      if (body != null) {
+        out.add(Hint('tax-$last-$month', HintKind.taxReturn, tr('Steuererklärung {y}', {'y': last}), body, HintTarget.buddy,
+            question: tr('Lohnt sich meine Steuererklärung für {y}, und was brauche ich dafür?', {'y': last})));
+      }
+    }
+
+    // a budget that has not held for three months: a realistic one instead
+    for (final b in budgets) {
+      final fit = realisticBudget(tx, b.category, b.limitCents, now: today);
+      if (fit == null) continue;
+      out.add(Hint(
+          'budget-unreal-${b.category}-$month',
+          HintKind.budgetUnreal,
+          tr('Budget {x} passt nicht', {'x': tr(b.category)}),
+          tr('Drei Monate über {x}, im Schnitt {y}. Ein Budget, das hält, motiviert mehr: etwa {z}.',
+              {'x': Money.format(b.limitCents), 'y': Money.format(fit.averageCents), 'z': Money.format(fit.suggestCents)}),
+          HintTarget.buddy,
+          question: tr('Mein Budget für {x} ({y}) passt seit drei Monaten nicht. Welcher Betrag ist realistisch, und wo kann ich trotzdem sparen?',
+              {'x': tr(b.category), 'y': Money.format(b.limitCents)})));
+    }
+
+    // a raise: the moment to save half of it before the spending grows with it
+    final raise = salaryRaise(tx, now: today);
+    if (raise != null) {
+      final half = (raise.raiseCents / 2 / 100).round() * 100;
+      out.add(Hint(
+          'salary-up-${today.year}-${today.month}',
+          HintKind.salaryUp,
+          tr('Dein Gehalt ist gestiegen: +{x}', {'x': Money.format(raise.raiseCents)}),
+          tr('Leg die Hälfte, {x} im Monat, gleich per Dauerauftrag zurück. Dann merkst du es nicht und hast trotzdem mehr.',
+              {'x': Money.format(half)}),
+          HintTarget.buddy,
+          question: tr('Mein Gehalt ist um {x} im Monat gestiegen. Wie viel davon sollte ich sparen und wofür?',
+              {'x': Money.format(raise.raiseCents)})));
     }
 
     // the salary arrived in the last two days: the moment to put some aside

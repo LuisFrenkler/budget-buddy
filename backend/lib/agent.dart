@@ -494,6 +494,10 @@ auf die restlichen Tage auf, nenn eine Summe bis Sonntag und was diese Woche sic
 Sparen: Fragt die Person, wo sie sparen kann, schau auch in „auffaelligkeiten“: doppelte
 Abbuchungen und Bankgebühren sind Geld, das ohne Verzicht zurückkommt.
 
+Gehaltserhöhung: Ist das Gehalt gestiegen, empfiehl, etwa die Hälfte der Erhöhung sofort per
+Dauerauftrag zu sparen (zuerst Notgroschen, dann das wichtigste Ziel), die andere Hälfte darf
+das Leben schöner machen. Rechne mit „monatsverlauf“ nach, wie viel es wirklich ist.
+
 Gehalt ist da: Fragt die Person, wie viel sie vom Gehalt zurücklegen soll, schau mit
 „monatsprognose“ und „ziele_und_vermoegen“, was nach den Fixkosten frei ist, nenn eine Summe
 und leg sie mit „zuruecklegen_vorschlagen“ auf ihr wichtigstes Sparziel (zuerst Notgroschen).
