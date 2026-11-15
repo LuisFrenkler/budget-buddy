@@ -458,7 +458,7 @@ Future<void> _html(HttpRequest req, String body) async {
 
 // receipts arrive as photos; everything else is small
 Future<Map<String, dynamic>> _body(HttpRequest req) async {
-  final limit = {'/ai/receipt', '/ai/entries', '/vault'}.contains(req.uri.path) ? 16 << 20 : 256 << 10;
+  final limit = {'/ai/receipt', '/ai/payslip', '/ai/entries', '/vault'}.contains(req.uri.path) ? 16 << 20 : 256 << 10;
   final bytes = BytesBuilder(copy: false);
   await for (final chunk in req) {
     bytes.add(chunk);
@@ -730,6 +730,12 @@ Future<void> _handle(HttpRequest req) async {
             accounts: [for (final a in (b['accounts'] as List? ?? const [])) if (a is Map) a.cast<String, dynamic>()],
             depots: [for (final d in (b['depots'] as List? ?? const [])) '$d'],
           ));
+    case '/ai/payslip':
+      _guardAi(req);
+      final user = _aiUser(req);
+      final b = await _body(req);
+      _countAi(user);
+      return _json(req, 200, {'payslip': await _ai.payslip('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}')});
     case '/ai/receipt':
       _guardAi(req);
       final user = _aiUser(req);

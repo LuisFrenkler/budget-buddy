@@ -93,7 +93,7 @@ class LegalTexts {
                 'Art. 6 Abs. 1 lit. b DSGVO.'),
         const LegalSection(
             '5. Buddy (KI-Assistent) und Belegscan',
-            'Stellst du Buddy eine Frage oder scannst einen Beleg, senden wir deine Frage bzw. das Foto und '
+            'Stellst du Buddy eine Frage oder scannst einen Beleg oder eine Gehaltsabrechnung, senden wir deine Frage bzw. das Foto und '
                 'eine zusammengefasste Übersicht deiner Finanzen (Summen, letzte Buchungen, Budgets, Ziele, '
                 'Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status; keine Kontonummern oder Zahlungsdaten) an Anthropic, PBC '
                 '(San Francisco, USA), die das KI-Modell Claude betreibt. Anthropic verarbeitet die Daten in '

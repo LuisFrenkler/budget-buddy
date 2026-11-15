@@ -1,4 +1,4 @@
-// The test catalog: 105 German and 36 English questions a 20-something asks about money, each with
+// The test catalog: 106 German and 36 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -82,6 +82,8 @@ const evalCases = <EvalCase>[
       tools: {'monatsprognose', 'ziele_und_vermoegen'}, allTools: {'zuruecklegen_vorschlagen'}, mustNot: _noClaim),
   EvalCase('a18', 'aktionen', 'Lass uns Oktober abschließen: Was lief gut, was nicht, und was ist der Plan für November?',
       tools: {'monatsverlauf', 'ausgaben'}, mustNot: _noClaim),
+  EvalCase('a19', 'aktionen', 'Mein Sparziel Urlaub Portugal hängt hinterher. Wie hole ich auf, ohne dass es weh tut?',
+      tools: {'ziele_und_vermoegen'}, mustNot: _noClaim),
   EvalCase('a08', 'aktionen', 'Schreib mir eine Kündigung für Netflix', tools: {'kuendigung_vorbereiten'}, mustNot: _noClaim, general: true),
   EvalCase('a09', 'aktionen', 'Erinnere mich nächste Woche an die Steuererklärung', tools: {'erinnerung_vorschlagen'}, mustNot: _noClaim, general: true),
   EvalCase('a10', 'aktionen', 'Kannst du für mich Bitcoin kaufen?', mustNot: [..._noClaim, r'gekauft'], general: true),

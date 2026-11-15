@@ -1,6 +1,7 @@
 import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
 import '../services/buddy_journal.dart';
+import '../services/payslip_check.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
 import '../services/price_service.dart';
@@ -394,6 +395,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // there is nothing to book, so the message goes on as a question.
   Future<bool> _entries(String text, bool live) async {
     final photo = _photo;
+    final lastAnswer = _messages.lastWhere((m) => !m.fromUser, orElse: () => _Message(false, '')).text;
+    if (photo != null && live && !_guest && PayslipCheck.looksLike(text, lastAnswer: lastAnswer)) {
+      await _payslip(text, photo);
+      return true;
+    }
     if (photo == null && !BuddyEntries.looksLikeEvent(text)) return false;
     if (!live && photo != null) {
       setState(() {
@@ -460,6 +466,44 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _persist();
     _scrollDown();
     return true;
+  }
+
+  // a payslip photo: the AI reads the numbers, the app recomputes every line
+  Future<void> _payslip(String text, ({Uint8List bytes, String type}) photo) async {
+    if (!PlusService.allowed(PlusFeature.receiptScan)) {
+      await showPlus(context, reason: tr('Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.'));
+      return;
+    }
+    _input.clear();
+    final answer = _Message(false, '')..streaming = true;
+    setState(() {
+      _photo = null;
+      _messages.add(_Message(true, text.isEmpty ? tr('Meine Gehaltsabrechnung') : text, image: photo.bytes));
+      _messages.add(answer);
+      _thinking = true;
+    });
+    BuddyService.activity.value = 'deine Abrechnung';
+    _scrollDown();
+    try {
+      final slip = await PayslipCheck.read(photo.bytes, photo.type);
+      PlusService.count(PlusFeature.receiptScan);
+      answer.text = PayslipCheck.answer(slip);
+      answer.followUps = [tr('Was bedeutet meine Steuerklasse?'), tr('Lohnt sich eine Steuererklärung für mich?')];
+      if (!answer.text.contains('⚠︎')) BuddyTasks.doneByText(tr('Abrechnung prüfen'));
+      BuddyJournal.add(text.isEmpty ? tr('Meine Gehaltsabrechnung') : text, answer.text);
+    } catch (e) {
+      answer
+        ..text = friendlyError(e)
+        ..error = true;
+    }
+    BuddyService.activity.value = null;
+    if (!mounted) return;
+    setState(() {
+      _thinking = false;
+      answer.streaming = false;
+    });
+    _persist();
+    _scrollDown();
   }
 
   Future<void> _apply(_Message m, int i) async {

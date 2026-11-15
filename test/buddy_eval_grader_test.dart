@@ -70,9 +70,9 @@ void main() {
         .failures['inhalt'], isNotNull);
   });
 
-  test('the catalog: 141 unique cases across the seven groups, 36 in English, plus feedback', () {
+  test('the catalog: 142 unique cases across the seven groups, 36 in English, plus feedback', () {
     final core = evalCases.where((c) => c.group != 'feedback').toList();
-    expect(core.length, 141);
+    expect(core.length, 142);
     expect(core.where((c) => c.lang == 'en').length, 36);
     expect(evalCases.map((c) => c.id).toSet().length, evalCases.length);
     expect(core.map((c) => c.group).toSet(),
