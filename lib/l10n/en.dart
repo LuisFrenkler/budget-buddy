@@ -2682,4 +2682,9 @@ const en = <String, String>{
   '**{x}** Gratis-Fragen übrig. Plus ist nicht aktiv.':
       '**{x}** free questions left. Plus isn\'t active.',
   'Plus ist nicht aktiv. Ein Ziel ist gratis.': 'Plus isn\'t active. One goal is free.',
+  '{x}/Monat': '{x}/month',
+  'ohne Limit': 'no limit',
+  'Gratis': 'Free',
+  'Plus': 'Plus',
+  'Konto, Budgets, Prognose, Verträge und Notgroschen bleiben gratis. Keine Werbung.': 'Account, budgets, forecast, contracts and the emergency fund stay free. No ads.',
 };
