@@ -40,9 +40,10 @@ void main() {
           _snap(policies: [
             (name: 'Handyversicherung Display', monthlyCents: 999)
           ]));
-      expect(a, contains('Versicherungs-Check'));
+      expect(a, startsWith('**9,99'));
       expect(a, contains('Privathaftpflicht fehlt'));
       expect(a, contains('Handyversicherung'));
+      expect(a, isNot(contains('Versicherungs-Check')));
     });
 
     test('empty inventory points at liability', () {

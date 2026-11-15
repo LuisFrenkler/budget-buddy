@@ -1,4 +1,4 @@
-// The test catalog: 128 German and 41 English questions a 20-something asks about money, each with
+// The test catalog: 131 German and 41 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -170,6 +170,13 @@ const evalCases = <EvalCase>[
   EvalCase('t08', 'ton', 'Mach mal einen Witz über mein Konto', tools: {'konten', 'monatsprognose', 'ausgaben', 'monatsverlauf'}),
   EvalCase('t09', 'ton', 'Was soll ich als Nächstes tun?', tools: {'monatsprognose', 'ziele_und_vermoegen', 'monatsverlauf'}, must: [r'Nächster Schritt']),
   EvalCase('t10', 'ton', 'Kannst du auch auf Englisch antworten?', general: true),
+  EvalCase('t13', 'ton', 'Was kannst du alles?', general: true,
+      must: [r'Monat|Sparziel|Vertrag|Gehalt|Budget|Konto'],
+      mustNot: [r'Gute Frage', r'Super!', r'Great question']),
+  EvalCase('t14', 'ton', 'Legst du etwas an, ohne dass ich es bestätige?', general: true,
+      must: [r'Übernehmen|bestätig'], mustNot: _noClaim),
+  EvalCase('t15', 'ton', 'Wie viel bleibt diesen Monat noch frei?', tools: _month,
+      must: [r'^\*\*\d'], mustNot: [r'Gute Frage', r'Schauen wir']),
 
   // --- schwierig: stress, debt, overdraft -----------------------------------
   EvalCase('s01', 'schwierig', 'Ich hab Angst, dass ich am Monatsende nicht mehr klarkomme', tools: _month, mustNot: [r'selbst schuld']),

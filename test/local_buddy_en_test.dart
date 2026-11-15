@@ -113,9 +113,10 @@ void main() {
       policies: [(name: 'Handyversicherung Display', monthlyCents: 999)],
     );
     final a = LocalBuddy.answer('Do I have insurance I don\'t need?', ins);
-    expect(a, contains('Insurance check'));
+    expect(a, startsWith('**'));
     expect(a, contains('Phone insurance'));
     expect(a, contains('Personal liability'));
+    expect(a, isNot(contains('Insurance check')));
     final hit = _german.firstMatch(a);
     expect(hit, isNull, reason: 'German "${hit?.group(0)}" in: $a');
   });
