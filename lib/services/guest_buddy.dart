@@ -127,7 +127,7 @@ class GuestBuddy {
     final step = LifeStages.stepFor(question);
     if (step != null) return step.offline;
     if (term != null) return _termAnswer(term);
-    return tr('Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.');
+    return tr('Die KI ist ohne Konto gerade nicht da. Offline gehen Erster Job, Umzug, Zusammenziehen und Begriffe wie ETF oder Steuerklasse.\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.');
   }
 
   static GlossaryTerm? _term(String q) {

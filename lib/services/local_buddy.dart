@@ -42,10 +42,7 @@ class LocalBuddy {
     final r = NetSalary.compute(gross,
         taxClass: cls, church: RegExp(r'kirch|church').hasMatch(q));
     return tr(
-        'Von **{gross}** brutto bleiben etwa **{net}** netto im Monat.\n'
-        '- Lohnsteuer: {tax}{soli}\n'
-        '- Sozialabgaben: {social}\n\n'
-        'Steuerklasse {cls}, Lohnsteuer 2026. Kann um ein paar Euro abweichen.',
+        '**{net}** netto, von **{gross}** brutto. Lohnsteuer {tax}{soli}, Sozialabgaben {social}. Steuerklasse {cls}, Lohnsteuer 2026, kann um ein paar Euro abweichen.',
         {
           'gross': Money.format((gross * 100).round()),
           'net': Money.format((r.net * 100).round()),
@@ -202,11 +199,11 @@ class LocalBuddy {
 
   static String _categories(FinanceSnapshot s) {
     final n = CategoryCoach.miscCount();
-    if (n == 0) return tr('Alles sauber kategorisiert, kein Sonstiges offen.');
+    if (n == 0) return tr('Nichts liegt in Sonstiges.');
     final auto = CategoryCoach.autoFixes(limit: 5);
     final left = CategoryCoach.leftovers(limit: 5);
     final lines = <String>[
-      tr('**{n}** Buchungen stecken noch in Sonstiges.', {'n': n}),
+      tr('**{n}** Buchungen liegen in Sonstiges.', {'n': n}),
       if (auto.isNotEmpty) ...[
         '',
         tr('So würde ich zuordnen. Sag **„Sonstiges aufräumen“**:'),
@@ -264,12 +261,11 @@ class LocalBuddy {
     ];
     final merchant = s.topMerchants.isEmpty
         ? ''
-        : tr('\n\nAm meisten Geld ging an **{x}** ({y}).', {
+        : tr(' Am meisten an **{x}** ({y}).', {
             'x': s.topMerchants.first.name,
             'y': _eur(s.topMerchants.first.cents)
           });
-    return tr(
-        'Diesen Monat hast du bisher **{x}** ausgegeben, vor allem für:\n{y}{merchant}',
+    return tr('**{x}** ausgegeben diesen Monat, vor allem:\n{y}{merchant}',
         {'x': _eur(m.expenses), 'y': lines.join('\n'), 'merchant': merchant});
   }
 
@@ -293,15 +289,14 @@ class LocalBuddy {
 
     final tips = <String>[];
     for (final e in over.take(2)) {
-      tips.add(tr('- **{x}**: {y} mehr als sonst in einem Monat',
+      tips.add(tr('**{x}** liegt {y} über einem üblichen Monat.',
           {'x': tr(e.key), 'y': _eur(e.value)}));
     }
     final subs =
         s.contracts.where((c) => c.category == 'Unterhaltung').toList();
     if (subs.isNotEmpty) {
       final sum = subs.fold<int>(0, (a, c) => a + c.monthlyCents);
-      tips.add(tr(
-          '- **Abos**: {x} kosten zusammen {y} im Monat ({z} im Jahr). Brauchst du alle?',
+      tips.add(tr('**Abos** ({x}): {y} im Monat, {z} im Jahr. Brauchst du alle?',
           {
             'x': subs.map((c) => c.name).join(', '),
             'y': _eur(sum),
@@ -311,24 +306,22 @@ class LocalBuddy {
           .map((c) => SubTips.forName(c.name))
           .whereType<SubTip>()
           .firstOrNull;
-      if (tip != null) tips.add('- ${tip.text}');
+      if (tip != null) tips.add(tip.text);
     }
     if (tips.isEmpty) {
       final top = _top(avg, 1);
       if (top.isEmpty)
         return tr(
-            'Dafür brauche ich noch etwas mehr Verlauf. Erfasse ein paar Wochen deine Ausgaben.');
+            'Dafür fehlt noch Verlauf. Ein paar Wochen Ausgaben reichen.');
       tips.add(tr(
-          '- Dein größter Posten ist **{x}** mit etwa {y} im Monat. Schon 10 % weniger sind {z} im Monat.',
+          '**{x}** ist der größte Posten, etwa {y} im Monat. 10 % weniger sind {z}.',
           {
             'x': tr(top.first.key),
             'y': _eur(top.first.value),
             'z': _eur(top.first.value ~/ 10)
           }));
     }
-    return tr(
-        'Sparpotenzial:\n{x}\n\nNächster Schritt: Budget für die größte Kategorie.',
-        {'x': tips.join('\n')});
+    return '${tips.join(' ')}\n\n${tr('Nächster Schritt: Budget für die größte Kategorie.')}';
   }
 
   static String _afford(String q, FinanceSnapshot s) {
@@ -338,17 +331,17 @@ class LocalBuddy {
         ? null
         : int.tryParse(match.group(1)!.replaceAll('.', ''));
     if (s.past.isEmpty)
-      return tr('Dafür brauche ich mindestens einen vollen Monat an Daten.');
+      return tr('Dafür fehlt mindestens ein voller Monat Daten.');
     if (surplus <= 0) {
-      return tr('Im Schnitt gibst du **{x} mehr aus**, als reinkommt.',
+      return tr('**{x} mehr** gehen im Schnitt raus, als reinkommt.',
           {'x': _eur(-surplus)});
     }
     final base = tr(
-        'Im Schnitt bleiben dir **{x} pro Monat** übrig (Einnahmen {y}, Ausgaben {z}).',
+        '**{x}** bleiben im Monat (rein {y}, raus {z}).',
         {'x': _eur(surplus), 'y': _eur(s.avgIncome), 'z': _eur(s.avgExpenses)});
     if (target == null || target <= 0) {
       return tr(
-          '{base}\n\nNenn mir einen Betrag, dann rechne ich aus, wie schnell du ihn zusammen hast.',
+          '{base}\n\nNenn einen Betrag, dann sage ich, wie lange es dauert.',
           {'base': base});
     }
     final cents = target * 100;
@@ -356,19 +349,18 @@ class LocalBuddy {
     final light = _light(cents, s);
     final buffer = s.balanceCents - cents;
     final lines = <String>[
-      if (light != null) ...[light, ''],
-      base,
-      '',
-      tr('- Für **{x}** brauchst du etwa **{months} {y}**.', {
+      if (light != null) light,
+      tr('{base} Für **{x}** etwa **{months} {y}**.', {
+        'base': base,
         'x': _eur(cents),
         'months': months,
         'y': months == 1 ? tr('Monat') : tr('Monate')
       }),
-      tr('- Aus dem Kontostand bezahlt blieben dir {x}{y}', {
+      tr('Vom Kontostand blieben {x}{y}', {
         'x': _eur(buffer),
         'y': buffer < s.avgExpenses
-            ? tr(', weniger als ein Monat Ausgaben. Lieber ansparen.')
-            : tr('. Das passt.')
+            ? tr(', weniger als ein Monat Ausgaben.')
+            : '.'
       }),
     ];
     // same formula as Monats-Simulator for this month
@@ -382,14 +374,11 @@ class LocalBuddy {
     if (cmp != null) {
       final free = cmp.sim.freeCents;
       lines.add(free >= 0
-          ? tr(
-              '- Diesen Monat blieben danach noch **{x}** frei, etwa {y} am Tag.',
-              {
-                  'x': _eur(free),
-                  'y': _eur(cmp.sim.perDayCents)
-                })
-          : tr('- Diesen Monat wärst du **{x} über** dem Plan.',
-              {'x': _eur(-free)}));
+          ? tr('Diesen Monat danach noch **{x}** frei, etwa {y} am Tag.', {
+              'x': _eur(free),
+              'y': _eur(cmp.sim.perDayCents)
+            })
+          : tr('Diesen Monat **{x} über** dem Plan.', {'x': _eur(-free)}));
     }
     return lines.join('\n');
   }
@@ -410,25 +399,24 @@ class LocalBuddy {
     );
     return switch (r.light) {
       'gruen' => tr(
-          '🟢 **Grün:** Das geht aus dem freien Geld dieses Monats, mit Puffer.'),
-      'gelb' => tr(
-          '🟡 **Gelb:** Das geht nur, wenn du diesen Monat weniger sparst oder an Erspartes gehst.'),
-      _ => tr(
-          '🔴 **Rot:** Diesen Monat ginge das an deinen Notgroschen. Lieber ansparen.'),
+          '🟢 **Grün:** Das geht aus dem freien Geld, mit Puffer.'),
+      'gelb' =>
+          tr('🟡 **Gelb:** Nur mit weniger Sparen oder aus Erspartem.'),
+      _ => tr('🔴 **Rot:** Das ginge an den Notgroschen.'),
     };
   }
 
   static String _contracts(FinanceSnapshot s) {
     if (s.contracts.isEmpty)
       return tr(
-          'Ich habe noch keine festen Verträge erkannt. Dafür brauche ich drei Monate gleiche Zahlungen.');
+          'Noch keine festen Verträge. Dafür brauche ich drei Monate gleicher Zahlungen.');
     final total = s.contracts.fold<int>(0, (a, c) => a + c.monthlyCents);
     final lines = [
       for (final c in s.contracts.take(6))
         '- ${c.name}: ${_eur(c.monthlyCents)}'
     ];
     return tr(
-        'Du hast **{x} feste Zahlungen** über **{y} im Monat** ({z} im Jahr):\n{a}',
+        '**{y}** im Monat für **{x}** feste Zahlungen ({z} im Jahr):\n{a}',
         {
           'x': s.contracts.length,
           'y': _eur(total),
@@ -440,7 +428,7 @@ class LocalBuddy {
   static String _budgets(FinanceSnapshot s) {
     if (s.budgets.isEmpty)
       return tr(
-          'Du hast für diesen Monat noch keine Budgets. Leg im Konto unter „Budgets“ eins an.');
+          'Noch keine Budgets.\n\nNächster Schritt: Unter Budgets im Konto eins anlegen.');
     final lines = [
       for (final b in s.budgets)
         tr('- {x}: {y} von {z}{a}', {
@@ -452,20 +440,19 @@ class LocalBuddy {
               : ' (${b.percentUsed} %)'
         })
     ];
-    return tr('So stehen deine Budgets, noch {x} Tage im Monat:\n{y}',
+    return tr('Noch **{x}** Tage im Monat:\n{y}',
         {'x': s.daysLeftInMonth, 'y': lines.join('\n')});
   }
 
   static String _depot(FinanceSnapshot s) {
-    if (s.holdings.isEmpty)
-      return tr('Du hast noch keine Positionen im Depot.');
+    if (s.holdings.isEmpty) return tr('Noch keine Depot-Positionen.');
     final invested = s.holdings.fold<int>(0, (a, h) => a + h.investedCents);
     final gain = s.depotCents - invested;
     final biggest = (s.holdings.toList()
           ..sort((a, b) => b.valueCents.compareTo(a.valueCents)))
         .first;
     return tr(
-        'Dein Depot ist **{x}** wert, {y} von {z} auf {a} Einsatz. Größte Position: {b} ({c} %).',
+        '**{x}** im Depot, {y} {z} auf {a}. Größte Position: {b} ({c} %).',
         {
           'x': _eur(s.depotCents),
           'y': gain >= 0 ? tr('ein Plus') : tr('ein Minus'),
@@ -479,7 +466,7 @@ class LocalBuddy {
   static String _goals(FinanceSnapshot s) {
     if (s.goals.isEmpty)
       return tr(
-          'Du hast noch keine Sparziele. Leg eins unter Sparziele an, dann rechne ich den Plan.');
+          'Noch keine Sparziele.\n\nNächster Schritt: Unter Sparziele anlegen.');
     final surplus = s.avgIncome - s.avgExpenses;
     final lines = [
       for (final g in s.goals.take(6))
@@ -492,13 +479,13 @@ class LocalBuddy {
           'c': GoalsService.plan(g, avgSurplusCents: surplus, now: s.today).text
         })
     ];
-    return tr('Deine Sparziele:\n{x}', {'x': lines.join('\n')});
+    return lines.join('\n');
   }
 
   static String _wealth(FinanceSnapshot s) {
     final net = s.balanceCents + s.depotCents - s.debtCents;
-    final lines = <String>[
-      tr('- Nettovermögen: **{x}** (Konten {y}, Depot {z}{a})', {
+    final parts = <String>[
+      tr('**{x}** netto. Konten {y}, Depot {z}{a}.', {
         'x': _eur(net),
         'y': _eur(s.balanceCents),
         'z': _eur(s.depotCents),
@@ -507,19 +494,20 @@ class LocalBuddy {
             : '',
       }),
     ];
-    if (s.savingsRatePercent != null)
-      lines.add(tr('- Sparquote der letzten vollen Monate: {x} %',
-          {'x': s.savingsRatePercent}));
-    if (s.emergencyTargetCents != null) {
-      lines.add(tr('- Notgroschen: {x} von {y}', {
-        'x': _eur(s.emergencyHaveCents),
-        'y': _eur(s.emergencyTargetCents!)
-      }));
-    } else if (s.emergencyHaveCents > 0) {
-      lines.add(tr('- Auf Sparkonten: {x}', {'x': _eur(s.emergencyHaveCents)}));
-    }
+    final mid = <String>[
+      if (s.savingsRatePercent != null)
+        tr('Sparquote {x} %.', {'x': s.savingsRatePercent}),
+      if (s.emergencyTargetCents != null)
+        tr('Notgroschen {x} von {y}.', {
+          'x': _eur(s.emergencyHaveCents),
+          'y': _eur(s.emergencyTargetCents!)
+        })
+      else if (s.emergencyHaveCents > 0)
+        tr('Auf Sparkonten {x}.', {'x': _eur(s.emergencyHaveCents)}),
+    ];
+    if (mid.isNotEmpty) parts.add(mid.join(' '));
     if (s.debts.isNotEmpty) {
-      lines.add(tr('- Schulden: {x}', {
+      parts.add(tr('Schulden: {x}.', {
         'x': s.debts
             .take(4)
             .map((d) =>
@@ -527,18 +515,17 @@ class LocalBuddy {
             .join(', ')
       }));
     }
-    if (s.policies.isNotEmpty) {
-      final sum = s.policies.fold<int>(0, (a, p) => a + p.monthlyCents);
-      lines.add(tr('- Versicherungen: {x} ({y} im Monat)', {
-        'x': s.policies.take(4).map((p) => p.name).join(', '),
-        'y': _eur(sum)
-      }));
-    }
-    if (s.runwayMonths != null)
-      lines.add(tr(
-          '- Reichweite: etwa {x} Monate bei deinem üblichen Verbrauch',
-          {'x': s.runwayMonths}));
-    return tr('Vermögen:\n{x}', {'x': lines.join('\n')});
+    final tail = <String>[
+      if (s.policies.isNotEmpty)
+        tr('Versicherungen: {x}, {y} im Monat.', {
+          'x': s.policies.take(4).map((p) => p.name).join(', '),
+          'y': _eur(s.policies.fold<int>(0, (a, p) => a + p.monthlyCents))
+        }),
+      if (s.runwayMonths != null)
+        tr('Reichweite etwa {x} Monate.', {'x': s.runwayMonths}),
+    ];
+    if (tail.isNotEmpty) parts.add(tail.join(' '));
+    return parts.join(' ');
   }
 
   static String _insurance(FinanceSnapshot s) {
@@ -548,7 +535,7 @@ class LocalBuddy {
     ]);
     if (r.found.isEmpty) {
       return tr(
-          'Keine Versicherung erkannt. Privathaftpflicht zuerst, unter Vermögen.');
+          'Keine Versicherung erkannt. Privathaftpflicht zuerst.\n\nNächster Schritt: Unter Vermögen eintragen.');
     }
     final listed = [
       for (final f in r.found.take(6))
@@ -564,15 +551,16 @@ class LocalBuddy {
   static String _vorsorge(FinanceSnapshot s) {
     final v = s.vorsorge;
     if (v == null) {
-      return tr('Altersvorsorge ist noch nicht eingerichtet.');
+      return tr(
+          'Altersvorsorge ist noch nicht eingerichtet.\n\nNächster Schritt: „Vorsorge einrichten“.');
     }
     if (v.gapClosed) {
       return tr(
-          'Orientierung, keine Beratung: Deine Wunschrente von {x} im Monat ist mit den eingetragenen Bausteinen gedeckt.',
+          '**{x}** Wunschrente im Monat ist gedeckt. Orientierung, keine Beratung.',
           {'x': _eur(v.input.desiredNetCents)});
     }
     return tr(
-        'Orientierung, keine Beratung: Bis {x} sind es **{y} Jahre**. Dir fehlen etwa **{z} im Monat**. Dafür wären ungefähr {a} im Monat extra nötig (gesetzlich {b}, Kapital {c}).',
+        '**{z}** fehlen im Monat, noch **{y} Jahre** bis {x}. Etwa {a} extra im Monat (gesetzlich {b}, Kapital {c}). Orientierung, keine Beratung.',
         {
           'x': v.input.retireAge,
           'y': v.yearsLeft,
@@ -584,20 +572,20 @@ class LocalBuddy {
   }
 
   static String _splits(FinanceSnapshot s) {
-    if (s.splits.isEmpty) return tr('Du hast noch keine geteilten Ausgaben.');
+    if (s.splits.isEmpty) return tr('Noch keine geteilten Ausgaben.');
     final lines = [
       for (final g in s.splits.take(5))
         '- ${g.name}: ${g.myCents == 0 ? tr('ausgeglichen') : g.myCents > 0 ? tr('du bekommst {x}', {
                 'x': _eur(g.myCents)
               }) : tr('du schuldest {x}', {'x': _eur(-g.myCents)})}'
     ];
-    return tr('Splits:\n{x}', {'x': lines.join('\n')});
+    return lines.join('\n');
   }
 
   static String _recurring(FinanceSnapshot s) {
     final rules = s.recurring.where((r) => r.active).toList();
     if (rules.isEmpty)
-      return tr('Du hast keine aktiven wiederkehrenden Buchungen.');
+      return tr('Keine aktiven wiederkehrenden Buchungen.');
     final lines = [
       for (final r in rules.take(6))
         tr('- {x}: {y} {z}{a} · nächstes {b}', {
@@ -608,14 +596,14 @@ class LocalBuddy {
           'b': _date(r.next)
         })
     ];
-    return tr('Wiederkehrend:\n{x}', {'x': lines.join('\n')});
+    return lines.join('\n');
   }
 
   static String _accounts(FinanceSnapshot s) {
     final accounts = s.accounts.isEmpty
-        ? tr('- Kontostand: **{x}**', {'x': _eur(s.balanceCents)})
+        ? tr('**{x}** Kontostand.', {'x': _eur(s.balanceCents)})
         : s.accounts
-            .map((a) => '- ${a.name} (${tr(a.art)}): **${_eur(a.cents)}**')
+            .map((a) => '**${_eur(a.cents)}** · ${a.name} (${tr(a.art)})')
             .join('\n');
     final recent = [
       for (final t in s.recent.take(5))
@@ -624,7 +612,7 @@ class LocalBuddy {
     final tail = recent.isEmpty
         ? ''
         : tr('\n\nLetzte Buchungen:\n{x}', {'x': recent.join('\n')});
-    return tr('Konten:\n{x}', {'x': '$accounts$tail'});
+    return '$accounts$tail';
   }
 
   // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe", same formula as the sheet
@@ -636,7 +624,7 @@ class LocalBuddy {
 
   static String _scenario(String q, FinanceSnapshot s) {
     if (s.forecast == null)
-      return tr('Dafür brauche ich ein paar volle Monate mit Einnahmen.');
+      return tr('Dafür fehlen ein paar volle Monate mit Einnahmen.');
     final named =
         s.contracts.where((c) => q.contains(c.name.toLowerCase())).toList();
     final match = RegExp(r'(\d[\d.]*)').firstMatch(q);
@@ -658,11 +646,11 @@ class LocalBuddy {
     } else if (s.contracts.isNotEmpty) {
       final tip = s.contracts.take(3).map((c) => c.name).join(', ');
       return tr(
-          'Sag z. B. „Was wäre ohne {x}?“ oder nenn einen Betrag.\nErkannte Abos: {tip}.',
+          'Sag zum Beispiel „Was wäre ohne {x}?“ oder nenn einen Betrag. Abos: {tip}.',
           {'x': s.contracts.first.name, 'tip': tip});
     } else {
       return tr(
-          'Abos habe ich noch keine erkannt. Frag zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“');
+          'Noch keine Abos erkannt. Zum Beispiel: „Was wäre, wenn ich 200 € ausgebe?“');
     }
 
     final cmp = ScenarioService.compare(
@@ -673,7 +661,7 @@ class LocalBuddy {
       now: s.today,
     );
     if (cmp == null)
-      return tr('Dafür brauche ich ein paar volle Monate mit Einnahmen.');
+      return tr('Dafür fehlen ein paar volle Monate mit Einnahmen.');
     final delta = cmp.deltaFree;
     final deltaLine = delta == 0
         ? tr('Am freien Betrag ändert sich nichts.')
@@ -682,7 +670,7 @@ class LocalBuddy {
                 {'x': _eur(delta), 'y': _eur(cmp.deltaPerDay)})
             : tr('Das wären **{x} weniger** frei ({y}/Tag).',
                 {'x': _eur(-delta), 'y': _eur(-cmp.deltaPerDay)});
-    return tr('Heute bleiben **{x}**.\nSzenario {label}: **{y}**.\n{delta}', {
+    return tr('**{x}** frei. Szenario {label}: **{y}**. {delta}', {
       'x': _eur(cmp.base.freeCents),
       'label': label,
       'y': _eur(cmp.sim.freeCents),
@@ -693,7 +681,7 @@ class LocalBuddy {
   static String _forecast(FinanceSnapshot s) {
     final f = s.forecast;
     if (f == null)
-      return tr('Dafür brauche ich ein paar volle Monate mit Einnahmen.');
+      return tr('Dafür fehlen ein paar volle Monate mit Einnahmen.');
     final tempo = switch (f.pace) {
       ForecastPace.relaxed => tr('entspannt'),
       ForecastPace.tight => tr('knapp'),
@@ -708,7 +696,7 @@ class LocalBuddy {
                 .join(', ')
           });
     return tr(
-        'Bis Monatsende bleiben dir **{x}**, etwa {y} am Tag. Das Tempo ist {tempo}.{due}',
+        '**{x}** bis Monatsende, etwa {y} am Tag. Tempo: {tempo}.{due}',
         {
           'x': _eur(f.freeCents),
           'y': _eur(f.perDayCents),
@@ -733,8 +721,7 @@ class LocalBuddy {
         ? ''
         : tr('Noch {x} Gratis-Fragen und {y} Beleg-Scans in diesem Monat. ',
             {'x': p.fragenRest, 'y': p.scansRest ?? 0});
-    return tr(
-        'Plus ist nicht aktiv. {left}Ein Sparziel ist gratis, weitere mit Plus.',
+    return tr('Plus ist nicht aktiv. {left}Ein Ziel ist gratis, mehr mit Plus.',
         {'left': left});
   }
 
@@ -750,7 +737,7 @@ class LocalBuddy {
         m.income == 0 &&
         s.depotCents == 0) {
       return tr(
-          'Noch wenig Verlauf. Bank verbinden oder ein paar Ausgaben erfassen, dann rechne ich konkret.');
+          'Noch wenig Verlauf.\n\nNächster Schritt: Bank verbinden oder ein paar Ausgaben erfassen.');
     }
     return tr(
         '**{x}** auf dem Konto, Depot {y}. Diesen Monat {z} rein, {a} raus.', {
