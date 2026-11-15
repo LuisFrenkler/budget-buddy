@@ -16,6 +16,7 @@ import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
 import 'oddities.dart';
+import 'overdraft.dart';
 import 'tax_estimate.dart';
 
 enum HintKind {
@@ -40,6 +41,8 @@ enum HintKind {
   lowMonth,
   goalReached,
   goalBehind,
+  overdraft,
+  returnedDebit,
 }
 
 // where tapping a hint leads
@@ -67,6 +70,8 @@ class HintsService {
   // then moments and plans, then plain information
   static const weights = {
     HintKind.stillCharging: 90,
+    HintKind.overdraft: 88,
+    HintKind.returnedDebit: 86,
     HintKind.doubleCharge: 85,
     HintKind.lowMonth: 80,
     HintKind.budgetOver: 70,
@@ -117,6 +122,7 @@ class HintsService {
     Subscription? subscription,
     DateTime? bankValidUntil,
     int? freeCents,
+    int? balanceCents,
     DateTime? now,
   }) {
     final hidden = dismissed;
@@ -130,6 +136,7 @@ class HintsService {
       cancellations: cancellations,
       splitNews: Hive.isBoxOpen('splits') ? SplitService.news() : const [],
       freeCents: freeCents,
+      balanceCents: balanceCents,
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
   }
@@ -200,11 +207,46 @@ class HintsService {
     List<({String group, String groupId, String title, int cents, String by})> splitNews = const [],
     // what is left for the month after fixed costs (the forecast), if known
     int? freeCents,
+    // the cash on the accounts today, if known (for the overdraft warning)
+    int? balanceCents,
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
     final month = '${today.year}-${today.month}';
     final out = <Hint>[];
+
+    // the account runs below zero before the next salary
+    if (balanceCents != null) {
+      final risk = Overdraft.check(tx, balanceCents: balanceCents, now: today);
+      if (risk != null) {
+        out.add(Hint(
+            'overdraft-${risk.payday.year}-${risk.payday.month}-${risk.payday.day}',
+            HintKind.overdraft,
+            tr('Konto rutscht vor dem Gehalt ins Minus'),
+            tr('Bis zum Gehalt am {d} fehlen voraussichtlich {x}.{due} Jetzt umplanen ist billiger als Dispozinsen.', {
+              'd': Dates.dayMonth(risk.payday),
+              'x': Money.format(risk.shortCents),
+              'due': risk.dueNames.isEmpty ? '' : tr(' Vorher wird noch {x} abgebucht.', {'x': risk.dueNames.join(', ')}),
+            }),
+            HintTarget.buddy,
+            urgent: true,
+            question: tr('Mein Konto rutscht vor dem Gehalt ins Minus. Wie komme ich ohne Dispo bis zum {d}?',
+                {'d': Dates.dayMonth(risk.payday)})));
+      }
+    }
+
+    // a direct debit came back: the bill is still open
+    for (final r in Oddities.returnedDebits(tx, now: today)) {
+      out.add(Hint(
+          'returned-${r.back.id}',
+          HintKind.returnedDebit,
+          tr('Lastschrift von {x} ging zurück', {'x': r.merchant}),
+          tr('{x} sind wieder auf deinem Konto, die Rechnung ist aber noch offen. Meist folgt eine Mahnung mit Gebühr.',
+              {'x': Money.format(r.cents)}),
+          HintTarget.buddy,
+          question: tr('Eine Lastschrift von {x} über {y} ist zurückgegangen. Was muss ich jetzt tun?',
+              {'x': r.merchant, 'y': Money.format(r.cents)})));
+    }
 
     // budgets of the running period
     for (final b in budgets) {

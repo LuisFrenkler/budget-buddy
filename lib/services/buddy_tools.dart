@@ -15,6 +15,7 @@ import 'booking_text.dart';
 import 'emergency_plan.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
+import 'overdraft.dart';
 import 'tax_estimate.dart';
 import 'buddy_service.dart';
 import 'db.dart';
@@ -646,6 +647,10 @@ class BuddyTools {
         for (final f in fees) {'art': f.kind, 'summe': eur(f.cents), 'anzahl': f.count}
       ],
       'bankgebuehrenImJahrGeschaetzt': eur(Oddities.yearly(fees)),
+      'zurueckgegangeneLastschriften': [
+        for (final r in Oddities.returnedDebits(tx, now: today, days: 30))
+          {'haendler': r.merchant, 'betrag': eur(r.cents), 'datum': _day(r.back.date)}
+      ],
       'hinweis': 'Doppelt kann gewollt sein (zwei Tickets). Eine Lastschrift lässt sich 8 Wochen lang bei der Bank '
           'zurückholen, bei Karte über den Händler oder die Bank.',
     };
@@ -688,12 +693,24 @@ class BuddyTools {
     return 'sonstiges';
   }
 
-  Map<String, dynamic> _prognose() => {
-        'heute': _day(today),
-        'tageBisMonatsende': snapshot['tageBisMonatsende'],
-        'prognose': snapshot['prognose'] ?? {'vorhanden': false},
-        'budgets': snapshot['budgets'] ?? const [],
-      };
+  Map<String, dynamic> _prognose() {
+    final cash = snapshot['kontostand'] as num?;
+    final risk = cash == null ? null : Overdraft.check(tx, balanceCents: (cash * 100).round(), now: today);
+    return {
+      'heute': _day(today),
+      'tageBisMonatsende': snapshot['tageBisMonatsende'],
+      'prognose': snapshot['prognose'] ?? {'vorhanden': false},
+      'budgets': snapshot['budgets'] ?? const [],
+      if (risk != null)
+        'minusVorDemGehalt': {
+          'gehaltErwartet': _day(risk.payday),
+          'fehltVoraussichtlich': risk.shortCents / 100,
+          'nochFaelligBisDahin': risk.dueCents / 100,
+          'verbrauchProTag': risk.dailyCents / 100,
+          'hinweis': 'Sag das früh und ruhig: was sich verschieben lässt, Dispo vermeiden, notfalls kurz vom Sparkonto.',
+        },
+    };
+  }
 
   Map<String, dynamic> _ziele() => {
         for (final k in ['sparziele', 'depot', 'vermoegen', 'vorsorge', 'splits'])

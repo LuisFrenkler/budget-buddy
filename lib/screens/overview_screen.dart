@@ -441,6 +441,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             subscription: PlusService.subscription.value,
             bankValidUntil: Settings.bankValidUntil,
             freeCents: f?.freeCents,
+            balanceCents: BuddyService.cashCents(),
           ).where((h) => h.weight >= 45 && h.question != null).toList());
     } catch (_) {}
     final tip = top != null

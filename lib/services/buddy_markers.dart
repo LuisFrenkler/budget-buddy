@@ -34,7 +34,7 @@ class BuddyMarkers {
           follow = [
             for (final q in body.split('|'))
               if (q.trim().isNotEmpty && q.trim().length <= 60) q.trim()
-          ].take(3).toList();
+          ].take(4).toList(); // answers to a question back may be four
         }
         continue;
       }

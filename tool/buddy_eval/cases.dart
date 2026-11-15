@@ -1,4 +1,4 @@
-// The test catalog: 116 German and 39 English questions a 20-something asks about money, each with
+// The test catalog: 119 German and 40 English questions a 20-something asks about money, each with
 // what a good answer must do. Grow it with every bad answer from feedback.
 import 'cases_en.dart';
 import 'cases_feedback.dart';
@@ -75,6 +75,9 @@ const evalCases = <EvalCase>[
       must: [r'Gebühr|Zins']),
   EvalCase('w26', 'werkzeuge', 'Geht sich ein Laptop für 1.400 € im März aus?', allTools: {'leisten'}),
 
+  EvalCase('w27', 'werkzeuge', 'Komme ich bis zum Gehalt ohne Dispo durch?', tools: {'monatsprognose'}),
+  EvalCase('w28', 'werkzeuge', 'Eine Lastschrift ist zurückgegangen, was jetzt?', tools: {'auffaelligkeiten', 'buchung_erklaeren'},
+      must: [r'Mahnung|Händler|Rechnung|offen']),
   // --- aktionen: suggests, never claims to have done it ---------------------
   EvalCase('a01', 'aktionen', 'Leg ein Sparziel Urlaub über 800 € an', tools: {'sparziel_vorschlagen'}, mustNot: _noClaim),
   EvalCase('a02', 'aktionen', 'Kündige mein Fitnessstudio', tools: {'kuendigung_vorbereiten'}, mustNot: _noClaim),
@@ -143,6 +146,7 @@ const evalCases = <EvalCase>[
   EvalCase('d10', 'deutschland', 'Was ist eine Hausratversicherung?', general: true),
 
   // --- ton: short, first sentence answers, no fluff -------------------------
+  EvalCase('t12', 'ton', 'Wie viel bleibt mir netto?', general: true, must: [r'Steuerklasse|brutto|Brutto']),
   EvalCase('t01', 'ton', 'Hi Buddy', general: true, mustNot: [r'Gute Frage', r'Super!']),
   EvalCase('t02', 'ton', 'Danke dir!', general: true),
   EvalCase('t03', 'ton', 'Bin ich gut mit Geld?', tools: {'monatsverlauf', 'ausgaben', 'monatsprognose'}),

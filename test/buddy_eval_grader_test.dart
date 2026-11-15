@@ -43,6 +43,22 @@ void main() {
     expect(Grader.grade(t, '${'Wort ' * 160}\n[weiter: a | b]', const []).failures['form'], contains('Wörter'));
   });
 
+  test('form: two to four short follow-ups, at most one question back', () {
+    const t = EvalCase('t', 'ton', 'Hi', general: true);
+    expect(Grader.grade(t, 'Hallo.\n[weiter: nur eine]', const []).failures['form'], '1 weiter-Vorschläge');
+    expect(Grader.grade(t, 'Hallo.\n[weiter: a | b | c | d | e]', const []).failures['form'], '5 weiter-Vorschläge');
+    expect(Grader.grade(t, 'Hallo.\n[weiter: Wie viel kann ich diesen Monat noch sparen? | b]', const []).failures['form'],
+        contains('zu lang'));
+    expect(
+        Grader.grade(t, 'Klar. Welche Steuerklasse hast du? Und zahlst du Kirchensteuer?\n[weiter: I | III]', const [])
+            .failures['form'],
+        '2 Rückfragen');
+    final one = Grader.grade(
+        t, 'Mit Klasse I bleiben etwa so viel. **Welche Steuerklasse hast du?**\n[weiter: Klasse I | Klasse III | Weiß nicht]',
+        const []);
+    expect(one.failures['form'], isNull);
+  });
+
   test('claiming to have saved something fails an action case', () {
     final a = evalCases.firstWhere((c) => c.id == 'a01');
     expect(Grader.grade(a, 'Ich habe das Sparziel angelegt.\n[weiter: a | b]', const []).failures['inhalt'], isNotNull);
@@ -70,10 +86,10 @@ void main() {
         .failures['inhalt'], isNotNull);
   });
 
-  test('the catalog: 155 unique cases across the seven groups, 39 in English, plus feedback', () {
+  test('the catalog: 159 unique cases across the seven groups, 40 in English, plus feedback', () {
     final core = evalCases.where((c) => c.group != 'feedback').toList();
-    expect(core.length, 155);
-    expect(core.where((c) => c.lang == 'en').length, 39);
+    expect(core.length, 159);
+    expect(core.where((c) => c.lang == 'en').length, 40);
     expect(evalCases.map((c) => c.id).toSet().length, evalCases.length);
     expect(core.map((c) => c.group).toSet(),
         {'zahlen', 'werkzeuge', 'aktionen', 'grenzen', 'deutschland', 'ton', 'schwierig'});

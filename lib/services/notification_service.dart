@@ -210,7 +210,8 @@ class NotificationService {
         HintKind.budgetOver || HintKind.budgetClose || HintKind.budgetUnreal || HintKind.bigExpense || HintKind.lowMonth =>
           NotifyTopic.spending,
         HintKind.salaryIn || HintKind.salaryUp || HintKind.taxReturn || HintKind.goalReached || HintKind.monthReview || HintKind.goalBehind => NotifyTopic.buddy,
-        HintKind.doubleCharge || HintKind.bankFees => NotifyTopic.contracts,
+        HintKind.doubleCharge || HintKind.bankFees || HintKind.returnedDebit => NotifyTopic.contracts,
+        HintKind.overdraft => NotifyTopic.spending,
         HintKind.weekPlan => NotifyTopic.buddy,
         HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,
         _ => null, // the rest is planned ahead as a reminder
@@ -224,6 +225,7 @@ class NotificationService {
         bankValidUntil: Settings.bankValidUntil,
         cancellations: CancellationService.all,
         freeCents: BuddyService.freeCents(),
+        balanceCents: BuddyService.cashCents(),
         now: now,
       ).where((h) => _topicOf(h.kind) != null).toList();
 
