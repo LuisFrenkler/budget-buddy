@@ -326,6 +326,53 @@ nicht drängeln.''';
         },
       ], categories);
 
+  // A payslip photo -> its numbers, nothing about the person. The app checks
+  // them against the 2026 wage tax and the contribution rates itself.
+  static Map<String, dynamic> payslipSchema() {
+    Map<String, dynamic> maybe(String type, String description) => {'type': [type, 'null'], 'description': description};
+    const fields = {
+      'brutto': 'Gesamtbrutto des Monats in Euro',
+      'netto': 'Nettoverdienst in Euro',
+      'auszahlung': 'Auszahlungsbetrag in Euro',
+      'lohnsteuer': 'Lohnsteuer in Euro',
+      'soli': 'Solidaritätszuschlag in Euro',
+      'kirchensteuer': 'Kirchensteuer in Euro',
+      'rv': 'Rentenversicherung Arbeitnehmeranteil in Euro',
+      'av': 'Arbeitslosenversicherung Arbeitnehmeranteil in Euro',
+      'kv': 'Krankenversicherung Arbeitnehmeranteil in Euro',
+      'pv': 'Pflegeversicherung Arbeitnehmeranteil in Euro',
+      'zusatzbeitragProzent': 'Zusatzbeitrag der Krankenkasse in Prozent, falls angegeben',
+      'bav': 'Entgeltumwandlung oder Betriebsrente, Arbeitnehmeranteil in Euro',
+      'vl': 'vermögenswirksame Leistungen in Euro',
+      'kinderfreibetraege': 'Zahl der Kinderfreibeträge',
+    };
+    return {
+      'type': 'object',
+      'additionalProperties': false,
+      'required': ['istAbrechnung', 'monat', 'steuerklasse', 'kirche', ...fields.keys],
+      'properties': {
+        'istAbrechnung': {'type': 'boolean', 'description': 'ist das eine deutsche Gehaltsabrechnung?'},
+        'monat': maybe('string', 'Abrechnungsmonat YYYY-MM'),
+        'steuerklasse': maybe('integer', 'Steuerklasse 1 bis 6'),
+        'kirche': maybe('boolean', 'kirchensteuerpflichtig laut Abrechnung'),
+        for (final e in fields.entries) e.key: maybe('number', e.value),
+      },
+    };
+  }
+
+  Future<Map<String, dynamic>> payslip(String base64Image, String mediaType) => _structured([
+        {
+          'type': 'image',
+          'source': {'type': 'base64', 'media_type': normalizeMedia(mediaType), 'data': base64Image},
+        },
+        {
+          'type': 'text',
+          'text': 'Lies diese Gehaltsabrechnung und gib nur die Beträge des Monats zurück, so wie sie dastehen. '
+              'Keine Namen, Adressen, Steuer-ID, Sozialversicherungsnummer oder Kontodaten. Was nicht '
+              'eindeutig dasteht, ist null. Ist es keine Gehaltsabrechnung, setz istAbrechnung auf false.',
+        },
+      ], payslipSchema());
+
   // What happened, in the user's words or on a photo (receipt, bank
   // screenshot, broker confirmation) -> the entries it means for their
   // accounts and depots, plus one sentence back. Nothing is stored here: the

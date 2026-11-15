@@ -31,6 +31,7 @@ enum HintKind {
   monthReview,
   lowMonth,
   goalReached,
+  goalBehind,
 }
 
 // where tapping a hint leads
@@ -258,6 +259,26 @@ class HintsService {
       out.add(Hint('goal-done-${g.id}', HintKind.goalReached, tr('{x} {y} ist erreicht', {'x': g.emoji, 'y': g.name}),
           tr('{x} zusammen. Stark. Was wird das nächste Ziel?', {'x': Money.format(g.targetCents)}), HintTarget.buddy,
           question: tr('Ich habe mein Sparziel {x} erreicht. Was wäre ein gutes nächstes Ziel?', {'x': g.name})));
+    }
+
+    // a goal with a date that falls behind its pace: still time to catch up
+    for (final g in goals) {
+      final d = g.deadline;
+      if (d == null || g.reached || g.targetCents <= 0) continue;
+      final total = _daysBetween(g.createdAt, d), gone = _daysBetween(g.createdAt, today), left = _daysBetween(today, d);
+      if (total < 60 || gone < 30 || left <= 30) continue;
+      final expected = g.targetCents * gone ~/ total;
+      if (g.savedCents >= expected * 0.8) continue;
+      final months = (left / 30.4).ceil();
+      final perMonth = (g.targetCents - g.savedCents) ~/ months;
+      out.add(Hint(
+          'goal-behind-${g.id}-$month',
+          HintKind.goalBehind,
+          tr('{x} {y} hängt hinterher', {'x': g.emoji, 'y': g.name}),
+          tr('Nach Plan wären jetzt etwa {x} zusammen, es sind {y}. Mit {z} im Monat schaffst du es noch.',
+              {'x': Money.format(expected), 'y': Money.format(g.savedCents), 'z': Money.format(perMonth)}),
+          HintTarget.buddy,
+          question: tr('Mein Sparziel {x} hängt hinterher. Wie hole ich auf, ohne dass es weh tut?', {'x': g.name})));
     }
 
     // goals with a date in the next 30 days that are not reached

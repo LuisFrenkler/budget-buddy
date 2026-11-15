@@ -44,6 +44,22 @@ void main() {
         .where((h) => h.kind == HintKind.monthReview), isEmpty);
   });
 
+  test('a goal behind its pace: how much a month still makes it', () {
+    final behind = Goal(
+        id: 'p', name: 'Portugal', emoji: '✈️', targetCents: 120000, savedCents: 20000,
+        createdAt: DateTime(2026, 5, 1), deadline: DateTime(2027, 5, 1));
+    final onTrack = Goal(
+        id: 'n', name: 'Notgroschen', emoji: '🛟', targetCents: 120000, savedCents: 70000,
+        createdAt: DateTime(2026, 5, 1), deadline: DateTime(2027, 5, 1));
+    final hints = HintsService.build(tx: const [], budgets: const [], goals: [behind, onTrack], now: now)
+        .where((h) => h.kind == HintKind.goalBehind)
+        .toList();
+    expect(hints.single.title, contains('Portugal'));
+    // 1.000 € to go in about six months
+    expect(hints.single.text, contains('166,66'));
+    expect(hints.single.question, contains('hole ich auf'));
+  });
+
   test('a month that will not work out is urgent and leads to Buddy', () {
     final hints = HintsService.build(tx: const [], budgets: const [], goals: const [], freeCents: -12000, now: now);
     final low = hints.single;

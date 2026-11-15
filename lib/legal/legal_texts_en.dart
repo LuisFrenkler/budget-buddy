@@ -73,7 +73,7 @@ class LegalTextsEn {
                 'Parqet under Integrations. The legal basis is Art. 6 (1) (b) GDPR.'),
         const LegalSection(
             '5. Buddy (AI assistant) and receipt scanning',
-            'When you ask Buddy a question or scan a receipt, we send your question or the photo and a '
+            'When you ask Buddy a question or scan a receipt or a payslip, we send your question or the photo and a '
                 'summarised overview of your finances (totals, recent bookings, budgets, goals, contracts, '
                 'portfolio, wealth, retirement, splits, Plus status; no account numbers or payment details) to '
                 'Anthropic, PBC (San Francisco, USA), which runs the AI model Claude. Anthropic processes the data '
