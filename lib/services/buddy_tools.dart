@@ -16,6 +16,8 @@ import 'emergency_plan.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
 import 'income_sources.dart';
+import 'installments.dart';
+import 'insurance_check.dart';
 import 'overdraft.dart';
 import 'sub_tips.dart';
 import 'tax_estimate.dart';
@@ -69,6 +71,7 @@ class BuddyTools {
     'notgroschen',
     'leisten',
     'buchung_erklaeren',
+    'versicherungen_pruefen',
     'diagramm',
   };
 
@@ -100,6 +103,7 @@ class BuddyTools {
         'notgroschen' => _notgroschen(),
         'leisten' => _leisten(input),
         'buchung_erklaeren' => _erklaeren(input),
+        'versicherungen_pruefen' => _versicherungen(),
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
@@ -642,6 +646,33 @@ class BuddyTools {
     };
   }
 
+  Map<String, dynamic> _versicherungen() {
+    final contracts = [for (final c in (snapshot['vertraegeUndAbos'] as List?) ?? const []) (c as Map)];
+    final policies = [for (final p in (((snapshot['vermoegen'] as Map?)?['versicherungen']) as List?) ?? const []) (p as Map)];
+    final monthly = <String, num>{
+      for (final c in contracts) '${c['name']}': (c['proMonat'] as num?) ?? 0,
+      for (final p in policies) '${p['name']}': (p['proMonat'] as num?) ?? 0,
+    };
+    final r = InsuranceCheck.check(monthly.keys);
+    if (r.found.isEmpty) {
+      return {
+        'gefunden': const [],
+        'hinweis': 'Keine Versicherung in den Buchungen oder unter Vermögen erkannt. Frag, welche die Person hat; '
+            'die Privathaftpflicht ist für fast alle die wichtigste.',
+      };
+    }
+    return {
+      'gefunden': [for (final f in r.found) {'name': f.name, 'art': f.type, 'proMonat': monthly[f.name]}],
+      'summeProMonat': _round(r.found.fold<double>(0, (s, f) => s + (monthly[f.name] ?? 0))),
+      'doppelt': r.twice,
+      'oftUnnoetigMitZwanzig': r.rarelyNeeded,
+      'haftpflichtFehlt': r.liabilityMissing,
+      'regeln': 'Allgemein, keine Beratung: Privathaftpflicht zuerst, Berufsunfähigkeit wenn vom Einkommen viel '
+          'abhängt, Hausrat je nach Wert der Sachen. Handy-, Glas-, Restschuld- und Kapitallebensversicherung lohnen '
+          'sich selten. Doppelte Deckung bringt nichts. Keine Anbieter oder Tarife nennen; als Frage formulieren.',
+    };
+  }
+
   Map<String, dynamic> _auffaelligkeiten() {
     double eur(int c) => c / 100;
     final doubles = Oddities.doubles(tx, now: today, days: 60);
@@ -659,6 +690,10 @@ class BuddyTools {
         for (final f in fees) {'art': f.kind, 'summe': eur(f.cents), 'anzahl': f.count}
       ],
       'bankgebuehrenImJahrGeschaetzt': eur(Oddities.yearly(fees)),
+      'ratenkaeufe': [
+        for (final r in Installments.detect(tx, now: today))
+          {'anbieter': r.provider, if (r.shop != null) 'fuer': r.shop, 'proMonat': eur(r.monthlyCents), 'bezahlteRaten': r.paidCount}
+      ],
       'mahnungenUndInkasso': [
         for (final d in Oddities.dunning(tx, now: today, days: 60))
           {'an': d.tx.note ?? d.tx.category, 'betrag': eur(d.tx.amountCents), 'datum': _day(d.tx.date), 'inkasso': d.collector}

@@ -15,7 +15,9 @@ import 'contracts.dart';
 import 'plus_service.dart';
 import 'split_service.dart';
 import '../l10n/l10n.dart';
+import 'buddy_log.dart';
 import 'income_sources.dart';
+import 'installments.dart';
 import 'oddities.dart';
 import 'overdraft.dart';
 import 'tax_estimate.dart';
@@ -46,6 +48,8 @@ enum HintKind {
   returnedDebit,
   dunning,
   incomeMissing,
+  installments,
+  followUp,
 }
 
 // where tapping a hint leads
@@ -75,6 +79,8 @@ class HintsService {
     HintKind.stillCharging: 90,
     HintKind.dunning: 89,
     HintKind.incomeMissing: 75,
+    HintKind.installments: 47,
+    HintKind.followUp: 33,
     HintKind.overdraft: 88,
     HintKind.returnedDebit: 86,
     HintKind.doubleCharge: 85,
@@ -142,6 +148,7 @@ class HintsService {
       splitNews: Hive.isBoxOpen('splits') ? SplitService.news() : const [],
       freeCents: freeCents,
       balanceCents: balanceCents,
+      done: BuddyLog.all(),
       now: now,
     ).where((h) => !hidden.contains(h.id)).toList();
   }
@@ -214,11 +221,55 @@ class HintsService {
     int? freeCents,
     // the cash on the accounts today, if known (for the overdraft warning)
     int? balanceCents,
+    // what Buddy's cards changed lately, to ask a week later how it went
+    List<BuddyLogEntry> done = const [],
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
     final month = '${today.year}-${today.month}';
     final out = <Hint>[];
+
+    // a week after a card was taken: how is it going?
+    final followUp = done
+        .where((e) =>
+            !e.undone &&
+            const {'budget', 'goal', 'cancel', 'save'}.contains(e.kind) &&
+            _daysBetween(e.at, today) >= 7 &&
+            _daysBetween(e.at, today) <= 10)
+        .toList()
+      ..sort((a, b) => b.at.compareTo(a.at));
+    if (followUp.isNotEmpty) {
+      final e = followUp.first;
+      out.add(Hint(
+          'followup-${e.id}',
+          HintKind.followUp,
+          tr('Eine Woche später: {x}', {'x': e.title}),
+          switch (e.kind) {
+            'cancel' => tr('Ist die Kündigung bestätigt? Ohne Bestätigung lieber nachhaken.'),
+            'budget' => tr('Buddy schaut mit dir, ob das Budget passt oder angepasst werden sollte.'),
+            _ => tr('Buddy schaut mit dir, ob du im Plan bist.'),
+          },
+          HintTarget.buddy,
+          question: switch (e.kind) {
+            'cancel' => tr('Vor einer Woche habe ich gekündigt: {x}. Was mache ich, wenn keine Bestätigung kommt?', {'x': e.title}),
+            'budget' => tr('Wie läuft mein Budget seit einer Woche: {x}?', {'x': e.title}),
+            _ => tr('Wie komme ich voran seit letzter Woche: {x}?', {'x': e.title}),
+          }));
+    }
+
+    // buy now, pay later adds up: once a month when there are some
+    final rates = Installments.detect(tx, now: today);
+    if (rates.isNotEmpty) {
+      final sum = Installments.monthly(rates);
+      out.add(Hint(
+          'installments-$month',
+          HintKind.installments,
+          tr('{n} Ratenzahlungen: {x} im Monat', {'n': rates.length, 'x': Money.format(sum)}),
+          tr('Jede einzeln ist klein, zusammen sind es {x} im Jahr. Buddy zeigt dir, welche zuerst weg sollte.',
+              {'x': Money.format(sum * 12)}),
+          HintTarget.buddy,
+          question: tr('Ich zahle {x} im Monat für Ratenkäufe. Wie werde ich die am schnellsten los?', {'x': Money.format(sum)})));
+    }
 
     // the account runs below zero before the next salary
     if (balanceCents != null) {

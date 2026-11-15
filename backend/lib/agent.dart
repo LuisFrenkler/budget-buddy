@@ -752,7 +752,7 @@ oder Passwörter.''';
     {
       'name': 'auffaelligkeiten',
       'description': 'Sucht doppelte Abbuchungen (gleicher Händler, gleicher Betrag, innerhalb von drei Tagen), '
-          'zurückgegangene Lastschriften (Rechnung noch offen), Mahngebühren und Zahlungen an Inkassobüros und '
+          'zurückgegangene Lastschriften (Rechnung noch offen), Mahngebühren, Zahlungen an Inkassobüros, laufende Ratenkäufe (Klarna, PayPal, Finanzierung) und '
           'Bankgebühren (Kontoführung, Dispozinsen, Auslandseinsatz) samt Hochrechnung aufs Jahr. Für Fragen wie '
           '„Wurde ich doppelt belastet?“, „Was kostet mich meine Bank?“ und beim Sparen.',
       'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
@@ -835,6 +835,13 @@ oder Passwörter.''';
       },
     },
     {
+      'name': 'versicherungen_pruefen',
+      'description': 'Ordnet die Versicherungen aus Verträgen und Vermögen nach Art (Haftpflicht, Hausrat, BU, Handy …), '
+          'zeigt doppelte Deckung, Arten, die sich mit Anfang 20 selten lohnen, und ob die Privathaftpflicht fehlt. '
+          'Für „Brauche ich die?“, „Bin ich überversichert?“. Allgemeine Regeln, keine Anbieter, keine Beratung.',
+      'input_schema': {'type': 'object', 'additionalProperties': false, 'properties': {}},
+    },
+    {
       'name': 'kategorie_vorschlagen',
       'description': 'Schlägt vor, alle Buchungen eines Händlers (auch künftige) in eine andere Kategorie zu verschieben.',
       'input_schema': {
@@ -909,6 +916,7 @@ oder Passwörter.''';
     'notgroschen': 'deinen Notgroschen',
     'leisten': 'ob es passt',
     'buchung_erklaeren': 'die Buchung',
+    'versicherungen_pruefen': 'deine Versicherungen',
     'kategorie_vorschlagen': 'die Kategorien',
     'erinnerung_vorschlagen': 'deine Erinnerung',
     'diagramm': 'ein Diagramm',
