@@ -48,7 +48,7 @@ PRIVATSPHÄRE
 Deine Daten liegen auf deinem Gerät. Die Kopie im Konto wird mit deinem Passwort verschlüsselt, wir können sie nicht lesen. Keine Werbung, kein Tracking, kein Datenverkauf. An die KI gehen nur Ergebnisse, die Buddy für deine Frage braucht, keine Kontonummern.
 
 KOSTENLOS UND PLUS
-Kostenlos: Konto und Depot, Budgets, Monatsprognose, Verträge mit Kündigung, Hinweise, Gruppen und 30 Fragen an Buddy im Monat. Ahead Plus (4,99 € im Monat oder 39,99 € im Jahr, 7 Tage gratis testen): Buddy ohne Grenze, Belege ohne Grenze, beliebig viele Sparziele.
+Kostenlos: Konto und Depot, Budgets, Monatsprognose, Verträge mit Kündigung, Hinweise, Gruppen, 30 Fragen an Buddy und 3 Beleg-Scans im Monat, 1 Sparziel. Ahead Plus (4,99 € im Monat oder 39,99 € im Jahr, 7 Tage gratis testen): Buddy ohne Limit, Belege ohne Limit, beliebig viele Sparziele.
 
 Buddy kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.
 
@@ -97,7 +97,7 @@ PRIVACY
 Your data lives on your device. The copy in your account is encrypted with your password, we can't read it. No ads, no tracking, no selling of data. Only the results Buddy needs for your question go to the AI, never account numbers.
 
 FREE AND PLUS
-Free: account and portfolio, budgets, monthly forecast, contracts with cancellation, alerts, groups and 30 questions to Buddy a month. Ahead Plus (€4.99 a month or €39.99 a year, 7-day free trial): unlimited Buddy, unlimited receipts, as many savings goals as you like.
+Free: account and portfolio, budgets, monthly forecast, contracts with cancellation, alerts, groups, 30 questions to Buddy and 3 receipt scans a month, 1 savings goal. Ahead Plus (€4.99 a month or €39.99 a year, 7-day free trial): Buddy without a limit, receipts without a limit, as many savings goals as you like.
 
 Made for people living in Germany. Buddy can make mistakes. No investment, tax or legal advice.
 

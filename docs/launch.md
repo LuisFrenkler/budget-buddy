@@ -16,7 +16,7 @@ Store-Submit braucht noch die Ops-/Legal-Punkte unten.
 ## Günstigste Online-KI
 
 1. Nur `GEMINI_API_KEY` setzen (Anthropic leer lassen) → Gemini Flash Free Tier.
-2. Free-App: 5 Buddy-Fragen/Monat — Free-Tier reicht für Soft Launch.
+2. Free-App: 30 Buddy-Fragen und 3 Beleg-Scans im Monat, 1 Sparziel (`PlusService`). Gemini-Free-Tier trägt den Soft Launch, nicht die Plus-Last.
 3. Später Plus-Last: `ANTHROPIC_API_KEY` (Haiku, ~0,1 ¢/Frage).
 
 ## Günstigstes Hosting

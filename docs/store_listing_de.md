@@ -14,7 +14,7 @@ Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben
 
 ## Beschreibung
 
-**BudgetBuddy ist dein KI-Finanzcoach für den Alltag.**
+**Ahead ist dein KI-Finanzcoach für den Alltag.**
 
 Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: „Kann ich mir 800 € Urlaub leisten?“, „Wo kann ich sparen?“, „Welche Abos habe ich?“. Er rechnet mit deinen Ausgaben, Budgets und Verträgen.
 
@@ -38,6 +38,10 @@ Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: �
 - App-Sperre (Face ID / Fingerabdruck), Beträge verbergen
 - Dark Mode, CSV/Backup, geteilte Ausgaben
 
+**Kostenlos und Plus**
+
+Kostenlos: Konto, Budgets, Prognose, Verträge, Notgroschen, 30 Fragen an Buddy im Monat, 3 Beleg-Scans, 1 Sparziel. Ahead Plus (4,99 € im Monat oder 39,99 € im Jahr, 7 Tage testen, wenn der Store es erlaubt): Buddy ohne Limit, Belege ohne Limit, beliebig viele Ziele. Keine Werbung.
+
 **Privatsphäre**
 
 Keine Kontonummern an die KI. Buddy-Zusammenfassung nur nach deiner Zustimmung. Konto in der App löschbar.
@@ -55,7 +59,7 @@ Nimm die Frames im Simulator / Gerät; Bildunterschriften so setzen:
 | 3 | Schnellerfassung „Döner 8,50 gestern“ | Tippen wie du sprichst |
 | 4 | Verträge / Abos mit Monatssumme | Abos erkannt. Erhöhungen auch. |
 | 5 | Start mit „noch frei“ + Polster/Vorsorge | Noch frei, und was als Nächstes kommt |
-| 6 | (optional) Plus / mehr Buddy | Mehr Buddy-Fragen, gleiche Ehrlichkeit |
+| 6 | (optional) Plus / Buddy ohne Limit | Buddy ohne Limit, gleiche Ehrlichkeit |
 
 Vermeide als erstes Frame: reines Depot-Chart oder leeres Dashboard ohne Buddy.
 

@@ -10,7 +10,6 @@ import 'finance_snapshot.dart';
 import 'forecast_service.dart';
 import 'goals_service.dart';
 import 'scenario_service.dart';
-import 'sub_tips.dart';
 import '../l10n/l10n.dart';
 import 'affordability.dart';
 import 'insurance_check.dart';
@@ -96,7 +95,7 @@ class LocalBuddy {
       'debt',
       'emergency'
     ])) {
-      return _wealth(s);
+      return _wealth(topic, s);
     }
     if (_has(
         topic, ['wiederkehr', 'dauerauftrag', 'recurring', 'standing order']))
@@ -302,11 +301,6 @@ class LocalBuddy {
             'y': _eur(sum),
             'z': _eur(sum * 12)
           }));
-      final tip = subs
-          .map((c) => SubTips.forName(c.name))
-          .whereType<SubTip>()
-          .firstOrNull;
-      if (tip != null) tips.add(tip.text);
     }
     if (tips.isEmpty) {
       final top = _top(avg, 1);
@@ -473,64 +467,73 @@ class LocalBuddy {
       return tr(
           'Noch keine Sparziele.\n\nNächster Schritt: Unter Sparziele anlegen.');
     final surplus = s.avgIncome - s.avgExpenses;
+    final g = s.goals.first;
+    final lead = g.reached
+        ? tr('**{x}** für {y} sind da.',
+            {'x': _eur(g.savedCents), 'y': g.name})
+        : tr('**{x}** fehlen noch für {y}.',
+            {'x': _eur(g.remainingCents), 'y': g.name});
+    if (s.goals.length == 1) {
+      final plan =
+          GoalsService.plan(g, avgSurplusCents: surplus, now: s.today).text;
+      return '$lead $plan';
+    }
     final lines = [
-      for (final g in s.goals.take(6))
-        tr('- {x} {y}: {z} von {a} ({b} %). {c}', {
-          'x': g.emoji,
-          'y': g.name,
-          'z': _eur(g.savedCents),
-          'a': _eur(g.targetCents),
-          'b': (g.progress * 100).round(),
-          'c': GoalsService.plan(g, avgSurplusCents: surplus, now: s.today).text
-        })
+      for (final g in s.goals.take(4))
+        '- ${g.name}: ${_eur(g.savedCents)} / ${_eur(g.targetCents)}'
     ];
-    return lines.join('\n');
+    return '$lead\n${lines.join('\n')}';
   }
 
-  static String _wealth(FinanceSnapshot s) {
+  static String _wealth(String topic, FinanceSnapshot s) {
     final net = s.balanceCents + s.depotCents - s.debtCents;
-    final parts = <String>[
-      tr('**{x}** netto. Konten {y}, Depot {z}{a}.', {
-        'x': _eur(net),
-        'y': _eur(s.balanceCents),
-        'z': _eur(s.depotCents),
-        'a': s.debtCents > 0
-            ? tr(', Schulden {x}', {'x': _eur(s.debtCents)})
-            : '',
-      }),
-    ];
-    final mid = <String>[
-      if (s.savingsRatePercent != null)
-        tr('Sparquote {x} %.', {'x': s.savingsRatePercent}),
-      if (s.emergencyTargetCents != null)
-        tr('Notgroschen {x} von {y}.', {
-          'x': _eur(s.emergencyHaveCents),
-          'y': _eur(s.emergencyTargetCents!)
-        })
-      else if (s.emergencyHaveCents > 0)
-        tr('Auf Sparkonten {x}.', {'x': _eur(s.emergencyHaveCents)}),
-    ];
-    if (mid.isNotEmpty) parts.add(mid.join(' '));
-    if (s.debts.isNotEmpty) {
-      parts.add(tr('Schulden: {x}.', {
-        'x': s.debts
-            .take(4)
-            .map((d) =>
-                '${d.name} ${_eur(d.cents)}${d.rateLabel == null ? '' : ' · ${d.rateLabel}'}')
-            .join(', ')
-      }));
+    final lead = tr('**{x}** netto.', {'x': _eur(net)});
+    final askEmergency =
+        _has(topic, ['notgroschen', 'emergency', 'rücklage', 'puffer']);
+    final askDebt = _has(topic, ['schulden', 'debt']);
+    final askRate = _has(topic, ['sparquote', 'savings rate']);
+    if (askEmergency) {
+      final line = _emergencyLine(s);
+      return line == null
+          ? '$lead ${tr('Notgroschen ist noch nicht eingetragen.')}'
+          : '$lead $line';
     }
-    final tail = <String>[
-      if (s.policies.isNotEmpty)
-        tr('Versicherungen: {x}, {y} im Monat.', {
-          'x': s.policies.take(4).map((p) => p.name).join(', '),
-          'y': _eur(s.policies.fold<int>(0, (a, p) => a + p.monthlyCents))
-        }),
-      if (s.runwayMonths != null)
-        tr('Reichweite etwa {x} Monate.', {'x': s.runwayMonths}),
-    ];
-    if (tail.isNotEmpty) parts.add(tail.join(' '));
-    return parts.join(' ');
+    if (askDebt && s.debts.isNotEmpty) return '$lead ${_debtLine(s)}';
+    if (askRate && s.savingsRatePercent != null) {
+      return '$lead ${tr('Sparquote {x} %.', {'x': s.savingsRatePercent})}';
+    }
+    final gap = s.emergencyTargetCents == null
+        ? 0
+        : s.emergencyTargetCents! - s.emergencyHaveCents;
+    if (gap > 0) return '$lead ${_emergencyLine(s)}';
+    if (s.debts.isNotEmpty) return '$lead ${_debtLine(s)}';
+    if (s.savingsRatePercent != null) {
+      return '$lead ${tr('Sparquote {x} %.', {'x': s.savingsRatePercent})}';
+    }
+    return '$lead ${tr('Konten {y}, Depot {z}.', {
+      'y': _eur(s.balanceCents),
+      'z': _eur(s.depotCents),
+    })}';
+  }
+
+  static String? _emergencyLine(FinanceSnapshot s) {
+    final target = s.emergencyTargetCents;
+    if (target == null) {
+      if (s.emergencyHaveCents <= 0) return null;
+      return tr('Auf Sparkonten {x}.', {'x': _eur(s.emergencyHaveCents)});
+    }
+    final gap = target - s.emergencyHaveCents;
+    if (gap <= 0) {
+      return tr('Notgroschen ist voll ({x}).',
+          {'x': _eur(s.emergencyHaveCents)});
+    }
+    return tr('Notgroschen: noch **{x}**.', {'x': _eur(gap)});
+  }
+
+  static String _debtLine(FinanceSnapshot s) {
+    final d = s.debts.first;
+    final rate = d.rateLabel == null ? '' : ' · ${d.rateLabel}';
+    return tr('Schulden: {x}.', {'x': '${d.name} ${_eur(d.cents)}$rate'});
   }
 
   static String _insurance(FinanceSnapshot s) {
@@ -542,15 +545,21 @@ class LocalBuddy {
       return tr(
           'Keine Versicherung erkannt. Privathaftpflicht zuerst.\n\nNächster Schritt: Unter Vermögen eintragen.');
     }
+    final monthly = s.policies.fold<int>(0, (a, p) => a + p.monthlyCents);
+    final notes = InsuranceCheck.notes(r);
+    final finding = notes.isEmpty
+        ? tr('Privathaftpflicht ist da. Keine doppelte Deckung erkannt.')
+        : notes.first;
+    final lead = monthly > 0
+        ? tr('**{x}** im Monat. {y}', {'x': _eur(monthly), 'y': finding})
+        : tr('**{n}** erkannt. {y}', {'n': r.found.length, 'y': finding});
+    if (notes.length <= 1 && r.found.length <= 1) return lead;
     final listed = [
-      for (final f in r.found.take(6))
+      for (final f in r.found.take(4))
         '- ${f.name} (${InsuranceCheck.label(f.type)})'
     ].join('\n');
-    final notes = InsuranceCheck.notes(r);
-    final extra = notes.isEmpty
-        ? tr('Privathaftpflicht ist da. Keine doppelte Deckung erkannt.')
-        : notes.map((n) => '- $n').join('\n');
-    return tr('Versicherungs-Check:\n{x}\n\n{y}', {'x': listed, 'y': extra});
+    final more = notes.length > 1 ? '\n${notes.skip(1).first}' : '';
+    return '$lead\n$listed$more';
   }
 
   static String _vorsorge(FinanceSnapshot s) {
@@ -565,59 +574,65 @@ class LocalBuddy {
           {'x': _eur(v.input.desiredNetCents)});
     }
     return tr(
-        '**{z}** fehlen im Monat, noch **{y} Jahre** bis {x}. Etwa {a} extra im Monat (gesetzlich {b}, Kapital {c}). Orientierung, keine Beratung.',
+        '**{z}** fehlen im Monat bis {x}. Etwa **{a}** extra. Orientierung, keine Beratung.',
         {
           'x': v.input.retireAge,
-          'y': v.yearsLeft,
           'z': _eur(v.gapMonthlyCents),
           'a': _eur(v.saveExtraMonthlyCents),
-          'b': _eur(v.input.statutoryCents),
-          'c': _eur(v.capitalCents)
         });
   }
 
   static String _splits(FinanceSnapshot s) {
     if (s.splits.isEmpty) return tr('Noch keine geteilten Ausgaben.');
-    final lines = [
-      for (final g in s.splits.take(5))
-        '- ${g.name}: ${g.myCents == 0 ? tr('ausgeglichen') : g.myCents > 0 ? tr('du bekommst {x}', {
-                'x': _eur(g.myCents)
-              }) : tr('du schuldest {x}', {'x': _eur(-g.myCents)})}'
+    final open = s.splits.where((g) => g.myCents != 0).toList();
+    if (open.isEmpty) return tr('**0 €** offen. Alles ausgeglichen.');
+    final g = open.first;
+    final lead = g.myCents > 0
+        ? tr('**{x}** bekommst du zurück, von {y}.',
+            {'x': _eur(g.myCents), 'y': g.name})
+        : tr('**{x}** schuldest du, in {y}.',
+            {'x': _eur(-g.myCents), 'y': g.name});
+    if (open.length == 1) return lead;
+    final rest = [
+      for (final g in open.skip(1).take(3))
+        '- ${g.name}: ${_eur(g.myCents.abs())}'
     ];
-    return lines.join('\n');
+    return '$lead\n${rest.join('\n')}';
   }
 
   static String _recurring(FinanceSnapshot s) {
     final rules = s.recurring.where((r) => r.active).toList();
-    if (rules.isEmpty)
-      return tr('Keine aktiven wiederkehrenden Buchungen.');
+    if (rules.isEmpty) return tr('Keine aktiven wiederkehrenden Buchungen.');
+    final monthlyOut = rules
+        .where((r) => !r.income && r.interval == 'monatlich')
+        .fold<int>(0, (a, r) => a + r.cents);
+    final lead = monthlyOut > 0
+        ? tr('**{x}** im Monat wiederkehrend.', {'x': _eur(monthlyOut)})
+        : tr('**{x}** als Nächstes ({y}).',
+            {'x': _eur(rules.first.cents), 'y': rules.first.title});
+    if (rules.length == 1) return lead;
     final lines = [
-      for (final r in rules.take(6))
-        tr('- {x}: {y} {z}{a} · nächstes {b}', {
-          'x': r.title,
-          'y': _eur(r.cents),
-          'z': tr(r.interval),
-          'a': r.income ? tr(' (Einnahme)') : '',
-          'b': _date(r.next)
-        })
+      for (final r in rules.take(4)) '- ${r.title}: ${_eur(r.cents)}'
     ];
-    return lines.join('\n');
+    return '$lead\n${lines.join('\n')}';
   }
 
   static String _accounts(FinanceSnapshot s) {
-    final accounts = s.accounts.isEmpty
-        ? tr('**{x}** Kontostand.', {'x': _eur(s.balanceCents)})
-        : s.accounts
-            .map((a) => '**${_eur(a.cents)}** · ${a.name} (${tr(a.art)})')
-            .join('\n');
-    final recent = [
-      for (final t in s.recent.take(5))
-        '- ${t.date}: ${t.note} ${t.cents < 0 ? '−' : '+'}${_eur(t.cents.abs())} (${t.account})'
-    ];
-    final tail = recent.isEmpty
-        ? ''
-        : tr('\n\nLetzte Buchungen:\n{x}', {'x': recent.join('\n')});
-    return '$accounts$tail';
+    final total = tr('**{x}** auf den Konten.', {'x': _eur(s.balanceCents)});
+    if (s.accounts.length > 1) {
+      final lines = [
+        for (final a in s.accounts.take(4)) '- ${a.name}: ${_eur(a.cents)}'
+      ];
+      return '$total\n${lines.join('\n')}';
+    }
+    final name = s.accounts.length == 1 ? ' ${s.accounts.first.name}.' : '';
+    if (s.recent.isEmpty) return '$total$name';
+    final t = s.recent.first;
+    return '$total$name ${tr('Zuletzt {x} {sign}{y}.', {
+      'x': t.note,
+      'sign': t.cents < 0 ? '−' : '+',
+      'y': _eur(t.cents.abs()),
+    })}';
   }
 
   // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe", same formula as the sheet
@@ -696,7 +711,7 @@ class LocalBuddy {
         ? ''
         : tr(' Noch fällig: {x}.', {
             'x': f.due
-                .take(3)
+                .take(1)
                 .map((d) => '${d.name} ${_eur(d.cents)}')
                 .join(', ')
           });
@@ -722,12 +737,11 @@ class LocalBuddy {
       return tr('**Plus ist aktiv** ({x}).{trial}{end}',
           {'x': tr(p.plan ?? 'monatlich'), 'trial': trial, 'end': end});
     }
-    final left = p.fragenRest == null
-        ? ''
-        : tr('Noch {x} Gratis-Fragen und {y} Beleg-Scans in diesem Monat. ',
-            {'x': p.fragenRest, 'y': p.scansRest ?? 0});
-    return tr('Plus ist nicht aktiv. {left}Ein Ziel ist gratis, mehr mit Plus.',
-        {'left': left});
+    if (p.fragenRest != null) {
+      return tr('**{x}** Gratis-Fragen übrig. Plus ist nicht aktiv.',
+          {'x': p.fragenRest});
+    }
+    return tr('Plus ist nicht aktiv. Ein Ziel ist gratis.');
   }
 
   static String _date(String iso) {
