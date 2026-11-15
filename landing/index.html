@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ahead</title>
-<meta name="description" content="Was mach ich mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen Zahlen und sagt den nächsten Schritt.">
-<meta property="og:title" content="Ahead">
-<meta property="og:description" content="Was mach ich mit meinem Gehalt? Frag Buddy. Er rechnet mit deinen Zahlen und sagt den nächsten Schritt.">
+<title>Ahead — der Geld-Coach</title>
+<meta name="description" content="Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank nur lesend. Du entscheidest.">
+<meta property="og:title" content="Ahead — der Geld-Coach">
+<meta property="og:description" content="Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank nur lesend. Du entscheidest.">
 <meta property="og:image" content="og.png">
 <meta name="theme-color" content="#8E4620">
 <!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server -->
@@ -80,8 +80,7 @@
   /* ---------------- hero */
   .hero{min-height:100svh;display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,64px);align-items:center;padding-top:112px;padding-bottom:0}
   .hero-text{padding-bottom:64px}
-  .hero-mark{display:inline-flex;align-items:center;gap:10px;margin-bottom:22px;font:600 14px/1 var(--text);letter-spacing:.04em;text-transform:uppercase;color:rgba(255,247,240,.72)}
-  .hero-mark .coin{width:22px;height:22px}
+  .hero-mark{margin-bottom:16px;font:600 15px/1 var(--display);letter-spacing:-.02em;color:rgba(255,247,240,.9)}
   .hero h1{font-size:clamp(44px,6.6vw,92px);font-weight:600;letter-spacing:-.045em;line-height:.96;max-width:9.2em}
   .hero h1 span{color:var(--peach)}
   .hero .lead{font-size:clamp(17px,1.8vw,20px);max-width:26em;margin-top:22px;color:rgba(255,247,240,.86);line-height:1.5}
@@ -101,7 +100,10 @@
   .btn.ghost{background:transparent;border:1px solid currentColor}
   .btn:disabled{opacity:.6;cursor:default;transform:none}
   .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px}
-  .fine{font-size:13px;color:rgba(255,247,240,.72)}
+  .trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;padding:0;list-style:none;max-width:36em}
+  .trust li{display:flex;align-items:center;gap:8px;font:500 13.5px/1.35 var(--text);color:rgba(255,247,240,.86)}
+  .trust li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--peach);flex:none}
+  .plan{margin-top:14px;max-width:40em;font:500 13px/1.45 var(--text);color:rgba(255,247,240,.72)}
   .scroll{display:inline-flex;align-items:center;gap:8px;margin-top:clamp(28px,5vh,56px);font:500 14px/1 var(--text);color:rgba(255,247,240,.75);text-decoration:none}
   .scroll::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.85;animation:cue 1.8s ease-in-out infinite}
   @keyframes cue{0%,100%{transform:rotate(45deg) translateY(0);opacity:.5}50%{transform:rotate(45deg) translateY(4px);opacity:1}}
@@ -133,11 +135,20 @@
   .remark small .coin{width:18px;height:18px}
   .r1{left:-6%;top:14%}.r2{right:-4%;top:46%}
   @media (max-width:900px){
-    .hero{grid-template-columns:1fr;padding-top:104px}
+    .hero{grid-template-columns:1fr;align-items:start;gap:16px;padding-top:92px;padding-bottom:28px}
     .scroll{display:none}
-    .hero-text{padding-bottom:8px}
-    .r1{left:0;top:10%}.r2{right:0;top:44%}
-    .remark{max-width:200px;font-size:14px;padding:12px 14px}
+    .hero-text{padding-bottom:0}
+    .hero h1{font-size:clamp(38px,10.4vw,60px)}
+    .hero .lead{margin-top:12px}
+    .join{margin-top:18px}
+    .trust{margin-top:12px}
+    .stage{align-self:center;width:100%;max-width:520px;justify-self:center;
+           display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"p p" "a b";gap:10px;justify-items:stretch}
+    .stage .phone{grid-area:p;justify-self:center;width:min(272px,74vw);margin-top:4px;border-radius:40px}
+    .stage .phone img{border-radius:32px}
+    .r1,.r2{position:static;max-width:none;min-width:0;top:auto;left:auto;right:auto}
+    .r1{grid-area:a}.r2{grid-area:b}
+    .remark{font-size:13.5px;padding:12px 12px}
     .phone,.js .ready .stage .phone{animation:none}
   }
 
@@ -280,14 +291,16 @@
   <div class="grain"></div>
   <div class="w hero">
    <div class="hero-text">
+    <p class="hero-mark hi hi-1" data-en="Ahead · Money coach">Ahead · Geld-Coach</p>
     <h1 class="hi hi-1" data-en="What do I do with my <span>salary?</span>">Was mach ich jetzt mit meinem <span>Gehalt?</span></h1>
-    <p class="lead hi hi-2" data-en="Ask Buddy. He works with your numbers and names one next step. You decide.">Frag Buddy. Er rechnet mit deinen Zahlen und sagt einen nächsten Schritt. Entscheiden tust du.</p>
+    <p class="lead hi hi-2" data-en="Buddy works with your numbers and names one next step. He can’t move your money. You decide.">Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Er bewegt kein Geld. Entscheiden tust du.</p>
     <div id="platz" class="hi hi-3">
       <form class="join" novalidate>
         <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
         <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
       </form>
       <div class="err" role="alert"></div>
+      <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       <div class="spot">
         <div class="n" data-pos>#–</div>
         <p data-en="That’s your place in line. Every person who joins through your link moves you five places up.">So weit vorne stehst du. Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
@@ -298,7 +311,12 @@
           <button class="btn ghost" type="button" data-copy data-en="Copy link">Link kopieren</button>
         </div>
       </div>
-      <p class="fine" data-en="Free. Read-only access to your bank. No account numbers go to the AI.">Kostenlos. Nur Lesezugriff auf die Bank. Keine Kontonummern an die KI.</p>
+      <ul class="trust" aria-label="Warum das trägt" data-en-aria-label="Why this holds">
+        <li data-en="Read-only bank">Bank nur lesend</li>
+        <li data-en="Doesn’t sell you funds">Verkauft dir keine Fonds</li>
+        <li data-en="No account numbers to the AI">Keine Kontonummern an die KI</li>
+      </ul>
+      <p class="plan" data-en="Free: 30 questions a month. Plus: no limit, 7 days to try, then €4.99 a month.">Kostenlos: 30 Fragen im Monat. Plus: ohne Limit, 7 Tage testen, dann 4,99 € im Monat.</p>
     </div>
     <a class="scroll hi hi-4" href="#buddy" data-en="Scroll">Runter</a>
    </div>
@@ -314,7 +332,7 @@
   <section id="buddy">
     <div class="w rise">
       <h2 class="say-big" data-en="Less finance jargon. <span>More next step.</span>">Weniger Finanzdeutsch. <span>Mehr nächster Schritt.</span></h2>
-      <p class="sub" data-en="Buddy is your money coach. He sees what comes in and goes out, says it plainly, and names one next step.">Buddy ist dein Coach fürs Geld. Er sieht rein und raus, sagt es klar und nennt einen nächsten Schritt.</p>
+      <p class="sub" data-en="He sees what comes in and goes out. Then one step, concrete enough to do today. Or not.">Er sieht, was reinkommt und rausgeht. Dann ein Schritt, konkret genug für heute. Oder nicht.</p>
     </div>
   </section>
 
@@ -342,7 +360,7 @@
     </div>
     <div class="tile t2 rise" data-d="2">
       <h3 data-en="He remembers what you tell him.">Er merkt sich, was du ihm sagst.</h3>
-      <p data-en="Salary on the 28th? Noted — only when you tap Remember. Same for every booking.">Gehalt am 28.? Notiert — erst wenn du auf Merken tippst. Gilt für jede Buchung.</p>
+      <p data-en="Salary on the 28th? Noted — only when you tap Remember. He stores nothing without you.">Gehalt am 28.? Notiert — erst wenn du auf Merken tippst. Ohne dich speichert er nichts.</p>
       <div class="shot"><img src="app_coach.jpg" data-en-src="app_coach_en.jpg" data-en-alt="Buddy asks whether he should remember that your salary arrives on the 28th and suggests a savings goal you can apply or dismiss." alt="Buddy fragt, ob er sich merken soll, dass das Gehalt am 28. kommt, und schlägt ein Sparziel vor, das du übernehmen oder verwerfen kannst." loading="lazy"></div>
     </div>
   </div>
@@ -357,8 +375,8 @@
       </div>
       <p class="punch" data-en="It’s never the coffee anyway. Usually it’s the gym.">Am Kaffee liegt es eh nie. Meistens ist es das Fitnessstudio.</p>
       <div class="facts">
-        <span data-en="Read-only access to your account">Nur Lesezugriff aufs Konto</span>
-        <span data-en="You confirm every booking">Du bestätigst jede Buchung</span>
+        <span data-en="You sign in at your bank, not with us">Login bei deiner Bank, nicht bei uns</span>
+        <span data-en="No ads, and we don’t sell your data">Keine Werbung, kein Datenverkauf</span>
         <span data-en="No account numbers to the AI">Keine Kontonummern an die KI</span>
         <span data-en="At most one notification a day">Höchstens eine Mitteilung am Tag</span>
       </div>
@@ -375,12 +393,13 @@
       </form>
       <div class="answer" aria-live="polite"></div>
       <div class="again">
-        <h3 data-en="Get in early.">Sei früh dabei.</h3>
+        <h3 data-en="Your place with Ahead.">Dein Platz bei Ahead.</h3>
         <form class="join" novalidate>
           <input type="email" id="email2" name="email" placeholder="Deine E-Mail" autocomplete="email" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
           <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
+        <p class="plan" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
       </div>
     </div>
   </div>
@@ -407,7 +426,8 @@
     window.fetch = function (url, opts) {
       var u = String(url);
       function reply(o) { return Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } })); }
-      if (u.indexOf('demo/waitlist/') === 0) return reply({ code: 'K7Q2M9', position: 128, total: 412, friends: 0, placesPerFriend: 5 });
+      // no place, no headcount: a queue exists only on a real server
+      if (u.indexOf('demo/waitlist/') === 0) return reply({ preview: true });
       if (u.indexOf('demo/') === 0) return Promise.reject(new Error('preview'));
       return realFetch(url, opts);
     };
@@ -418,11 +438,12 @@
   var lang = qLang === 'en' || qLang === 'de' ? qLang : store.get('ahead-lang') || ((navigator.language || 'de').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
   function L(de, en) { return lang === 'en' ? en : de; }
   var meta = {
-    de: { title: 'Ahead', desc: document.querySelector('meta[name="description"]').content },
-    en: { title: 'Ahead', desc: 'What do I do with my salary? Ask Buddy. He works with your numbers and names the next step.' }
+    de: { title: 'Ahead — der Geld-Coach', desc: 'Ahead ist der Geld-Coach. Buddy nennt einen nächsten Schritt aus deinen Zahlen. Bank nur lesend. Du entscheidest.' },
+    en: { title: 'Ahead — the money coach', desc: 'Ahead is the money coach. Buddy names one next step from your numbers. Read-only bank. You decide.' }
   };
   function applyLang() {
     document.documentElement.lang = lang;
+    document.title = meta[lang].title;
     document.querySelectorAll('[data-en]').forEach(function (el) {
       if (el.dataset.de == null) el.dataset.de = el.innerHTML;
       el.innerHTML = lang === 'en' ? el.dataset.en : el.dataset.de;
@@ -435,10 +456,16 @@
       });
     });
     document.querySelector('meta[name="description"]').content = meta[lang].desc;
+    var ogT = document.querySelector('meta[property="og:title"]'), ogD = document.querySelector('meta[property="og:description"]');
+    if (ogT) ogT.content = meta[lang].title;
+    if (ogD) ogD.content = meta[lang].desc;
     document.querySelectorAll('[data-legal]').forEach(function (a) { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
     var sw = document.querySelector('[data-lang]');
     sw.textContent = lang === 'en' ? 'DE' : 'EN';
     sw.setAttribute('aria-label', lang === 'en' ? 'Auf Deutsch lesen' : 'Read in English');
+    document.querySelectorAll('[data-preview]').forEach(function (el) {
+      el.textContent = L('Nicht gespeichert. Vorschau, keine Warteliste.', 'Not saved. Preview, no waitlist.');
+    });
   }
   applyLang();
 
@@ -521,13 +548,18 @@
     applyLang();
     showTalk(current);
     var code = store.get('ahead-code');
-    if (code && spot.classList.contains('on')) fetch(API + '/waitlist/status?code=' + encodeURIComponent(code)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+    if (code && spot.classList.contains('on')) fetch(API + '/waitlist/status?code=' + encodeURIComponent(code)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(onStatus).catch(function () {});
     out.innerHTML = '';
   });
 
   // ------------------------------------------------------------ waitlist
+  if (API === 'demo') document.querySelectorAll('[data-demo]').forEach(function (el) { el.hidden = false; });
   var spot = document.querySelector('.spot');
   function myLink(code) { return location.origin + location.pathname + '?ref=' + code; }
+  function onStatus(d) {
+    if (d && d.preview) { store.set('ahead-code', ''); return; }
+    if (d) showSpot(d);
+  }
   function showSpot(d) {
     store.set('ahead-code', d.code);
     document.querySelectorAll('form.join').forEach(function (f) { f.style.display = 'none'; });
@@ -538,7 +570,7 @@
     for (var i = 0; i < bars.length; i++) bars[i].classList.toggle('on', i < (d.friends || 0));
     var link = myLink(d.code);
     spot.querySelector('[data-link]').textContent = link.replace(/^https?:\/\//, '');
-    var text = L('Ich steh auf der Warteliste für Ahead. Buddy rechnet mit deinen Zahlen und sagt den nächsten Schritt. Komm mit: ', 'I’m on the Ahead waitlist. Buddy works with your numbers and names the next step. Join me: ') + link;
+    var text = L('Ich steh auf der Warteliste für Ahead. Buddy nennt einen nächsten Schritt. Er bewegt kein Geld. Komm mit: ', 'I’m on the Ahead waitlist. Buddy names one next step. He can’t move your money. Join me: ') + link;
     spot.querySelector('[data-wa]').href = 'https://wa.me/?text=' + encodeURIComponent(text);
     spot.querySelector('[data-copy]').onclick = function (ev) {
       var btn = ev.currentTarget;
@@ -550,17 +582,21 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var err = form.nextElementSibling, btn = form.querySelector('button'), email = form.email.value.trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
-      err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { delete err.dataset.preview; err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
+      delete err.dataset.preview; err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
       fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref'), lang: lang }) })
         .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(lang === 'en' ? '' : j.error || 'Fehler'); return j; }); })
-        .then(function (d) { showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' }); })
-        .catch(function (x) { err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
+        .then(function (d) {
+          if (d && d.preview) { err.dataset.preview = '1'; err.textContent = L('Nicht gespeichert. Vorschau, keine Warteliste.', 'Not saved. Preview, no waitlist.'); return; }
+          delete err.dataset.preview;
+          showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' });
+        })
+        .catch(function (x) { delete err.dataset.preview; err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
         .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
   });
   var mine = store.get('ahead-code');
-  if (mine) fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(showSpot).catch(function () {});
+  if (mine) fetch(API + '/waitlist/status?code=' + encodeURIComponent(mine)).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(onStatus).catch(function () {});
 
   // ------------------------------------------------------- ask Buddy now
   var ask = document.querySelector('form.ask'), out = document.querySelector('.answer');
@@ -599,7 +635,7 @@
     if (list && list.length) out.querySelector('.say').insertAdjacentHTML('afterend', '<ul>' + list.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>');
   }
   function offline(q) {
-    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. Mit Konto rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. With an account he works with your numbers.'));
+    for (var i = 0; i < basics.length; i++) if (basics[i][0].test(q)) return show(q, basics[i][1], esc(basics[i][2]), (basics[i][3] || []).map(esc), L('Aus Buddys Grundwissen. In der App rechnet er mit deinen Zahlen.', 'From Buddy’s basic knowledge. In the app he works with your numbers.'));
     show(q, L('Die KI ist gerade nicht da oder für heute aufgebraucht.', 'The AI is unavailable or used up for today.'), L('Auf die Warteliste: In der App rechnet Buddy mit deinen Zahlen.', 'Join the waitlist: in the app Buddy works with your numbers.'));
   }
   ask.addEventListener('submit', function (e) {
