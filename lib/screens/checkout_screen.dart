@@ -60,6 +60,16 @@ List<PayMethod> availableMethods() {
   ];
 }
 
+// What the checkout shows: the store or server payment, the preview of the
+// web demo, a missing server, or (only without an account) the sign-up.
+enum CheckoutGate { pay, preview, offline, signUp }
+
+CheckoutGate checkoutGate({required bool blocked, required bool demo, required bool signedIn}) {
+  if (!blocked) return CheckoutGate.pay;
+  if (demo) return CheckoutGate.preview;
+  return signedIn ? CheckoutGate.offline : CheckoutGate.signUp;
+}
+
 class PaymentScreen extends StatefulWidget {
   final PlusPlan? plan; // null: only change the payment method
   final String? reason; // why the user opened Plus, first-win CTA after checkout
@@ -130,9 +140,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
+  // the preview on the web has no server and takes no money: Plus can be
+  // tried for free there, clearly marked, and nothing asks for payment data
+  Widget _preview() => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.visibility_outlined, size: 48, color: AppColors.textDim),
+            const SizedBox(height: 16),
+            Text(tr('Vorschau: hier wird nicht bezahlt'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text(
+                tr('In der App läuft Plus über den App Store oder Google Play. Hier kannst du Plus kostenlos ausprobieren, nur auf diesem Gerät.'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 20),
+            FilledButton(
+              key: const Key('preview-plus'),
+              onPressed: () async {
+                await PlusService.start(plan: _plan ?? PlusPlan.monthly, method: _method);
+                if (mounted) Navigator.pop(context, true);
+              },
+              child: Text(tr('Plus in der Vorschau testen')),
+            ),
+          ]),
+        ),
+      );
+
   // a release on the web without a reachable server: say what is missing
   Widget _unavailable() {
-    final signedIn = AccountService.token != null;
+    // signed in is the account in the app; a session token only exists with a server
+    final signedIn = AccountService.current.value != null;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -328,7 +368,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (_asking) {
       return Scaffold(appBar: AppBar(title: title), body: const Center(child: CircularProgressIndicator()));
     }
-    if (_blocked) return Scaffold(appBar: AppBar(title: title), body: _unavailable());
+    switch (checkoutGate(blocked: _blocked, demo: AccountService.demoMode, signedIn: AccountService.current.value != null)) {
+      case CheckoutGate.preview:
+        return Scaffold(appBar: AppBar(title: title), body: _preview());
+      case CheckoutGate.offline || CheckoutGate.signUp:
+        return Scaffold(appBar: AppBar(title: title), body: _unavailable());
+      case CheckoutGate.pay:
+        break;
+    }
     return Scaffold(
       appBar: AppBar(title: title),
       body: Stack(children: [
