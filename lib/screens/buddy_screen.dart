@@ -193,7 +193,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // Buddy's little hop after something good happened
   bool _cheer = false;
   // filled after the first frame: forecast and tips stay off the cold-start paint
-  ({String? free, String? perDay, BuddyTip? tip})? _startBrief;
+  ({String? free, String? perDay, BuddyTip? tip, bool numbers})? _startBrief;
   List<BuddyChip>? _startChips;
   Timer? _cheerTimer;
 
@@ -1456,12 +1456,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // --------------------------------------------------------------- welcome
 
-  // Logged-in start: one number, one remark, three ways in. Nothing else.
-  // Life stages, tasks and notify prompts surface in the chat when Buddy asks.
+  // Logged-in start: the free-cash number when we have one, then one obvious question.
+  // Without a forecast, one salary question. Life stages stay in the chat.
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
-    // fallbacks until _warmStart: snapshot() builds a forecast, which is the cold-start cost
-    final chips = (_guest ? BuddyScreen.guestSuggestions : (_startChips ?? BuddySuggestions.fallback)).take(3).toList();
     if (_guest) {
       // the question on top, the ways in at the bottom next to the input
       return LayoutBuilder(
@@ -1497,16 +1495,18 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       );
     }
-    final brief = _startBrief ?? (free: null, perDay: null, tip: null);
+    final brief = _startBrief;
+    final chips = _startChips ?? const <BuddyChip>[];
+    final tip = brief?.tip;
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
       children: [
         Center(child: BuddyOrb(size: 52, mood: _mood)),
         const SizedBox(height: 18),
-        if (brief.free != null) ...[
+        if (brief != null && brief.free != null) ...[
           Text(
-            name != null ? tr('Hey {name}', {'name': name}) : tr('Noch frei'),
+            name != null ? tr('Hey {name}, noch frei', {'name': name}) : tr('Noch frei'),
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontFamily: AppFonts.display,
@@ -1543,25 +1543,30 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 height: 1.15,
                 color: AppColors.text),
           ),
-          const SizedBox(height: 6),
-          Text(tr('Frag nach dem Monat, einem Abo oder ob du dir etwas leisten kannst.'),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
+          if (brief != null && !brief.numbers && tip == null) ...[
+            const SizedBox(height: 6),
+            Text(tr('Frag nach deinem Gehalt.'),
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
+          ],
         ],
-        if (brief.tip != null) ...[
+        if (tip != null) ...[
           const SizedBox(height: 22),
-          _remark(brief.tip!),
+          _remark(tip),
         ],
-        const SizedBox(height: 16),
-        for (final s in chips) _suggestion(s),
+        if (chips.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          for (var i = 0; i < chips.length; i++) _suggestion(chips[i], lead: i == 0),
+        ],
       ],
     );
   }
 
-  // after the first paint: one snapshot for the chips, one forecast shared with the tip
+  // after the first paint: one forecast for the number, the tip, and which question leads
   void _warmStart() {
     if (!mounted || _guest || _messages.isNotEmpty) return;
-    final chips = BuddySuggestions.pick(BuddyService.snapshot(), max: 5).take(3).toList();
     final brief = _brief();
+    // a tip is already the one way in when there is nothing to forecast
+    final chips = brief.numbers || brief.tip == null ? BuddySuggestions.openers(hasNumbers: brief.numbers) : const <BuddyChip>[];
     if (!mounted) return;
     setState(() {
       _startChips = chips;
@@ -1571,7 +1576,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // what Buddy says on top of his start: the money left this month and,
   // when something stands out, one remark
-  ({String? free, String? perDay, BuddyTip? tip}) _brief() {
+  ({String? free, String? perDay, BuddyTip? tip, bool numbers}) _brief() {
     try {
       final tx = DB.getTx();
       final cash = LedgerBusy.cashOr(DB.balanceOf(tx) + MoneyAccounts.openingTotal);
@@ -1580,15 +1585,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ? null
           : ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash);
       final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash, knownForecast: f);
-      if (f == null || f.freeCents < 0) return (free: null, perDay: null, tip: tip);
+      if (f == null) return (free: null, perDay: null, tip: tip, numbers: false);
+      if (f.freeCents < 0) return (free: null, perDay: null, tip: tip, numbers: true);
       final hidden = Settings.hideAmounts.value;
       return (
         free: hidden ? Money.hidden : Money.format(f.freeCents),
         perDay: hidden ? Money.hidden : Money.format(f.perDayCents),
         tip: tip,
+        numbers: true,
       );
     } catch (_) {
-      return (free: null, perDay: null, tip: null);
+      return (free: null, perDay: null, tip: null, numbers: false);
     }
   }
 
@@ -1607,7 +1614,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ),
       );
 
-  Widget _suggestion(BuddyChip s) => Material(
+  // the first row is the question to tap; the rest stay quiet
+  Widget _suggestion(BuddyChip s, {bool lead = false}) => Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
@@ -1618,12 +1626,16 @@ class _BuddyScreenState extends State<BuddyScreen> {
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Icon(s.icon, color: AppColors.textDim, size: 18),
+                child: Icon(s.icon, color: lead ? AppColors.brandText : AppColors.textDim, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(s.text,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15.5, color: AppColors.text, height: 1.35)),
+                    style: TextStyle(
+                        fontWeight: lead ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 15.5,
+                        color: lead ? AppColors.brandText : AppColors.text,
+                        height: 1.35)),
               ),
             ]),
           ),

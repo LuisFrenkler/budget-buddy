@@ -1,6 +1,6 @@
-// Suggested Buddy questions on Start and in the chat welcome, grounded in
-// snapshot domains (depot, splits, vorsorge, wealth) plus stable fallbacks.
-// Activation first (Lenny/YC): free cash, save, afford — then context.
+// Suggested Buddy questions. [pick] leads with a euro answer, then the snapshot.
+// The empty chat uses [openers]: those three when a forecast exists, otherwise
+// one salary question that still comes back with a figure.
 import 'package:flutter/material.dart';
 import 'category_coach.dart';
 import 'finance_snapshot.dart';
@@ -15,6 +15,13 @@ class BuddySuggestions {
         (icon: Icons.savings_rounded, text: tr('Wo kann ich sparen?')),
         (icon: Icons.flight_takeoff_rounded, text: tr('Kann ich mir 800 € Urlaub leisten?')),
       ];
+
+  /// Empty chat. [hasNumbers] is a forecast we can answer from.
+  static List<BuddyChip> openers({required bool hasNumbers}) => hasNumbers
+      ? activation
+      : [
+          (icon: Icons.payments_rounded, text: tr('Was bleibt von 3.000 € brutto netto?')),
+        ];
 
   /// Always available, but after activation and live context.
   static List<BuddyChip> get deeper => [
