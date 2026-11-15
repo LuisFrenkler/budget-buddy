@@ -6,8 +6,9 @@
 //
 // Fixed costs are the detected contracts (rent, subscriptions); the ones
 // not yet booked this month are listed as still due. Income is the average
-// of the last three complete months, so one bonus does not inflate it, and a
-// salary that lands on the 31st instead of the 1st does not count twice.
+// of the regular sources (salary, Kindergeld, side job: paid in two of the last
+// three complete months), so a bonus or a tax refund does not inflate it, and
+// a salary that lands on the 31st instead of the 1st does not count twice.
 //
 // It never promises more than the account holds: with the balance known,
 // "free" is at most the balance minus what is still due this month.
@@ -16,6 +17,7 @@ import '../utils/theme.dart';
 import '../models/goal.dart';
 import '../models/transaction.dart';
 import 'contracts.dart';
+import 'income_sources.dart';
 
 enum ForecastPace { relaxed, tight, over }
 
@@ -140,7 +142,11 @@ class ForecastService {
       income = thisMonth;
       incomePreliminary = true;
     } else {
-      income = incomeSum ~/ months;
+      // count on what comes every month (salary, Kindergeld, side job), not on
+      // a bonus or a tax refund; if too little looks regular, the plain average
+      final average = incomeSum ~/ months;
+      final regular = months >= 2 ? IncomeSources.regularMonthly(IncomeSources.detect(tx, now: today)) : 0;
+      income = regular >= average ~/ 2 && regular > 0 ? regular : average;
     }
 
     final allContracts = Contracts.detect(tx, now: today);

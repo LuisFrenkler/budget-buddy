@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/sub_tips.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -325,6 +326,20 @@ class _ContractSheetState extends State<_ContractSheet> {
             icon: const Icon(Icons.receipt_long_rounded, size: 18),
             label: Text(tr('Alle {payments} Zahlungen', {'payments': c.payments.length})),
           ),
+          // the same provider, cheaper: ads, yearly, shared, student
+          if (SubTips.forName(c.name) case final tip? when sent == null) ...[
+            const SizedBox(height: 14),
+            Container(
+              key: const Key('sub-tip'),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.savings_outlined, size: 18, color: AppColors.brand),
+                const SizedBox(width: 10),
+                Expanded(child: Text(tip.text, style: const TextStyle(height: 1.4))),
+              ]),
+            ),
+          ],
           const SizedBox(height: 18),
           if (sent != null) ...[
             Container(

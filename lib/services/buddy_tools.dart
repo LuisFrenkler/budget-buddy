@@ -15,7 +15,9 @@ import 'booking_text.dart';
 import 'emergency_plan.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
+import 'income_sources.dart';
 import 'overdraft.dart';
+import 'sub_tips.dart';
 import 'tax_estimate.dart';
 import 'buddy_service.dart';
 import 'db.dart';
@@ -364,9 +366,19 @@ class BuddyTools {
   Map<String, dynamic> _vertraege() {
     final contracts = (snapshot['vertraegeUndAbos'] as List?) ?? const [];
     final monthly = contracts.fold<double>(0, (s, c) => s + ((c as Map)['proMonat'] as num? ?? 0));
+    final tips = [
+      for (final c in contracts)
+        if (SubTips.forName('${(c as Map)['name']}') case final t?) {'name': c['name'], 'guenstiger': t.ways}
+    ];
     return {
       'vertraegeUndAbos': contracts,
       'summeProMonat': _round(monthly),
+      if (tips.isNotEmpty) ...{
+        'spartipps': tips,
+        'hinweisSpartipps': 'werbung = Abo mit Werbung, jahresabo = jährlich zahlen, teilen = Familien-/Duo-Abo, '
+            'student = Studierenden-Tarif. Nenn die Möglichkeit, keine Preise: die ändern sich, die Person prüft das '
+            'aktuelle Angebot.',
+      },
       'dauerauftraege': snapshot['wiederkehrend'] ?? const [],
     };
   }
@@ -701,6 +713,18 @@ class BuddyTools {
       'tageBisMonatsende': snapshot['tageBisMonatsende'],
       'prognose': snapshot['prognose'] ?? {'vorhanden': false},
       'budgets': snapshot['budgets'] ?? const [],
+      'einnahmequellen': [
+        for (final x in IncomeSources.detect(tx, now: today).take(8))
+          {
+            'name': x.name,
+            'art': x.kind,
+            'regelmaessig': x.regular,
+            x.regular ? 'proMonat' : 'einmalig': x.monthlyCents / 100,
+            'zuletzt': _day(x.last),
+          }
+      ],
+      'hinweisEinnahmen': 'Die Prognose rechnet nur mit regelmäßigen Einnahmen (mindestens zwei der letzten drei Monate). '
+          'Einmalige wie Bonus oder Steuererstattung zählen nicht mit.',
       if (risk != null)
         'minusVorDemGehalt': {
           'gehaltErwartet': _day(risk.payday),

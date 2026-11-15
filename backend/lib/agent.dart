@@ -613,7 +613,8 @@ oder Passwörter.''';
       'name': 'monatsprognose',
       'description': 'Was bis Monatsende frei ist und pro Tag, übliches Einkommen, Fixkosten, was schon '
           'ausgegeben ist, noch fällige Fixkosten, dazu die Budgets mit Stand. Droht das Konto vor dem nächsten '
-          'Gehalt ins Minus zu rutschen, steht das unter minusVorDemGehalt: dann sag es zuerst.',
+          'Gehalt ins Minus zu rutschen, steht das unter minusVorDemGehalt: dann sag es zuerst. Unter einnahmequellen '
+          'stehen Gehalt, Kindergeld, BAföG oder Nebenjob, regelmäßig oder einmalig.',
       'input_schema': {'type': 'object', 'properties': {}, 'additionalProperties': false},
     },
     {
