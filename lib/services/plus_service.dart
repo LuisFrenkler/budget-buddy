@@ -14,6 +14,7 @@
 // Google Play (store_purchases.dart), also checked by the server.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import '../utils/money.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
 import 'store_purchases.dart';
@@ -179,13 +180,14 @@ class PlusService {
   static const yearlyCents = 3999;
 
   // monthly and yearly price as shown on the paywall (the same in the stores)
-  static const monthlyPrice = '4,99 €';
-  static const yearlyPrice = '39,99 €';
+  // in the app's language (4,99 € or €4.99), never hidden by privacy mode
+  static String get monthlyPrice => Money.raw(499);
+  static String get yearlyPrice => Money.raw(3999);
 
   // in the apps the store's own price, as soon as it is loaded
   static String price(PlusPlan plan) =>
       StorePurchases.prices.value[plan] ?? (plan == PlusPlan.yearly ? yearlyPrice : monthlyPrice);
-  static const yearlyPerMonth = '3,33 €';
+  static String get yearlyPerMonth => Money.raw(333);
 
   // codes for creators and friends: extra free days on top of the trial
   static const promoCodes = {'BUDDY30': 30, 'FREUND': 30, 'CREATOR60': 60, 'START14': 14};

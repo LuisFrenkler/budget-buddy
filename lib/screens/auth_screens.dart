@@ -183,7 +183,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _link(tr('Nutzungsbedingungen'), LegalTexts.terms),
                     TextSpan(text: tr(' und habe die ')),
                     _link(tr('Datenschutzerklärung'), LegalTexts.privacy),
-                    const TextSpan(text: ' gelesen.'),
+                    TextSpan(text: tr(' gelesen.')),
                   ]),
                   style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.4),
                 ),
