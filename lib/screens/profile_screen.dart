@@ -253,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
 
-              const SectionLabel('BudgetBuddy'),
+              const SectionLabel('Ahead'),
               SettingsGroup([
                 SettingsRow(
                   icon: Icons.chat_bubble_outline_rounded,
@@ -321,7 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ]),
               const SizedBox(height: 24),
               Center(
-                child: Text('BudgetBuddy ${LegalInfo.appVersion}', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                child: Text('Ahead ${LegalInfo.appVersion}', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               ),
             ],
           ),

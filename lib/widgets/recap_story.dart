@@ -47,7 +47,12 @@ class RecapStory extends StatelessWidget {
                   const Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text('BudgetBuddy', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text('Ahead',
+                        style: TextStyle(
+                            fontFamily: AppFonts.display,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            letterSpacing: -0.3)),
                   ]),
                   const Spacer(),
                   const Text('Mein', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
@@ -77,7 +82,7 @@ class RecapStory extends StatelessWidget {
                   const Spacer(),
                   Text('Und dein Monat?',
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  const Text('Finanzen mit Buddy · BudgetBuddy',
+                  const Text('Finanzen mit Buddy · Ahead',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),

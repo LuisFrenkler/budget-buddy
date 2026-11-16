@@ -25,7 +25,11 @@ Formerly *BudgetBuddy* — same codebase, new brand and positioning.
 
 ## Positioning
 
-Most German money apps show **what you have**. Ahead focuses on **what to do next in your life stage** — first job, job change, moving in together, and similar moments — with a coach that can explain, calculate, and suggest next steps (never regulated investment advice).
+Most German money apps show **what you have**. Ahead focuses on **what to do next** — before you book the trip, cancel the subscription, or move in together — with a coach that explains, calculates, and suggests next steps (never regulated investment advice).
+
+**Wedge:** *Ask Buddy before you spend.* Banking and portfolio are data sources for Buddy, not the product centre.
+
+Investor brief (DE): [docs/business_case.md](docs/business_case.md) — problem, market, competition, model, ask.
 
 ## Product
 

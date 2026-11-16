@@ -1,10 +1,17 @@
 // colors, theme, categories and badges
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // Reactive theme mode. Flip ThemeController.isDark to switch the whole app
 // between dark and light; the MaterialApp listens and rebuilds.
 class ThemeController {
   static final ValueNotifier<bool> isDark = ValueNotifier(true);
+}
+
+// Headlines and big numbers: Bricolage Grotesque, as on the landing page.
+// Running text and controls stay Inter.
+class AppFonts {
+  static const display = 'Bricolage';
 }
 
 class AppColors {
@@ -26,10 +33,13 @@ class AppColors {
 
   // the same meaning for small text: on the light background the bright
   // fills are too faint to read (2:1), these reach 4.5:1
-  static Color get positiveText => _d ? positive : const Color(0xFF0A7A43);
+  static Color get positiveText => _d ? const Color(0xFF7BE0AD) : const Color(0xFF0A6B3C);
   static Color get errorText => _d ? error : const Color(0xFFC9283E);
   static Color get warningText => _d ? warning : const Color(0xFF7A6200);
   static Color get primaryText => text;
+  // copper for small text (labels, numbered steps): the brand fill itself
+  // reaches only 4:1 on the backgrounds, these reach 5:1 or more
+  static Color get brandText => _d ? const Color(0xFFE0915C) : const Color(0xFF9A5028);
 
   // categorical colors for charts, brand first
   static const chart = [
@@ -41,14 +51,21 @@ class AppColors {
     Color(0xFFF472B6), // pink
   ];
 
-  // neutral colors, a calm graphite resolved from the current theme mode
+  // two moods of one brand: "Glow" in light mode (warm paper, a peach glow)
+  // and "Night" in dark mode (near black, copper glowing from above, glass)
   static bool get _d => ThemeController.isDark.value;
-  static Color get bg => _d ? const Color(0xFF0B0B10) : const Color(0xFFF6F6F9);
-  static Color get surface => _d ? const Color(0xFF16161E) : const Color(0xFFFFFFFF);
-  static Color get surfaceAlt => _d ? const Color(0xFF1F1F2A) : const Color(0xFFEDEDF3);
-  static Color get text => _d ? const Color(0xFFF7F7FA) : const Color(0xFF0B0B10);
-  static Color get textDim => _d ? const Color(0xFF8C8CA1) : const Color(0xFF6A6A7D);
-  static Color get border => _d ? const Color(0xFF26263A) : const Color(0xFFE3E3EC);
+  static Color get bg => _d ? const Color(0xFF0C0A09) : const Color(0xFFFBF7F3);
+  static Color get surface => _d ? const Color(0xFF181412) : const Color(0xFFFFFFFF);
+  static Color get surfaceAlt => _d ? const Color(0xFF231E1A) : const Color(0xFFF3ECE6);
+  static Color get text => _d ? const Color(0xFFF5EFEA) : const Color(0xFF17120E);
+  static Color get textDim => _d ? const Color(0xFFA79C93) : const Color(0xFF6B625B);
+  static Color get border => _d ? const Color(0xFF2C2522) : const Color(0xFFEFE8E2);
+
+  // the warm highlight: big numbers, Buddy's emphasis, the glow
+  static Color get glow => _d ? const Color(0xFFF4C7A1) : const Color(0xFFA4542A);
+  static const peach = Color(0xFFF4C7A1);
+  // hairline on glass cards in Night, a soft line in Glow
+  static Color get hairline => _d ? const Color(0x1CFFFFFF) : const Color(0xFFEFE8E2);
 }
 
 // app theme
@@ -79,10 +96,11 @@ class AppTheme {
       // same type as the in-page titles ("Konto"): an explicit style here
       // does not inherit the theme font, so Inter is named again
       titleTextStyle: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: AppFonts.display,
         color: AppColors.text,
-        fontSize: 22,
-        fontWeight: FontWeight.w800,
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.6,
       ),
     ),
     
@@ -90,7 +108,8 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22), side: BorderSide(color: AppColors.hairline)),
     ),
 
     // text fields
@@ -112,13 +131,16 @@ class AppTheme {
     ),
 
     // buttons
+    // the main action is an ink pill (cream in Night); copper is kept for
+    // Buddy himself: his orb, the send button, the next-step stamp
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
+        elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
 
@@ -126,16 +148,18 @@ class AppTheme {
       style: FilledButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
+        disabledBackgroundColor: AppColors.surfaceAlt,
+        disabledForegroundColor: AppColors.textDim,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primaryText,
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
 
