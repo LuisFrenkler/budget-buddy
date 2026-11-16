@@ -139,6 +139,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   late final VoidCallback _consentListener;
 
   @override
+  Future<void>? _guestReady;
+
   void initState() {
     super.initState();
     // Profil-Schalter und Chat-Schalter halten den Status synchron
@@ -147,7 +149,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (mounted) setState(() {});
     };
     _consentListenable.addListener(_consentListener);
-    if (widget.guest) unawaited(_isolateGuestFinance());
+    if (widget.guest) _guestReady = _isolateGuestFinance();
     BuddyService.live().then((v) {
       if (!mounted) return;
       setState(() => _live = v);
@@ -162,6 +164,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (DemoData.guestSessionActive) return;
     await AccountIsolation.wipeLocalFinance();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _awaitGuestReady() async {
+    final ready = _guestReady;
+    if (ready != null) await ready;
   }
 
   void _asked() {
@@ -442,6 +449,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   Future<void> _send(String text) async {
+    await _awaitGuestReady();
+    if (!mounted) return;
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
     HapticFeedback.selectionClick();
@@ -702,6 +711,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   Future<void> _tapChip(BuddyChip s) async {
+    await _awaitGuestReady();
+    if (!mounted) return;
     if (widget.guest && s.text == 'Zeig mir Beispieldaten') {
       HapticFeedback.selectionClick();
       await DemoData.load();
@@ -922,7 +933,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Text(
                     m.degraded
                         ? 'KI gerade ausgelastet. Antwort offline aus deinen Daten'
-                        : 'Ohne KI berechnet aus deinen Daten',
+                        : (widget.guest && !DemoData.guestSessionActive
+                            ? 'Ohne KI · noch ohne deine Daten'
+                            : 'Ohne KI berechnet aus deinen Daten'),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
             for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
