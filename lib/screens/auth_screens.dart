@@ -35,8 +35,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   static const _slides = [
     (
       icon: Icons.chat_bubble_outline_rounded,
-      title: 'Kann ich mir\ndas leisten?',
-      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.',
+      title: 'Was mach ich\nmit meinem Gehalt?',
+      text: 'Buddy, dein Coach für die ersten eigenen Finanzen, rechnet mit deinen Zahlen und nennt einen nächsten Schritt.',
     ),
     (
       icon: Icons.chat_bubble_outline_rounded,
@@ -46,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     (
       icon: Icons.receipt_long_rounded,
       title: 'Abos im Griff.\nErhöhungen auch.',
-      text: 'BudgetBuddy erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
+      text: 'Ahead erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
     ),
   ];
 
@@ -541,7 +541,7 @@ Future<void> showForgotPasswordSheet(BuildContext context) {
               final uri = Uri(
                 scheme: 'mailto',
                 path: LegalInfo.email,
-                query: 'subject=${Uri.encodeComponent('BudgetBuddy: Passwort / Konto')}',
+                query: 'subject=${Uri.encodeComponent('Ahead: Passwort / Konto')}',
               );
               Navigator.pop(ctx);
               if (!await launchUrl(uri) && context.mounted) {

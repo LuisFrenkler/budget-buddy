@@ -58,7 +58,7 @@ class _PlusScreenState extends State<PlusScreen> {
     (Icons.chat_bubble_outline_rounded, 'Buddy ohne Limit', 'Frag so oft du willst'),
     (Icons.document_scanner_rounded, 'Belege ohne Limit', 'Fotografieren statt abtippen'),
     (Icons.flag_rounded, 'Unbegrenzte Sparziele', 'Beliebig viele, mit Aufrunden und Monatsbetrag'),
-    (Icons.favorite_rounded, 'Du unterstützt BudgetBuddy', 'Ohne Werbung, ohne Datenverkauf'),
+    (Icons.favorite_rounded, 'Du unterstützt Ahead', 'Ohne Werbung, ohne Datenverkauf'),
   ];
 
   Future<void> _buy() async {
@@ -155,7 +155,7 @@ class _PlusScreenState extends State<PlusScreen> {
                     ),
                     const SizedBox(height: 14),
                   ],
-                  const Text('BudgetBuddy Plus',
+                  const Text('Ahead Plus',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.8, height: 1.15)),
                   const SizedBox(height: 8),

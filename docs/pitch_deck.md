@@ -8,6 +8,7 @@
 | Present | [pitch_deck.html](pitch_deck.html) |
 | Upload | [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf) |
 | Case | [business_case.md](business_case.md) (Differenzierungs-Audit) |
+| Focus | [product_focus.md](product_focus.md) · [store_listing_de.md](store_listing_de.md) |
 
 1. What do I do with my salary? (first money years)  
 2. Bank app won’t say what to do  
