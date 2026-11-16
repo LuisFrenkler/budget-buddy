@@ -1,4 +1,4 @@
-// Talks to the BudgetBuddy backend (backend/server.dart) which links real
+// Talks to the Ahead backend (backend/server.dart) which links real
 // banks through Enable Banking (PSD2), depots through Parqet Connect and takes
 // Plus payments through Stripe and checks App Store / Google Play purchases. The base
 // URL can be overridden with --dart-define=BACKEND_URL=... ; it defaults to
@@ -234,6 +234,9 @@ class BackendService {
 
   // WhatsApp opt-in. {configured, optedIn}. Throws when the server is down.
   static Future<Map<String, dynamic>> whatsAppStatus() => _get('/notify/whatsapp');
+
+  // what the server keeps about this account (GDPR export, no secrets)
+  static Future<Map<String, dynamic>> exportAccount() => _get('/account/export');
 
   static Future<Map<String, dynamic>> whatsAppLink(String phone) =>
       _post('/notify/whatsapp/link', {'phone': phone});

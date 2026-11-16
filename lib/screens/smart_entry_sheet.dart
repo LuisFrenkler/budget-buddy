@@ -22,6 +22,7 @@ import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/getting_started.dart';
+import '../l10n/l10n.dart';
 
 // Booking by writing a note ("Döner 8,50 gestern") or snapping a receipt.
 // The preview updates with every key press (offline parser); when typing
@@ -32,14 +33,14 @@ Future<void> showSmartEntry(BuildContext context, {bool scan = false}) {
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
     showDragHandle: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (_) => _SmartEntry(scanFirst: scan),
   );
 }
 
 class _SmartEntry extends StatefulWidget {
   final bool scanFirst;
-  const _SmartEntry({required this.scanFirst});
+  _SmartEntry({required this.scanFirst});
 
   @override
   State<_SmartEntry> createState() => _SmartEntryState();
@@ -56,7 +57,8 @@ class _SmartEntryState extends State<_SmartEntry> {
   Timer? _refine;
   bool _refining = false;
 
-  static const _examples = ['Kaffee 3,20', 'Tanken 65 gestern', 'Gehalt 2.850 am 1.10.', 'Kino 24 Freitag'];
+  static List<String> get _examples =>
+      [tr('Kaffee 3,20'), tr('Tanken 65 gestern'), tr('Gehalt 2.850 am 1.10.'), tr('Kino 24 Freitag')];
 
   @override
   void initState() {
@@ -101,7 +103,7 @@ class _SmartEntryState extends State<_SmartEntry> {
   Future<void> _scan() async {
     if (!PlusService.allowed(PlusFeature.receiptScan)) {
       await showPlus(context,
-          reason: 'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.');
+          reason: tr('Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.'));
       if (!mounted || !PlusService.active.value) return;
     }
     if (AccountService.current.value == null) {
@@ -109,12 +111,12 @@ class _SmartEntryState extends State<_SmartEntry> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Konto für Beleg-Scan'),
-          content: const Text(
-              'Belege liest Buddy online. Dafür brauchst du ein kostenloses Konto. Tippen geht weiter ohne.'),
+          title: Text(tr('Konto für Beleg-Scan')),
+          content: Text(
+              tr('Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.')),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Später')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Konto erstellen')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Später'))),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Konto erstellen'))),
           ],
         ),
       );
@@ -134,7 +136,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     final ext = (file!.extension ?? 'jpg').toLowerCase();
     final mime = switch (ext) { 'png' => 'image/png', 'webp' => 'image/webp', 'gif' => 'image/gif', _ => 'image/jpeg' };
     setState(() {
-      _busy = 'Buddy liest deinen Beleg …';
+      _busy = tr('Buddy liest deinen Beleg …');
       _error = null;
     });
     try {
@@ -151,7 +153,7 @@ class _SmartEntryState extends State<_SmartEntry> {
       final s = '$e';
       if (mounted) {
         setState(() => _error = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(s)
-            ? 'Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.'
+            ? tr('Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.')
             : s);
       }
     } finally {
@@ -186,15 +188,15 @@ class _SmartEntryState extends State<_SmartEntry> {
     messenger.showSnackBar(SnackBar(
       persist: false,
       duration: const Duration(seconds: 5),
-      content: Text('${tx.note ?? tx.category} · ${tx.amountText} gespeichert'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () => DB.deleteTx(tx.id)),
+      content: Text(tr('{x} · {y} gespeichert', {'x': tx.note ?? tx.category, 'y': tx.amountText})),
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => DB.deleteTx(tx.id)),
     ));
     if (needBalance) {
       messenger.showSnackBar(SnackBar(
         duration: const Duration(milliseconds: 3200),
-        content: const Text('Damit „noch frei“ stimmt: Kontostand einmal eintragen.'),
+        content: Text(tr('Damit „noch frei“ stimmt: Kontostand einmal eintragen.')),
         action: SnackBarAction(
-          label: 'Kontostand',
+          label: tr('Kontostand'),
           onPressed: () => showBalanceSheet(messenger.context),
         ),
       ));
@@ -209,10 +211,10 @@ class _SmartEntryState extends State<_SmartEntry> {
         Row(children: [
           BuddyOrb(size: 28, active: _busy != null),
           const SizedBox(width: 10),
-          const Text('Schnell erfassen', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Schnell erfassen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         ]),
         const SizedBox(height: 6),
-        Text('Schreib es so, wie du es sagen würdest, oder fotografiere den Beleg.',
+        Text(tr('Schreib es so, wie du es sagen würdest, oder fotografiere den Beleg.'),
             style: TextStyle(color: AppColors.textDim, fontSize: 14)),
         const SizedBox(height: 16),
         TextField(
@@ -223,10 +225,10 @@ class _SmartEntryState extends State<_SmartEntry> {
           textInputAction: TextInputAction.done,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
-            hintText: 'z. B. Döner 8,50 gestern',
+            hintText: tr('z. B. Döner 8,50 gestern'),
             prefixIcon: Icon(Icons.edit_note_rounded, color: AppColors.primary),
             suffixIcon: IconButton(
-              tooltip: 'Beleg scannen',
+              tooltip: tr('Beleg scannen'),
               icon: Icon(Icons.document_scanner_rounded,
                   color: !PlusService.active.value &&
                           PlusService.left(PlusFeature.receiptScan) == 0
@@ -255,7 +257,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         ],
         if (_preview == null && _busy == null && _text.text.trim().isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text('Ich brauche mindestens einen Betrag, zum Beispiel „Kaffee 3,20“.',
+          Text(tr('Ich brauche mindestens einen Betrag, zum Beispiel „Kaffee 3,20“.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
         ],
         const SizedBox(height: 18),
@@ -266,14 +268,14 @@ class _SmartEntryState extends State<_SmartEntry> {
             disabledForegroundColor: AppColors.textDim,
           ),
           onPressed: _preview != null && _busy == null ? _save : null,
-          child: const Text('Speichern', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          child: Text(tr('Speichern'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
         if (!PlusService.active.value) ...[
           const SizedBox(height: 8),
           Text(
             PlusService.left(PlusFeature.receiptScan) == 0
-                ? 'Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter'
-                : 'Noch ${PlusService.left(PlusFeature.receiptScan)} von ${PlusService.freeReceiptScans} Gratis-Beleg-Scans diesen Monat',
+                ? tr('Gratis-Beleg-Scans aufgebraucht · Tippen geht weiter')
+                : tr('Noch {x} von {x2} Gratis-Beleg-Scans diesen Monat', {'x': PlusService.left(PlusFeature.receiptScan), 'x2': PlusService.freeReceiptScans}),
             style: TextStyle(
                 fontSize: 12, color: AppColors.textDim, height: 1.3),
           ),
@@ -312,7 +314,7 @@ class _SmartEntryState extends State<_SmartEntry> {
             Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
             Text(
-                '${b.category} · ${Dates.relativeDay(b.date)}'
+                '${tr(b.category)} · ${Dates.relativeDay(b.date)}'
                 '${remembered ? ' · Merkt sich $title' : ''}'
                 '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : _withoutAi ? ' · Ohne KI erkannt' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 13)),

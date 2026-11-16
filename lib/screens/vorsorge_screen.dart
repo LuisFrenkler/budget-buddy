@@ -7,6 +7,7 @@ import '../services/vorsorge.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'buddy_screen.dart';
+import '../l10n/l10n.dart';
 
 // Light Altersvorsorge: Rentenlücke from a few inputs + depot.
 class VorsorgeScreen extends StatefulWidget {
@@ -65,10 +66,10 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
     final r = _result;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vorsorge'),
+        title: Text(tr('Vorsorge')),
         actions: [
           IconButton(
-            tooltip: 'So rechnet Buddy',
+            tooltip: tr('So rechnet Buddy'),
             onPressed: _assumptions,
             icon: const Icon(Icons.info_outline_rounded),
           ),
@@ -77,24 +78,23 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
-          Text('Orientierung, keine Beratung',
+          Text(tr('Orientierung, keine Beratung'),
               style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(
-            'Buddy schätzt eine monatliche Lücke. Maßgeblich bleibt deine Rentenauskunft der DRV. '
-            'Keine Steuern, keine Inflation, keine Produktempfehlung.',
+            tr('Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 13.5),
           ),
           const SizedBox(height: 18),
           if (!r.ready) _emptyGap() else _gapCard(r),
           const SizedBox(height: 18),
-          _label('Dein Plan'),
+          _label(tr('Dein Plan')),
           _ageRow(),
           const SizedBox(height: 10),
-          _moneyField(_desired, 'Gewünschtes Netto im Alter / Monat', onDone: _applyFields),
+          _moneyField(_desired, tr('Gewünschtes Netto im Alter / Monat'), onDone: _applyFields),
           const SizedBox(height: 10),
-          _moneyField(_statutory, 'Erwartete gesetzliche Rente / Monat',
-              hint: 'Aus der DRV-Auskunft', onDone: _applyFields),
+          _moneyField(_statutory, tr('Erwartete gesetzliche Rente / Monat'),
+              hint: tr('Aus der DRV-Auskunft'), onDone: _applyFields),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
@@ -106,36 +106,36 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
                 _statutory.text = _euro(est);
                 await _persist(_input.copyWith(statutoryCents: est));
               },
-              child: const Text('Ungefähr aus Netto-Gehalt schätzen'),
+              child: Text(tr('Ungefähr aus Netto-Gehalt schätzen')),
             ),
           ),
           const SizedBox(height: 10),
-          _moneyField(_bav, 'Betriebsrente / Monat (optional)', onDone: _applyFields),
+          _moneyField(_bav, tr('Betriebsrente / Monat (optional)'), onDone: _applyFields),
           const SizedBox(height: 10),
-          _moneyField(_riester, 'Riester / Rürup / Monat (optional)', onDone: _applyFields),
+          _moneyField(_riester, tr('Riester / Rürup / Monat (optional)'), onDone: _applyFields),
           const SizedBox(height: 18),
-          _label('Kapital in der App'),
-          _line('Depot', Money.format(DB.getHoldings().fold<int>(0, (s, h) => s + h.valueCents))),
+          _label(tr('Kapital in der App')),
+          _line(tr('Depot'), Money.format(DB.getHoldings().fold<int>(0, (s, h) => s + h.valueCents))),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Offene Sparziele mitzählen', style: TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('Notgroschen bleibt außen vor', style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
+            title: Text(tr('Offene Sparziele mitzählen'), style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(tr('Notgroschen bleibt außen vor'), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
             value: _input.includeGoals,
             onChanged: (v) => _persist(_input.copyWith(includeGoals: v)),
           ),
-          _line('Davon als monatliche Rente (25 Jahre, 0 %)', Money.format(r.capitalAsMonthlyCents)),
+          _line(tr('Davon als monatliche Rente (25 Jahre, 0 %)'), Money.format(r.capitalAsMonthlyCents)),
           const SizedBox(height: 18),
           if (r.ready)
             OutlinedButton.icon(
               onPressed: () {
                 HapticFeedback.selectionClick();
                 final q = r.gapClosed
-                    ? 'Reicht meine Altersvorsorge so aus?'
-                    : 'Wie schließe ich eine Rentenlücke von ${Money.format(r.gapMonthlyCents)} im Monat?';
+                    ? tr('Reicht meine Altersvorsorge so aus?')
+                    : tr('Wie schließe ich eine Rentenlücke von {x} im Monat?', {'x': Money.format(r.gapMonthlyCents)});
                 BuddyScreen.open(context, q);
               },
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: const Text('Mit Buddy besprechen'),
+              label: Text(tr('Mit Buddy besprechen')),
             ),
         ],
       ),
@@ -153,18 +153,17 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           Row(children: [
             Icon(Icons.timeline_rounded, color: AppColors.primaryText, size: 22),
             const SizedBox(width: 10),
-            const Expanded(
-              child: Text('Rentenlücke noch offen', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+            Expanded(
+              child: Text(tr('Rentenlücke noch offen'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             ),
           ]),
           const SizedBox(height: 10),
           Text(
-            'Gib unten mindestens deine erwartete gesetzliche Rente an, ideal aus der DRV-Auskunft. '
-            'Alternativ kannst du sie grob aus deinem Netto schätzen.',
+            tr('Trag unten deine gesetzliche Rente ein, am besten aus der DRV-Auskunft. Sonst grob aus dem Netto schätzen.'),
             style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 13.5),
           ),
           const SizedBox(height: 12),
-          Text('Danach siehst du hier eine grobe monatliche Lücke (ohne Steuern und Inflation).',
+          Text(tr('Danach siehst du hier eine grobe monatliche Lücke (ohne Steuern und Inflation).'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35)),
           const SizedBox(height: 14),
           FilledButton.tonalIcon(
@@ -176,7 +175,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
               await _persist(_input.copyWith(statutoryCents: est));
             },
             icon: const Icon(Icons.calculate_outlined, size: 18),
-            label: const Text('Rente aus Netto schätzen'),
+            label: Text(tr('Rente aus Netto schätzen')),
           ),
         ]),
       );
@@ -191,19 +190,16 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(r.gapClosed ? 'Orientierung: Lücke geschlossen' : 'Orientierung: monatliche Lücke',
+        Text(r.gapClosed ? tr('Orientierung: Lücke geschlossen') : tr('Orientierung: monatliche Lücke'),
             style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text(r.gapClosed ? 'Im groben Plan' : Money.format(r.gapMonthlyCents),
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: -0.8, color: color)),
+        Text(r.gapClosed ? tr('Im groben Plan') : Money.format(r.gapMonthlyCents),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 32, fontWeight: FontWeight.w600, letterSpacing: -0.8, color: color)),
         const SizedBox(height: 8),
         Text(
           r.gapClosed
-              ? 'Gedeckt ca. ${Money.format(r.coveredMonthlyCents)} von ${Money.format(r.input.desiredNetCents)} · ohne Steuern/Inflation.'
-              : 'Gedeckt ca. ${Money.format(r.coveredMonthlyCents)}. '
-                  'Zum Schließen grob ${Money.format(r.saveExtraMonthlyCents)} / Monat zusätzlich '
-                  '(${r.yearsLeft} Jahre, ~${(Vorsorge.realReturn * 100).round()} % Realrendite). '
-                  'Kaufkraft und Steuern sind nicht eingerechnet.',
+              ? tr('Gedeckt ca. {x} von {x2} · ohne Steuern/Inflation.', {'x': Money.format(r.coveredMonthlyCents), 'x2': Money.format(r.input.desiredNetCents)})
+              : tr('Gedeckt ca. {x}. Zum Schließen grob {x2}/Monat extra ({yearsLeft} Jahre, ~{x3} % real). Ohne Kaufkraft und Steuern.', {'x': Money.format(r.coveredMonthlyCents), 'x2': Money.format(r.saveExtraMonthlyCents), 'yearsLeft': r.yearsLeft, 'x3': (Vorsorge.realReturn * 100).round()}),
           style: TextStyle(height: 1.35, color: AppColors.text.withValues(alpha: 0.9)),
         ),
         Align(
@@ -211,7 +207,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           child: TextButton(
             style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
             onPressed: _assumptions,
-            child: const Text('So rechnet Buddy'),
+            child: Text(tr('So rechnet Buddy')),
           ),
         ),
       ]),
@@ -227,16 +223,10 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('So rechnet Buddy', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Text(
-              '• Kapital (Depot, optional Sparziele ohne Notgroschen) wird über ${Vorsorge.drawYears} Jahre '
-              'ohne Rendite aufgeteilt, konservativ für die Entnahmephase.\n\n'
-              '• Die „extra sparen“-Rate nimmt ~${(Vorsorge.realReturn * 100).round()} % Realrendite bis zur Rente an '
-              '(Faustformel, kein Versprechen).\n\n'
-              '• Netto-Schätzung der gesetzlichen Rente: etwa ${(Vorsorge.estimateShare * 100).round()} % deines heutigen Nettos. '
-              'Das ist nur ein Platzhalter. Ersetze ihn durch die Zahl aus der DRV-Auskunft.\n\n'
-              '• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.',
+              tr('• Kapital (Depot, Sparziele ohne Notgroschen) teilt sich auf {drawYears} Jahre ohne Rendite auf.\n\n• „Extra sparen“ rechnet mit ~{x} % Realrendite bis zur Rente (Faustformel, kein Versprechen).\n\n• Gesetzliche Rente: etwa {x2} % deines Nettos, nur ein Platzhalter. Ersetze ihn mit der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.', {'drawYears': Vorsorge.drawYears, 'x': (Vorsorge.realReturn * 100).round(), 'x2': (Vorsorge.estimateShare * 100).round()}),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
           ]),
@@ -247,10 +237,10 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
 
   Widget _ageRow() {
     return Row(children: [
-      Expanded(child: _stepper('Alter heute', _input.age, 18, 70, (v) => _persist(_input.copyWith(age: v)))),
+      Expanded(child: _stepper(tr('Alter heute'), _input.age, 18, 70, (v) => _persist(_input.copyWith(age: v)))),
       const SizedBox(width: 12),
       Expanded(
-          child: _stepper('Rente ab', _input.retireAge, 60, 70, (v) => _persist(_input.copyWith(retireAge: v)))),
+          child: _stepper(tr('Rente ab'), _input.retireAge, 60, 70, (v) => _persist(_input.copyWith(retireAge: v)))),
     ]);
   }
 
@@ -266,7 +256,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
             onPressed: value <= min ? null : () => onChanged(value - 1),
             icon: const Icon(Icons.remove_rounded),
           ),
-          Text('$value', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text('$value', style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
           IconButton(
             visualDensity: VisualDensity.compact,
             onPressed: value >= max ? null : () => onChanged(value + 1),
@@ -306,11 +296,10 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Netto-Gehalt / Monat'),
+        title: Text(tr('Netto-Gehalt / Monat')),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            'Buddy nimmt grob ${(Vorsorge.estimateShare * 100).round()} % davon als gesetzliche Rente an '
-            '(Orientierung für die Mitte der Karriere). Bitte später durch die DRV-Auskunft ersetzen.',
+            tr('Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.', {'x': (Vorsorge.estimateShare * 100).round()}),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
           const SizedBox(height: 12),
@@ -322,8 +311,8 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           ),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Schätzen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Schätzen'))),
         ],
       ),
     );

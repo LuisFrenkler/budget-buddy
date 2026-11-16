@@ -8,6 +8,7 @@ import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/recap_story.dart';
+import '../l10n/l10n.dart';
 
 // The month as a story: a few full-screen cards that turn by themselves,
 // tap right for the next, left for the previous, and a share at the end.
@@ -62,7 +63,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
     Color(0xFF2E2A5C),
     Color(0xFF1F5132),
     Color(0xFF5A1E3A),
-    Color(0xFF16161E),
+    Color(0xFF1C1815),
   ];
 
   @override
@@ -91,9 +92,9 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   Future<void> _share() async {
     final parts = [
-      'Mein $_monthName mit BudgetBuddy:',
+      tr('Mein {monthName} mit Ahead:', {'monthName': _monthName}),
       if (r.savingsRate > 0) '${r.savingsRate} % gespart',
-      if (r.topCategory != null) '${r.topCategoryShare} % für ${r.topCategory}',
+      if (r.topCategory != null) tr('{x} % für {topCategory}', {'x': r.topCategoryShare, 'topCategory': r.topCategory}),
       if (r.topMerchant != null && r.topMerchantVisits > 1) '${r.topMerchantVisits}× bei ${r.topMerchant}',
     ];
     final text = parts.join('\n');
@@ -145,24 +146,24 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
                 const SizedBox(width: 16),
                 const BrandMark(size: 24),
                 const SizedBox(width: 8),
-                Text('Dein $_monthName',
+                Text(tr('Dein {monthName}', {'monthName': _monthName}),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                 const Spacer(),
                 if (!_auto) ...[
                   // without the timer: explicit buttons instead of invisible tap zones
                   IconButton(
-                    tooltip: 'Zurück',
+                    tooltip: tr('Zurück'),
                     icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
                     onPressed: _i > 0 ? () => _go(_i - 1) : null,
                   ),
                   IconButton(
-                    tooltip: 'Weiter',
+                    tooltip: tr('Weiter'),
                     icon: const Icon(Icons.chevron_right_rounded, color: Colors.white),
                     onPressed: _next,
                   ),
                 ],
                 IconButton(
-                  tooltip: 'Schließen',
+                  tooltip: tr('Schließen'),
                   icon: const Icon(Icons.close_rounded, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -204,7 +205,7 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
           child: Text(big,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: const TextStyle(fontFamily: AppFonts.display, 
                   color: Colors.white, fontSize: 46, fontWeight: FontWeight.w800, letterSpacing: -1.6, height: 1.05)),
         ),
         if (small != null) ...[
@@ -218,82 +219,81 @@ class _RecapScreenState extends State<RecapScreen> with SingleTickerProviderStat
 
   Widget _intro() => _card(
         top: const BuddyOrb(size: 96),
-        kicker: 'Dein Rückblick',
-        big: '$_monthName\nin Zahlen.',
-        small: '${r.bookings} Buchungen. Mal sehen, was dahintersteckt.',
+        kicker: tr('Dein Rückblick'),
+        big: tr('{monthName}\nin Zahlen.', {'monthName': _monthName}),
+        small: tr('{bookings} Buchungen. Mal sehen, was dahintersteckt.', {'bookings': r.bookings}),
       );
 
   Widget _spent() {
     final change = r.expenseChange;
     return _card(
-      kicker: 'Ausgegeben hast du',
+      kicker: tr('Ausgegeben hast du'),
       big: Money.format(r.expenses),
       small: change == null
           ? null
           : change == 0
-              ? 'Genauso viel wie im $_prevName.'
+              ? tr('Genauso viel wie im {prevName}.', {'prevName': _prevName})
               : change < 0
-              ? '${-change} % weniger als im $_prevName.'
-              : '$change % mehr als im $_prevName.',
+              ? tr('{x} % weniger als im {prevName}.', {'x': -change, 'prevName': _prevName})
+              : tr('{change} % mehr als im {prevName}.', {'change': change, 'prevName': _prevName}),
     );
   }
 
   Widget _category() => _card(
         top: Icon(Categories.icon(r.topCategory!), color: Colors.white, size: 56),
-        kicker: 'Neben Miete & Abos ging am meisten an',
+        kicker: tr('Neben Miete & Abos ging am meisten an'),
         big: r.topCategory!,
-        small: '${Money.format(r.topCategoryCents)}, das sind ${r.topCategoryShare} % deiner Alltagsausgaben.',
+        small: tr('{x}, das sind {x2} % deiner Alltagsausgaben.', {'x': Money.format(r.topCategoryCents), 'x2': r.topCategoryShare}),
       );
 
   Widget _merchant() => _card(
         top: const Icon(Icons.place_outlined, color: Colors.white, size: 56),
-        kicker: 'Dein Lieblingsort',
+        kicker: tr('Dein Lieblingsort'),
         big: r.topMerchant!,
-        small: '${r.topMerchantVisits}-mal warst du da, zusammen ${Money.format(r.topMerchantCents)}.',
+        small: tr('{x}-mal warst du da, zusammen {x2}.', {'x': r.topMerchantVisits, 'x2': Money.format(r.topMerchantCents)}),
       );
 
   Widget _savings() => r.saved >= 0
       ? _card(
           top: const Icon(Icons.savings_outlined, color: Colors.white, size: 56),
-          kicker: 'Gespart hast du',
+          kicker: tr('Gespart hast du'),
           big: '${r.savingsRate} %',
-          small: '${Money.format(r.saved)} sind übrig geblieben.',
+          small: tr('{x} sind übrig geblieben.', {'x': Money.format(r.saved)}),
         )
       : _card(
           top: const Icon(Icons.trending_down_rounded, color: Colors.white, size: 56),
-          kicker: 'Dieser Monat war teuer',
+          kicker: tr('Dieser Monat war teuer'),
           big: '−${Money.format(-r.saved)}',
-          small: 'Mehr ausgegeben als eingenommen.',
+          small: tr('Mehr ausgegeben als eingenommen.'),
         );
 
   Widget _priciest() => _card(
         top: const Icon(Icons.calendar_today_outlined, color: Colors.white, size: 56),
-        kicker: 'Dein teuerster Tag',
+        kicker: tr('Dein teuerster Tag'),
         big: Dates.long(r.priciestDay!).split(',').first,
-        small: 'Am ${Dates.dayMonth(r.priciestDay!)} gingen ${Money.format(r.priciestDayCents)} raus, '
-            'Miete und Abos nicht mitgezählt.',
+        small: tr('Am {x} gingen {x2} raus, Miete und Abos nicht mitgezählt.', {'x': Dates.dayMonth(r.priciestDay!), 'x2': Money.format(r.priciestDayCents)}),
       );
 
   Widget _outro() => _card(
         top: const BrandMark(size: 72),
-        kicker: 'Das war dein',
+        kicker: tr('Das war dein'),
         big: '$_monthName.',
-        small: 'Teil deinen Monat als Story, ohne Beträge, nur Prozente.',
+        small: tr('Teil deinen Monat als Story, ohne Beträge, nur Prozente.'),
         bottom: Column(children: [
           FilledButton.icon(
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(54),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _share,
             icon: const Icon(Icons.ios_share_rounded),
-            label: const Text('Als Story teilen', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            label: Text(tr('Als Story teilen'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ),
           const SizedBox(height: 10),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fertig', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: Text(tr('Fertig'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ]),
       );

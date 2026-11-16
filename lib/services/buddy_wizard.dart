@@ -7,6 +7,7 @@ import '../utils/money.dart';
 import 'buddy_entries.dart';
 import 'category_coach.dart';
 import 'goals_service.dart';
+import '../l10n/l10n.dart';
 
 class WizardTurn {
   final String text;
@@ -49,23 +50,26 @@ class BuddyWizard {
   static final _categories = RegExp(
     r'sonstiges\s*(aufräumen|aufraeumen|ordnen)'
     r'|kategorien?\s*(aufräumen|aufraeumen|ordnen|helfen|sortieren)'
-    r'|(hilf\w*|räum\w*|raeum\w*).{0,24}(kategor|sonstiges)',
+    r'|(hilf\w*|räum\w*|raeum\w*).{0,24}(kategor|sonstiges)'
+    r'|tidy up other|(sort|tidy|clean).{0,24}(categor|other)',
   );
 
   static final _vorsorge = RegExp(
     r'(rentenrechner|altersvorsorge|vorsorge).{0,48}(einrichten|aufsetzen|ausfüllen|ausfuellen|anlegen|starten)'
     r'|(richte|richt |mach |stell ).{0,48}(rentenrechner|altersvorsorge|vorsorge|\brente\b)'
-    r'|(rentenrechner|altersvorsorge).{0,24}(für mich|fuer mich)',
+    r'|(rentenrechner|altersvorsorge).{0,24}(für mich|fuer mich)'
+    r'|set up.{0,24}(retirement|pension)',
   );
 
   static final _goal = RegExp(
     r'sparziel.{0,48}(anlegen|erstell|\ban\b)'
     r'|(leg|lege|erstell|anlegen).{0,48}sparziel'
-    r'|(leg|lege).{0,40}\bziel\b.{0,24}\ban\b',
+    r'|(leg|lege).{0,40}\bziel\b.{0,24}\ban\b'
+    r'|(create|add|make|set up).{0,40}(savings )?goal',
   );
 
   // "Sparziel Urlaub 800", name and amount, no extra verb
-  static final _goalBare = RegExp(r'^sparziel\s+[a-zäöüß].*\d');
+  static final _goalBare = RegExp(r'^(sparziel|savings goal)\s+[a-zäöüß].*\d');
 
   // null when this is a question or a booking, not a setup command
   static String? detect(String text) {
@@ -81,13 +85,14 @@ class BuddyWizard {
 
   static bool _isHolding(String text) {
     final t = text.toLowerCase();
-    if (RegExp(r'gekauft|verkauft|bezahlt|ausgegeben|überwiesen|ueberwiesen|sparziel').hasMatch(t)) return false;
-    final add = t.contains('hinzu') || t.contains('hinzufügen') || t.contains('hinzufuegen') || t.contains('ins depot');
+    if (RegExp(r'gekauft|verkauft|bezahlt|ausgegeben|überwiesen|ueberwiesen|sparziel|bought|sold|paid|spent|savings goal').hasMatch(t)) return false;
+    final add = t.contains('hinzu') || t.contains('hinzufügen') || t.contains('hinzufuegen') || t.contains('ins depot') ||
+        RegExp(r'\badd\b.{0,40}\bportfolio\b').hasMatch(t);
     if (!add) return false;
     if (RegExp(r'\b(buchung|ausgabe|einnahme|umsatz)\b').hasMatch(t)) return false;
     final q = parseHolding(text).query;
     if (q.isNotEmpty && Instruments.search(q).isNotEmpty) return true;
-    if (RegExp(r'\b(aktie|aktien|etf|krypto|coin)\b').hasMatch(t)) return true;
+    if (RegExp(r'\b(aktie|aktien|etf|krypto|coin|stock|shares|crypto)\b').hasMatch(t)) return true;
     // "Füge Döner hinzu" is a booking, not a position
     if (RegExp(r'€|euro').hasMatch(t)) return false;
     return false;
@@ -95,7 +100,7 @@ class BuddyWizard {
 
   WizardTurn consume(String raw) {
     final text = raw.trim();
-    if (text.isEmpty) return const WizardTurn(text: 'Das habe ich nicht verstanden.', open: true);
+    if (text.isEmpty) return WizardTurn(text: tr('Das habe ich nicht verstanden.'), open: true);
     if (kind == null) {
       kind = detect(text);
       if (kind == null) return const WizardTurn();
@@ -113,12 +118,12 @@ class BuddyWizard {
       }
     } else if (_cancel(text)) {
       reset();
-      return const WizardTurn(text: 'Alles klar, ich ändere nichts.');
+      return WizardTurn(text: tr('Alles klar, ich ändere nichts.'));
     } else if (kind == 'categories' && pending == 'catAssign') {
       final parsed = CategoryCoach.parseAssign(text, pending: merchantPending);
       if (parsed.merchant == null || parsed.category == null) {
         return WizardTurn(
-          text: 'Sag z. B. „Lebensmittel“ oder „${merchantPending ?? 'REWE'} → Essen & Trinken“.',
+          text: tr('Sag z. B. „Lebensmittel“ oder „{x} → Essen & Trinken“.', {'x': merchantPending ?? 'REWE'}),
           open: true,
         );
       }
@@ -131,7 +136,7 @@ class BuddyWizard {
       );
       reset();
       return WizardTurn(
-        text: '„${parsed.merchant}“ wird **${parsed.category}**. Übernehmen speichert für alle Buchungen.',
+        text: tr('„{x}“ wird **{y}**. Übernehmen speichert für alle Buchungen.', {'x': parsed.merchant, 'y': parsed.category}),
         proposal: entry,
       );
     } else if (!_accept(text)) {
@@ -147,11 +152,11 @@ class BuddyWizard {
       if (options.length > 1) {
         pending = 'which';
         final names = options.take(4).map((o) => o.symbol.isEmpty ? o.name : '${o.name} (${o.symbol})').join(', ');
-        return WizardTurn(text: 'Da gibt es mehrere: $names. Welches meinst du?', open: true);
+        return WizardTurn(text: tr('Da gibt es mehrere: {names}. Welches meinst du?', {'names': names}), open: true);
       }
       pending = 'query';
       final label = query == null || query!.isEmpty ? 'Das' : '„$query“';
-      return WizardTurn(text: '$label habe ich nicht gefunden. Wie heißt es genau, oder nenn den Ticker?', open: true);
+      return WizardTurn(text: tr('{label} habe ich nicht gefunden. Wie heißt es genau, oder nenn den Ticker?', {'label': label}), open: true);
     }
     heldName = instrument.name;
     heldSymbol = instrument.symbol;
@@ -159,7 +164,7 @@ class BuddyWizard {
     if (cents <= 0) {
       pending = 'price';
       return WizardTurn(
-        text: 'Den Kurs von ${instrument.name} habe ich nicht bekommen. Was kostet ein Stück ungefähr, in Euro?',
+        text: tr('Den Kurs von {x} habe ich nicht bekommen. Was kostet ein Stück ungefähr, in Euro?', {'x': instrument.name}),
         open: true,
       );
     }
@@ -175,13 +180,12 @@ class BuddyWizard {
           final entry = BuddyEntry(
             type: 'recategorize_all',
             date: DateTime.now(),
-            note: '${fixes.length} Händler',
+            note: tr('{x} Händler', {'x': fixes.length}),
             cents: n,
           );
           reset();
           return WizardTurn(
-            text: 'Ich kann **$n** Sonstiges-Buchungen bei ${fixes.length} Händlern zuordnen. '
-                'Übernehmen speichert, du kannst einzelne danach noch ändern.',
+            text: tr('Ich kann **{n}** Sonstiges-Buchungen bei {x} Händlern zuordnen. Übernehmen speichert, du kannst einzelne danach noch ändern.', {'n': n, 'x': fixes.length}),
             proposal: entry,
           );
         }
@@ -193,18 +197,18 @@ class BuddyWizard {
         pending = 'catAssign';
         merchantPending = left.first.sample;
         return WizardTurn(
-          text: 'Wohin gehört „${left.first.sample}“? Schreib die Kategorie, z. B. Lebensmittel.',
+          text: tr('Wohin gehört „{x}“? Schreib die Kategorie, z. B. Lebensmittel.', {'x': left.first.sample}),
           open: true,
         );
       case 'vorsorge':
-        if (age == null) return _ask('age', 'Gern. Wie alt bist du?');
-        if (retireAge == null) return _ask('retire', 'Mit welchem Alter willst du in Rente? 67 ist der Standard.');
-        if (netCents == null) return _ask('net', 'Welches Netto im Monat möchtest du dann? Zum Beispiel 2.000 €.');
+        if (age == null) return _ask('age', tr('Gern. Wie alt bist du?'));
+        if (retireAge == null) return _ask('retire', tr('Mit welchem Alter willst du in Rente? 67 ist der Standard.'));
+        if (netCents == null) return _ask('net', tr('Welches Netto im Monat möchtest du dann? Zum Beispiel 2.000 €.'));
         if (statutory == null) {
-          return _ask('statutory', 'Was erwartest du an gesetzlicher Rente im Monat? 0 zum Überspringen, „keine“ geht auch.');
+          return _ask('statutory', tr('Was erwartest du an gesetzlicher Rente im Monat? 0 zum Überspringen, „keine“ geht auch.'));
         }
-        if (bav == null) return _ask('bav', 'Betriebsrente (bAV) im Monat? 0 zum Überspringen.');
-        if (riester == null) return _ask('riester', 'Riester oder Rürup im Monat? 0 zum Überspringen.');
+        if (bav == null) return _ask('bav', tr('Betriebsrente (bAV) im Monat? 0 zum Überspringen.'));
+        if (riester == null) return _ask('riester', tr('Riester oder Rürup im Monat? 0 zum Überspringen.'));
         final entry = BuddyEntry(
           type: 'vorsorge',
           date: DateTime.now(),
@@ -217,11 +221,11 @@ class BuddyWizard {
         );
         reset();
         return WizardTurn(
-          text: 'So richte ich den Rentenrechner ein. Erst der Tipp auf Übernehmen speichert.',
+          text: tr('So richte ich den Rentenrechner ein. Erst der Tipp auf Übernehmen speichert.'),
           proposal: entry,
         );
       case 'goal':
-        if (goalName == null || goalName!.isEmpty) return _ask('goalName', 'Wie soll das Sparziel heißen?');
+        if (goalName == null || goalName!.isEmpty) return _ask('goalName', tr('Wie soll das Sparziel heißen?'));
         if (goalCents == null) return _ask('goalCents', 'Wie viel Euro soll „$goalName“ werden?');
         final name = goalName!;
         final exists = _goalsOpen && GoalsService.all().any((g) => g.name.toLowerCase() == name.toLowerCase());
@@ -235,16 +239,16 @@ class BuddyWizard {
         reset();
         return WizardTurn(
           text: exists
-              ? 'Du hast schon ein Ziel „$name“. Übernehmen legt ein weiteres an.'
-              : 'So lege ich das Sparziel an. Erst der Tipp auf Übernehmen speichert.',
+              ? tr('Du hast schon ein Ziel „{name}“. Übernehmen legt ein weiteres an.', {'name': name})
+              : tr('So lege ich das Sparziel an. Erst der Tipp auf Übernehmen speichert.'),
           proposal: entry,
         );
       case 'holding':
         if (manualCents != null && heldName != null) return _proposeHolding(manualCents!, live: false);
         if (query == null || query!.isEmpty) {
-          return _ask('query', 'Welches Wertpapier soll ins Depot? Zum Beispiel Apple oder AAPL.');
+          return _ask('query', tr('Welches Wertpapier soll ins Depot? Zum Beispiel Apple oder AAPL.'));
         }
-        if (shares == null) return _ask('shares', 'Wie viele Stück $query soll ich eintragen?');
+        if (shares == null) return _ask('shares', tr('Wie viele Stück {query} soll ich eintragen?', {'query': query}));
         pending = 'quote';
         return WizardTurn(quoteFor: query, open: true);
       default:
@@ -275,8 +279,8 @@ class BuddyWizard {
     reset();
     return WizardTurn(
       text: live
-          ? 'So trage ich es ein, zum Live-Kurs. Erst der Tipp auf Übernehmen speichert.'
-          : 'So trage ich es ein. Erst der Tipp auf Übernehmen speichert.',
+          ? tr('So trage ich es ein, zum Live-Kurs. Erst der Tipp auf Übernehmen speichert.')
+          : tr('So trage ich es ein. Erst der Tipp auf Übernehmen speichert.'),
       proposal: entry,
     );
   }
@@ -347,20 +351,20 @@ class BuddyWizard {
   }
 
   String _reprompt() => switch (pending) {
-        'age' => 'Schreib dein Alter als Zahl, zum Beispiel 34.',
+        'age' => tr('Schreib dein Alter als Zahl, zum Beispiel 34.'),
         'retire' => 'Mit welchem Alter? Zum Beispiel 67.',
-        'net' => 'Ein Betrag in Euro, zum Beispiel 2.000.',
-        'statutory' || 'bav' || 'riester' => 'Ein Betrag in Euro, oder „keine“.',
-        'goalName' => 'Wie soll das Ziel heißen? Zum Beispiel Urlaub.',
+        'net' => tr('Ein Betrag in Euro, zum Beispiel 2.000.'),
+        'statutory' || 'bav' || 'riester' => tr('Ein Betrag in Euro, oder „keine“.'),
+        'goalName' => tr('Wie soll das Ziel heißen? Zum Beispiel Urlaub.'),
         'goalCents' => 'Wie viel Euro? Zum Beispiel 800.',
-        'shares' => 'Wie viele Stück? Zum Beispiel 2 oder 0,5.',
-        'price' => 'Ein Kurs in Euro, zum Beispiel 190.',
-        _ => 'Das habe ich nicht verstanden.',
+        'shares' => tr('Wie viele Stück? Zum Beispiel 2 oder 0,5.'),
+        'price' => tr('Ein Kurs in Euro, zum Beispiel 190.'),
+        _ => tr('Das habe ich nicht verstanden.'),
       };
 
   void _seedVorsorge(String text) {
     final t = text.toLowerCase();
-    final ageM = RegExp(r'(?:ich bin|bin|alter)\s*(\d{1,2})|(\d{1,2})\s*jahre').firstMatch(t);
+    final ageM = RegExp(r'(?:ich bin|bin|alter|i am|i.m|age)\s*(\d{1,2})|(\d{1,2})\s*(?:jahre|years)').firstMatch(t);
     if (ageM != null) {
       final n = int.parse((ageM.group(1) ?? ageM.group(2))!);
       if (n >= 15 && n <= 80) age = n;
@@ -408,7 +412,8 @@ class BuddyWizard {
     rest = rest.replaceAll('€', ' ');
     rest = rest.replaceAll(
       RegExp(
-        r'\b(leg|lege|ein|eine|einen|sparziel|ziel|anlegen|an|bitte|mal|mir|für|fuer|das|den|dem|neues|neu|mit|von|euro)\b',
+        r'\b(leg|lege|ein|eine|einen|sparziel|ziel|anlegen|an|bitte|mal|mir|für|fuer|das|den|dem|neues|neu|mit|von|euro'
+        r'|savings|goal|create|add|make|set|up|a|an|for|of|please|my|euros)\b',
         caseSensitive: false,
       ),
       ' ',
@@ -466,13 +471,13 @@ class BuddyWizard {
   }
 
   static bool _cancel(String text) => RegExp(
-        r'^(abbrechen|abbruch|stopp|stop|vergiss es|lass es|doch nicht|nein danke)\.?$',
+        r'^(abbrechen|abbruch|stopp|stop|vergiss es|lass es|doch nicht|nein danke|cancel|forget it|never mind|no thanks)\.?$',
       ).hasMatch(text.toLowerCase().trim());
 
   static bool _none(String text) {
     final t = text.toLowerCase();
     if (RegExp(r'\d').hasMatch(t) && !RegExp(r'\b0\b').hasMatch(t)) return false;
-    return RegExp(r'\b(keine|keiner|keins|kein|nichts|nein|weiß nicht|weiss nicht|keine ahnung|null)\b').hasMatch(t);
+    return RegExp(r'\b(keine|keiner|keins|kein|nichts|nein|weiß nicht|weiss nicht|keine ahnung|null|none|nothing|no|don.t know)\b').hasMatch(t);
   }
 
   static int? _int(String text) {

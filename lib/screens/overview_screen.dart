@@ -51,6 +51,8 @@ import 'goals_screen.dart';
 import 'wealth_screen.dart';
 import '../widgets/weekly_story.dart';
 import '../services/plus_service.dart';
+import '../l10n/l10n.dart';
+import '../services/hints_service.dart';
 
 // The start screen: one calm money story, Buddy tip, Polster, deeper topics
 // live under "Für dich" and in Profil.
@@ -59,7 +61,7 @@ class OverviewScreen extends StatefulWidget {
   final void Function(int tab, {int? segment}) onOpen;
   final ScrollController? scroll;
 
-  const OverviewScreen({super.key, required this.onOpen, this.scroll});
+  OverviewScreen({super.key, required this.onOpen, this.scroll});
 
   @override
   State<OverviewScreen> createState() => _OverviewScreenState();
@@ -112,7 +114,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      duration: const Duration(milliseconds: 3200),
+      duration: Duration(milliseconds: 3200),
       content:
           Text(BankSync.syncedLine(added: smile.added, smarter: smile.smarter)),
     ));
@@ -150,20 +152,20 @@ class _OverviewScreenState extends State<OverviewScreen> {
           parts.add(BankSync.syncedLine(
             added: claimed.added,
             smarter: claimed.smarter,
-            none: 'Keine neuen Buchungen',
+            none: tr('Keine neuen Buchungen'),
           ));
           if (claimed.smarter > 0) HapticFeedback.lightImpact();
         } catch (_) {
-          parts.add('Bank gerade nicht erreichbar');
+          parts.add(tr('Bank gerade nicht erreichbar'));
           trouble = true;
         }
       }
       if (DB.getHoldings().isNotEmpty) {
         try {
           final r = await PriceService.refreshAll();
-          if (r.live > 0) parts.add('Kurse aktualisiert');
+          if (r.live > 0) parts.add(tr('Kurse aktualisiert'));
         } catch (_) {
-          parts.add('Kurse gerade nicht erreichbar');
+          parts.add(tr('Kurse gerade nicht erreichbar'));
           trouble = true;
         }
       }
@@ -186,12 +188,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         duration: Duration(milliseconds: warm ? 3200 : 2400),
         content: Text(parts.isEmpty
-            ? 'Alles aktuell · Stand $time'
-            : '${parts.join(' · ')} · Stand $time'),
+            ? tr('Alles aktuell · Stand {time}', {'time': time})
+            : tr('{x} · Stand {time}', {'x': parts.join(' · '), 'time': time})),
         backgroundColor: trouble ? AppColors.warning : null,
       ));
       // so SyncPill can show failure, not a fake "fresh"
-      if (trouble) throw 'sync incomplete';
+      if (trouble) throw tr('sync incomplete');
     } finally {
       BankSync.holdSmile(false);
     }
@@ -227,37 +229,43 @@ class _OverviewScreenState extends State<OverviewScreen> {
           // throttle side-effects. Hive can fire often during import/sync
           final now = DateTime.now();
           if (_lastSideEffects == null ||
-              now.difference(_lastSideEffects!) > const Duration(seconds: 2)) {
+              now.difference(_lastSideEffects!) > Duration(seconds: 2)) {
             _lastSideEffects = now;
             NotificationService.syncSoon();
             AutoSave.runSoon();
           }
 
-          return SafeArea(
+          return AmbientGlow(
+            align: const Alignment(1.3, -1.2),
+            size: 1.3,
+            child: SafeArea(
             bottom: false,
             child: RefreshIndicator(
               color: AppColors.primary,
               onRefresh: _refresh,
               child: ListView(
                 controller: widget.scroll,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 120),
                 children: [
                   _topBar(),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   if (empty) ...[
                     _welcome(),
                     if (!OnboardingService.hidden) ...[
-                      const SizedBox(height: 20),
-                      const GettingStartedCard(),
+                      SizedBox(height: 20),
+                      GettingStartedCard(),
                     ],
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     _quickActions(),
                   ] else ...[
                     if (DemoData.active) _demoBanner(),
+                    // Buddy first: what to do now, before any chart
+                    _buddyBrief(tx, cash),
+                    const SizedBox(height: 24),
                     if (!OnboardingService.hidden &&
                         !OnboardingService.complete) ...[
-                      const GettingStartedCard(),
+                      GettingStartedCard(),
                       const SizedBox(height: 24),
                     ],
                     // one ask at a time: don't stack GettingStarted + balance prompt
@@ -283,6 +291,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 ],
               ),
             ),
+            ),
           );
         },
       ),
@@ -306,11 +315,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Wie viel hast du gerade?',
+                    Text(tr('Wie viel hast du gerade?'),
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 2),
-                    Text('Einmal eintragen, dann stimmt der Überblick.',
+                    Text(tr('Einmal eintragen, dann stimmt es.'),
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 13,
@@ -337,12 +346,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
             const Icon(Icons.science_rounded,
                 color: AppColors.warning, size: 18),
             const SizedBox(width: 10),
-            const Expanded(
-              child: Text('Du siehst Beispieldaten',
+            Expanded(
+              child: Text(tr('Du siehst Beispieldaten'),
                   style:
                       TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
             ),
-            TextButton(onPressed: _removeDemo, child: const Text('Entfernen')),
+            TextButton(onPressed: _removeDemo, child: Text(tr('Entfernen'))),
           ]),
         ),
       );
@@ -351,17 +360,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Beispieldaten entfernen?'),
-        content: const Text(
-            'Alle Beispiel-Umsätze, -Budgets, -Ziele und das Beispiel-Depot verschwinden. '
-            'Was du selbst eingetragen hast, bleibt.'),
+        title: Text(tr('Beispieldaten entfernen?')),
+        content: Text(
+            tr('Beispiele weg. Deine eigenen Einträge bleiben.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('Abbrechen'))),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Entfernen')),
+              child: Text(tr('Entfernen'))),
         ],
       ),
     );
@@ -395,7 +403,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Für „noch frei“ brauchst du eine Einnahme (z. B. Gehalt).',
+                    tr('Für „noch frei“ brauchst du eine Einnahme.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 14),
                   ),
                 ),
@@ -412,29 +420,123 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
+  // Buddy's one line on top of the overview: the number that matters this
+  // month and, when something stands out, what to do about it. One tap and
+  // the conversation starts right there.
+  Widget _buddyBrief(List<Transaction> tx, int cash) {
+    MonthForecast? f;
+    try {
+      f = OnboardingService.balanceKnown
+          ? ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash)
+          : null;
+    } catch (_) {}
+    // the most important hint of the day beats the general tip
+    Hint? top;
+    try {
+      final best = HintsService.top(HintsService.current(
+        tx: tx,
+        budgets: DB.getBudgets(),
+        goals: GoalsService.all(),
+        subscription: PlusService.subscription.value,
+        bankValidUntil: Settings.bankValidUntil,
+        freeCents: f?.freeCents,
+        balanceCents: BuddyService.cashCents(),
+      ));
+      // urgent hints still win; a yearly subscription tip speaks only when nothing heavier is waiting
+      if (best != null && best.question != null && (best.weight >= 45 || best.kind == HintKind.subTip)) {
+        top = best;
+      }
+    } catch (_) {}
+    final tip = top != null
+        ? BuddyTip('${top.title}${RegExp(r'[.!?]$').hasMatch(top.title) ? '' : '.'} ${top.text}', top.question!)
+        : BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash);
+    final hidden = Settings.hideAmounts.value;
+    final String headline;
+    final String question;
+    if (f != null && f.freeCents >= 0) {
+      headline = tr('**{x}** sind bis Monatsende noch frei, etwa {y} pro Tag.', {
+        'x': hidden ? Money.hidden : Money.format(f.freeCents),
+        'y': hidden ? Money.hidden : Money.format(f.perDayCents),
+      });
+      question = tr('Wie viel ist diesen Monat noch frei?');
+    } else if (f != null) {
+      headline = tr('Diesen Monat wird es knapp: **{x}** fehlen bis Monatsende.',
+          {'x': hidden ? Money.hidden : Money.format(-f.freeCents)});
+      question = tr('Wie komme ich diesen Monat noch hin?');
+    } else {
+      headline = tr('Frag mich, was du dir diesen Monat leisten kannst.');
+      question = tr('Kann ich mir 800 € Urlaub leisten?');
+    }
+    // Buddy speaks from copper light, like on the landing page
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: CopperLight(
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: () => BuddyScreen.open(context, tip?.question ?? question),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const BrandMark(size: 22, inverse: true),
+                  const SizedBox(width: 8),
+                  Text(tr('Buddy sagt'),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
+                ]),
+                const SizedBox(height: 10),
+                RichMarkdown(headline, glossary: false, fontSize: 18, color: Colors.white),
+                if (tip != null) ...[
+                  const SizedBox(height: 6),
+                  Text(tip.text, style: const TextStyle(color: Color(0xD9FFF7F0), fontSize: 14, height: 1.4)),
+                ],
+                const SizedBox(height: 14),
+                // looks like the chat's input: the way in is to ask
+                Container(
+                  height: 44,
+                  padding: const EdgeInsets.fromLTRB(14, 0, 4, 0),
+                  decoration: BoxDecoration(
+                    color: const Color(0x29FFFFFF),
+                    border: Border.all(color: const Color(0x38FFFFFF)),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Row(children: [
+                    Expanded(
+                      child: Text(tip?.question ?? question,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Color(0xE6FFFFFF), fontSize: 14)),
+                    ),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF17120E), size: 19),
+                    ),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // Buddy tip + wealth/vorsorge bridge under the habit number
   List<Widget> _bridge(List<Transaction> tx, int cash, int depotNow) {
-    final tip = BuddyTips.pick(
-      tx: tx,
-      budgets: DB.getBudgets(),
-      balanceCents: cash,
-    );
     final emergency = Wealth.emergency(tx);
     final out = <Widget>[const SizedBox(height: 16)];
-    out.add(BuddyCard(
-      tip: tip,
-      chips: BuddySuggestions.pick(BuddyService.snapshot()),
-    ));
-    out.add(const SizedBox(height: 10));
+
     // one calm Polster row, not a second mini-dashboard of 3 chips
     out.add(_bridgeChip(
       Icons.savings_outlined,
-      'Notgroschen',
+      tr('Notgroschen'),
       emergency.targetCents <= 0
-          ? 'Polster einrichten'
+          ? tr('Polster einrichten')
           : emergency.ready
-              ? 'Polster steht'
-              : 'Noch ${Money.format(emergency.missingCents)} bis zum Polster',
+              ? tr('Polster steht')
+              : tr('Noch {x} bis zum Polster', {'x': Money.format(emergency.missingCents)}),
       () => Navigator.push(
           context, MaterialPageRoute(builder: (_) => const WealthScreen())),
     ));
@@ -523,8 +625,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     Expanded(
                       child: Text(
                         fresh
-                            ? 'Deine Wochen-Story ist da'
-                            : 'Wochen-Story · KW ${report.week}',
+                            ? tr('Deine Wochen-Story ist da')
+                            : tr('Wochen-Story · KW {week}', {'week': report.week}),
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w800),
                       ),
@@ -545,7 +647,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                       if (mounted) setState(() {});
                     },
                     icon: const Icon(Icons.auto_stories_rounded, size: 18),
-                    label: const Text('Ansehen',
+                    label: Text(tr('Ansehen'),
                         style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ]),
@@ -563,8 +665,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (misc > 0) {
       tiles.add(_forYouTile(
         Icons.category_rounded,
-        'Buchungen einordnen',
-        '$misc in Sonstiges · Händler antippen',
+        tr('Buchungen einordnen'),
+        tr('{misc} in Sonstiges · Händler antippen', {'misc': misc}),
         () => showMiscSortSheet(context),
       ));
     }
@@ -572,10 +674,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (GoalsService.all().where((g) => !g.reached).isEmpty) {
       tiles.add(_forYouTile(
         Icons.flag_rounded,
-        'Sparziel anlegen',
+        tr('Sparziel anlegen'),
         PlusService.active.value
-            ? 'Worauf sparst du?'
-            : '1 Ziel gratis · Autopilot später mit Plus',
+            ? tr('Worauf sparst du?')
+            : tr('1 Ziel gratis · Autopilot später mit Plus'),
         () => addGoal(context),
       ));
     }
@@ -585,8 +687,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (raised > 0) {
       tiles.add(_forYouTile(
         Icons.receipt_long_rounded,
-        'Abos teurer geworden',
-        '$raised ${raised == 1 ? 'Vertrag' : 'Verträge'} mit Preisanstieg',
+        tr('Abos teurer geworden'),
+        tr('{raised} {x} mit Preisanstieg', {'raised': raised, 'x': raised == 1 ? tr('Vertrag') : tr('Verträge')}),
         () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const ContractsScreen())),
         subtitleColor: AppColors.warningText,
@@ -598,10 +700,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
       if (total != 0) {
         tiles.add(_forYouTile(
           Icons.call_split_rounded,
-          'Geteilte Ausgaben',
+          tr('Geteilte Ausgaben'),
           total > 0
-              ? 'Du bekommst ${Money.format(total)}'
-              : 'Du schuldest ${Money.format(-total)}',
+              ? tr('Du bekommst {x}', {'x': Money.format(total)})
+              : tr('Du schuldest {x}', {'x': Money.format(-total)}),
           () => Navigator.push(
               context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
           subtitleColor:
@@ -617,8 +719,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       if (suggestions.isNotEmpty) {
         tiles.add(_forYouTile(
           Icons.pie_chart_rounded,
-          'Budgets vorschlagen',
-          'Aus deinen Ausgaben · ${suggestions.length} Kategorien',
+          tr('Budgets vorschlagen'),
+          tr('Aus deinen Ausgaben · {suggestions} Kategorien', {'suggestions': suggestions.length}),
           () => showBudgetSuggestSheet(context, suggestions),
         ));
       }
@@ -629,8 +731,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       if (tight > 0) {
         tiles.add(_forYouTile(
           Icons.pie_chart_rounded,
-          'Budgets knapp',
-          '$tight ${tight == 1 ? 'Kategorie' : 'Kategorien'} knapp oder drüber',
+          tr('Budgets knapp'),
+          tr('{tight} {x} knapp oder drüber', {'tight': tight, 'x': L10n.isDe ? (tight == 1 ? tr('Kategorie') : tr('Kategorien')) : (tight == 1 ? tr('Kategorie') : tr('Kategorien')).toLowerCase()}),
           () => widget.onOpen(1, segment: 1),
           subtitleColor: AppColors.warningText,
         ));
@@ -641,12 +743,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     final shown = tiles.take(3).toList();
     return [
       const SizedBox(height: 28),
-      Text('Für dich',
-          style: TextStyle(
-              fontFamily: AppFonts.display,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4)),
+      Text(tr('Für dich'),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
       const SizedBox(height: 8),
       Material(
         color: AppColors.surface,
@@ -723,7 +821,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ValueListenableBuilder<bool>(
           valueListenable: Settings.hideAmounts,
           builder: (_, hidden, __) => IconButton(
-            tooltip: hidden ? 'Beträge zeigen' : 'Beträge verbergen',
+            tooltip: hidden ? tr('Beträge zeigen') : tr('Beträge verbergen'),
             onPressed: () {
               HapticFeedback.selectionClick();
               Settings.setHideAmounts(!hidden);
@@ -738,7 +836,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         const SizedBox(width: 4),
         Semantics(
           button: true,
-          label: 'Profil',
+          label: tr('Profil'),
           excludeSemantics: true,
           child: Material(
             color: Colors.transparent,
@@ -794,15 +892,15 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final bankLinked = Settings.bankState.isNotEmpty;
     return Row(children: [
-      chip(Icons.chat_bubble_outline_rounded, 'Buddy', () => BuddyScreen.open(context),
+      chip(Icons.chat_bubble_outline_rounded, tr('Buddy'), () => BuddyScreen.open(context),
           color: AppColors.primary),
       const SizedBox(width: 10),
-      chip(Icons.edit_note_rounded, 'Erfassen', () => showSmartEntry(context),
+      chip(Icons.edit_note_rounded, tr('Erfassen'), () => showSmartEntry(context),
           color: AppColors.primary),
       const SizedBox(width: 10),
       chip(
           Icons.group_rounded,
-          'Geteilt',
+          tr('Geteilt'),
           () => Navigator.push(
               context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
           color: AppColors.primary),
@@ -810,13 +908,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
         const SizedBox(width: 10),
         chip(
             Icons.account_balance_rounded,
-            'Bank',
+            tr('Bank'),
             () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
             color: AppColors.primary),
       ] else ...[
         const SizedBox(width: 10),
-        chip(Icons.swap_horiz_rounded, 'Transfer',
+        chip(Icons.swap_horiz_rounded, tr('Transfer'),
             () => showTransferSheet(context),
             color: AppColors.primary),
       ],
@@ -848,7 +946,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: ChartHeader(
-            label: debts > 0 ? 'Nettovermögen' : 'Gesamtvermögen',
+            label: debts > 0 ? tr('Nettovermögen') : tr('Gesamtvermögen'),
             cents: net,
             startCents: points.isEmpty ? net : points.first.cents,
             period: RangeSelector.periods[_range]!,
@@ -865,8 +963,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
               context, MaterialPageRoute(builder: (_) => const WealthScreen())),
           child: Text(
               debts > 0
-                  ? 'Konto + Depot − ${Money.format(debts)} Schulden · tippen'
-                  : 'Konto + Depot · Vermögen & Absicherung',
+                  ? tr('Konto + Depot − {x} Schulden', {'x': Money.format(debts)})
+                  : tr('Konto + Depot'),
               style: TextStyle(
                   color: AppColors.textDim,
                   fontSize: 12.5,
@@ -904,7 +1002,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
       const SizedBox(height: 12),
       RangeSelector(
-        labels: _ranges.keys.toList(),
+        labels: [for (final r in _ranges.keys) tr(r)],
         selected: _range,
         onChanged: (r) {
           setState(() {
@@ -953,7 +1051,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                       DB.balanceOf(MoneyAccounts.bookingsOf(a.id, month));
                   return net == 0
                       ? MoneyAccount.kinds[a.kind]!
-                      : '${Money.signed(net)} im ${Dates.month(DateTime.now())}';
+                      : tr('{x} im {y}', {'x': Money.signed(net), 'y': Dates.month(DateTime.now())});
                 }(),
                 up: null,
                 onTap: () {
@@ -967,12 +1065,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
             _accountRow(
               icon: Icons.account_balance_wallet_rounded,
               color: AppColors.primary,
-              title: Settings.bankName.isNotEmpty ? Settings.bankName : 'Konto',
+              title: Settings.bankName.isNotEmpty ? Settings.bankName : tr('Konto'),
               // without the real balance the sum of bookings means nothing
-              value: known ? Money.format(cash) : 'Eintragen',
+              value: known ? Money.format(cash) : tr('Eintragen'),
               change: known
-                  ? '${Money.signed(monthNet)} im ${Dates.month(DateTime.now())}'
-                  : 'Kontostand fehlt noch',
+                  ? tr('{x} im {y}', {'x': Money.signed(monthNet), 'y': Dates.month(DateTime.now())})
+                  : tr('Kontostand fehlt noch'),
               up: !known || monthNet == 0 ? null : monthNet > 0,
               onTap: () => widget.onOpen(1, segment: 0),
             ),
@@ -981,13 +1079,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
           _accountRow(
             icon: Icons.trending_up_rounded,
             color: AppColors.primary,
-            title: 'Depot',
+            title: tr('Depot'),
             value: Money.format(depotNow),
             change: !hasHoldings
-                ? 'Noch keine Positionen'
+                ? tr('Noch keine Positionen')
                 : invested == 0
-                    ? 'Ohne Kaufpreis'
-                    : '${Money.percent(gain / invested * 100, digits: 2)} gesamt',
+                    ? tr('Ohne Kaufpreis')
+                    : tr('{x} gesamt', {'x': Money.percent(gain / invested * 100, digits: 2)}),
             up: !hasHoldings || invested == 0 || gain == 0 ? null : gain > 0,
             onTap: () => widget.onOpen(2),
           ),
@@ -1063,8 +1161,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
     if (tx.isEmpty) return const [];
     return [
       const SizedBox(height: 28),
-      SectionTitle('Letzte Umsätze',
-          action: 'Alle', onAction: () => widget.onOpen(1, segment: 0)),
+      SectionTitle(tr('Letzte Umsätze'),
+          action: tr('Alle'), onAction: () => widget.onOpen(1, segment: 0)),
       for (final t in tx.take(4)) TxRow(t),
     ];
   }
@@ -1073,15 +1171,12 @@ class _OverviewScreenState extends State<OverviewScreen> {
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(name == null || name.isEmpty ? 'Dein Überblick' : 'Hallo $name',
-          style: TextStyle(
-              fontFamily: AppFonts.display,
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.8)),
+      Text(name == null || name.isEmpty ? tr('Dein Überblick') : tr('Hallo {name}', {'name': name}),
+          style: const TextStyle(fontFamily: AppFonts.display, 
+              fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
       const SizedBox(height: 8),
       Text(
-        'Bank verbinden oder erste Ausgabe erfassen.',
+        tr('Bank oder erste Ausgabe.'),
         style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
       ),
       const SizedBox(height: 20),
@@ -1110,10 +1205,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Bank verbinden',
+                    Text(tr('Bank verbinden'),
                         style: TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 16)),
-                    Text('Login nur bei deiner Bank',
+                    Text(tr('Login nur bei deiner Bank'),
                         style: TextStyle(
                             color: AppColors.textDim,
                             fontSize: 12.5,
@@ -1131,7 +1226,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
             },
-            child: const Text('Jetzt verbinden',
+            child: Text(tr('Jetzt verbinden'),
                 style: TextStyle(fontWeight: FontWeight.w700)),
           ),
           const SizedBox(height: 6),
@@ -1140,7 +1235,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               HapticFeedback.selectionClick();
               showSmartEntry(context);
             },
-            child: const Text('Oder Ausgabe manuell erfassen'),
+            child: Text(tr('Oder manuell erfassen')),
           ),
           TextButton(
             onPressed: () async {
@@ -1148,7 +1243,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               await DemoData.load();
               if (mounted) setState(() {});
             },
-            child: Text('Beispieldaten ansehen',
+            child: Text(tr('Beispieldaten ansehen'),
                 style: TextStyle(color: AppColors.textDim)),
           ),
         ]),

@@ -4,7 +4,8 @@
 // same prompts on Gemini Flash.
 //
 // - chat:    "Buddy", a finance coach that answers from a summary of the
-//            user's finances, streamed word by word
+//            user's finances, streamed word by word; as a guest (no account
+//            yet) the same Buddy answers from general knowledge only
 // - parse:   one line of text ("Döner 8,50 gestern") -> a booking
 // - receipt: a photo of a receipt -> a booking
 //
@@ -60,21 +61,43 @@ class Ai {
         'anthropic-version': '2026-10-21',
       };
 
+  // who Buddy is, the same in the app and in the guest chat
+  static const _persona = '''
+Du bist Buddy, Finanzcoach in Ahead. Deutsch, du. Englisch: „you“, „Next step:“.
+
+Erster Satz: die Zahl **fett** oder die Ampel, plus das Urteil. Danach höchstens ein Satz.
+Zusammen max. 40 Wörter. Eine Liste nur, wenn sie verlangt wurde, ohne Einleitung.
+Höchstens ein „Nächster Schritt:“, eine konkrete Tat, nur wenn sie neu ist.
+Fehlt etwas: eine Annahme, eine Frage. Keine erfundene Zahl. Eine Schätzung nennst du Schätzung.
+
+Kein „Super“, „Gute Frage“, „Great question“, keine Einleitung, keine Emojis, keine Gedankenstriche.
+Humor einmal, trocken, nie bei Schulden oder Stress. Kein Urteil über die Person.
+
+ETF, Aktie, Versicherung, Anbieter: ein Satz nein, kein Produkt. Begriffe erklären darfst du.
+Keine Steuer- oder Rechtsberatung, keine Kontonummern.
+Schreiben, Kündigen, Merken erst nach Bestätigung auf der Karte. Nie behaupten, es sei schon gespeichert.
+
+[weiter: Folge | zweite] Zwei bis vier, je max. sechs Wörter, aus ihrer Sicht.
+So: „**340 €** frei bis Monatsende.“ Nicht: „Super Frage! Schauen wir uns das an.“''';
+
   // the stable part of every chat request, kept first so it can be cached
-  static const _chatSystem = '''
-Du bist Buddy, der Finanzcoach in der App BudgetBuddy. Du sprichst Deutsch, duzt,
-bist warm, direkt und konkret, wie ein guter Freund, der sich mit Geld auskennt.
+  static const _chatSystem = '''$_persona
 
 Du bekommst eine Zusammenfassung der Finanzen als JSON (Beträge in Euro). Darin können
 stehen: Konten und Salden, Monate mit Kategorien, Top-Händler, die letzten Buchungen,
 Budgets, Verträge, wiederkehrende Buchungen, Sparziele, Depot-Positionen, Vermögen
 (Netto, Schulden, Versicherungen, Notgroschen, Sparquote), Vorsorge, Splits, eine
-Monatsprognose und der Plus-Status. gesamtvermoegen ist Konten plus Depot.
-vermoegen.netto zieht Schulden ab.
+Monatsprognose, der Plus-Status, erinnerungen und lebenslage. gesamtvermoegen ist Konten
+plus Depot. vermoegen.netto zieht Schulden ab.
 
-Antworte nur auf Basis dieser Daten und rechne nach, bevor du Zahlen nennst. Leere
-Listen heißen: nichts eingetragen. vorsorge.eingerichtet false heißt: nicht eingerichtet.
+Antworte auf Basis dieser Daten und rechne nach, bevor du Zahlen nennst. Leere Listen
+heißen: nichts eingetragen. vorsorge.eingerichtet false heißt: nicht eingerichtet.
 prognose.vorhanden false heißt: zu wenig Verlauf. Sag das kurz, statt zu raten.
+
+erinnerungen sind Dinge, die die Person Buddy erlaubt hat sich zu merken (Lebenslage,
+Ziele, Vorlieben). Nutze sie, wenn sie zur Frage passen, ohne sie aufzuzählen.
+lebenslage zeigt, in welcher Phase die Person steckt (zum Beispiel Erster Job) und welche
+Schritte schon erledigt sind. Beziehe Antworten darauf, wenn es passt.
 
 Bei Splits ist ein positiver Saldo Geld, das jemand zurückbekommt, ein negativer Saldo
 eine Schuld. letzteBuchungen.betrag ist negativ bei Ausgaben. Plus ohne
@@ -82,31 +105,55 @@ gratisFragenUebrig ist unbegrenzt. periodeBis ist bei Testphase das Testende, so
 das Ende der laufenden Zahlungsperiode. Vorsorge-Zahlen sind eine Orientierung, keine
 Renten-, Steuer- oder Rechtsberatung.
 
-Form: kurz und gut lesbar auf dem Handy. Höchstens etwa 120 Wörter. Nutze **fett** für
-die wichtigste Zahl und kurze Aufzählungen mit "- ". Keine Überschriften, keine Tabellen.
-Schließe, wenn es passt, mit einem konkreten nächsten Schritt.
+Der Chat hat Verlauf: Nachfragen („und davon?“, „warum?“) beziehen sich auf deine letzte
+Antwort. Wiederhole nicht die ganze Analyse, sondern knüpfe kurz an. Die Finanzdaten stehen
+in der aktuellen Nutzernachricht.
 
-Ton: wie ein Mensch, der schreibt, nicht wie eine Werbung. Keine Gedankenstriche (—), keine
-Emojis, keine Ausrufe wie „Super!“ oder „Toll!“, keine Floskeln wie „Gute Frage“ oder
-„Ich hoffe, das hilft“. Einfache Sätze mit Punkt und Komma.
+Buddy kann Vorsorge, Sparziele und Depot-Positionen einrichten, indem er nach Alter, Betrag
+oder Stückzahl fragt. Geschrieben wird erst, wenn die Person die Karte mit Übernehmen
+bestätigt. Weise auf „Vorsorge einrichten“, „Sparziel Urlaub 800“ oder „Füge Apple hinzu“
+hin. Frag die Felder nicht selbst ab und behaupte nie, es sei schon gespeichert.
 
-Der Chat hat Verlauf: Nachfragen („und davon?“, „warum?“, „wie viel genau?“) beziehen sich
-auf deine letzte Antwort und die vorherige Nutzerfrage. Wiederhole nicht die ganze Analyse,
-sondern knüpfe kurz an. Die Finanzdaten stehen in der aktuellen Nutzernachricht.
+Merken: Wenn die Person in ihrer letzten Nachricht etwas Dauerhaftes über sich erzählt, das
+dir künftig hilft (Lebenslage, Ziel, Gehaltstermin, Vorliebe beim Sparen), und es noch nicht
+in erinnerungen steht, schreib vor der weiter-Zeile eine Zeile genau so:
+[merken: kurzer Satz in der dritten Person, höchstens zwölf Wörter]
+Höchstens einmal pro Antwort. Nie Gesundheit, Religion, Politik, Beziehung, Kontonummern
+oder Passwörter. Die Person bestätigt das selbst, behaupte also nicht, du hättest es gespeichert.''';
 
-Buddy kann Vorsorge, Sparziele und Depot-Positionen einrichten, indem er nach Alter, Betrag oder Stückzahl fragt. Geschrieben wird erst, wenn die Person die Karte mit Übernehmen bestätigt. Weise auf „Vorsorge einrichten“, „Sparziel Urlaub 800“ oder „Füge Apple hinzu“ hin. Frag die Felder nicht selbst ab und behaupte nie, es sei schon gespeichert.
+  // the chat before an account exists: no numbers, general knowledge only
+  static const _guestSystem = '''$_persona
 
-Grenzen: keine Empfehlungen für einzelne Wertpapiere und keine Steuer- oder Rechtsberatung;
-allgemeine Prinzipien (Notgroschen, Streuung, Kosten) sind in Ordnung. Keine Kontonummern
-erfinden oder erfragen.''';
+Die Person hat noch kein Konto und hat keine Finanzdaten verbunden. Du kennst also keine
+Zahlen von ihr. Erfinde keine. Beantworte die Frage mit allgemeinem Wissen für Deutschland,
+mit Beispielrechnungen, wenn sie helfen (sag dazu, dass es ein Beispiel ist).
+
+Themen, bei denen du gut bist: erster Job und Gehaltsabrechnung (brutto, netto,
+Steuerklasse, Sozialabgaben), Betriebsrente und Arbeitgeberzuschuss, Notgroschen, Sparrate,
+Budget, Umzug, Zusammenziehen, Verträge und Abos, Grundlagen zu ETF und Kosten. Zum
+geplanten Altersvorsorgedepot (Start nach aktuellem Plan am 1.1.2027) sagst du dazu, dass
+sich Details noch ändern können.
+
+Wenn eine echte Antwort von ihren eigenen Zahlen abhängt, sag in einem Satz, dass Buddy mit
+einem kostenlosen Konto genau mit ihren Zahlen rechnen kann. Höchstens einmal im Chat,
+nicht drängeln.''';
 
   // streams Buddy's answer as text pieces
-  Stream<String> chat({required Map<String, dynamic> finances, required List<Map<String, dynamic>> history}) async* {
+  // [guest]: the chat before sign-up, without finances and with the guest prompt
+  Stream<String> chat(
+      {required Map<String, dynamic> finances,
+      required List<Map<String, dynamic>> history,
+      bool guest = false,
+      String lang = 'de'}) async* {
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
     // the snapshot goes into the first user turn, so the system prompt stays cacheable
     final messages = <Map<String, dynamic>>[];
     // every turn is paid again with each question: a long chat keeps its
     // first question (it carries the finances) and the latest 20 turns
+    if (guest && history.length > 9) {
+      history = history.sublist(history.length - 9);
+      if (history.first['role'] == 'assistant') history = history.sublist(1);
+    }
     if (history.length > 21) {
       var tail = history.sublist(history.length - 20);
       if (tail.first['role'] != 'assistant') tail = tail.sublist(1);
@@ -124,14 +171,22 @@ erfinden oder erfragen.''';
       final role = m['role'] == 'assistant' ? 'assistant' : 'user';
       var text = '${m['text'] ?? ''}';
       if (text.length > 4000) text = text.substring(0, 4000);
-      if (role == 'user' && (i == lastUser || (i == 0 && lastUser == 0))) {
+      if (!guest && role == 'user' && (i == lastUser || (i == 0 && lastUser == 0))) {
         text = 'Meine Finanzen (Stand heute):\n$snapshot\n\nMeine Frage: $text';
+      }
+      // the app language; the prompt itself stays German so it caches
+      if (lang == 'en' && role == 'user' && i == lastUser) {
+        text = '$text\n\n(Antworte auf Englisch, auch wenn frühere Nachrichten deutsch sind. '
+            'Schreib „Next step:“ statt „Nächster Schritt:“.)';
+      } else if (lang == 'de' && role == 'user' && i == lastUser && history.any((h) => '${h['text']}'.contains('Next step:'))) {
+        // switched back from English: the earlier answers would pull the model along
+        text = '$text\n\n(Antworte auf Deutsch, auch wenn frühere Nachrichten englisch sind.)';
       }
       messages.add({'role': role, 'content': text});
     }
 
     if (!_claude) {
-      yield* _geminiStream(messages);
+      yield* _geminiStream(messages, system: guest ? _guestSystem : _chatSystem);
       return;
     }
     final req = http.Request('POST', Uri.parse(_url))
@@ -143,7 +198,7 @@ erfinden oder erfragen.''';
         // chat answers are short; moderate thinking keeps them quick but careful
         'output_config': {'effort': 'medium'},
         'system': [
-          {'type': 'text', 'text': _chatSystem, 'cache_control': {'type': 'ephemeral'}},
+          {'type': 'text', 'text': guest ? _guestSystem : _chatSystem, 'cache_control': {'type': 'ephemeral'}},
         ],
         'messages': messages,
       });
@@ -251,6 +306,53 @@ erfinden oder erfragen.''';
               'Es ist eine Ausgabe.',
         },
       ], categories);
+
+  // A payslip photo -> its numbers, nothing about the person. The app checks
+  // them against the 2026 wage tax and the contribution rates itself.
+  static Map<String, dynamic> payslipSchema() {
+    Map<String, dynamic> maybe(String type, String description) => {'type': [type, 'null'], 'description': description};
+    const fields = {
+      'brutto': 'Gesamtbrutto des Monats in Euro',
+      'netto': 'Nettoverdienst in Euro',
+      'auszahlung': 'Auszahlungsbetrag in Euro',
+      'lohnsteuer': 'Lohnsteuer in Euro',
+      'soli': 'Solidaritätszuschlag in Euro',
+      'kirchensteuer': 'Kirchensteuer in Euro',
+      'rv': 'Rentenversicherung Arbeitnehmeranteil in Euro',
+      'av': 'Arbeitslosenversicherung Arbeitnehmeranteil in Euro',
+      'kv': 'Krankenversicherung Arbeitnehmeranteil in Euro',
+      'pv': 'Pflegeversicherung Arbeitnehmeranteil in Euro',
+      'zusatzbeitragProzent': 'Zusatzbeitrag der Krankenkasse in Prozent, falls angegeben',
+      'bav': 'Entgeltumwandlung oder Betriebsrente, Arbeitnehmeranteil in Euro',
+      'vl': 'vermögenswirksame Leistungen in Euro',
+      'kinderfreibetraege': 'Zahl der Kinderfreibeträge',
+    };
+    return {
+      'type': 'object',
+      'additionalProperties': false,
+      'required': ['istAbrechnung', 'monat', 'steuerklasse', 'kirche', ...fields.keys],
+      'properties': {
+        'istAbrechnung': {'type': 'boolean', 'description': 'ist das eine deutsche Gehaltsabrechnung?'},
+        'monat': maybe('string', 'Abrechnungsmonat YYYY-MM'),
+        'steuerklasse': maybe('integer', 'Steuerklasse 1 bis 6'),
+        'kirche': maybe('boolean', 'kirchensteuerpflichtig laut Abrechnung'),
+        for (final e in fields.entries) e.key: maybe('number', e.value),
+      },
+    };
+  }
+
+  Future<Map<String, dynamic>> payslip(String base64Image, String mediaType) => _structured([
+        {
+          'type': 'image',
+          'source': {'type': 'base64', 'media_type': normalizeMedia(mediaType), 'data': base64Image},
+        },
+        {
+          'type': 'text',
+          'text': 'Lies diese Gehaltsabrechnung und gib nur die Beträge des Monats zurück, so wie sie dastehen. '
+              'Keine Namen, Adressen, Steuer-ID, Sozialversicherungsnummer oder Kontodaten. Was nicht '
+              'eindeutig dasteht, ist null. Ist es keine Gehaltsabrechnung, setz istAbrechnung auf false.',
+        },
+      ], payslipSchema());
 
   // What happened, in the user's words or on a photo (receipt, bank
   // screenshot, broker confirmation) -> the entries it means for their
@@ -441,11 +543,11 @@ erfinden oder erfragen.''';
     }
   }
 
-  Stream<String> _geminiStream(List<Map<String, dynamic>> messages) async* {
+  Stream<String> _geminiStream(List<Map<String, dynamic>> messages, {String system = _chatSystem}) async* {
     final body = {
         'systemInstruction': {
           'parts': [
-            {'text': _chatSystem}
+            {'text': system}
           ]
         },
         'contents': [
@@ -480,6 +582,14 @@ erfinden oder erfragen.''';
       client.close();
     }
   }
+
+  // shared with the agent (agent.dart)
+  static String apiErrorText(int status, String body) => _apiError(status, body);
+  bool get hasGemini => geminiKey.isNotEmpty;
+  // one Gemini request with the same retries and model fallback as the chat
+  Future<http.StreamedResponse> geminiGenerate(Map<String, dynamic> body, {required http.Client client}) =>
+      _geminiSend('generateContent', body, client: client);
+  static String get persona => _persona;
 
   static String _apiError(int status, String body) {
     if (status == 401) return 'Der KI-Schlüssel des Servers ist ungültig.';

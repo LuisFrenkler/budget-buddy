@@ -11,6 +11,7 @@ import '../services/money_accounts.dart';
 import '../services/onboarding_service.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // Asks for today's real account balance, so a hand-kept account shows the
 // same number as the bank. Not offered while a bank is linked.
@@ -24,13 +25,13 @@ Future<void> showBalanceSheet(BuildContext context, {MoneyAccount? account}) asy
   );
   if (ok == true && context.mounted) {
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Kontostand gespeichert')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Kontostand gespeichert'))));
   }
 }
 
 class _BalanceSheet extends StatefulWidget {
   final MoneyAccount? account; // null = the main account
-  const _BalanceSheet(this.account);
+  _BalanceSheet(this.account);
 
   @override
   State<_BalanceSheet> createState() => _BalanceSheetState();
@@ -49,7 +50,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
   Future<void> _save() async {
     final cents = Money.parseToCents(_amount.text);
     if (cents == null) {
-      setState(() => _error = 'Bitte einen Betrag eingeben, z. B. 1.250,40');
+      setState(() => _error = tr('Bitte einen Betrag eingeben, z. B. 1.250,40'));
       return;
     }
     await OnboardingService.setCurrentBalance(cents, account: widget.account);
@@ -61,17 +62,17 @@ class _BalanceSheetState extends State<_BalanceSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(MoneyAccounts.several ? 'Wie viel ist gerade auf ${(widget.account ?? MoneyAccounts.main).name}?' : 'Wie viel ist gerade auf deinem Konto?',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
-        const SizedBox(height: 6),
-        Text('Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.',
+        Text(MoneyAccounts.several ? tr('Wie viel ist gerade auf {x}?', {'x': (widget.account ?? MoneyAccounts.main).name}) : tr('Wie viel ist gerade auf deinem Konto?'),
+            style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, height: 1.2)),
+        SizedBox(height: 6),
+        Text(tr('Wie in der Banking-App. Ab da rechnet Ahead weiter.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
-        const SizedBox(height: 18),
+        SizedBox(height: 18),
         TextField(
           controller: _amount,
           autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+          keyboardType: TextInputType.numberWithOptions(decimal: true, signed: true),
+          style: TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600),
           onSubmitted: (_) => _save(),
           decoration: InputDecoration(
             hintText: '0,00',
@@ -79,19 +80,19 @@ class _BalanceSheetState extends State<_BalanceSheet> {
             errorText: _error,
           ),
         ),
-        const SizedBox(height: 18),
+        SizedBox(height: 18),
         FilledButton(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          style: FilledButton.styleFrom(minimumSize: Size.fromHeight(52)),
           onPressed: _save,
-          child: const Text('Speichern', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          child: Text(tr('Speichern'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
         TextButton.icon(
           onPressed: () {
             Navigator.pop(context);
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ConnectionsScreen()));
           },
-          icon: const Icon(Icons.account_balance_rounded, size: 18),
-          label: const Text('Lieber Bankkonto verbinden'),
+          icon: Icon(Icons.account_balance_rounded, size: 18),
+          label: Text(tr('Lieber Bankkonto verbinden')),
         ),
       ]),
     );
@@ -101,12 +102,12 @@ class _BalanceSheetState extends State<_BalanceSheet> {
 // "Erste Schritte" on the start screen: five short steps, each ticking
 // itself off, with progress at the top. Disappears when done or hidden.
 class GettingStartedCard extends StatelessWidget {
-  const GettingStartedCard({super.key});
+  GettingStartedCard({super.key});
 
-  static const _steps = {
-    OnboardingStep.booking: (Icons.edit_note_rounded, 'Erste Ausgabe', 'Tipp „Kaffee 3,20“ — oder später Bank'),
-    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit Buddy „noch frei“ und Miete rechnen kann'),
-    OnboardingStep.budget: (Icons.pie_chart_rounded, 'Budget setzen', 'Limits für den ersten eigenen Monat'),
+  static Map<OnboardingStep, (IconData, String, String)> get _steps => {
+    OnboardingStep.booking: (Icons.edit_note_rounded, tr('Erste Ausgabe'), tr('Tipp oder Bank')),
+    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, tr('Kontostand oder Bank'), tr('Damit die Zahlen stimmen')),
+    OnboardingStep.budget: (Icons.pie_chart_rounded, tr('Budget setzen'), tr('Monatliche Limits')),
   };
 
   Future<void> _open(BuildContext context, OnboardingStep s) async {
@@ -161,12 +162,12 @@ class GettingStartedCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(complete ? 'Alles eingerichtet' : 'Erste Schritte',
+              Text(complete ? tr('Alles eingerichtet') : tr('Erste Schritte'),
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               Text(
                   complete
-                      ? 'Buchung, Kontostand und Budget stehen. Als Nächstes: Notgroschen und Abos.'
-                      : '$done von $total erledigt',
+                      ? tr('Buchung, Kontostand, Budget stehen. Weiter: Polster und Vorsorge.')
+                      : tr('{done} von {total} erledigt', {'done': done, 'total': total}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
@@ -175,7 +176,7 @@ class GettingStartedCard extends StatelessWidget {
             TextButton(
               onPressed: OnboardingService.hide,
               style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
-              child: Text(complete ? 'Fertig' : 'Ausblenden'),
+              child: Text(complete ? tr('Fertig') : tr('Ausblenden')),
             ),
         ]),
         if (!complete) ...[
@@ -205,9 +206,9 @@ class GettingStartedCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Polster & Absicherung',
+                    Text(tr('Polster & Absicherung'),
                         style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-                    Text('Notgroschen, Schulden, Versicherungen',
+                    Text(tr('Notgroschen, Schulden, Versicherungen'),
                         style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                   ]),
                 ),

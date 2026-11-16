@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/cloud_sync.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // Shown on every tab while the cloud vault could not be decrypted after login.
 class VaultBanner extends StatelessWidget {
@@ -19,21 +20,21 @@ class VaultBanner extends StatelessWidget {
     final pw = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cloud laden'),
+        title: Text(tr('Cloud laden')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-                'Das kann auf dem Handy ein paar Sekunden dauern, bitte warten.'),
+            Text(
+                tr('Das kann auf dem Handy ein paar Sekunden dauern, bitte warten.')),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
               obscureText: true,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Dein Passwort',
-                hintText: 'Dasselbe wie beim Anmelden',
+              decoration: InputDecoration(
+                labelText: tr('Dein Passwort'),
+                hintText: tr('Dasselbe wie beim Anmelden'),
               ),
               onSubmitted: (v) => Navigator.pop(ctx, v),
             ),
@@ -42,11 +43,11 @@ class VaultBanner extends StatelessWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, ''),
-              child: const Text('Ohne Cloud weiter')),
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+              child: Text(tr('Ohne Cloud weiter'))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(tr('Abbrechen'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: const Text('Laden')),
+              child: Text(tr('Laden'))),
         ],
       ),
     );
@@ -66,14 +67,14 @@ class VaultBanner extends StatelessWidget {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) => Center(
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('Cloud wird geladen…'),
+              Text(tr('Cloud wird geladen…')),
             ]),
           ),
         ),
@@ -116,8 +117,7 @@ class VaultBanner extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. '
-                      'Bis dahin speichere ich nichts in die Cloud.',
+                      tr('Kontodaten noch nicht geladen. Tippen zum erneuten Versuch. Bis dahin nichts in die Cloud.'),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,

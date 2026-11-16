@@ -7,6 +7,7 @@ import '../services/recap_service.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
 import 'brand.dart';
+import '../l10n/l10n.dart';
 
 // The month as one picture in story format (9:16), made to be posted.
 // Only percentages and counts, never amounts: nobody shares their balance.
@@ -21,14 +22,14 @@ class RecapStory extends StatelessWidget {
     final prev = Dates.months[(r.month.month + 10) % 12];
     final change = r.expenseChange;
     final facts = <(IconData, String)>[
-      if (r.savingsRate > 0) (Icons.savings_outlined, '${r.savingsRate} % meines Einkommens gespart'),
+      if (r.savingsRate > 0) (Icons.savings_outlined, tr('{savingsRate} % meines Einkommens gespart', {'savingsRate': r.savingsRate})),
       if (change != null && change != 0)
         (change < 0 ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-            '${change.abs()} % ${change < 0 ? 'weniger' : 'mehr'} ausgegeben als im $prev'),
-      if (r.topCategory != null) (Icons.pie_chart_outline_rounded, '${r.topCategoryShare} % für ${r.topCategory}'),
+            tr('{x} % {x2} ausgegeben als im {prev}', {'x': change.abs(), 'x2': change < 0 ? tr('weniger') : tr('mehr'), 'prev': prev})),
+      if (r.topCategory != null) (Icons.pie_chart_outline_rounded, tr('{x} % für {topCategory}', {'x': r.topCategoryShare, 'topCategory': r.topCategory})),
       if (r.topMerchant != null && r.topMerchantVisits > 1)
         (Icons.place_outlined, '${r.topMerchantVisits}× bei ${r.topMerchant}'),
-      (Icons.receipt_long_outlined, '${r.bookings} Buchungen im Blick'),
+      (Icons.receipt_long_outlined, tr('{bookings} Buchungen im Blick', {'bookings': r.bookings})),
     ];
     return AspectRatio(
       aspectRatio: 9 / 16,
@@ -44,20 +45,15 @@ class RecapStory extends StatelessWidget {
               child: DefaultTextStyle(
                 style: const TextStyle(color: Colors.white, fontFamily: 'Inter'),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Row(children: [
+                  Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text('Ahead',
-                        style: TextStyle(
-                            fontFamily: AppFonts.display,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18,
-                            letterSpacing: -0.3)),
+                    Text(tr('Ahead'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   ]),
                   const Spacer(),
-                  const Text('Mein', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+                  Text(tr('Mein'), style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
                   Text(month,
-                      style: const TextStyle(fontSize: 58, fontWeight: FontWeight.w900, letterSpacing: -2, height: 1)),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 58, fontWeight: FontWeight.w900, letterSpacing: -2, height: 1)),
                   const SizedBox(height: 28),
                   for (final (icon, text) in facts)
                     Padding(
@@ -80,9 +76,9 @@ class RecapStory extends StatelessWidget {
                       ),
                     ),
                   const Spacer(),
-                  Text('Und dein Monat?',
+                  Text(tr('Und dein Monat?'),
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  const Text('Finanzen mit Buddy · Ahead',
+                  Text(tr('Finanzen mit Buddy · Ahead'),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),
@@ -99,7 +95,7 @@ Future<void> showStoryShare(BuildContext context, MonthRecap recap, {required St
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF16161E),
+    backgroundColor: const Color(0xFF1C1815),
     showDragHandle: true,
     builder: (_) => _StorySheet(recap, fallbackText),
   );
@@ -126,7 +122,7 @@ class _StorySheetState extends State<_StorySheet> {
     return png!.buffer.asUint8List();
   }
 
-  String get _filename => 'budgetbuddy-${Dates.months[widget.recap.month.month - 1].toLowerCase()}.png';
+  String get _filename => 'ahead-${Dates.months[widget.recap.month.month - 1].toLowerCase()}.png';
 
   Future<void> _save() async {
     await saveImage(_filename, await _png());
@@ -142,7 +138,7 @@ class _StorySheetState extends State<_StorySheet> {
       await Clipboard.setData(ClipboardData(text: widget.fallbackText));
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Bild ging nicht, Text ist kopiert')));
+            .showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Bild ging nicht, Text ist kopiert'))));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -156,10 +152,10 @@ class _StorySheetState extends State<_StorySheet> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Deine Story',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(tr('Deine Story'),
+              style: TextStyle(fontFamily: AppFonts.display, color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('Nur Prozente, keine Beträge.', style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+          Text(tr('Nur Prozente, keine Beträge.'), style: TextStyle(color: Colors.white.withValues(alpha: 0.6))),
           const SizedBox(height: 14),
           SizedBox(
             height: height * 0.55,
@@ -173,17 +169,17 @@ class _StorySheetState extends State<_StorySheet> {
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(54),
               backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF16161E),
+              foregroundColor: const Color(0xFF1C1815),
             ),
             onPressed: _busy ? null : _share,
             icon: const Icon(Icons.ios_share_rounded),
-            label: const Text('Story teilen', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            label: Text(tr('Story teilen'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ),
           TextButton.icon(
             onPressed: _save,
             style: TextButton.styleFrom(foregroundColor: Colors.white70),
             icon: const Icon(Icons.download_rounded, size: 18),
-            label: const Text('Bild speichern'),
+            label: Text(tr('Bild speichern')),
           ),
         ]),
       ),

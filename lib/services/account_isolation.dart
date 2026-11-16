@@ -40,6 +40,8 @@ class AccountIsolation {
     'pendingJoin', 'splitSeen',
     // wealth bridge + vorsorge + profile picture
     'wealthDebts', 'wealthPolicies', 'emergencyExtraCents', 'vorsorge', 'avatarBytes',
+    // Buddy: the chat, what he may remember, the life stage, invite bonus, check-ins
+    'buddyChat', 'buddyMemory', 'lifeStage', 'lifeStageDone', 'inviteBonus', 'buddyCheckIn', 'notifyLog',
   ];
 
   static bool get hasBankOrDepotLinks =>

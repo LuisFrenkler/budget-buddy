@@ -10,6 +10,7 @@ import '../utils/merchant.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'big_number.dart';
+import '../l10n/l10n.dart';
 
 // One calm transaction row: description as title, category and day below,
 // the amount on the right (income green, expenses in the normal text color).
@@ -24,14 +25,14 @@ class TxRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final raw = tx.note?.trim() ?? '';
-    final title = raw.isNotEmpty ? Merchant.present(raw, fallback: tx.category) : tx.category;
+    final title = raw.isNotEmpty ? Merchant.present(raw, fallback: tr(tx.category)) : tr(tx.category);
     final day = Dates.relativeDay(tx.date);
     // a refund says so, next to the category it lowers
     // with several accounts and all of them listed: which one it was booked on
     final account = MoneyAccounts.several && AccountScreen.selected.value == null
         ? ' · ${(MoneyAccounts.byId(tx.accountId) ?? MoneyAccounts.main).name}'
         : '';
-    final category = (tx.isRefund ? '${tx.category} · Erstattung' : tx.category) + account;
+    final category = (tx.isRefund ? tr('{category} · Erstattung', {'category': tr(tx.category)}) : tr(tx.category)) + account;
     final subtitle = !showDay ? category : raw.isNotEmpty ? '$category · $day' : day;
 
     return InkWell(
@@ -119,10 +120,10 @@ Future<void> showTransactionsSheet(BuildContext context,
               child: Column(children: [
                 Icon(Icons.receipt_long_outlined, size: 40, color: AppColors.textDim),
                 const SizedBox(height: 12),
-                const Text('Noch nichts in dieser Kategorie',
+                Text(tr('Noch nichts in dieser Kategorie'),
                     textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                 const SizedBox(height: 6),
-                Text('Sobald du hier etwas buchst, erscheint es in der Liste.',
+                Text(tr('Sobald du hier etwas buchst, erscheint es in der Liste.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
               ]),

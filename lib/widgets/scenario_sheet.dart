@@ -11,6 +11,7 @@ import '../services/scenario_service.dart';
 import '../utils/merchant.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 Future<void> showScenarioSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -73,9 +74,9 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
         overrides: o, goals: goals, balanceCents: cash);
     final sim = cmp?.sim;
     final (color, label) = switch (sim?.pace ?? ForecastPace.relaxed) {
-      ForecastPace.relaxed => (AppColors.positive, 'Ruhiges Tempo'),
-      ForecastPace.tight => (AppColors.warning, 'Enger Spielraum'),
-      ForecastPace.over => (AppColors.error, 'Überzogen'),
+      ForecastPace.relaxed => (AppColors.positive, tr('Ruhiges Tempo')),
+      ForecastPace.tight => (AppColors.warning, tr('Enger Spielraum')),
+      ForecastPace.over => (AppColors.error, tr('Überzogen')),
     };
 
     return Padding(
@@ -89,17 +90,17 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Was wäre wenn…?',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Was wäre wenn…?'),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            Text('Nur Rechnung, nichts wird gespeichert.',
+            Text(tr('Nur Rechnung, nichts wird gespeichert.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),
             if (cmp != null) ...[
               Text(Money.format(cmp.sim.freeCents),
-                  style: TextStyle(
+                  style: TextStyle(fontFamily: AppFonts.display, 
                       fontSize: 28,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: cmp.sim.freeCents < 0
                           ? AppColors.errorText
                           : AppColors.text)),
@@ -107,8 +108,8 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
               Row(children: [
                 Text(
                   cmp.deltaFree == 0
-                      ? 'wie heute'
-                      : '${cmp.deltaFree > 0 ? '+' : ''}${Money.format(cmp.deltaFree)} vs. heute',
+                      ? tr('wie heute')
+                      : tr('{x}{y} vs. heute', {'x': cmp.deltaFree > 0 ? '+' : '', 'y': Money.format(cmp.deltaFree)}),
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: cmp.deltaFree > 0
@@ -134,28 +135,28 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
               if (cmp.sim.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text('etwa ${Money.format(cmp.sim.perDayCents)} pro Tag',
+                  child: Text(tr('etwa {x} pro Tag', {'x': Money.format(cmp.sim.perDayCents)}),
                       style: TextStyle(color: AppColors.textDim)),
                 ),
             ] else
-              Text('Dafür brauche ich noch Einnahmen in den Buchungen.',
+              Text(tr('Dafür brauche ich noch Einnahmen in den Buchungen.'),
                   style: TextStyle(color: AppColors.textDim)),
             const SizedBox(height: 18),
-            Text('Abos diesen Monat auslassen',
+            Text(tr('Abos diesen Monat auslassen'),
                 style: TextStyle(
                     color: AppColors.textDim,
                     fontWeight: FontWeight.w700,
                     fontSize: 13)),
             const SizedBox(height: 6),
             if (contracts.isEmpty)
-              Text('Keine Verträge erkannt.',
+              Text(tr('Keine Verträge erkannt.'),
                   style: TextStyle(color: AppColors.textDim))
             else
               for (final c in contracts.take(8))
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   title: Text(c.name),
-                  subtitle: Text('${Money.format(c.monthlyCents)} / Monat'),
+                  subtitle: Text(tr('{x} / Monat', {'x': Money.format(c.monthlyCents)})),
                   value: _excluded.contains(Merchant.key(c.name)),
                   onChanged: (on) {
                     HapticFeedback.selectionClick();
@@ -166,7 +167,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
                   },
                 ),
             const SizedBox(height: 8),
-            Text('Einmalkauf',
+            Text(tr('Einmalkauf'),
                 style: TextStyle(
                     color: AppColors.textDim,
                     fontWeight: FontWeight.w700,
@@ -185,7 +186,7 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
             ),
             if (baseGoals > 0) ...[
               const SizedBox(height: 14),
-              Text('Sparziele diesen Monat',
+              Text(tr('Sparziele diesen Monat'),
                   style: TextStyle(
                       color: AppColors.textDim,
                       fontWeight: FontWeight.w700,
@@ -193,8 +194,8 @@ class _ScenarioSheetState extends State<_ScenarioSheet> {
               Row(children: [
                 Expanded(
                   child: Text(_goalsTrim == 0
-                      ? 'Volle Rate (${Money.format(baseGoals)})'
-                      : '− ${Money.format(_goalsTrim)} (noch ${Money.format(baseGoals - _goalsTrim)})'),
+                      ? tr('Volle Rate ({x})', {'x': Money.format(baseGoals)})
+                      : tr('− {x} (noch {y})', {'x': Money.format(_goalsTrim), 'y': Money.format(baseGoals - _goalsTrim)})),
                 ),
                 IconButton(
                   onPressed: _goalsTrim >= baseGoals

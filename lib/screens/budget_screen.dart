@@ -8,6 +8,7 @@ import '../utils/theme.dart';
 import '../widgets/big_number.dart';
 import '../utils/money.dart';
 import '../widgets/tx_row.dart';
+import '../l10n/l10n.dart';
 
 // Budgets as a section of the account screen (not scrollable on its own).
 class BudgetView extends StatelessWidget {
@@ -33,7 +34,7 @@ class BudgetView extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => showAddBudgetDialog(context),
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Budget hinzufügen'),
+                label: Text(tr('Budget hinzufügen')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   side: BorderSide(color: AppColors.border),
@@ -59,12 +60,12 @@ class BudgetView extends StatelessWidget {
             children: [
               Icon(Icons.savings_outlined, size: 56, color: AppColors.textDim),
               const SizedBox(height: 16),
-              const Text('Noch keine Budgets', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(tr('Noch keine Budgets'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(
                   suggestions.isEmpty
-                      ? 'Lege ein Limit pro Kategorie fest und behalte es im Blick.'
-                      : 'Aus deinen Ausgaben vorgeschlagen. Ein Tippen reicht.',
+                      ? tr('Lege ein Limit pro Kategorie fest und behalte es im Blick.')
+                      : tr('Aus deinen Ausgaben vorgeschlagen. Ein Tippen reicht.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim)),
               if (suggestions.isNotEmpty) ...[
@@ -72,14 +73,14 @@ class BudgetView extends StatelessWidget {
                 FilledButton.tonalIcon(
                   onPressed: () => showBudgetSuggestSheet(context, suggestions),
                   icon: const Icon(Icons.playlist_add_check_rounded, size: 18),
-                  label: const Text('Vorschläge übernehmen'),
+                  label: Text(tr('Vorschläge übernehmen')),
                 ),
               ] else ...[
                 const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: () => showAddBudgetDialog(context),
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('Erstes Budget anlegen'),
+                  label: Text(tr('Erstes Budget anlegen')),
                 ),
               ],
             ],
@@ -136,17 +137,17 @@ Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? 
       builder: (ctx, setLocal) => Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Budgets vorschlagen', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Budgets vorschlagen'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text('Etwas unter deinem Schnitt der letzten Monate, damit es greift.',
+          Text(tr('Etwas unter deinem Schnitt der letzten Monate, damit es greift.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 12),
           for (final s in items)
             CheckboxListTile(
               value: selected[s.category] ?? false,
               onChanged: (v) => setLocal(() => selected[s.category] = v ?? false),
-              title: Text(s.category, style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text('${Money.format(s.limitCents)} / Monat'),
+              title: Text(tr(s.category), style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(tr('{x} / Monat', {'x': Money.format(s.limitCents)})),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
@@ -174,10 +175,10 @@ Future<void> showBudgetSuggestSheet(BuildContext context, [List<BudgetSuggest>? 
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         duration: const Duration(milliseconds: 2800),
-                        content: Text(n == 1 ? '1 Budget angelegt' : '$n Budgets angelegt')));
+                        content: Text(n == 1 ? tr('1 Budget angelegt') : tr('{n} Budgets angelegt', {'n': n}))));
                   }
                 : null,
-            child: const Text('Übernehmen', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            child: Text(tr('Übernehmen'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           ),
         ]),
       ),
@@ -252,15 +253,15 @@ class _BudgetCardState extends State<_BudgetCard> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(budget.category, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                          Text(tr(budget.category), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                           Text(_period(), style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                         ]),
                       ),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(
                           budget.isOver
-                              ? '${Money.format(budget.spentCents - budget.limitCents)} drüber'
-                              : '${Money.format(budget.remainingCents)} übrig',
+                              ? tr('{x} drüber', {'x': Money.format(budget.spentCents - budget.limitCents)})
+                              : tr('{x} übrig', {'x': Money.format(budget.remainingCents)}),
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
@@ -269,14 +270,14 @@ class _BudgetCardState extends State<_BudgetCard> {
                         // the limit itself is where it changes
                         Semantics(
                           button: true,
-                          label: 'Limit ändern',
+                          label: tr('Limit ändern'),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () => showAddBudgetDialog(context, editing: budget),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Text('von ${Money.format(budget.limitCents)}',
+                                Text(tr('von {x}', {'x': Money.format(budget.limitCents)}),
                                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
                                 const SizedBox(width: 4),
                                 Icon(Icons.edit_rounded, size: 13, color: AppColors.textDim),
@@ -338,8 +339,8 @@ class _BudgetCardState extends State<_BudgetCard> {
     final now = DateTime.now();
     final end = DateTime(budget.endDate.year, budget.endDate.month, budget.endDate.day);
     final left = end.difference(DateTime(now.year, now.month, now.day)).inDays + 1;
-    if (left < 1 || left > 31) return 'Monatlich · ${budget.dateRange}';
-    return 'Monatlich · noch $left ${left == 1 ? 'Tag' : 'Tage'}';
+    if (left < 1 || left > 31) return tr('Monatlich · {dateRange}', {'dateRange': budget.dateRange});
+    return tr('Monatlich · noch {left} {x}', {'left': left, 'x': left == 1 ? tr('Tag') : tr('Tage')});
   }
 
   // spent so far and what that leaves per day
@@ -351,8 +352,7 @@ class _BudgetCardState extends State<_BudgetCard> {
     final end = DateTime(budget.endDate.year, budget.endDate.month, budget.endDate.day);
     final days = end.difference(DateTime(now.year, now.month, now.day)).inDays + 1;
     final ahead = budget.progress > pace + 0.1;
-    return '$spent · etwa ${Money.format(budget.remainingCents ~/ days)} pro Tag'
-        '${ahead ? ' · schneller als geplant' : ''}';
+    return tr('{spent} · etwa {x} pro Tag{x2}', {'spent': spent, 'x': Money.format(budget.remainingCents ~/ days), 'x2': ahead ? tr(' · schneller als geplant') : ''});
   }
 
   // transactions that count towards this budget
@@ -363,7 +363,7 @@ class _BudgetCardState extends State<_BudgetCard> {
         .where((t) =>
             !t.isIncome && t.category == budget.category && !t.date.isBefore(start) && t.date.isBefore(end))
         .toList();
-    showTransactionsSheet(context, title: budget.category, subtitle: budget.dateRange, tx: tx);
+    showTransactionsSheet(context, title: tr(budget.category), subtitle: budget.dateRange, tx: tx);
   }
 
   // deletes right away and offers an undo
@@ -374,9 +374,9 @@ class _BudgetCardState extends State<_BudgetCard> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(persist: false, duration: const Duration(seconds: 5), 
-      content: Text('Budget ${budget.category} gelöscht'),
+      content: Text(tr('Budget {category} gelöscht', {'category': budget.category})),
       action: SnackBarAction(
-        label: 'Rückgängig',
+        label: tr('Rückgängig'),
         textColor: AppColors.primary,
         onPressed: () => DB.addBudget(budget),
       ),
@@ -469,8 +469,8 @@ class _BudgetSheetState extends State<_BudgetSheet> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           duration: const Duration(milliseconds: 2800),
           content: Text(_editing
-              ? 'Neues Limit für $_category: ${Money.raw(Money.parseToCents(_limit.text)!)} im Monat'
-              : 'Budget für $_category steht. Es gilt jeden Monat, bis du es löschst.')));
+              ? tr('Neues Limit für {category}: {x} im Monat', {'category': _category, 'x': Money.raw(Money.parseToCents(_limit.text)!)})
+              : tr('Budget für {category} steht. Es gilt jeden Monat, bis du es löschst.', {'category': _category}))));
     }
   }
 
@@ -480,20 +480,20 @@ class _BudgetSheetState extends State<_BudgetSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(_editing ? 'Limit für $_category' : 'Monatsbudget',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(_editing ? tr('Limit für {category}', {'category': _category}) : tr('Monatsbudget'),
+            style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(
             _editing
-                ? 'Gilt ab sofort und in den nächsten Monaten.'
-                : 'Ein Limit pro Monat für eine Kategorie. Buddy sagt Bescheid, bevor es knapp wird.',
+                ? tr('Gilt ab sofort und in den nächsten Monaten.')
+                : tr('Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 16),
         if (!_editing) ...[
           if (_taken.length >= Categories.expense.where((c) => Categories.counts(c['name']!)).length)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text('Für diesen Monat hast du schon überall ein Limit. Tippe ein Budget zum Anpassen.',
+              child: Text(tr('Diesen Monat hat jede Kategorie ein Limit. Tippe eins zum Anpassen.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35)),
             ),
           Wrap(spacing: 8, runSpacing: 8, children: [
@@ -505,7 +505,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
                 side: BorderSide(color: AppColors.border),
                 selectedColor: Categories.color(c['name']!).withValues(alpha: 0.22),
                 avatar: Icon(Categories.icon(c['name']!), size: 18, color: Categories.color(c['name']!)),
-                label: Text(c['name']!),
+                label: Text(tr(c['name']!)),
                 onSelected: _taken.contains(c['name']) ? null : (_) => _pick(c['name']!),
               ),
           ]),
@@ -514,13 +514,13 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         TextField(
           controller: _limit,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+          style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600),
           autofocus: _editing,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _save(),
           decoration: InputDecoration(
             hintText: 'z. B. 300',
-            suffixText: '€ im Monat',
+            suffixText: tr('€ im Monat'),
             suffixStyle: TextStyle(fontSize: 16, color: AppColors.textDim, fontWeight: FontWeight.w600),
           ),
         ),
@@ -530,7 +530,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
             Icon(Icons.history_rounded, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
             Expanded(
-              child: Text('Du gibst dafür im Schnitt ${Money.format(usual)} im Monat aus.',
+              child: Text(tr('Du gibst dafür im Schnitt {x} im Monat aus.', {'x': Money.format(usual)}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ),
           ]),
@@ -539,7 +539,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _valid ? _save : null,
-          child: Text(_editing ? 'Speichern' : 'Budget anlegen',
+          child: Text(_editing ? tr('Speichern') : tr('Budget anlegen'),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
@@ -557,13 +557,13 @@ Future<bool> _saveBudget(BuildContext context, String? category, String limitTex
   }
   final messenger = ScaffoldMessenger.of(context);
   if (category == null) {
-    messenger.showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Kategorie wählen')));
+    messenger.showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Kategorie wählen'))));
     return false;
   }
   // input is whole euros -> convert to cents
   final limitCents = Money.parseToCents(limitText);
   if (limitCents == null || limitCents <= 0) {
-    messenger.showSnackBar(const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Limit eingeben')));
+    messenger.showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Limit eingeben'))));
     return false;
   }
   // dates normalized to midnight

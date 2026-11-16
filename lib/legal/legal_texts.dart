@@ -1,8 +1,10 @@
-// The legal pages shown under "Über BudgetBuddy". They describe how this
+// The legal pages shown under "Über Ahead". They describe how this
 // app actually works (local data, account server, bank access via Enable
 // Banking, Buddy via Anthropic, market data, store payments) and should be
 // reviewed by a lawyer before the app is published.
+import 'legal_lang.dart';
 import 'legal_info.dart';
+import 'legal_texts_en.dart';
 
 class LegalSection {
   final String heading;
@@ -20,7 +22,9 @@ class LegalTexts {
   static String get _contact => '${LegalInfo.provider}\n${LegalInfo.address}\n'
       'E-Mail: ${LegalInfo.email}${LegalInfo.phone.isEmpty ? '' : '\nTelefon: ${LegalInfo.phone}'}';
 
-  static LegalDoc get imprint => LegalDoc('Impressum', [
+  static LegalDoc get imprint => LegalLang.isDe() ? _imprintDe : LegalTextsEn.imprint;
+
+  static LegalDoc get _imprintDe => LegalDoc('Impressum', [
         LegalSection('Angaben gemäß § 5 DDG', _contact),
         if (LegalInfo.representative.isNotEmpty) LegalSection('Vertreten durch', LegalInfo.representative),
         if (LegalInfo.register.isNotEmpty) LegalSection('Registereintrag', LegalInfo.register),
@@ -40,10 +44,12 @@ class LegalTexts {
                 'wir jedoch keine Gewähr übernehmen. Sie ersetzen keine Beratung.'),
       ]);
 
-  static LegalDoc get privacy => LegalDoc('Datenschutzerklärung', [
+  static LegalDoc get privacy => LegalLang.isDe() ? _privacyDe : LegalTextsEn.privacy;
+
+  static LegalDoc get _privacyDe => LegalDoc('Datenschutzerklärung', [
         LegalSection(
             'Auf einen Blick',
-            'BudgetBuddy ist so gebaut, dass nur du deine Finanzdaten lesen kannst. Umsätze, Budgets, '
+            'Ahead ist so gebaut, dass nur du deine Finanzdaten lesen kannst. Umsätze, Budgets, '
                 'Depot und Sparziele werden auf deinem Gerät gespeichert. Mit einem Nutzerkonto liegt zusätzlich '
                 'eine Kopie bei uns, die schon auf deinem Gerät mit deinem Passwort verschlüsselt wird: Wir können '
                 'sie nicht lesen. Andere Daten verlassen dein Gerät nur, wenn du eine Funktion nutzt, die das '
@@ -87,7 +93,7 @@ class LegalTexts {
                 'Art. 6 Abs. 1 lit. b DSGVO.'),
         const LegalSection(
             '5. Buddy (KI-Assistent) und Belegscan',
-            'Stellst du Buddy eine Frage oder scannst einen Beleg, senden wir deine Frage bzw. das Foto und '
+            'Stellst du Buddy eine Frage oder scannst einen Beleg oder eine Gehaltsabrechnung, senden wir deine Frage bzw. das Foto und '
                 'eine zusammengefasste Übersicht deiner Finanzen (Summen, letzte Buchungen, Budgets, Ziele, '
                 'Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status; keine Kontonummern oder Zahlungsdaten) an Anthropic, PBC '
                 '(San Francisco, USA), die das KI-Modell Claude betreibt. Anthropic verarbeitet die Daten in '
@@ -97,7 +103,36 @@ class LegalTexts {
                 'Einfache Fragen beantwortet Buddy direkt auf deinem Gerät, ohne Übertragung. '
                 'Ist statt Claude das KI-Modell Gemini von Google eingerichtet, gehen dieselben Daten an Google; '
                 'im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung seiner Dienste verwenden. Buddy '
-                'nennt vor deiner ersten Frage, welcher Anbieter antwortet.'),
+                'nennt vor deiner ersten Frage, welcher Anbieter antwortet. '
+                'Was du Buddy ausdrücklich zu merken erlaubst (zum Beispiel deine Lebenslage oder ein Sparziel), '
+                'speichern wir als Teil deiner Daten und senden es mit der Übersicht mit. Du siehst und löschst '
+                'es jederzeit unter „Was Buddy weiß“. Gesundheit, Glaube, Politik und Zugangsdaten merkt sich '
+                'Buddy nicht. Damit Buddy an frühere Gespräche anknüpfen kann, behält die App auf deinem Gerät '
+                '60 Tage lang je Frage eine kurze Zeile mit dem nächsten Schritt und sendet die letzten davon mit; '
+                'auch sie löschst du unter „Was Buddy weiß“. Von geprüften Gehaltsabrechnungen behält die App '
+                'nur die Zahlen (ohne Foto) der letzten zwölf auf deinem Gerät, um die nächste damit zu vergleichen; '
+                'auch sie löschst du dort mit „Alles vergessen“.\n\n'
+                'Buddy rechnet mit Werkzeugen, die auf deinem Gerät laufen. An den KI-Anbieter gehen dann nur '
+                'die Ergebnisse, die er für deine Frage braucht (zum Beispiel deine Ausgaben eines Monats nach '
+                'Kategorie), nicht alle Buchungen. Bewertest du eine Antwort mit Daumen hoch oder runter, '
+                'speichern wir deine Frage, Buddys Antwort und deinen Grund ohne deinen Namen, um Buddy zu '
+                'verbessern (Art. 6 Abs. 1 lit. f DSGVO). Gespräche nutzen wir nicht zum Training von KI-Modellen.\n\n'
+                'Ohne Konto kannst du Buddy allgemeine Fragen stellen. Dann geht nur deine Frage samt dem '
+                'bisherigen Chat an den KI-Anbieter, keine Finanzdaten. Für die Begrenzung auf wenige Fragen pro '
+                'Tag nutzen wir eine zufällige Gerätekennung und deine IP-Adresse; beides speichern wir nur für '
+                'den laufenden Tag im Arbeitsspeicher. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO '
+                '(berechtigtes Interesse am Schutz vor Missbrauch). Der Chat selbst liegt nur auf deinem Gerät.\n\n'
+                'Sprichst du mit Buddy, statt zu tippen, wandelt die Spracherkennung deines Geräts oder Browsers '
+                'die Sprache in Text um; je nach System geschieht das beim Hersteller (zum Beispiel Apple oder Google). '
+                'Wir bekommen nur den Text, den du danach abschickst.'),
+        const LegalSection(
+            '5a. Warteliste und Einladungen',
+            'Trägst du dich auf der Website in die Warteliste ein, speichern wir deine E-Mail-Adresse, den '
+                'Zeitpunkt und, falls du über einen Einladungslink kamst, den Code der einladenden Person. Wir '
+                'nutzen das nur, um dir deinen Platz zu zeigen und dich zum Start zu informieren. Lädst du '
+                'jemanden ein, sehen wir nur, dass jemand über deinen Code mitgemacht hat; Namen oder Daten '
+                'werden nicht ausgetauscht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Eine kurze E-Mail '
+                'an uns genügt, um den Eintrag zu löschen.'),
         const LegalSection(
             '6. Kurse und Marktdaten',
             'Für aktuelle Kurse fragt die App öffentliche Marktdaten ab: Aktien und ETFs über unseren Server '
@@ -106,7 +141,7 @@ class LegalTexts {
                 'bedingt deine IP-Adresse. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes '
                 'Interesse an aktuellen Kursen).'),
         const LegalSection(
-            '7. BudgetBuddy Plus und Zahlungen',
+            '7. Ahead Plus und Zahlungen',
             'Plus kaufst du über den App Store von Apple, Google Play oder im Web über Stripe (Stripe Payments '
                 'Europe Ltd., Dublin, Irland). Die Zahlungsdaten gibst du direkt auf der Zahlungsseite des '
                 'Anbieters ein; er verarbeitet sie in eigener Verantwortung. Wir erhalten nur, ob und welches '
@@ -138,25 +173,28 @@ class LegalTexts {
                 '${LegalInfo.authority}.'),
       ]);
 
-  static LegalDoc get terms => LegalDoc('Nutzungsbedingungen', [
+  static LegalDoc get terms => LegalLang.isDe() ? _termsDe : LegalTextsEn.terms;
+
+  static LegalDoc get _termsDe => LegalDoc('Nutzungsbedingungen', [
         LegalSection(
             '1. Geltung',
-            'Diese Bedingungen gelten für die Nutzung der App BudgetBuddy, angeboten von ${LegalInfo.provider}. '
+            'Diese Bedingungen gelten für die Nutzung der App Ahead, angeboten von ${LegalInfo.provider}. '
                 'Stand: ${LegalInfo.updated}.'),
         const LegalSection(
-            '2. Was BudgetBuddy ist',
-            'BudgetBuddy hilft dir, Einnahmen, Ausgaben, Budgets, Verträge, Sparziele, dein Depot und eine '
-                'grobe Orientierung zur Altersvorsorge (Rentenlücke) im Blick zu behalten. BudgetBuddy ist keine '
+            '2. Was Ahead ist',
+            'Ahead hilft dir, Einnahmen, Ausgaben, Budgets, Verträge, Sparziele, dein Depot und eine '
+                'grobe Orientierung zur Altersvorsorge (Rentenlücke) im Blick zu behalten. Ahead ist keine '
                 'Bank, führt keine Zahlungen aus und bietet keine Anlage-, Steuer-, Renten- oder Rechtsberatung. '
                 'Vorsorge-Zahlen sind Schätzungen; maßgeblich sind Auskünfte der Deutschen Rentenversicherung '
                 'und deiner Vertragspartner. Antworten von Buddy werden von einer KI erzeugt und können Fehler '
                 'enthalten; triff wichtige Entscheidungen bitte nicht allein auf ihrer Grundlage.'),
         const LegalSection(
             '3. Konto',
-            'Für BudgetBuddy brauchst du ein Konto. Halte dein Passwort geheim und sag uns Bescheid, '
+            'Buddy kannst du ohne Konto mit allgemeinen Fragen ausprobieren. Für alles andere brauchst du '
+                'ein Konto. Halte dein Passwort geheim und sag uns Bescheid, '
                 'wenn du einen Missbrauch vermutest. Du kannst dein Konto jederzeit in der App löschen.'),
         LegalSection(
-            '4. BudgetBuddy Plus',
+            '4. Ahead Plus',
             'Die Grundfunktionen sind kostenlos. Plus erweitert die App gegen eine Gebühr von derzeit '
                 '4,99 € im Monat oder 39,99 € im Jahr, jeweils inklusive Umsatzsteuer. Neue Abonnenten können '
                 'Plus 7 Tage kostenlos testen; kündigst du während des Tests, entstehen keine Kosten.\n\n'
@@ -186,7 +224,9 @@ class LegalTexts {
                 'unberührt.'),
       ]);
 
-  static LegalDoc get withdrawal => LegalDoc('Widerrufsbelehrung', [
+  static LegalDoc get withdrawal => LegalLang.isDe() ? _withdrawalDe : LegalTextsEn.withdrawal;
+
+  static LegalDoc get _withdrawalDe => LegalDoc('Widerrufsbelehrung', [
         const LegalSection(
             'Widerrufsrecht',
             'Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. '
@@ -218,7 +258,7 @@ class LegalTexts {
             'Wenn du den Vertrag widerrufen willst, fülle bitte dieses Formular aus und sende es zurück.\n\n'
                 'An: ${LegalInfo.provider}, ${LegalInfo.street}, ${LegalInfo.city}, ${LegalInfo.email}\n\n'
                 'Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über die Erbringung '
-                'der folgenden Dienstleistung: BudgetBuddy Plus\n\n'
+                'der folgenden Dienstleistung: Ahead Plus\n\n'
                 'Bestellt am (*) / erhalten am (*)\n'
                 'Name des/der Verbraucher(s)\n'
                 'Anschrift des/der Verbraucher(s)\n'
@@ -227,7 +267,9 @@ class LegalTexts {
                 '(*) Unzutreffendes streichen.'),
       ]);
 
-  static const notes = LegalDoc('Wichtige Hinweise', [
+  static LegalDoc get notes => LegalLang.isDe() ? _notesDe : LegalTextsEn.notes;
+
+  static const _notesDe = LegalDoc('Wichtige Hinweise', [
     LegalSection(
         'Keine Anlageberatung',
         'Depotwerte, Kursverläufe und Auswertungen dienen nur deiner Übersicht. Sie sind keine Empfehlung '
@@ -249,7 +291,7 @@ class LegalTexts {
             'Rentenversicherung oder deiner Vertragspartner. Steuern und Inflation sind nicht eingerechnet.'),
     LegalSection(
         'Automatische Erkennung',
-        'Verträge, Kategorien und Hinweise erkennt BudgetBuddy automatisch aus deinen Umsätzen. Das klappt '
+        'Verträge, Kategorien und Hinweise erkennt Ahead automatisch aus deinen Umsätzen. Das klappt '
             'meistens, aber nicht immer. Du kannst alles jederzeit selbst korrigieren.'),
     LegalSection(
         'Sicherheit',

@@ -8,10 +8,13 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
 import 'backend_service.dart';
+import 'invite_service.dart';
+import 'demo_data.dart';
 import 'cloud_sync.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
 import 'split_service.dart';
+import '../l10n/l10n.dart';
 
 class Account {
   final String id;
@@ -32,7 +35,7 @@ class TotpRequired implements Exception {
   final String challenge;
   const TotpRequired(this.challenge);
   @override
-  String toString() => 'Bitte gib den Code aus deiner Authenticator-App ein.';
+  String toString() => tr('Bitte gib den Code aus deiner Authenticator-App ein.');
 }
 
 class DeviceSession {
@@ -44,7 +47,7 @@ class DeviceSession {
 
   String get label {
     if (device.isNotEmpty) return device;
-    return current ? 'Dieses Gerät' : 'Unbekanntes Gerät';
+    return current ? tr('Dieses Gerät') : tr('Unbekanntes Gerät');
   }
 }
 
@@ -55,6 +58,9 @@ class AccountService {
   static final current = ValueNotifier<Account?>(null);
   static String? _token;
   static String? get token => _token;
+  // the test catalog signs in with a token from the environment
+  @visibleForTesting
+  static set debugToken(String? t) => _token = t;
 
   static Box get _box => Hive.box('settings');
 
@@ -99,7 +105,7 @@ class AccountService {
   }
 
   static String get _deviceLabel => switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => 'iPhone oder iPad',
+        TargetPlatform.iOS => tr('iPhone oder iPad'),
         TargetPlatform.android => 'Android',
         TargetPlatform.macOS => 'Mac',
         TargetPlatform.windows => 'Windows',
@@ -107,11 +113,35 @@ class AccountService {
         TargetPlatform.fuchsia => 'Gerät',
       };
 
-  static Future<Account> register({required String name, required String email, required String password}) =>
-      _signIn('/auth/register', {'name': name, 'email': email, 'password': password});
+  // preview build (--dart-define=DEMO_MODE=true): no server, sign-up and
+  // sign-in make a local account with example numbers
+  static const demoMode = bool.fromEnvironment('DEMO_MODE');
 
-  static Future<Account> login({required String email, required String password}) =>
-      _signIn('/auth/login', {'email': email, 'password': password});
+  static Future<Account> _demoSignIn(String name, String email) async {
+    await AccountIsolation.wipeLocalFinance();
+    final clean = name.trim();
+    final account = Account('demo', email.trim().isEmpty ? 'demo@ahead.app' : email.trim(),
+        clean.isEmpty ? (email.contains('@') ? email.split('@').first : 'Du') : clean);
+    await _box.put('account', account.toJson());
+    await AccountIsolation.claimLocalFor(account.id);
+    await DemoData.load();
+    current.value = account;
+    return account;
+  }
+
+  // a friend's invite code (?ref=CODE) goes along, so the friend gets the credit
+  static Future<Account> register({required String name, required String email, required String password}) async {
+    if (demoMode) return _demoSignIn(name, email);
+    final ref = InviteService.pendingRef;
+    final account = await _signIn(
+        '/auth/register', {'name': name, 'email': email, 'password': password, if (ref != null) 'invite': ref});
+    if (ref != null) await InviteService.clearRef();
+    return account;
+  }
+
+  static Future<Account> login({required String email, required String password}) => demoMode
+      ? _demoSignIn('', email)
+      : _signIn('/auth/login', {'email': email, 'password': password});
 
   static Future<Account> loginTotp({required String challenge, required String code}) => _signIn('/auth/login/totp', {
         'challenge': challenge,
@@ -125,7 +155,7 @@ class AccountService {
     final map = await _post('/auth/login', {'email': account.email, 'password': password});
     final token = map['token'];
     if (token is! String || token.isEmpty) {
-      throw 'Anmeldung ohne Sitzung, bitte App neu laden und noch einmal anmelden.';
+      throw tr('Anmeldung ohne Sitzung, bitte App neu laden und noch einmal anmelden.');
     }
     _token = token;
     await SecureStore.write(_tokenKey, token);
@@ -139,18 +169,18 @@ class AccountService {
               headers: {'Content-Type': 'application/json'}, body: jsonEncode({...body, 'device': _deviceLabel}))
           .timeout(const Duration(seconds: 15));
     } catch (_) {
-      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+      throw tr('Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.');
     }
     final Map<String, dynamic> map;
     try {
       map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     } catch (_) {
-      throw 'Der Server antwortet gerade nicht richtig. Bitte versuch es gleich noch einmal.';
+      throw tr('Der Server antwortet gerade nicht richtig. Bitte versuch es gleich noch einmal.');
     }
     if (res.statusCode == 401 && map['needsTotp'] == true && '${map['challenge'] ?? ''}'.isNotEmpty) {
       throw TotpRequired('${map['challenge']}');
     }
-    if (res.statusCode != 200) throw map['error'] ?? 'Anmelden hat nicht geklappt. Bitte versuch es noch einmal.';
+    if (res.statusCode != 200) throw map['error'] ?? tr('Anmelden hat nicht geklappt. Bitte versuch es noch einmal.');
     return map;
   }
 
@@ -197,12 +227,12 @@ class AccountService {
               body: jsonEncode(body))
           .timeout(const Duration(seconds: 15));
     } catch (_) {
-      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+      throw tr('Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.');
     }
     final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     if (res.statusCode == 401) {
       await logout();
-      throw 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+      throw tr('Deine Sitzung ist abgelaufen. Bitte melde dich neu an.');
     }
     if (res.statusCode != 200) throw map['error'] ?? 'Fehler ${res.statusCode}';
     return map;
@@ -225,12 +255,12 @@ class AccountService {
               : http.post(uri, headers: headers, body: jsonEncode(body)))
           .timeout(const Duration(seconds: 15));
     } catch (_) {
-      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+      throw tr('Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.');
     }
     final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     if (res.statusCode == 401) {
       await logout();
-      throw 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+      throw tr('Deine Sitzung ist abgelaufen. Bitte melde dich neu an.');
     }
     if (res.statusCode != 200) throw map['error'] ?? 'Fehler ${res.statusCode}';
     return map;
@@ -244,7 +274,7 @@ class AccountService {
   static Future<({String secret, String uri})> beginTotp(String password) async {
     final map = await _authedPost('/auth/totp/setup', {'password': password});
     final secret = '${map['secret'] ?? ''}';
-    if (secret.isEmpty) throw 'Der Server hat keinen Schlüssel geschickt.';
+    if (secret.isEmpty) throw tr('Der Server hat keinen Schlüssel geschickt.');
     return (secret: secret, uri: '${map['uri'] ?? ''}');
   }
 
@@ -295,7 +325,7 @@ class AccountService {
   // left a cloud blob only next can open while login still required current.
   static Future<void> changePassword(String current, String next) async {
     final id = AccountService.current.value?.id;
-    if (id == null) throw 'Bitte melde dich neu an und versuch es noch einmal.';
+    if (id == null) throw tr('Bitte melde dich neu an und versuch es noch einmal.');
     await CloudSync.unlock(id, current);
     await _authedPost('/auth/password', {'current': current, 'next': next});
     await CloudSync.unlock(id, next);
@@ -312,22 +342,22 @@ class AccountService {
               body: jsonEncode({'password': password}))
           .timeout(const Duration(seconds: 15));
     } catch (_) {
-      throw 'Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.';
+      throw tr('Keine Verbindung zum Server. Bitte versuche es gleich noch einmal.');
     }
     if (res.statusCode == 401) {
       await logout();
-      throw 'Deine Sitzung ist abgelaufen. Bitte melde dich neu an.';
+      throw tr('Deine Sitzung ist abgelaufen. Bitte melde dich neu an.');
     }
     if (res.statusCode == 403) {
       try {
         final map = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
-        throw map['error'] ?? 'Das Passwort stimmt nicht.';
+        throw map['error'] ?? tr('Das Passwort stimmt nicht.');
       } catch (e) {
         if (e is String) rethrow;
-        throw 'Das Passwort stimmt nicht.';
+        throw tr('Das Passwort stimmt nicht.');
       }
     }
-    if (res.statusCode != 200) throw 'Löschen fehlgeschlagen (${res.statusCode})';
+    if (res.statusCode != 200) throw tr('Löschen fehlgeschlagen ({x})', {'x': res.statusCode});
     // stop vault watches before wipe, same order as logout
     await CloudSync.forget();
     await AccountIsolation.wipeLocalFinance();

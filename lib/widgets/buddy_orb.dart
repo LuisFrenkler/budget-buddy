@@ -11,7 +11,7 @@ import 'brand.dart';
 // - alert: a slow amber pulse when he speaks up about something important
 enum BuddyMood { idle, thinking, happy, alert }
 
-// Buddy's avatar: a glowing copper sphere with Ahead's "A".
+// Buddy's avatar: a glowing copper sphere with the "b" of the logo.
 class BuddyOrb extends StatefulWidget {
   // the sphere: lit from the top left, glowing softly (more so at night)
   static BoxDecoration sphere(double size, {double glow = 1}) {

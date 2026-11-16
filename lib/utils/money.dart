@@ -1,4 +1,4 @@
-// Money handling for BudgetBuddy.
+// Money handling for Ahead.
 //
 // All amounts in the app are stored and calculated as integer cents (int),
 // never as double. Floating point math is not exact (0.1 + 0.2 != 0.3), which
@@ -6,11 +6,12 @@
 // string at the very edge, using German (de_DE) currency formatting.
 import 'dart:math' as math;
 import 'package:intl/intl.dart';
+import '../l10n/l10n.dart';
 
 class Money {
   // German currency format, e.g. 123450 cents -> "1.234,50 €"
-  static final NumberFormat _fmt =
-      NumberFormat.currency(locale: 'de_DE', symbol: '€', decimalDigits: 2);
+  // follows the app language: 1.234,50 € in German, €1,234.50 in English
+  static NumberFormat get _fmt => NumberFormat.currency(locale: L10n.intlLocale, symbol: '€', decimalDigits: 2);
 
   // typographic minus (U+2212) used for display instead of the hyphen
   static const minus = '\u2212';
@@ -86,13 +87,14 @@ class Money {
     if (euros != null && euros > 0 && euros < 1) {
       // three significant digits: 0,0543 € for HBAR, 0,00000384 € for PEPE
       final digits = math.min(12, math.max(4, (-math.log(euros) / math.ln10).ceil() + 2));
-      return '${NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(euros)} €';
+      final n = NumberFormat.decimalPatternDigits(locale: L10n.intlLocale, decimalDigits: digits).format(euros);
+      return L10n.isDe ? '$n €' : '€$n';
     }
     return raw(cents);
   }
 
   static String percent(double value, {int digits = 1, bool signed = true}) {
-    final s = NumberFormat.decimalPatternDigits(locale: 'de_DE', decimalDigits: digits).format(value);
-    return '${signed && value >= 0 ? '+' : ''}${s.replaceFirst('-', minus)} %';
+    final s = NumberFormat.decimalPatternDigits(locale: L10n.intlLocale, decimalDigits: digits).format(value);
+    return '${signed && value >= 0 ? '+' : ''}${s.replaceFirst('-', minus)}${L10n.isDe ? ' %' : '%'}';
   }
 }

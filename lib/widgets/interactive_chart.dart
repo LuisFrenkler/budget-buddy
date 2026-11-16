@@ -7,6 +7,7 @@ import '../services/history.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
 import 'big_number.dart';
+import '../l10n/l10n.dart';
 
 // A line chart you can touch: drag or long-press to read the value of any
 // day. The line draws itself in, has a soft gradient below and a dotted line
@@ -76,11 +77,12 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
     if (pts.length < 2) {
       return SizedBox(
         height: widget.height,
-        child: Center(child: Text('Noch kein Verlauf', style: TextStyle(color: AppColors.textDim))),
+        child: Center(child: Text(tr('Noch kein Verlauf'), style: TextStyle(color: AppColors.textDim))),
       );
     }
     final up = pts.last.cents >= pts.first.cents;
-    final color = up ? AppColors.positive : AppColors.error;
+    // rising in Buddy's copper light, falling stays red
+    final color = up ? (ThemeController.isDark.value ? const Color(0xFFF4B98A) : AppColors.brand) : AppColors.error;
 
     // what a screen reader says instead of the drawing: start, end, low and high
     final low = pts.reduce((a, b) => b.cents < a.cents ? b : a);
@@ -93,10 +95,7 @@ class _InteractiveChartState extends State<InteractiveChart> with SingleTickerPr
       return '$day, $hm';
     }
 
-    final summary = 'Verlauf vom ${stamp(pts.first.date)} bis ${stamp(pts.last.date)}: '
-        'von ${Money.format(pts.first.cents)} auf ${Money.format(pts.last.cents)}. '
-        'Tiefster Stand ${Money.format(low.cents)} am ${stamp(low.date)}, '
-        'höchster ${Money.format(high.cents)} am ${stamp(high.date)}.';
+    final summary = tr('Verlauf vom {x} bis {x2}: von {x3} auf {x4}. Tiefster Stand {x5} am {x6}, höchster {x7} am {x8}.', {'x': stamp(pts.first.date), 'x2': stamp(pts.last.date), 'x3': Money.format(pts.first.cents), 'x4': Money.format(pts.last.cents), 'x5': Money.format(low.cents), 'x6': stamp(low.date), 'x7': Money.format(high.cents), 'x8': stamp(high.date)});
 
     return Semantics(
       label: summary,
@@ -247,23 +246,23 @@ class RangeSelector extends StatelessWidget {
   const RangeSelector({super.key, required this.labels, required this.selected, required this.onChanged});
 
   // suffix under the chart number, for each range button
-  static const periods = {
-    '1T': 'heute',
-    '1W': 'in 7 Tagen',
-    '1M': 'in 30 Tagen',
-    '3M': 'in 3 Monaten',
-    '1J': 'in 12 Monaten',
-    'Max': 'seit Beginn',
+  static Map<String, String> get periods => {
+    '1T': tr('heute'),
+    '1W': tr('in 7 Tagen'),
+    '1M': tr('in 30 Tagen'),
+    '3M': tr('in 3 Monaten'),
+    '1J': tr('in 12 Monaten'),
+    'Max': tr('seit Beginn'),
   };
 
   // "1M" read aloud means nothing
-  static const _spoken = {
-    '1T': '1 Tag',
-    '1W': '7 Tage',
-    '1M': '30 Tage',
-    '3M': '3 Monate',
-    '1J': '12 Monate',
-    'Max': 'Gesamter Zeitraum',
+  static Map<String, String> get _spoken => {
+    '1T': tr('1 Tag'),
+    '1W': tr('7 Tage'),
+    '1M': tr('30 Tage'),
+    '3M': tr('3 Monate'),
+    '1J': tr('12 Monate'),
+    'Max': tr('Gesamter Zeitraum'),
   };
 
   @override
@@ -292,14 +291,14 @@ class RangeSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: labels.length > 5 ? 8 : 14, vertical: 7),
               decoration: BoxDecoration(
-                color: l == selected ? AppColors.surfaceAlt : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                color: l == selected ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
               ),
-              child: Text(l,
+              child: Text(tr(l),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: l == selected ? AppColors.text : AppColors.textDim,
+                    color: l == selected ? AppColors.onPrimary : AppColors.textDim,
                   )),
                 ),
               ),
@@ -358,7 +357,7 @@ class ChartHeader extends StatelessWidget {
     if (!showTime) return Dates.full(d);
     final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     final day = Dates.relativeDay(d);
-    final prefix = (day == 'Heute' || day == 'Gestern') ? day.toLowerCase() : day;
+    final prefix = (day == tr('Heute') || day == tr('Gestern')) ? day.toLowerCase() : day;
     return '$prefix, $hm';
   }
 

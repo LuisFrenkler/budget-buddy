@@ -14,7 +14,13 @@ import 'vorsorge.dart';
 import 'wealth.dart';
 
 typedef AccountSnap = ({String name, String art, int cents});
-typedef RecentSnap = ({String date, String category, int cents, String note, String account});
+typedef RecentSnap = ({
+  String date,
+  String category,
+  int cents,
+  String note,
+  String account
+});
 typedef RecurringSnap = ({
   String title,
   int cents,
@@ -65,7 +71,7 @@ class FinanceSnapshot {
   final List<Goal> goals;
   final List<RecurringSnap> recurring;
   final List<SplitSnap> splits;
-  final List<({String name, int cents})> debts;
+  final List<Debt> debts;
   final List<({String name, int monthlyCents})> policies;
   final int? emergencyTargetCents;
   final int emergencyHaveCents;
@@ -104,10 +110,15 @@ class FinanceSnapshot {
   MonthSummary get current => months.last;
 
   // complete months before the current one, for averages
-  List<MonthSummary> get past => months.sublist(0, months.length - 1).where((m) => m.hasData).toList();
+  List<MonthSummary> get past =>
+      months.sublist(0, months.length - 1).where((m) => m.hasData).toList();
 
-  int get avgIncome => past.isEmpty ? 0 : past.fold<int>(0, (s, m) => s + m.income) ~/ past.length;
-  int get avgExpenses => past.isEmpty ? 0 : past.fold<int>(0, (s, m) => s + m.expenses) ~/ past.length;
+  int get avgIncome => past.isEmpty
+      ? 0
+      : past.fold<int>(0, (s, m) => s + m.income) ~/ past.length;
+  int get avgExpenses => past.isEmpty
+      ? 0
+      : past.fold<int>(0, (s, m) => s + m.expenses) ~/ past.length;
   int get debtCents => debts.fold(0, (s, d) => s + d.cents);
 
   // average per category over the past months
@@ -116,10 +127,14 @@ class FinanceSnapshot {
     for (final m in past) {
       m.byCategory.forEach((k, v) => sums[k] = (sums[k] ?? 0) + v);
     }
-    return {for (final e in sums.entries) e.key: e.value ~/ (past.isEmpty ? 1 : past.length)};
+    return {
+      for (final e in sums.entries)
+        e.key: e.value ~/ (past.isEmpty ? 1 : past.length)
+    };
   }
 
-  int get daysLeftInMonth => DateTime(today.year, today.month + 1, 0).day - today.day;
+  int get daysLeftInMonth =>
+      DateTime(today.year, today.month + 1, 0).day - today.day;
 
   static FinanceSnapshot build({
     required List<Transaction> tx,
@@ -132,7 +147,7 @@ class FinanceSnapshot {
     List<Goal> goals = const [],
     List<RecurringSnap> recurring = const [],
     List<SplitSnap> splits = const [],
-    List<({String name, int cents})> debts = const [],
+    List<Debt> debts = const [],
     List<({String name, int monthlyCents})> policies = const [],
     int? emergencyTargetCents,
     int emergencyHaveCents = 0,
@@ -148,7 +163,8 @@ class FinanceSnapshot {
     final months = <MonthSummary>[];
     for (int i = 5; i >= 0; i--) {
       final start = DateTime(today.year, today.month - i);
-      final inMonth = tx.where((t) => t.date.year == start.year && t.date.month == start.month);
+      final inMonth = tx.where(
+          (t) => t.date.year == start.year && t.date.month == start.month);
       final byCategory = <String, int>{};
       int income = 0, expenses = 0;
       for (final t in inMonth) {
@@ -166,15 +182,26 @@ class FinanceSnapshot {
     final merchants = <String, ({String name, int cents, int count})>{};
     for (final t in tx) {
       final name = t.note?.trim() ?? '';
-      if (t.isIncome || name.isEmpty || !Categories.counts(t.category) || t.date.year != today.year || t.date.month != today.month) continue;
+      if (t.isIncome ||
+          name.isEmpty ||
+          !Categories.counts(t.category) ||
+          t.date.year != today.year ||
+          t.date.month != today.month) continue;
       final key = name.toLowerCase();
       final m = merchants[key];
-      merchants[key] = (name: name, cents: (m?.cents ?? 0) + t.amountCents, count: (m?.count ?? 0) + 1);
+      merchants[key] = (
+        name: name,
+        cents: (m?.cents ?? 0) + t.amountCents,
+        count: (m?.count ?? 0) + 1
+      );
     }
-    final top = merchants.values.toList()..sort((a, b) => b.cents.compareTo(a.cents));
+    final top = merchants.values.toList()
+      ..sort((a, b) => b.cents.compareTo(a.cents));
 
     final current = budgets
-        .where((b) => !b.startDate.isAfter(today) && !b.endDate.isBefore(DateTime(today.year, today.month, today.day)))
+        .where((b) =>
+            !b.startDate.isAfter(today) &&
+            !b.endDate.isBefore(DateTime(today.year, today.month, today.day)))
         .toList();
 
     int depot = 0;
@@ -189,7 +216,9 @@ class FinanceSnapshot {
           date: _day(t.date),
           category: t.category,
           cents: t.isIncome ? t.amountCents : -t.amountCents,
-          note: (t.note?.trim().isNotEmpty ?? false) ? t.note!.trim() : t.category,
+          note: (t.note?.trim().isNotEmpty ?? false)
+              ? t.note!.trim()
+              : t.category,
           account: _accountName(t.accountId, accountNames),
         ),
     ];
@@ -205,7 +234,10 @@ class FinanceSnapshot {
       holdings: holdings,
       accounts: accounts,
       recent: recent,
-      bookingsThisMonth: tx.where((t) => t.date.year == today.year && t.date.month == today.month).length,
+      bookingsThisMonth: tx
+          .where(
+              (t) => t.date.year == today.year && t.date.month == today.month)
+          .length,
       goals: goals,
       recurring: recurring,
       splits: splits,
@@ -217,12 +249,14 @@ class FinanceSnapshot {
       runwayMonths: Wealth.runwayMonths(tx, balance, now: today),
       vorsorge: vorsorge,
       plus: plus,
-      forecast: ForecastService.build(tx, goals: goals, now: today, balanceCents: balance),
+      forecast: ForecastService.build(tx,
+          goals: goals, now: today, balanceCents: balance),
     );
   }
 
   static String _accountName(String? id, Map<String, String> names) {
-    if (id == null || id.isEmpty || id == 'main') return names['main'] ?? 'Konto';
+    if (id == null || id.isEmpty || id == 'main')
+      return names['main'] ?? 'Konto';
     return names[id] ?? 'Konto';
   }
 
@@ -237,7 +271,8 @@ class FinanceSnapshot {
 
   // the JSON Buddy reads (German keys, euros)
   Map<String, dynamic> toJson() {
-    final ranked = [...holdings]..sort((a, b) => b.valueCents.compareTo(a.valueCents));
+    final ranked = [...holdings]
+      ..sort((a, b) => b.valueCents.compareTo(a.valueCents));
     final shownHoldings = ranked.take(30);
     final policyMonthly = policies.fold<int>(0, (s, p) => s + p.monthlyCents);
     return {
@@ -246,21 +281,26 @@ class FinanceSnapshot {
       'depotwert': _eur(depotCents),
       'gesamtvermoegen': _eur(balanceCents + depotCents),
       'konten': [
-        for (final a in accounts.take(8)) {'name': a.name, 'art': a.art, 'saldo': _eur(a.cents)}
+        for (final a in accounts.take(8))
+          {'name': a.name, 'art': a.art, 'saldo': _eur(a.cents)}
       ],
       'monate': [
         for (final m in months)
           {
-            'monat': '${m.month.year}-${m.month.month.toString().padLeft(2, '0')}',
+            'monat':
+                '${m.month.year}-${m.month.month.toString().padLeft(2, '0')}',
             'einnahmen': _eur(m.income),
             'ausgaben': _eur(m.expenses),
-            'ausgabenNachKategorie': {for (final e in m.byCategory.entries) e.key: _eur(e.value)},
+            'ausgabenNachKategorie': {
+              for (final e in m.byCategory.entries) e.key: _eur(e.value)
+            },
           }
       ],
       'tageBisMonatsende': daysLeftInMonth,
       'buchungenDiesenMonat': bookingsThisMonth,
       'topHaendlerDiesenMonat': [
-        for (final m in topMerchants) {'name': m.name, 'summe': _eur(m.cents), 'anzahl': m.count}
+        for (final m in topMerchants)
+          {'name': m.name, 'summe': _eur(m.cents), 'anzahl': m.count}
       ],
       'letzteBuchungen': [
         for (final t in recent.take(12))
@@ -288,6 +328,7 @@ class FinanceSnapshot {
             'proMonat': _eur(c.monthlyCents),
             'kategorie': c.category,
             'naechste': _day(c.nextDate),
+            'seit': _day(c.payments.first.date),
           }
       ],
       if (contracts.length > 20) 'weitereVertraege': contracts.length - 20,
@@ -313,7 +354,8 @@ class FinanceSnapshot {
             'prozent': (g.progress * 100).round(),
             'erreicht': g.reached,
             if (g.deadline != null) 'frist': _day(g.deadline!),
-            if (g.monthlyNeeded(today) != null) 'monatlichNoetig': _eur(g.monthlyNeeded(today)!),
+            if (g.monthlyNeeded(today) != null)
+              'monatlichNoetig': _eur(g.monthlyNeeded(today)!),
             if (g.monthlyCents > 0) 'automatischMonat': _eur(g.monthlyCents),
             if (g.roundUp) 'aufrunden': true,
           }
@@ -337,14 +379,22 @@ class FinanceSnapshot {
         'netto': _eur(balanceCents + depotCents - debtCents),
         'schuldenGesamt': _eur(debtCents),
         'schulden': [
-          for (final d in debts.take(12)) {'name': d.name, 'betrag': _eur(d.cents)}
+          for (final d in debts.take(12))
+            {
+              'name': d.name,
+              'betrag': _eur(d.cents),
+              if (d.ratePercent != null) 'zins': d.ratePercent
+            }
         ],
         'versicherungen': [
-          for (final p in policies.take(12)) {'name': p.name, 'proMonat': _eur(p.monthlyCents)}
+          for (final p in policies.take(12))
+            {'name': p.name, 'proMonat': _eur(p.monthlyCents)}
         ],
         'versicherungenMonat': _eur(policyMonthly),
-        if (emergencyTargetCents != null) 'notgroschenZiel': _eur(emergencyTargetCents!),
-        if (emergencyTargetCents != null || emergencyHaveCents > 0) 'notgroschenVorhanden': _eur(emergencyHaveCents),
+        if (emergencyTargetCents != null)
+          'notgroschenZiel': _eur(emergencyTargetCents!),
+        if (emergencyTargetCents != null || emergencyHaveCents > 0)
+          'notgroschenVorhanden': _eur(emergencyHaveCents),
         if (savingsRatePercent != null) 'sparquoteProzent': savingsRatePercent,
         if (runwayMonths != null) 'reichweiteMonate': runwayMonths,
       },
@@ -355,11 +405,13 @@ class FinanceSnapshot {
             'name': g.name,
             'meinSaldo': _eur(g.myCents),
             'salden': [
-              for (final s in g.salden.take(8)) {'name': s.name, 'saldo': _eur(s.cents)}
+              for (final s in g.salden.take(8))
+                {'name': s.name, 'saldo': _eur(s.cents)}
             ],
             if (g.ausgleich.isNotEmpty)
               'ausgleich': [
-                for (final a in g.ausgleich.take(6)) {'von': a.von, 'an': a.an, 'betrag': _eur(a.cents)}
+                for (final a in g.ausgleich.take(6))
+                  {'von': a.von, 'an': a.an, 'betrag': _eur(a.cents)}
               ],
           }
       ],
@@ -406,6 +458,17 @@ class FinanceSnapshot {
       'ueblichesEinkommen': _eur(f.incomeCents),
       'fixkosten': _eur(f.fixedCents),
       'sparzieleMonat': _eur(f.goalsCents),
+      if (f.reserveCents > 0) ...{
+        'ruecklageJahreszahlungen': _eur(f.reserveCents),
+        'jahreszahlungen': [
+          for (final p in f.periodic.take(6))
+            {
+              'name': p.name,
+              'betrag': _eur(p.cents),
+              'alleMonate': p.everyMonths
+            }
+        ],
+      },
       'variabelAusgegeben': _eur(f.spentCents),
       'freiBisMonatsende': _eur(f.freeCents),
       'proTag': _eur(f.perDayCents),
@@ -415,7 +478,8 @@ class FinanceSnapshot {
         ForecastPace.over => 'ueberzogen',
       },
       'nochFaellig': [
-        for (final d in f.due.take(8)) {'name': d.name, 'betrag': _eur(d.cents), 'datum': _day(d.date)}
+        for (final d in f.due.take(8))
+          {'name': d.name, 'betrag': _eur(d.cents), 'datum': _day(d.date)}
       ],
       'durchKontostandBegrenzt': f.limitedByBalance,
     };

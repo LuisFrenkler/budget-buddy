@@ -1,5 +1,5 @@
 // Importing files into a chosen account or depot: a bank's CSV export or
-// BudgetBuddy's own CSV into an account, a positions CSV or a Trade Republic
+// Ahead's own CSV into an account, a positions CSV or a Trade Republic
 // export into a depot. Shared by Profil, "+ Konto" and the Depot's +.
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
@@ -15,19 +15,21 @@ import '../services/trade_republic_importer.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
 import 'account_sheet.dart';
+import '../l10n/l10n.dart';
 
 void _snack(BuildContext context, String text, {bool error = false}) {
   if (!context.mounted) return;
   final messenger = ScaffoldMessenger.of(context);
   messenger.hideCurrentSnackBar();
   messenger.showSnackBar(SnackBar(
-      duration: const Duration(milliseconds: 3200),
+      duration: Duration(milliseconds: 3200),
       content: Text(text),
       backgroundColor: error ? AppColors.error : null));
 }
 
 // asks which account; [allowNew] also offers a new one, set up on the spot
-Future<MoneyAccount?> pickAccount(BuildContext context, {String title = 'In welches Konto?', bool allowNew = false}) async {
+Future<MoneyAccount?> pickAccount(BuildContext context, {String? title, bool allowNew = false}) async {
+  final heading = title ?? tr('In welches Konto?');
   final accounts = MoneyAccounts.all;
   if (accounts.length == 1 && !allowNew) return accounts.single;
   const create = MoneyAccount(id: '_new', name: '');
@@ -40,7 +42,7 @@ Future<MoneyAccount?> pickAccount(BuildContext context, {String title = 'In welc
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          child: Text(heading, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
         ),
         for (final a in accounts)
           ListTile(
@@ -55,8 +57,8 @@ Future<MoneyAccount?> pickAccount(BuildContext context, {String title = 'In welc
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             leading: Icon(Icons.add_rounded, color: AppColors.primaryText),
-            title: const Text('Neues Konto'),
-            subtitle: const Text('Sparkonto, Bargeld oder ein weiteres Girokonto'),
+            title: Text(tr('Neues Konto')),
+            subtitle: Text(tr('Sparkonto, Bargeld oder ein weiteres Girokonto')),
             onTap: () => Navigator.pop(sheet, create),
           ),
         const SizedBox(height: 8),
@@ -79,7 +81,7 @@ Future<String?> _pickText(List<String> extensions) async {
 // the bookings of a file onto one account; the account keeps today's
 // balance, the file only fills in what happened before
 Future<void> importBookings(BuildContext context, {MoneyAccount? into}) async {
-  final account = into ?? await pickAccount(context, title: 'Umsätze in welches Konto?', allowNew: true);
+  final account = into ?? await pickAccount(context, title: tr('Umsätze in welches Konto?'), allowNew: true);
   if (account == null) return;
   final content = await _pickText(['csv', 'txt']);
   if (content == null) return;
@@ -94,21 +96,21 @@ Future<void> importBookings(BuildContext context, {MoneyAccount? into}) async {
       txs = r.transactions;
       msg = [
         '${txs.length} ${txs.length == 1 ? 'Umsatz' : 'Umsätze'} in ${account.name}',
-        if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
-        if (r.skipped > 0) '${r.skipped} nicht lesbar',
+        if (r.duplicates > 0) tr('{duplicates} schon vorhanden', {'duplicates': r.duplicates}),
+        if (r.skipped > 0) tr('{skipped} nicht lesbar', {'skipped': r.skipped}),
       ].join(' · ');
     } else {
       final r = CsvImporter.parse(content, existing: existing);
       txs = r.transactions;
       msg = [
         '${txs.length} ${txs.length == 1 ? 'Umsatz' : 'Umsätze'} in ${account.name}',
-        if (r.duplicates > 0) '${r.duplicates} schon vorhanden',
-        if (r.skipped > 0) '${r.skipped} übersprungen',
+        if (r.duplicates > 0) tr('{duplicates} schon vorhanden', {'duplicates': r.duplicates}),
+        if (r.skipped > 0) tr('{skipped} übersprungen', {'skipped': r.skipped}),
       ].join(' · ');
     }
     if (txs.isEmpty) {
       if (context.mounted) {
-        _snack(context, 'In dieser Datei wurden keine neuen Umsätze gefunden. Exportiere sie im Online-Banking als CSV.');
+        _snack(context, tr('In dieser Datei wurden keine neuen Umsätze gefunden. Exportiere sie im Online-Banking als CSV.'));
       }
       return;
     }
@@ -119,7 +121,7 @@ Future<void> importBookings(BuildContext context, {MoneyAccount? into}) async {
     if (account.link == null) await MoneyAccounts.setBalance(account, balance, DB.getTx());
     if (context.mounted) _snack(context, msg);
   } catch (e) {
-    if (context.mounted) _snack(context, friendlyError(e, fallback: 'Import hat nicht geklappt.'), error: true);
+    if (context.mounted) _snack(context, friendlyError(e, fallback: tr('Import hat nicht geklappt.')), error: true);
   }
 }
 
@@ -140,12 +142,10 @@ Future<void> importDepot(BuildContext context, {String? depot}) async {
     if (context.mounted) {
       _snack(
           context,
-          '${imported.holdings.length} ${imported.holdings.length == 1 ? 'Position' : 'Positionen'}'
-          '${name.isEmpty ? '' : ' in $name'} importiert'
-          '${imported.skipped > 0 ? ' · ${imported.skipped} übersprungen' : ''}');
+          tr('{holdings} {x}{x2} importiert{x3}', {'holdings': imported.holdings.length, 'x': imported.holdings.length == 1 ? tr('Position') : tr('Positionen'), 'x2': name.isEmpty ? '' : tr(' in {name}', {'name': name}), 'x3': imported.skipped > 0 ? tr(' · {skipped} übersprungen', {'skipped': imported.skipped}) : ''}));
     }
   } catch (e) {
-    if (context.mounted) _snack(context, friendlyError(e, fallback: 'Import hat nicht geklappt.'), error: true);
+    if (context.mounted) _snack(context, friendlyError(e, fallback: tr('Import hat nicht geklappt.')), error: true);
   }
 }
 
@@ -161,7 +161,7 @@ Future<String?> _pickDepotName(BuildContext context) {
     builder: (sheet) => Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(sheet).viewInsets.bottom + 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('In welches Depot?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(tr('In welches Depot?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         for (final n in names)
           ListTile(
@@ -173,14 +173,14 @@ Future<String?> _pickDepotName(BuildContext context) {
         TextField(
           controller: ctrl,
           textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(labelText: names.isEmpty ? 'Depot' : 'Neues Depot', hintText: 'z. B. Scalable'),
+          decoration: InputDecoration(labelText: names.isEmpty ? tr('Depot') : tr('Neues Depot'), hintText: tr('z. B. Scalable')),
           onSubmitted: (v) => Navigator.pop(sheet, v.trim()),
         ),
         const SizedBox(height: 12),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
           onPressed: () => Navigator.pop(sheet, ctrl.text.trim()),
-          child: const Text('Datei wählen'),
+          child: Text(tr('Datei wählen')),
         ),
       ]),
     ),

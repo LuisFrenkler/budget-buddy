@@ -19,6 +19,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/instrument_avatar.dart';
+import '../l10n/l10n.dart';
 
 // Links a real bank account (Enable Banking / PSD2) and a depot (Trade
 // Republic and other brokers through Parqet Connect) through the backend.
@@ -107,20 +108,20 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verbindungen')),
+      appBar: AppBar(title: Text(tr('Verbindungen'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
           Text(
-              'Kontostand, Umsätze und Depot automatisch aktuell, ohne Abtippen.',
+              tr('Kontostand und Umsätze, automatisch.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 15)),
           if (!_checking && _mode == null) ...[
             const SizedBox(height: 16),
             _offlineBanner(),
           ],
-          _label('Girokonto'),
+          _label(tr('Girokonto')),
           _bankCard(),
-          _label('Depot'),
+          _label(tr('Depot')),
           _depotCard(),
           const SizedBox(height: 24),
           _serverStatus(),
@@ -166,7 +167,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           onPressed: () => _connectBank(extra: true),
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: const Text('Weitere Bank verbinden'),
+          label: Text(tr('Weitere Bank verbinden')),
         ),
     ]);
   }
@@ -186,20 +187,20 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w700))),
           if (_mode == 'demo')
-            _chip('Demo', AppColors.warning)
+            _chip(tr('Demo'), AppColors.warning)
           else
-            _chip('Aktiv', AppColors.positive),
+            _chip(tr('Aktiv'), AppColors.positive),
         ]),
         const SizedBox(height: 12),
         if (accounts.isEmpty)
-          Text('Wird beim nächsten Aktualisieren geladen',
+          Text(tr('Wird beim nächsten Aktualisieren geladen'),
               style: TextStyle(color: AppColors.textDim, fontSize: 13))
         else
           for (final a in accounts)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(children: [
-                Expanded(child: Text(a.name)),
+                Expanded(child: Text(tr(a.name))),
                 Text(Money.format(MoneyAccounts.balanceOf(a, tx)),
                     style: const TextStyle(fontWeight: FontWeight.w700)),
               ]),
@@ -210,7 +211,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           child: TextButton(
             onPressed: () => _disconnectExtra(state, bank),
             style: TextButton.styleFrom(foregroundColor: AppColors.errorText),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ),
       ]),
@@ -222,16 +223,16 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('$bank trennen?'),
-        content: const Text(
-            'Die Freigabe wird widerrufen. Umsätze und Konten dieser Bank verschwinden aus der App.'),
+        content: Text(
+            tr('Freigabe weg. Umsätze und Konten dieser Bank verschwinden.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ],
       ),
@@ -258,21 +259,21 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           Row(children: [
             _iconTile(Icons.account_balance_rounded, AppColors.primary),
             const SizedBox(width: 14),
-            const Expanded(
-              child: Text('Bankkonto verbinden',
+            Expanded(
+              child: Text(tr('Bankkonto verbinden'),
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             ),
-            if (_mode == 'demo') _chip('Demo', AppColors.warning),
+            if (_mode == 'demo') _chip(tr('Demo'), AppColors.warning),
           ]),
           const SizedBox(height: 16),
           _point(Icons.visibility_rounded,
-              'Nur Lesezugriff, Überweisungen sind nicht möglich'),
+              tr('Nur lesen, keine Überweisung')),
           _point(Icons.lock_rounded,
-              'Login direkt bei deiner Bank, BudgetBuddy sieht keine Zugangsdaten'),
+              tr('Login bei der Bank. Ahead sieht nichts.')),
           _point(Icons.link_off_rounded,
-              'Jederzeit trennbar, Freigabe gilt bis zu 180 Tage'),
+              tr('Trennbar, Freigabe bis 180 Tage')),
           _point(Icons.account_balance_wallet_outlined,
-              'Auch dein Trade-Republic-Konto: Guthaben, Kartenzahlungen und Zinsen'),
+              tr('Auch Trade Republic: Guthaben, Karte, Zinsen')),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
@@ -280,7 +281,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(50)),
               onPressed: _mode == null ? null : _connectBank,
-              child: const Text('Bank auswählen'),
+              child: Text(tr('Bank auswählen')),
             ),
           ),
         ],
@@ -298,15 +299,14 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               depot ? AppColors.primary : AppColors.primary),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(depot ? 'Depot verbinden' : 'Bankkonto verbinden',
+            child: Text(depot ? tr('Depot verbinden') : tr('Bankkonto verbinden'),
                 style:
                     const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
           ),
         ]),
         const SizedBox(height: 12),
         Text(
-            'Dafür brauchst du ein kostenloses Konto. So bleibt deine '
-            '${depot ? 'Depotverbindung' : 'Bankverbindung'} nur für dich sichtbar.',
+            tr('Dafür ein kostenloses Konto. Deine {x} bleibt nur für dich.', {'x': depot ? tr('Depotverbindung') : tr('Bankverbindung')}),
             style:
                 TextStyle(color: AppColors.textDim, fontSize: 14, height: 1.4)),
         const SizedBox(height: 16),
@@ -320,7 +320,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   MaterialPageRoute(builder: (_) => const SignUpScreen()));
               if (mounted) setState(() {});
             },
-            child: const Text('Konto erstellen'),
+            child: Text(tr('Konto erstellen')),
           ),
         ),
       ]),
@@ -343,7 +343,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                       style: const TextStyle(
                           fontSize: 17, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 2),
-                  Text('Warte auf deine Freigabe …',
+                  Text(tr('Warte auf deine Freigabe …'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                 ],
               ),
@@ -355,8 +355,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           ]),
           const SizedBox(height: 14),
           Text(
-              'Melde dich im geöffneten Fenster bei deiner Bank an. Danach geht es hier automatisch weiter. '
-              'Nach 10 Minuten ohne Freigabe bricht BudgetBuddy ab.',
+              tr('Im Fenster bei der Bank anmelden. Danach hier weiter. Nach 10 Minuten bricht es ab.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 14),
@@ -367,9 +366,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                 onPressed: () {
                   _cancelPending();
                   _snack(
-                      'Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.');
+                      tr('Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.'));
                 },
-                child: const Text('Abbrechen'),
+                child: Text(tr('Abbrechen')),
               ),
             ),
             const SizedBox(width: 10),
@@ -380,7 +379,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                     ? null
                     : () => launchUrl(Uri.parse(_pendingLink!),
                         mode: LaunchMode.externalApplication),
-                child: const Text('Erneut öffnen'),
+                child: Text(tr('Erneut öffnen')),
               ),
             ),
           ]),
@@ -422,15 +421,15 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             ),
             // a demo bank never passes for a real one, not even once linked
             if (_mode == 'demo')
-              _chip('Demo', AppColors.warning)
+              _chip(tr('Demo'), AppColors.warning)
             else if (expired)
-              _chip('Abgelaufen', AppColors.error)
+              _chip(tr('Abgelaufen'), AppColors.error)
             else
-              _chip(expiresSoon ? 'Läuft ab' : 'Aktiv',
+              _chip(expiresSoon ? tr('Läuft ab') : tr('Aktiv'),
                   expiresSoon ? AppColors.warning : AppColors.positive),
           ]),
           const SizedBox(height: 20),
-          Text('Kontostand',
+          Text(tr('Kontostand'),
               style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           const SizedBox(height: 2),
           Text(Money.format(Settings.bankBalanceCents),
@@ -442,10 +441,10 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           Text(
             [
               last == null
-                  ? 'Noch nicht aktualisiert'
-                  : 'Aktualisiert ${_ago(last)}',
+                  ? tr('Noch nicht aktualisiert')
+                  : tr('Aktualisiert {x}', {'x': _ago(last)}),
               if (until != null)
-                'Freigabe bis ${Dates.dayMonth(until)} ${until.year}',
+                tr('Freigabe bis {x} {year}', {'x': Dates.dayMonth(until), 'year': until.year}),
             ].join(' · '),
             style: TextStyle(
                 color: expiresSoon ? AppColors.warningText : AppColors.textDim,
@@ -462,7 +461,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.sync_rounded, size: 18),
-                label: Text(_syncing ? 'Aktualisiere …' : 'Aktualisieren'),
+                label: Text(_syncing ? tr('Aktualisiere …') : tr('Aktualisieren')),
               ),
             ),
             const SizedBox(width: 10),
@@ -470,7 +469,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               onPressed: _syncing ? null : _disconnect,
               style: _secondary.copyWith(
                   foregroundColor: WidgetStatePropertyAll(AppColors.error)),
-              child: const Text('Trennen'),
+              child: Text(tr('Trennen')),
             ),
           ]),
           if (expired || expiresSoon) ...[
@@ -481,11 +480,11 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   ? FilledButton.icon(
                       onPressed: _connectBank,
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Freigabe erneuern'),
+                      label: Text(tr('Freigabe erneuern')),
                     )
                   : TextButton(
                       onPressed: _connectBank,
-                      child: const Text('Freigabe erneuern')),
+                      child: Text(tr('Freigabe erneuern'))),
             ),
           ],
         ],
@@ -517,7 +516,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           onPressed: () => _connectDepot(extra: true),
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: const Text('Weiteres Depot verbinden'),
+          label: Text(tr('Weiteres Depot verbinden')),
         ),
     ]);
   }
@@ -531,17 +530,17 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          InstrumentAvatar(broker.isEmpty ? 'Parqet' : broker, size: 44),
+          InstrumentAvatar(broker.isEmpty ? tr('Parqet') : broker, size: 44),
           const SizedBox(width: 14),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(broker.isEmpty ? 'Depot' : broker,
+              Text(broker.isEmpty ? tr('Depot') : broker,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
               Text(
-                  'über Parqet · ${positions.length} ${positions.length == 1 ? 'Position' : 'Positionen'}',
+                  tr('über Parqet · {positions} {x}', {'positions': positions.length, 'x': positions.length == 1 ? tr('Position') : tr('Positionen')}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
@@ -552,9 +551,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () =>
-                _disconnectExtraDepot(state, broker.isEmpty ? 'Depot' : broker),
+                _disconnectExtraDepot(state, broker.isEmpty ? tr('Depot') : broker),
             style: TextButton.styleFrom(foregroundColor: AppColors.errorText),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ),
       ]),
@@ -566,17 +565,16 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('$name trennen?'),
-        content: const Text(
-            'BudgetBuddy liest dieses Depot dann nicht mehr. Die Positionen bleiben in der App, '
-            'bis du sie löschst.'),
+        content: Text(
+            tr('Ahead liest es nicht mehr. Positionen bleiben, bis du sie löschst.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ],
       ),
@@ -611,24 +609,24 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Depot verbinden',
+                    Text(tr('Depot verbinden'),
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text('Trade Republic, Scalable, ING und mehr',
+                    Text(tr('Trade Republic, Scalable, ING und mehr'),
                         style:
                             TextStyle(color: AppColors.textDim, fontSize: 13)),
                   ]),
             ),
-            if (_depotMode == 'demo') _chip('Demo', AppColors.warning),
+            if (_depotMode == 'demo') _chip(tr('Demo'), AppColors.warning),
           ]),
           const SizedBox(height: 16),
           // brokers like Trade Republic have no open interface; Parqet syncs them
           // and passes the depot on with the user's consent
-          _step(1, 'Verbinde dein Depot einmal mit Parqet',
-              'Kostenlos, Parqet hält es dann automatisch aktuell'),
-          _step(2, 'Gib es hier für BudgetBuddy frei',
-              'Nur Lesezugriff, deine Broker-Zugangsdaten sieht BudgetBuddy nie'),
+          _step(1, tr('Verbinde dein Depot einmal mit Parqet'),
+              tr('Kostenlos, Parqet hält es aktuell')),
+          _step(2, tr('Gib es hier für Ahead frei'),
+              tr('Nur lesen. Zugangsdaten sieht Ahead nie.')),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
@@ -637,7 +635,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   minimumSize: const Size.fromHeight(50)),
               onPressed:
                   _depotMode == null || _depotBusy ? null : _connectDepot,
-              child: const Text('Mit Parqet verbinden'),
+              child: Text(tr('Mit Parqet verbinden')),
             ),
           ),
           const SizedBox(height: 6),
@@ -645,12 +643,11 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             child: TextButton(
               onPressed: () => launchUrl(Uri.parse('https://parqet.com'),
                   mode: LaunchMode.externalApplication),
-              child: const Text('Noch kein Parqet? Hier kostenlos anlegen'),
+              child: Text(tr('Noch kein Parqet? Hier kostenlos anlegen')),
             ),
           ),
           Text(
-              'Ohne Parqet: Exportiere deine Umsätze bei Trade Republic als CSV und lade sie unter '
-              'Profil → Import, Export & Backup → Depot importieren.',
+              tr('Ohne Parqet: CSV bei Trade Republic, dann Profil → Import → Depot.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
         ],
@@ -698,10 +695,10 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Parqet',
+              Text(tr('Parqet'),
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text('Warte auf deine Freigabe …',
+              Text(tr('Warte auf deine Freigabe …'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
@@ -712,8 +709,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 14),
         Text(
-            'Melde dich im geöffneten Fenster bei Parqet an und erlaube den Zugriff. Danach geht es hier '
-            'automatisch weiter. Nach 10 Minuten ohne Freigabe bricht BudgetBuddy ab.',
+            tr('Bei Parqet anmelden, Zugriff erlauben. Danach hier weiter. Nach 10 Minuten bricht es ab.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         const SizedBox(height: 14),
@@ -724,9 +720,9 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               onPressed: () {
                 _cancelDepot();
                 _snack(
-                    'Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.');
+                    tr('Verbinden abgebrochen. Du kannst es jederzeit noch einmal versuchen.'));
               },
-              child: const Text('Abbrechen'),
+              child: Text(tr('Abbrechen')),
             ),
           ),
           const SizedBox(width: 10),
@@ -737,7 +733,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   ? null
                   : () => launchUrl(Uri.parse(_depotLink!),
                       mode: LaunchMode.externalApplication),
-              child: const Text('Erneut öffnen'),
+              child: Text(tr('Erneut öffnen')),
             ),
           ),
         ]),
@@ -756,27 +752,27 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          InstrumentAvatar(broker.isEmpty ? 'Parqet' : broker, size: 44),
+          InstrumentAvatar(broker.isEmpty ? tr('Parqet') : broker, size: 44),
           const SizedBox(width: 14),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(broker.isEmpty ? 'Depot' : broker,
+              Text(broker.isEmpty ? tr('Depot') : broker,
                   style: const TextStyle(
                       fontSize: 17, fontWeight: FontWeight.w700),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text(
-                  'über Parqet · ${synced.length} ${synced.length == 1 ? 'Position' : 'Positionen'}',
+                  tr('über Parqet · {synced} {x}', {'synced': synced.length, 'x': synced.length == 1 ? tr('Position') : tr('Positionen')}),
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
           ),
           _depotMode == 'demo'
-              ? _chip('Demo', AppColors.warning)
-              : _chip('Aktiv', AppColors.positive),
+              ? _chip(tr('Demo'), AppColors.warning)
+              : _chip(tr('Aktiv'), AppColors.positive),
         ]),
         const SizedBox(height: 20),
-        Text('Depotwert',
+        Text(tr('Depotwert'),
             style: TextStyle(color: AppColors.textDim, fontSize: 13)),
         const SizedBox(height: 2),
         Text(Money.format(value),
@@ -787,14 +783,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         const SizedBox(height: 4),
         Text(
             last == null
-                ? 'Noch nicht aktualisiert'
-                : 'Aktualisiert ${_ago(last)}',
+                ? tr('Noch nicht aktualisiert')
+                : tr('Aktualisiert {x}', {'x': _ago(last)}),
             style: TextStyle(color: AppColors.textDim, fontSize: 13)),
         const SizedBox(height: 10),
         // Parqet gathers all brokers in one place, so one link brings every depot
         Text(
-            'Weitere Depots wie Scalable oder ING fügst du in Parqet hinzu. '
-            'Beim nächsten Aktualisieren erscheinen sie hier, jedes für sich.',
+            tr('Weitere Depots in Parqet. Beim nächsten Sync erscheinen sie hier.'),
             style:
                 TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.4)),
         const SizedBox(height: 18),
@@ -808,7 +803,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.sync_rounded, size: 18),
-              label: Text(_depotBusy ? 'Aktualisiere …' : 'Aktualisieren'),
+              label: Text(_depotBusy ? tr('Aktualisiere …') : tr('Aktualisieren')),
             ),
           ),
           const SizedBox(width: 10),
@@ -816,7 +811,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             onPressed: _depotBusy ? null : _disconnectDepot,
             style: _secondary.copyWith(
                 foregroundColor: WidgetStatePropertyAll(AppColors.error)),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ]),
       ]),
@@ -836,7 +831,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-                'Keine Verbindung zum Server. Verbinden ist gerade nicht möglich.',
+                tr('Kein Server. Verbinden geht gerade nicht.'),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13.5,
@@ -845,7 +840,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         ]),
         const SizedBox(height: 6),
         Text(
-            'Von Hand erfassen und CSV-Import (Profil → Import, Export & Backup) gehen weiterhin.',
+            tr('Erfassen und CSV-Import gehen weiter.'),
             style: TextStyle(
                 color: AppColors.textDim, fontSize: 13, height: 1.35)),
         Align(
@@ -853,7 +848,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           child: TextButton(
             onPressed: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const ProfileScreen())),
-            child: const Text('Zum Import'),
+            child: Text(tr('Zum Import')),
           ),
         ),
       ]),
@@ -869,19 +864,19 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         : (ok ? AppColors.positive : AppColors.warning);
     // plain words for users; which parts run as a demo matters only for testing
     final text = _checking
-        ? 'Verbindung wird geprüft …'
+        ? tr('Verbindung wird geprüft …')
         : !ok
-            ? 'Gerade nicht erreichbar · Erneut versuchen'
+            ? tr('Gerade nicht erreichbar · Erneut versuchen')
             : _mode == 'demo' && _depotMode == 'demo'
-                ? 'Demo-Modus: Beispiel-Bank und Beispiel-Depot, keine echten Daten'
+                ? tr('Demo: Beispielbank und -depot, keine echten Daten')
                 : _mode == 'demo' || _depotMode == 'demo'
-                    ? 'Verbunden · ${_mode == 'demo' ? 'Bank' : 'Depot'} im Demo-Modus'
-                    : 'Sicher verbunden';
+                    ? tr('Verbunden · {x} im Demo-Modus', {'x': _mode == 'demo' ? tr('Bank') : tr('Depot')})
+                    : tr('Sicher verbunden');
     return Column(
       children: [
         Semantics(
           button: true,
-          label: 'Verbindung erneut prüfen',
+          label: tr('Verbindung erneut prüfen'),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: _check,
@@ -916,7 +911,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                 borderRadius: BorderRadius.circular(14)),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Starte den BudgetBuddy-Server auf deinem Rechner:',
+              Text(tr('Starte den Ahead-Server auf deinem Rechner:'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12)),
               const SizedBox(height: 8),
               const SelectableText('cd backend && dart run server.dart',
@@ -935,7 +930,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     final text = '$e';
     return RegExp(r'Exception|Error|Failed|Socket|Timeout|XMLHttpRequest')
             .hasMatch(text)
-        ? 'Gerade keine Verbindung. Bitte versuch es gleich noch einmal.'
+        ? tr('Gerade keine Verbindung. Bitte versuch es gleich noch einmal.')
         : text;
   }
 
@@ -971,16 +966,16 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
 
   static String _maskIban(String iban) {
     final s = iban.replaceAll(' ', '');
-    if (s.length < 8) return 'Girokonto';
+    if (s.length < 8) return tr('Girokonto');
     return '${s.substring(0, 4)} •••• ${s.substring(s.length - 4)}';
   }
 
   static String _ago(DateTime t) {
     final d = DateTime.now().difference(t);
-    if (d.inMinutes < 1) return 'gerade eben';
-    if (d.inMinutes < 60) return 'vor ${d.inMinutes} Min.';
-    if (d.inHours < 24) return 'vor ${d.inHours} Std.';
-    return 'am ${Dates.dayMonth(t)}';
+    if (d.inMinutes < 1) return tr('gerade eben');
+    if (d.inMinutes < 60) return tr('vor {inMinutes} Min.', {'inMinutes': d.inMinutes});
+    if (d.inHours < 24) return tr('vor {inHours} Std.', {'inHours': d.inHours});
+    return tr('am {x}', {'x': Dates.dayMonth(t)});
   }
 
   // --- bank flow ---
@@ -1031,7 +1026,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         if (mounted) {
           _cancelPending();
           _snack(
-              'Keine Freigabe von der Bank erhalten. Du kannst es jederzeit noch einmal versuchen.');
+              tr('Keine Freigabe von der Bank erhalten. Du kannst es jederzeit noch einmal versuchen.'));
         }
         return;
       }
@@ -1045,8 +1040,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           _cancelPending();
           _snack(
               link.status == 'failed'
-                  ? 'Nicht verbunden: ${link.error}'
-                  : 'Verbindung abgelaufen',
+                  ? tr('Nicht verbunden: {error}', {'error': link.error})
+                  : tr('Verbindung abgelaufen'),
               error: true);
         }
       } catch (_) {
@@ -1059,7 +1054,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     HapticFeedback.mediumImpact();
     if (_addingBank) {
       // a further bank: its accounts come in next to the ones already there
-      await Settings.addExtraBank(state, link.bank ?? _pendingBank ?? 'Bank');
+      await Settings.addExtraBank(state, link.bank ?? _pendingBank ?? tr('Bank'));
       if (!mounted) return;
       setState(() => _pendingState = null);
       return _sync(first: true);
@@ -1067,7 +1062,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     await Settings.setBankState(state);
     await Settings.setBankOwner(AccountService.current.value?.id ?? '');
     await Settings.setBankInfo(
-        name: link.bank ?? _pendingBank ?? 'Bank',
+        name: link.bank ?? _pendingBank ?? tr('Bank'),
         iban: link.iban,
         validUntil: link.validUntil);
     if (!mounted) return;
@@ -1099,7 +1094,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             added: claimed.added, smarter: claimed.smarter));
       }
     } catch (e) {
-      _snack('Aktualisieren hat nicht geklappt. ${_friendly(e)}', error: true);
+      _snack(tr('Aktualisieren hat nicht geklappt. {x}', {'x': _friendly(e)}), error: true);
     } finally {
       BankSync.holdSmile(false);
       if (mounted) setState(() => _syncing = false);
@@ -1118,24 +1113,23 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         title: Text('$name verbunden'),
         content: Text(
           (added == 0
-                  ? 'Deine Umsätze sind da. Auf dem Start siehst du, was diesen Monat noch frei ist.'
-                  : '$added ${added == 1 ? 'Umsatz' : 'Umsätze'} übernommen. '
-                      'Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.') +
+                  ? tr('Umsätze da. Auf dem Start siehst du, was noch frei ist.')
+                  : tr('{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.', {'added': added, 'x': added == 1 ? tr('Umsatz') : tr('Umsätze')})) +
               (smarter > 0
                   ? '\n\n${BankSync.syncedLine(added: 0, smarter: smarter)}.'
                   : '') +
-              '\n\nAbos und Miete erkennt Buddy unter Verträge.',
+              tr('\n\nAbos und Miete unter Verträge.'),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, 'stay'),
-              child: const Text('Hier bleiben')),
+              child: Text(tr('Hier bleiben'))),
           TextButton(
               onPressed: () => Navigator.pop(context, 'contracts'),
-              child: const Text('Verträge')),
+              child: Text(tr('Verträge'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, 'start'),
-              child: const Text('Zum Start')),
+              child: Text(tr('Zum Start'))),
         ],
       ),
     );
@@ -1156,16 +1150,16 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       builder: (context) => AlertDialog(
         title: Text('${Settings.bankName} trennen?'),
         content: Text(extras.isEmpty
-            ? 'Die Freigabe wird widerrufen. Übernommene Bank-Umsätze verschwinden aus der App.'
-            : 'Die Freigabe wird widerrufen. Eine weitere Bank bleibt verbunden; deren Umsätze bleiben.'),
+            ? tr('Freigabe weg. Übernommene Umsätze verschwinden.')
+            : tr('Freigabe weg. Die andere Bank und ihre Umsätze bleiben.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ],
       ),
@@ -1232,7 +1226,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
           if (mounted) {
             _cancelDepot();
             _snack(
-                'Keine Freigabe vom Depot erhalten. Du kannst es jederzeit noch einmal versuchen.');
+                tr('Keine Freigabe vom Depot erhalten. Du kannst es jederzeit noch einmal versuchen.'));
           }
           return;
         }
@@ -1256,8 +1250,8 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
             _cancelDepot();
             _snack(
                 s.status == 'failed'
-                    ? 'Nicht verbunden: ${s.error}'
-                    : 'Verbindung abgelaufen',
+                    ? tr('Nicht verbunden: {error}', {'error': s.error})
+                    : tr('Verbindung abgelaufen'),
                 error: true);
           }
         } catch (_) {
@@ -1285,10 +1279,10 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     try {
       final count = await DepotSync.run();
       _snack(first
-          ? 'Depot verbunden · $count ${count == 1 ? 'Position' : 'Positionen'} übernommen'
-          : 'Depot aktualisiert');
+          ? tr('Depot verbunden · {count} {x} übernommen', {'count': count, 'x': count == 1 ? tr('Position') : tr('Positionen')})
+          : tr('Depot aktualisiert'));
     } catch (e) {
-      _snack('Aktualisieren hat nicht geklappt. ${_friendly(e)}', error: true);
+      _snack(tr('Aktualisieren hat nicht geklappt. {x}', {'x': _friendly(e)}), error: true);
     } finally {
       if (mounted) setState(() => _depotBusy = false);
     }
@@ -1298,18 +1292,17 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Depot trennen?'),
-        content: const Text(
-            'BudgetBuddy liest dein Depot dann nicht mehr. Die übernommenen Positionen bleiben '
-            'in der App, bis du sie löschst. In Parqet kannst du die Freigabe unter Integrationen ganz entfernen.'),
+        title: Text(tr('Depot trennen?')),
+        content: Text(
+            tr('Depot-Zugriff weg. Positionen bleiben, bis du sie löschst. In Parqet unter Integrationen trennen.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Trennen'),
+            child: Text(tr('Trennen')),
           ),
         ],
       ),
@@ -1332,7 +1325,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
       await Settings.clearDepot();
     }
     if (mounted) setState(() {});
-    _snack('Depot getrennt');
+    _snack(tr('Depot getrennt'));
   }
 }
 
@@ -1359,9 +1352,9 @@ class _BankPickerState extends State<_BankPicker> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: Text('Bank auswählen',
+              child: Text(tr('Bank auswählen'),
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
             ),
             Padding(
@@ -1369,8 +1362,8 @@ class _BankPickerState extends State<_BankPicker> {
               child: TextField(
                 autofocus: true,
                 onChanged: (v) => setState(() => _q = v),
-                decoration: const InputDecoration(
-                    hintText: 'z. B. ING, DKB, Sparkasse Köln',
+                decoration: InputDecoration(
+                    hintText: tr('z. B. ING, DKB, Sparkasse Köln'),
                     prefixIcon: Icon(Icons.search_rounded)),
               ),
             ),
@@ -1379,8 +1372,8 @@ class _BankPickerState extends State<_BankPicker> {
                   ? Center(
                       child: Text(
                           _q.trim().isEmpty
-                              ? 'Keine Banken geladen'
-                              : 'Keine Bank zu „${_q.trim()}“ gefunden. Versuch einen anderen Namen.',
+                              ? tr('Keine Banken geladen')
+                              : tr('Keine Bank zu „{x}“ gefunden. Versuch einen anderen Namen.', {'x': _q.trim()}),
                           style: TextStyle(color: AppColors.textDim)))
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 24),

@@ -10,6 +10,7 @@ import '../utils/theme.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import 'contracts.dart';
+import '../l10n/l10n.dart';
 
 class CategoryWeek {
   final String category;
@@ -173,18 +174,17 @@ class WeeklyReportService {
 
     final change = usual <= 0 ? null : (spent - usual) / usual;
     final headline = change == null
-        ? 'Deine erste Woche im Blick'
+        ? tr('Deine erste Woche im Blick')
         : change <= -0.1
-            ? 'Sparsame Woche'
+            ? tr('Sparsame Woche')
             : change >= 0.15
-                ? 'Eine teure Woche'
-                : 'Eine ganz normale Woche';
+                ? tr('Eine teure Woche')
+                : tr('Eine ganz normale Woche');
     final summary = change == null
-        ? 'Du hast ${Money.format(spent)} ausgegeben. Ab nächster Woche vergleiche ich mit deinem Schnitt.'
+        ? tr('Du hast {x} ausgegeben. Ab nächster Woche vergleiche ich mit deinem Schnitt.', {'x': Money.format(spent)})
         : change.abs() < 0.03
-            ? '${Money.format(spent)} ausgegeben, genau dein Schnitt.'
-            : '${Money.format(spent)} ausgegeben, ${Money.format((spent - usual).abs())} '
-                '${spent < usual ? 'weniger' : 'mehr'} als in einer üblichen Woche.';
+            ? tr('{x} ausgegeben, genau dein Schnitt.', {'x': Money.format(spent)})
+            : tr('{x} ausgegeben, {y} {z} als in einer üblichen Woche.', {'x': Money.format(spent), 'y': Money.format((spent - usual).abs()), 'z': spent < usual ? tr('weniger') : tr('mehr')});
 
     return WeeklyReport(
       start: monday,
@@ -213,22 +213,17 @@ class WeeklyReportService {
     }
     if (jump != null) {
       final diff = jump.cents - jump.usualCents;
-      return '${jump.category} lag ${Money.format(diff)} über deinem Schnitt. '
-          'Schaffst du nächste Woche wieder ${Money.format(jump.usualCents)}, '
-          'sind das aufs Jahr rund ${Money.format(diff * 52 ~/ 100 * 100)} mehr für dich.';
+      return tr('{x} lag {y} über deinem Schnitt. Schaffst du nächste Woche wieder {z}, sind das aufs Jahr rund {a} mehr für dich.', {'x': jump.category, 'y': Money.format(diff), 'z': Money.format(jump.usualCents), 'a': Money.format(diff * 52 ~/ 100 * 100)});
     }
     // many small purchases add up
     for (final c in categories) {
       if (c.count >= 4 && c.cents ~/ c.count <= 1500) {
-        return '${c.count} kleine Käufe bei ${c.category}, zusammen ${Money.format(c.cents)}. '
-            'Halb so oft wären ${Money.format(c.cents * 26 ~/ 100 * 100)} im Jahr.';
+        return tr('{x} kleine Käufe bei {y}, zusammen {z}. Halb so oft wären {a} im Jahr.', {'x': c.count, 'y': c.category, 'z': Money.format(c.cents), 'a': Money.format(c.cents * 26 ~/ 100 * 100)});
       }
     }
     if (usual > 0 && spent < usual) {
-      return 'Du lagst ${Money.format(usual - spent)} unter deinem Schnitt. '
-          'Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.';
+      return tr('Du lagst {x} unter deinem Schnitt. Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.', {'x': Money.format(usual - spent)});
     }
-    return 'Setz dir für deine größte Kategorie ein Wochenlimit. '
-        'Buddy sagt dir Bescheid, bevor es knapp wird.';
+    return tr('Setz dir für deine größte Kategorie ein Wochenlimit. Buddy sagt dir Bescheid, bevor es knapp wird.');
   }
 }

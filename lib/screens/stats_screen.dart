@@ -16,10 +16,11 @@ import '../services/recap_service.dart';
 import '../services/weekly_report.dart';
 import 'recap_screen.dart';
 import 'weekly_report_screen.dart';
+import '../l10n/l10n.dart';
 
 // Monthly analysis as a section of the account screen (not scrollable on its own).
 class StatsView extends StatefulWidget {
-  const StatsView({super.key});
+  StatsView({super.key});
 
   @override
   State<StatsView> createState() => _StatsViewState();
@@ -39,23 +40,11 @@ class _StatsViewState extends State<StatsView> {
   int? _slice;
 
   // month names for display
-  static const _monthNames = [
-    'Januar',
-    'Februar',
-    'März',
-    'April',
-    'Mai',
-    'Juni',
-    'Juli',
-    'August',
-    'September',
-    'Oktober',
-    'November',
-    'Dezember'
-  ];
+  static List<String> get _monthNames => Dates.months;
 
   // short month names for the trend chart
-  static const _shortMonths = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  static List<String> get _shortMonths =>
+      L10n.isDe ? [tr('Jan'), tr('Feb'), tr('Mär'), tr('Apr'), tr('Mai'), tr('Jun'), tr('Jul'), tr('Aug'), tr('Sep'), tr('Okt'), tr('Nov'), tr('Dez')] : Dates.shortMonths;
 
   @override
   void initState() {
@@ -176,12 +165,12 @@ class _StatsViewState extends State<StatsView> {
         );
     return Row(children: [
       if (recap != null)
-        button(Icons.calendar_month_rounded, 'Rückblick ${Dates.shortMonths[recapMonth.month - 1]}', () {
+        button(Icons.calendar_month_rounded, tr('Rückblick {x}', {'x': Dates.shortMonths[recapMonth.month - 1]}), () {
           Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => RecapScreen(recap)));
         }),
       if (recap != null && weekly != null) const SizedBox(width: 10),
       if (weekly != null)
-        button(Icons.insights_rounded, 'Wochenbericht', () {
+        button(Icons.insights_rounded, tr('Wochenbericht'), () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReportScreen()));
         }),
     ]);
@@ -213,7 +202,7 @@ class _StatsViewState extends State<StatsView> {
       children: [
         // go to previous month
         IconButton(
-          tooltip: 'Vorheriger Monat',
+          tooltip: tr('Vorheriger Monat'),
           onPressed: () => _selectMonth(DateTime(_month.year, _month.month - 1)),
           icon: Icon(Icons.chevron_left_rounded, color: AppColors.primary),
         ),
@@ -223,7 +212,7 @@ class _StatsViewState extends State<StatsView> {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         IconButton(
-          tooltip: 'Nächster Monat',
+          tooltip: tr('Nächster Monat'),
           onPressed: canGoForward ? () => _selectMonth(DateTime(_month.year, _month.month + 1)) : null,
           icon: Icon(Icons.chevron_right_rounded, color: canGoForward ? AppColors.primary : AppColors.border),
         ),
@@ -258,11 +247,11 @@ class _StatsViewState extends State<StatsView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Text('Verlauf', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(tr('Verlauf'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const Spacer(),
-            _legendDot(AppColors.positive, 'Einnahmen'),
+            _legendDot(AppColors.positive, tr('Einnahmen')),
             const SizedBox(width: 12),
-            _legendDot(AppColors.error, 'Ausgaben'),
+            _legendDot(AppColors.error, tr('Ausgaben')),
           ]),
           const SizedBox(height: 16),
           SizedBox(
@@ -275,7 +264,7 @@ class _StatsViewState extends State<StatsView> {
                     child: Semantics(
                       button: true,
                       selected: m.month == _month,
-                      label: '${_monthNames[m.month.month - 1]}: ${Money.format(m.income)} Einnahmen, ${Money.format(m.expenses)} Ausgaben',
+                      label: tr('{x}: {x2} Einnahmen, {x3} Ausgaben', {'x': _monthNames[m.month.month - 1], 'x2': Money.format(m.income), 'x3': Money.format(m.expenses)}),
                       excludeSemantics: true,
                       child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -327,10 +316,10 @@ class _StatsViewState extends State<StatsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: const [
+          Row(children: [
             Icon(Icons.lightbulb_outline, color: AppColors.warning, size: 20),
             SizedBox(width: 8),
-            Text('Auffälligkeiten', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(tr('Auffälligkeiten'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ]),
           const SizedBox(height: 12),
           for (final s in insights)
@@ -361,9 +350,9 @@ class _StatsViewState extends State<StatsView> {
           children: [
             Icon(Icons.bar_chart, size: 64, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch keine Analyse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('Noch keine Analyse'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Sobald Umsätze da sind, per Bank oder Erfassen, siehst du hier die Auswertung.',
+            Text(tr('Sobald Umsätze da sind, per Bank oder Erfassen, siehst du hier die Auswertung.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.35)),
           ],
         ),
@@ -379,7 +368,7 @@ class _StatsViewState extends State<StatsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Bilanz', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          Text(tr('Bilanz'), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           const SizedBox(height: 2),
           AnimatedMoney(balance,
               signed: true,
@@ -390,8 +379,8 @@ class _StatsViewState extends State<StatsView> {
                   color: balance >= 0 ? AppColors.text : AppColors.errorText)),
           const SizedBox(height: 10),
           Wrap(spacing: 20, runSpacing: 6, children: [
-            _miniStat(Icons.arrow_downward_rounded, 'Einnahmen', income, AppColors.positive),
-            _miniStat(Icons.arrow_upward_rounded, 'Ausgaben', expenses, AppColors.error),
+            _miniStat(Icons.arrow_downward_rounded, tr('Einnahmen'), income, AppColors.positive),
+            _miniStat(Icons.arrow_upward_rounded, tr('Ausgaben'), expenses, AppColors.error),
           ]),
         ],
       ),
@@ -410,7 +399,7 @@ class _StatsViewState extends State<StatsView> {
   // switch between expenses and income view
   Widget _tabSelector() {
     return Segmented(
-      labels: const ['Ausgaben', 'Einnahmen'],
+      labels: [tr('Ausgaben'), tr('Einnahmen')],
       index: _tab,
       onChanged: (i) => setState(() {
         _tab = i;
@@ -428,7 +417,7 @@ class _StatsViewState extends State<StatsView> {
       for (final e in sorted.skip(5)) {
         otherSum += e.value;
       }
-      entries.add(MapEntry('Weitere', otherSum));
+      entries.add(MapEntry(tr('Weitere'), otherSum));
     }
     return entries;
   }
@@ -506,7 +495,7 @@ class _StatsViewState extends State<StatsView> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(sel == null ? 'Gesamt' : entries[sel].key,
+                      Text(sel == null ? tr('Gesamt') : entries[sel].key,
                           style: TextStyle(fontSize: 11, color: AppColors.textDim), overflow: TextOverflow.ellipsis),
                       Text(Money.format(sel == null ? total : entries[sel].value),
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
@@ -564,7 +553,7 @@ class _StatsViewState extends State<StatsView> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text('Keine Daten', style: TextStyle(color: AppColors.textDim)),
+          child: Text(tr('Keine Daten'), style: TextStyle(color: AppColors.textDim)),
         ),
       );
     }
@@ -638,7 +627,7 @@ class _StatsViewState extends State<StatsView> {
       children: [
         // section title
         Text(
-          _tab == 0 ? 'Ausgaben nach Kategorie' : 'Einnahmen nach Kategorie',
+          _tab == 0 ? tr('Ausgaben nach Kategorie') : tr('Einnahmen nach Kategorie'),
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/sync_pill.dart';
@@ -24,6 +25,7 @@ import 'budget_screen.dart';
 import 'connections_screen.dart';
 import 'smart_entry_sheet.dart';
 import 'stats_screen.dart';
+import '../l10n/l10n.dart';
 
 // The account: balance with an interactive chart, then switchable sections
 // for transactions, budgets and the monthly analysis.
@@ -32,7 +34,7 @@ class AccountScreen extends StatefulWidget {
   final ValueNotifier<int> segment;
   final ScrollController? scroll;
 
-  const AccountScreen({super.key, required this.segment, this.scroll});
+  AccountScreen({super.key, required this.segment, this.scroll});
 
   // the account shown, null = all together; new bookings go to it
   static final selected = ValueNotifier<String?>(null);
@@ -46,7 +48,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   // 1T is yesterday against today; Max stays because the bookings are local
-  static const _ranges = ['1T', '1W', '1M', '3M', '1J', 'Max'];
+  static const _ranges = ['1T', '1W', '1M', '3M', '1J', 'Max']; // l10n: data
   String _range = '3M';
   // the point under the finger while scrubbing; only the chart header listens
   final _scrub = ValueNotifier<ChartPoint?>(null);
@@ -128,16 +130,26 @@ class _AccountScreenState extends State<AccountScreen> {
                 controller: widget.scroll,
                 slivers: [
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
                     sliver: SliverToBoxAdapter(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(children: [
-                            const Text('Konto',
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.w800)),
-                            const SizedBox(width: 12),
+                            Text(tr('Konto'),
+                                style: TextStyle(fontFamily: AppFonts.display, 
+                                    fontSize: 22, fontWeight: FontWeight.w600)),
+                            // adding by hand: quick entry, receipt, keypad, transfer
+                            IconButton(
+                              key: const Key('add-booking'),
+                              tooltip: tr('Buchung hinzufügen'),
+                              onPressed: () {
+                                HapticFeedback.selectionClick();
+                                HomeScreen.addMenu?.call();
+                              },
+                              icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.textDim),
+                            ),
+                            SizedBox(width: 4),
                             // shrinks rather than overflows with large text or a long bank name
                             Expanded(
                               child: Align(
@@ -158,27 +170,27 @@ class _AccountScreenState extends State<AccountScreen> {
                                               onPressed: () => showBalanceSheet(
                                                   context,
                                                   account: account),
-                                              icon: const Icon(
+                                              icon: Icon(
                                                   Icons.edit_rounded,
                                                   size: 16),
-                                              label: const Text(
-                                                  'Kontostand anpassen'),
+                                              label: Text(
+                                                  tr('Kontostand anpassen')),
                                               style: TextButton.styleFrom(
                                                   foregroundColor:
                                                       AppColors.textDim),
                                             )
-                                          : const SizedBox.shrink(),
+                                          : SizedBox.shrink(),
                                 ),
                               ),
                             ),
                           ]),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _accountChips(all),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           ChartHeader(
                             label: one && MoneyAccounts.several
                                 ? account.name
-                                : 'Kontostand',
+                                : tr('Kontostand'),
                             cents: balance,
                             startCents:
                                 points.isEmpty ? balance : points.first.cents,
@@ -188,10 +200,10 @@ class _AccountScreenState extends State<AccountScreen> {
                                 points.isEmpty ? null : points.first.date,
                             showPercent: false,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           InteractiveChart(
                               points: points, onScrub: (p) => _scrub.value = p),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           RangeSelector(
                             labels: _ranges,
                             selected: _range,
@@ -205,7 +217,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     pinned: true,
                     delegate: PinnedHeader(
                       child: Segmented(
-                        labels: const ['Umsätze', 'Budgets', 'Analyse'],
+                        labels: [tr('Umsätze'), tr('Budgets'), tr('Analyse')],
                         index: segment,
                         onChanged: (i) => widget.segment.value = i,
                       ),
@@ -214,41 +226,41 @@ class _AccountScreenState extends State<AccountScreen> {
                   if (segment == 0) ..._transactionSlivers(tx),
                   if (segment == 1)
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
                       sliver: SliverToBoxAdapter(
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (one)
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
+                                  padding: EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                      'Budgets gelten für alle Konten zusammen.',
+                                      tr('Für alle Konten.'),
                                       style: TextStyle(
                                           color: AppColors.textDim,
                                           fontSize: 13)),
                                 ),
-                              const BudgetView(),
+                              BudgetView(),
                             ]),
                       ),
                     ),
                   if (segment == 2)
                     SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
                       sliver: SliverToBoxAdapter(
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (one)
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
+                                  padding: EdgeInsets.only(bottom: 10),
                                   child: Text(
-                                      'Analyse gilt für alle Konten zusammen.',
+                                      tr('Für alle Konten.'),
                                       style: TextStyle(
                                           color: AppColors.textDim,
                                           fontSize: 13)),
                                 ),
-                              const StatsView(),
+                              StatsView(),
                             ]),
                       ),
                     ),
@@ -308,14 +320,14 @@ class _AccountScreenState extends State<AccountScreen> {
       height: 38,
       child: ListView(scrollDirection: Axis.horizontal, children: [
         if (accounts.length > 1) ...[
-          chip('Alle', selected == null, () {
+          chip(tr('Alle'), selected == null, () {
             AccountScreen.selected.value = null;
             setState(() => _sonstigesOnly = false);
           }),
           const SizedBox(width: 8),
         ],
         for (final a in accounts) ...[
-          chip('${a.name} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
+          chip('${tr(a.name)} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
               selected == a.id, () {
             HapticFeedback.selectionClick();
             if (selected == a.id) {
@@ -329,7 +341,7 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
         // a real bank first, by hand second
         chip(
-            MoneyAccounts.several ? 'Konto' : 'Konto hinzufügen',
+            MoneyAccounts.several ? tr('Konto') : tr('Konto hinzufügen'),
             false,
             () => showAddAccountChoice(context, byHand: () async {
                   final added = await showAccountSheet(context);
@@ -363,7 +375,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           alignment: Alignment.centerLeft,
                           child: FilterChip(
                             label: Text(
-                                'Sonstiges · $misc ${misc == 1 ? 'Buchung' : 'Buchungen'}'),
+                                tr('Sonstiges · {misc} {x}', {'misc': misc, 'x': misc == 1 ? tr('Buchung') : tr('Buchungen')})),
                             selected: _sonstigesOnly,
                             showCheckmark: false,
                             side: BorderSide(
@@ -380,7 +392,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
-                              'Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.',
+                              tr('Buchung tippen oder Buddy fragen.'),
                               style: TextStyle(
                                   color: AppColors.textDim,
                                   fontSize: 12.5,
@@ -393,7 +405,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         child: TextButton.icon(
                           onPressed: () => setState(() => _searching = true),
                           icon: const Icon(Icons.search_rounded, size: 18),
-                          label: const Text('Suchen'),
+                          label: Text(tr('Suchen')),
                           style: TextButton.styleFrom(
                               foregroundColor: AppColors.textDim),
                         ),
@@ -411,11 +423,11 @@ class _AccountScreenState extends State<AccountScreen> {
               Icon(Icons.search_off_rounded,
                   size: 40, color: AppColors.textDim),
               const SizedBox(height: 12),
-              Text('Keine Treffer',
+              Text(tr('Keine Treffer'),
                   style: TextStyle(
                       color: AppColors.textDim, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
-              Text('Andere Suche oder Filter zurücksetzen.',
+              Text(tr('Andere Suche oder Filter weg.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               const SizedBox(height: 12),
@@ -426,7 +438,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   _sonstigesOnly = false;
                   _searching = false;
                 }),
-                child: const Text('Filter zurücksetzen'),
+                child: Text(tr('Filter zurücksetzen')),
               ),
             ]),
           ),
@@ -465,7 +477,7 @@ class _AccountScreenState extends State<AccountScreen> {
         autofocus: true,
         onChanged: (v) => setState(() => _search = v),
         decoration: InputDecoration(
-          hintText: 'Rewe, 23,75, über 100, Oktober …',
+          hintText: tr('Rewe, 23,75, über 100, Oktober …'),
           prefixIcon: const Icon(Icons.search_rounded),
           suffixIcon: IconButton(
             icon: const Icon(Icons.close_rounded),
@@ -480,17 +492,17 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       const SizedBox(height: 10),
       Row(children: [
-        chip('Alle', TxKind.all),
+        chip(tr('Alle'), TxKind.all),
         const SizedBox(width: 8),
-        chip('Ausgaben', TxKind.expenses),
+        chip(tr('Ausgaben'), TxKind.expenses),
         const SizedBox(width: 8),
-        chip('Einnahmen', TxKind.income),
+        chip(tr('Einnahmen'), TxKind.income),
       ]),
       if (active) ...[
         const SizedBox(height: 10),
         Text(
           hits.isEmpty
-              ? 'Keine Treffer'
+              ? tr('Keine Treffer')
               : '${hits.length} ${hits.length == 1 ? 'Umsatz' : 'Umsätze'} · zusammen ${Money.signed(TxSearch.total(hits))}',
           style: TextStyle(
               color: AppColors.textDim,
@@ -511,15 +523,14 @@ class _AccountScreenState extends State<AccountScreen> {
               size: 56, color: AppColors.textDim),
           const SizedBox(height: 16),
           Text(
-              bankLinked ? 'Noch keine Umsätze sichtbar' : 'Noch keine Umsätze',
+              bankLinked ? tr('Noch keine Umsätze sichtbar') : tr('Noch keine Umsätze'),
               style:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
               bankLinked
-                  ? 'Die Bank ist verbunden. Zieh nach unten zum Aktualisieren '
-                      'oder erfasse etwas von Hand, bis die ersten Buchungen da sind.'
-                  : 'Verbinde deine Bank oder tippe die erste Ausgabe.',
+                  ? tr('Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.')
+                  : tr('Bank verbinden oder erste Ausgabe tippen.'),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textDim, height: 1.35)),
           const SizedBox(height: 20),
@@ -529,7 +540,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   minimumSize: const Size.fromHeight(48)),
               onPressed: () => _syncBank(context),
               icon: const Icon(Icons.sync_rounded, size: 18),
-              label: const Text('Jetzt synchronisieren'),
+              label: Text(tr('Jetzt synchronisieren')),
             )
           else
             FilledButton.icon(
@@ -538,14 +549,14 @@ class _AccountScreenState extends State<AccountScreen> {
               onPressed: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
               icon: const Icon(Icons.account_balance_rounded, size: 18),
-              label: const Text('Bank verbinden'),
+              label: Text(tr('Bank verbinden')),
             ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => showSmartEntry(context),
             child: Text(bankLinked
-                ? 'Ausgabe manuell erfassen'
-                : 'Erste Ausgabe tippen'),
+                ? tr('Ausgabe manuell erfassen')
+                : tr('Erste Ausgabe tippen')),
           ),
         ],
       ),
@@ -557,7 +568,7 @@ class _AccountScreenState extends State<AccountScreen> {
         tx,
         _search,
         kind: _kind,
-        category: _sonstigesOnly ? 'Sonstiges' : null,
+        category: _sonstigesOnly ? 'Sonstiges' : null, // l10n: data
       );
 
   // flattens the (newest first) list into month headers followed by their rows
@@ -582,8 +593,8 @@ class _AccountScreenState extends State<AccountScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = today.difference(d).inDays;
-    if (diff == 0) return 'Heute';
-    if (diff == 1) return 'Gestern';
+    if (diff == 0) return tr('Heute');
+    if (diff == 1) return tr('Gestern');
     final label = '${Dates.weekdays[d.weekday - 1]}, ${Dates.dayMonth(d)}';
     return d.year == now.year ? label : '$label ${d.year}';
   }
@@ -648,9 +659,9 @@ class _AccountScreenState extends State<AccountScreen> {
       persist: false,
       duration: const Duration(seconds: 5),
       content: Text(
-          '${t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category} gelöscht'),
+          tr('{x} gelöscht', {'x': t.note?.trim().isNotEmpty == true ? t.note!.trim() : t.category})),
       action: SnackBarAction(
-        label: 'Rückgängig',
+        label: tr('Rückgängig'),
         textColor: AppColors.primary,
         // re-add the exact same transaction (same id) to restore it
         onPressed: () async {
@@ -686,9 +697,9 @@ Future<void> _syncBank(BuildContext context) async {
     ));
   } catch (_) {
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(const SnackBar(
+    messenger.showSnackBar(SnackBar(
         duration: Duration(milliseconds: 2800),
-        content: Text('Bank gerade nicht erreichbar')));
+        content: Text(tr('Bank gerade nicht erreichbar'))));
     rethrow; // SyncPill must show failure, not a fresh sync
   } finally {
     BankSync.holdSmile(false);

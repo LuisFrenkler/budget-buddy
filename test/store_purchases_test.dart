@@ -19,9 +19,9 @@ PricingPhaseWrapper phase(String price, int micros) => PricingPhaseWrapper(
 List<GooglePlayProductDetails> yearlyOffers() => GooglePlayProductDetails.fromProductDetails(ProductDetailsWrapper(
       description: 'Plus',
       name: 'Plus',
-      productId: 'budgetbuddy_plus_yearly',
+      productId: 'ahead_plus_yearly',
       productType: ProductType.subs,
-      title: 'BudgetBuddy Plus',
+      title: 'Ahead Plus',
       subscriptionOfferDetails: [
         SubscriptionOfferDetailsWrapper(
           basePlanId: 'yearly',

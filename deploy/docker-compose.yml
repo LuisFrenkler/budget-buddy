@@ -1,0 +1,46 @@
+# Ahead on one small server: the API, the web app and the landing page,
+# with HTTPS from Caddy (Let's Encrypt, renewed automatically).
+#
+#   DOMAIN=ahead-beispiel.de docker compose up -d --build
+#
+# Folders next to this file:
+#   site/landing  the landing page      -> https://DOMAIN
+#   site/app      the Flutter web build -> https://app.DOMAIN
+#   .env          the server's secrets (copy from ../backend/.env.example)
+#   keys/         Enable Banking .pem and other key files (never in git)
+services:
+  server:
+    build: ../backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PUBLIC_URL: https://api.${DOMAIN}
+      LANDING_URL: https://${DOMAIN}
+      CORS_ORIGINS: https://${DOMAIN},https://app.${DOMAIN}
+      EB_REDIRECT_URL: https://api.${DOMAIN}/bank/callback
+    volumes:
+      - ahead-data:/app/.data
+      - ./keys:/app/keys:ro
+    expose:
+      - "8090"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [server]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  ahead-data:
+  caddy-data:
+  caddy-config:

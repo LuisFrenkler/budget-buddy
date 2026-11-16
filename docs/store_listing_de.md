@@ -40,6 +40,10 @@ Statt nur Kontostände und Kurse zu zeigen, hilft Buddy bei dem, was am Anfang z
 - Depot kannst du mitführen — der Fokus bleibt der Lebensstart
 - App-Sperre, Beträge verbergen, Backup
 
+**Kostenlos und Plus**
+
+Kostenlos: Konto, Budgets, Prognose, Verträge, Notgroschen, 30 Fragen an Buddy im Monat, 3 Beleg-Scans, 1 Sparziel. Ahead Plus (4,99 € im Monat oder 39,99 € im Jahr, 7 Tage testen, wenn der Store es erlaubt): Buddy ohne Limit, Belege ohne Limit, beliebig viele Ziele. Keine Werbung.
+
 **Privatsphäre**
 
 Keine Kontonummern an die KI. Buddy nur nach Zustimmung. Konto in der App löschbar.

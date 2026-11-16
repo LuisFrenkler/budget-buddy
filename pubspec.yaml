@@ -46,6 +46,8 @@ dependencies:
   in_app_purchase: ^3.3.1
   in_app_purchase_android: ^0.5.0
   cryptography: ^2.7.0
+  speech_to_text: ^7.4.0
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,7 @@ flutter:
           weight: 700
         - asset: assets/fonts/Inter-ExtraBold.ttf
           weight: 800
+    # headlines, the same face as on the landing page (SIL OFL)
     - family: Bricolage
       fonts:
         - asset: assets/fonts/BricolageGrotesque-Light.ttf
@@ -101,6 +104,9 @@ flutter_launcher_icons:
     generate: true
     background_color: "#0C0A09"
     theme_color: "#B06030"
+  macos:
+    generate: true
+    image_path: "assets/icon/icon.png"
   adaptive_icon_background: "#1A0D07"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 
@@ -110,6 +116,8 @@ flutter_native_splash:
   image: "assets/icon/splash.png"
   color_dark: "#0C0A09"
   image_dark: "assets/icon/splash_dark.png"
+  # the web start screen is hand-made in web/index.html
+  web: false
   android_12:
     color: "#FBF7F3"
     image: "assets/icon/splash_android12.png"

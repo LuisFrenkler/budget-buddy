@@ -1,4 +1,12 @@
+import '../services/buddy_declined.dart';
 import '../services/buddy_entries.dart';
+import '../services/buddy_app_guide.dart';
+import '../services/buddy_help.dart';
+import '../services/buddy_journal.dart';
+import '../services/life_progress.dart';
+import '../services/buddy_onboarding.dart';
+import '../services/payslip_check.dart';
+import '../services/payslip_history.dart';
 import '../services/buddy_wizard.dart';
 import '../services/goals_service.dart';
 import '../services/price_service.dart';
@@ -12,20 +20,58 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/buddy_tips.dart';
 import '../services/buddy_suggestions.dart';
 import '../services/buddy_service.dart';
+import '../services/buddy_history.dart';
+import '../services/buddy_markers.dart';
+import '../services/buddy_memory.dart';
 import '../services/account_service.dart';
+import '../services/db.dart';
+import '../services/guest_buddy.dart';
+import '../services/hints_service.dart';
+import '../services/life_stages.dart';
 import '../services/plus_service.dart';
+import '../services/settings_service.dart';
+import '../services/voice_input.dart';
 import 'plus_screen.dart';
+import '../utils/dates.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/buddy_orb.dart';
+import '../widgets/buddy_text.dart';
+import '../widgets/life_stage_sheet.dart';
+import '../widgets/share_card.dart';
+import '../widgets/recap_story.dart';
+import 'auth_screens.dart';
 import 'buddy_actions.dart';
+import 'buddy_log_screen.dart';
+import 'data_screen.dart';
+import '../legal/data_map.dart';
+import 'buddy_memory_screen.dart';
 import 'depot_screen.dart';
 import 'goals_screen.dart';
 import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
+import '../l10n/l10n.dart';
+import '../widgets/buddy_chart.dart';
+import '../services/buddy_tasks.dart';
+import '../services/buddy_first_look.dart';
+import '../services/buddy_voice.dart';
+import '../services/buddy_proposals.dart';
+import '../services/money_accounts.dart';
+import '../services/ledger_busy.dart';
+import '../services/onboarding_service.dart';
+import '../services/forecast_service.dart';
+import '../services/recap_service.dart';
+import '../utils/money.dart';
 
-// Chat with Buddy, the finance coach that knows your numbers.
+export '../widgets/buddy_text.dart' show RichMarkdown;
+
+bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+// Chat with Buddy, the finance coach that knows your numbers. Also the very
+// first screen before sign-up ([guest]): useful from the first message, no
+// account and no bank link needed.
 class BuddyScreen extends StatefulWidget {
   // asked right away, e.g. from a suggestion on the home screen
   final String? question;
@@ -33,10 +79,16 @@ class BuddyScreen extends StatefulWidget {
   final bool tab;
   // shell scroll: re-tapping Buddy jumps to the top of the chat
   final ScrollController? scroll;
-  const BuddyScreen({super.key, this.question, this.tab = false, this.scroll});
+  // before sign-up: general answers, a few AI questions a day, sign-up in the header
+  final bool guest;
+  const BuddyScreen({super.key, this.question, this.tab = false, this.scroll, this.guest = false});
 
   // a question for the Buddy tab ('' just opens it); the shell switches to the tab
   static final ask = ValueNotifier<String?>(null);
+
+  // store and landing-page pictures show Buddy as he usually is: online
+  // (set only by tool/screenshots_test.dart)
+  static String? debugStatus;
 
   // from anywhere: back to the shell and on into the Buddy chat
   static void open(BuildContext context, [String? question]) {
@@ -66,15 +118,10 @@ class BuddyScreen extends StatefulWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
-            const Text('Buddy mit KI nutzen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Text(
-              'Damit Buddy deine Fragen beantworten kann, schickt Ahead eine Zusammenfassung deiner Finanzen '
-              '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
-              'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
-              '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
-              'Keine Kontonummern, keine Zugangsdaten. '
-              '${BuddyService.provider == 'google' ? 'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.' : 'Anthropic nutzt die Daten nicht zum Training.'}',
+              tr('Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             Align(
@@ -83,20 +130,20 @@ class BuddyScreen extends StatefulWidget {
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
                 onPressed: () => Navigator.push(
                     context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.privacy))),
-                child: const Text('Datenschutzerklärung lesen'),
+                child: Text(tr('Datenschutzerklärung lesen')),
               ),
             ),
             const SizedBox(height: 8),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('KI einschalten'),
+              child: Text(tr('KI einschalten')),
             ),
             const SizedBox(height: 6),
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text('Nur offline antworten', style: TextStyle(color: AppColors.textDim)),
+                child: Text(tr('Nur offline antworten'), style: TextStyle(color: AppColors.textDim)),
               ),
             ),
           ]),
@@ -109,22 +156,58 @@ class BuddyScreen extends StatefulWidget {
 
   static List<BuddyChip> get suggestions => BuddySuggestions.fallback;
 
+  // the first questions before sign-up: the moments of a first job
+  static List<BuddyChip> get guestSuggestions => [
+    (icon: Icons.receipt_long_rounded, text: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
+    (icon: Icons.savings_outlined, text: tr('Wie viel Notgroschen brauche ich?')),
+    (icon: Icons.work_outline_rounded, text: tr('Lohnt sich die Betriebsrente?')),
+    (icon: Icons.show_chart_rounded, text: tr('Was ist ein ETF-Sparplan?')),
+  ];
+
   @override
   State<BuddyScreen> createState() => _BuddyScreenState();
 }
 
 class _BuddyScreenState extends State<BuddyScreen> {
   final _input = TextEditingController();
+  final _focus = FocusNode();
   late final ScrollController _scroll = widget.scroll ?? ScrollController();
   final _messages = <_Message>[];
   bool _thinking = false;
   bool? _live;
   StreamSubscription<String>? _sub;
+  // bumped on stop or a new answer, so a late chunk cannot resume a stopped one
+  int _answerGen = 0;
+  // throttle token paints (~50 ms) so streaming does not rebuild every fragment
+  Timer? _flushTimer;
+  String? _pendingPiece;
+  DateTime? _lastScrollAt;
   // a photo picked for the next message (receipt, bank or broker screenshot)
   ({Uint8List bytes, String type})? _photo;
   // setup chat (Vorsorge, Sparziel, Depot) that ends in a confirm card
   final _wizard = BuddyWizard();
+  // the "jump to the latest message" button
+  bool _away = false;
+  // the guest's sign-up card was closed for this session
+  bool _ctaClosed = false;
+  // Buddy's little hop after something good happened
+  bool _cheer = false;
+  // filled after the first frame: forecast and tips stay off the cold-start paint
+  ({String? free, String? perDay, BuddyTip? tip, bool numbers})? _startBrief;
+  List<BuddyChip>? _startChips;
+  Timer? _cheerTimer;
 
+  void _celebrate() {
+    _cheerTimer?.cancel();
+    setState(() => _cheer = true);
+    _cheerTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _cheer = false);
+    });
+  }
+
+  BuddyMood get _mood => _thinking ? BuddyMood.thinking : (_cheer ? BuddyMood.happy : BuddyMood.idle);
+
+  bool get _guest => widget.guest;
   static Box get _settings => Hive.box('settings');
 
   late final ValueListenable _consentListenable;
@@ -133,19 +216,219 @@ class _BuddyScreenState extends State<BuddyScreen> {
   @override
   void initState() {
     super.initState();
+    // the day Buddy first met this person: his offer to speak up waits a week
+    if (_settings.get('buddyFirstSeen') == null) _settings.put('buddyFirstSeen', DateTime.now().toIso8601String());
     // Profil-Schalter und Chat-Schalter halten den Status synchron
     _consentListenable = _settings.listenable(keys: const ['aiConsent', 'aiConsentGoogle']);
     _consentListener = () {
       if (mounted) setState(() {});
     };
     _consentListenable.addListener(_consentListener);
-    BuddyService.live().then((v) {
+    _scroll.addListener(_onScroll);
+    _focus.addListener(_onFocus);
+    VoiceInput.listening.addListener(_onFocus);
+    _restore();
+    // life-stage ticks, forecast and tips scan the ledger: the first frame is only the greeting
+    if (!_guest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        LifeProgress.sync();
+        _warmStart();
+      });
+    }
+    // the setup talk needs no server: it starts right away
+    final onboarding = !_guest && _onboard();
+    (_guest ? GuestBuddy.live() : BuddyService.live()).then((v) {
       if (!mounted) return;
       setState(() => _live = v);
       if (widget.question != null) _send(widget.question!);
       if (widget.tab) _asked();
+      if (!_guest && !onboarding && !_firstLook()) _checkIn();
     });
     if (widget.tab) BuddyScreen.ask.addListener(_asked);
+    _lang = L10n.lang.value;
+    L10n.lang.addListener(_languageChanged);
+  }
+
+  // the language of the chat as it is on screen
+  late String _lang;
+
+  // switching the language: the app's own texts in the chat (chips, fixed
+  // sentences) follow at once, and Buddy says in the new language that he
+  // answers in it from now on; what was said before stays as it was said
+  void _languageChanged() {
+    final from = _lang;
+    _lang = L10n.lang.value;
+    if (!mounted || from == _lang) return;
+    setState(() {
+      _messages.removeWhere((m) => m.langNote);
+      for (final m in _messages) {
+        if (!m.fromUser) m.text = retranslate(m.text, from);
+        m.followUps = [for (final f in m.followUps) retranslate(f, from)];
+      }
+      if (_messages.isNotEmpty) {
+        _messages.add(_Message(false, tr('Alles klar, ab jetzt antworte ich auf Deutsch.'))
+          ..checkIn = true
+          ..langNote = true);
+      }
+    });
+    _persist();
+    _scrollDown();
+    if (_messages.isEmpty) _warmStart();
+  }
+
+  void _onFocus() {
+    if (!mounted) return;
+    setState(() {});
+    // the keyboard covers the latest line unless the thread follows it
+    if (_focus.hasFocus && _messages.isNotEmpty) _scrollDown();
+  }
+
+  // the conversation from last time (and, right after sign-up, the guest chat)
+  void _restore() {
+    final saved = BuddyHistory.load(guest: _guest);
+    for (final m in saved) {
+      _messages.add(_Message(m.fromUser, m.text, at: m.at, offline: m.offline)..restored = true);
+    }
+    if (_messages.isNotEmpty) _scrollDown(jump: true);
+  }
+
+  Future<void> _persist() => BuddyHistory.save([
+        for (final m in _messages)
+          if (!m.error && m.text.trim().isNotEmpty)
+            SavedMessage(m.fromUser, m.fromUser ? m.text : BuddyMarkers.parse(m.text).text, m.at, offline: m.offline)
+      ], guest: _guest);
+
+  // a new account: Buddy gets to know the person in three tapped answers
+  bool _onboard() {
+    if (_thinking || widget.question != null || !BuddyOnboarding.shouldStart()) return false;
+    BuddyOnboarding.start().then((turn) {
+      if (!mounted) return;
+      setState(() => _messages.add(_Message(false, turn.text)
+        ..checkIn = true
+        ..followUps = [...turn.chips, BuddyOnboarding.skipChip]));
+      _persist();
+      _scrollDown();
+    });
+    return true;
+  }
+
+  // "Was kannst du alles?": answered on the device, no question used up
+  void _privacy(String question) {
+    final answer = _Message(false, DataMap.answer(DataScreen.current()));
+    answer.followUps = [tr('Wie schalte ich Buddy mit KI aus?'), tr('Wie lösche ich mein Konto?')];
+    _input.clear();
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(answer);
+    });
+    _persist();
+    _scrollDown();
+  }
+
+  void _appGuide(String question) {
+    _input.clear();
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, BuddyAppGuide.answerOrNull(question) ?? ''));
+    });
+    _persist();
+    _scrollDown();
+  }
+
+  void _help(String question) {
+    _input.clear();
+    final a = BuddyHelp.answer(guest: _guest);
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, a.text)..followUps = a.chips);
+    });
+    _persist();
+    _scrollDown();
+  }
+
+  // false when the text was a question of its own, not an answer
+  Future<bool> _runOnboarding(String text) async {
+    final turn = await BuddyOnboarding.answer(text);
+    if (turn == null || !mounted) return false;
+    _input.clear();
+    _messages.add(_Message(true, text));
+    setState(() {
+      if (turn.text.isNotEmpty) {
+        _messages.add(_Message(false, turn.text)
+          ..entries = [if (turn.goal != null) turn.goal!]
+          ..followUps = [...turn.chips, if (!turn.done) BuddyOnboarding.skipChip]);
+      }
+    });
+    _persist();
+    _scrollDown();
+    HapticFeedback.lightImpact();
+    return true;
+  }
+
+  // Buddy speaks first, rarely: once a day at most, only when something
+  // really matters (a budget tipping over, a contract got pricier)
+  // once there is enough data, Buddy says what stands out (only once)
+  bool _firstLook() {
+    if (_thinking || widget.question != null || _settings.get('firstLookDone') == true) return false;
+    FirstLook? look;
+    try {
+      look = BuddyFirstLook.build(BuddyService.tools());
+    } catch (_) {
+      return false;
+    }
+    if (look == null) return false;
+    _settings.put('firstLookDone', true);
+    final step = look.text.split('\n').last.replaceFirst(RegExp(r'^(Nächster Schritt|Next step):\s*'), '');
+    BuddyTasks.add(step);
+    setState(() {
+      _messages.add(_Message(false, look!.text)
+        ..checkIn = true
+        ..followUps = look.followUps);
+    });
+    _persist();
+    _scrollDown();
+    return true;
+  }
+
+  void _checkIn() {
+    if (_guest || _thinking) return;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final last = _settings.get('buddyCheckIn');
+    if (last is Map && last['day'] == today) return;
+    Hint? hint;
+    try {
+      hint = HintsService.current(
+        tx: DB.getTx(),
+        budgets: DB.getBudgets(),
+        goals: GoalsService.all(),
+        subscription: PlusService.subscription.value,
+        bankValidUntil: Settings.bankValidUntil,
+        freeCents: BuddyService.freeCents(),
+        balanceCents: BuddyService.cashCents(),
+      // the most important thing today, if it is worth speaking first
+      ).where((h) => h.weight >= 30).firstOrNull;
+    } catch (_) {
+      return;
+    }
+    if (hint == null || (last is Map && last['id'] == hint.id)) return;
+    _settings.put('buddyCheckIn', {'day': today, 'id': hint.id});
+    setState(() {
+      _messages.add(_Message(false, tr('Kurz von mir: **{title}**. {text}', {'title': hint!.title, 'text': hint.text}))
+        ..checkIn = true
+        ..followUps = [
+          if (hint.question != null) hint.question! else tr('Was kann ich da tun?'),
+          tr('Wie wirkt sich das auf den Monat aus?'),
+        ]);
+    });
+    _persist();
+    _scrollDown();
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final away = _scroll.position.maxScrollExtent - _scroll.offset > 280;
+    if (away != _away) setState(() => _away = away);
   }
 
   void _asked() {
@@ -154,22 +437,35 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (q == null || _live == null) return;
     // cleared after this round, so the shell sees the question too
     WidgetsBinding.instance.addPostFrameCallback((_) => BuddyScreen.ask.value = null);
+    // a still screen draws no new frame by itself
+    WidgetsBinding.instance.scheduleFrame();
     if (q.isNotEmpty) _send(q);
   }
 
   @override
   void dispose() {
+    BuddyVoice.stop();
     _consentListenable.removeListener(_consentListener);
     if (widget.tab) BuddyScreen.ask.removeListener(_asked);
+    L10n.lang.removeListener(_languageChanged);
+    _scroll.removeListener(_onScroll);
+    _focus.removeListener(_onFocus);
+    VoiceInput.listening.removeListener(_onFocus);
+    if (VoiceInput.listening.value) VoiceInput.stop();
     _sub?.cancel();
+    _flushTimer?.cancel();
+    _cheerTimer?.cancel();
+    BuddyService.cancelAsk();
+    GuestBuddy.cancelAsk();
     _input.dispose();
+    _focus.dispose();
     // shell owns the controller when Buddy is a tab
     if (widget.scroll == null) _scroll.dispose();
     super.dispose();
   }
 
   // server AI + user consent (what the subtitle and banners show)
-  bool get _aiOn => _live == true && BuddyService.hasConsent;
+  bool get _aiOn => _guest ? (_live == true && GuestBuddy.left() > 0) : (_live == true && BuddyService.hasConsent);
 
   // consent sheet; [force] = also when the user said no before (KI einschalten)
   Future<bool> _askConsent({bool force = false}) async {
@@ -183,13 +479,34 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   // AppBar / Banner: KI an oder aus
   Future<void> _toggleAi() async {
-    if (_live != true) return;
+    if (_live != true || _guest) return;
     HapticFeedback.selectionClick();
     if (BuddyService.hasConsent) {
       await BuddyService.setConsent(false);
       if (mounted) setState(() {});
     } else {
       await _askConsent(force: true);
+    }
+  }
+
+  // speak a question or "Döner 8,50 gestern"; the words fill the field
+  Future<void> _voice() async {
+    if (VoiceInput.listening.value) {
+      HapticFeedback.selectionClick();
+      await VoiceInput.stop();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    final ok = await VoiceInput.start((text, done) {
+      if (!mounted) return;
+      _spokenInput = true;
+      setState(() {
+        _input.text = text;
+        _input.selection = TextSelection.collapsed(offset: text.length);
+      });
+    });
+    if (!ok && mounted) {
+      _snack(tr('Spracheingabe geht hier gerade nicht. Erlaube das Mikrofon oder tipp deine Frage.'));
     }
   }
 
@@ -206,21 +523,26 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // there is nothing to book, so the message goes on as a question.
   Future<bool> _entries(String text, bool live) async {
     final photo = _photo;
+    final lastAnswer = _messages.lastWhere((m) => !m.fromUser, orElse: () => _Message(false, '')).text;
+    if (photo != null && live && !_guest && PayslipCheck.looksLike(text, lastAnswer: lastAnswer)) {
+      await _payslip(text, photo);
+      return true;
+    }
     if (photo == null && !BuddyEntries.looksLikeEvent(text)) return false;
     if (!live && photo != null) {
       setState(() {
         _photo = null;
         _messages.add(_Message(true, text, image: photo.bytes));
         _messages.add(_Message(false, AccountService.current.value == null
-            ? 'Fotos lesen kann ich mit einem kostenlosen Konto.'
-            : 'Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.')..error = true);
+            ? tr('Fotos lesen kann ich mit einem kostenlosen Konto.')
+            : tr('Fotos lesen kann ich gerade nicht, die KI ist nicht erreichbar.'))..error = true);
       });
       return true;
     }
     final offline = live ? null : BuddyEntries.offline(text);
     if (!live && offline == null) return false;
     _input.clear();
-    final answer = _Message(false, '', offline: !live);
+    final answer = _Message(false, '', offline: !live)..streaming = true;
     setState(() {
       _photo = null;
       _messages.add(_Message(true, text, image: photo?.bytes));
@@ -243,10 +565,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
         PlusService.count(photo != null ? PlusFeature.receiptScan : PlusFeature.aiQuestion);
         answer.text = r.reply.isNotEmpty
             ? r.reply
-            : (r.entries.isEmpty ? 'Auf dem Bild habe ich nichts zum Buchen gefunden.' : 'Das habe ich erkannt:');
+            : (r.entries.isEmpty ? tr('Auf dem Bild habe ich nichts zum Buchen gefunden.') : tr('Das habe ich erkannt:'));
         answer.entries = r.entries;
       } else {
-        answer.text = 'So würde ich das buchen:';
+        answer.text = tr('So würde ich das buchen:');
         answer.entries = [offline!];
       }
     } catch (e) {
@@ -254,7 +576,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       final fallback = '$e'.contains('ausgelastet') ? BuddyEntries.offline(text) : null;
       if (fallback != null) {
         answer
-          ..text = 'Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:'
+          ..text = tr('Die KI ist gerade ausgelastet. Ohne sie würde ich es so buchen:')
           ..offline = true
           ..entries = [fallback];
       } else {
@@ -263,9 +585,66 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ..error = true;
       }
     }
-    if (mounted) setState(() => _thinking = false);
+    if (mounted) {
+      setState(() {
+        _thinking = false;
+        answer.streaming = false;
+      });
+    }
+    _persist();
     _scrollDown();
     return true;
+  }
+
+  // a payslip photo: the AI reads the numbers, the app recomputes every line
+  Future<void> _payslip(String text, ({Uint8List bytes, String type}) photo) async {
+    if (!PlusService.allowed(PlusFeature.receiptScan)) {
+      await showPlus(context, reason: tr('Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.'));
+      return;
+    }
+    _input.clear();
+    final answer = _Message(false, '')..streaming = true;
+    setState(() {
+      _photo = null;
+      _messages.add(_Message(true, text.isEmpty ? tr('Meine Gehaltsabrechnung') : text, image: photo.bytes));
+      _messages.add(answer);
+      _thinking = true;
+    });
+    BuddyService.activity.value = 'Abrechnung';
+    _scrollDown();
+    try {
+      final slip = await PayslipCheck.read(photo.bytes, photo.type);
+      PlusService.count(PlusFeature.receiptScan);
+      final versus = PayslipHistory.compareText(slip);
+      answer.text = PayslipCheck.answer(slip);
+      if (versus != null) {
+        // the comparison goes above the next step
+        final i = answer.text.lastIndexOf('\n\n');
+        answer.text = '${answer.text.substring(0, i)}\n\n$versus${answer.text.substring(i)}';
+      }
+      await PayslipHistory.add(slip);
+      final trend = PayslipHistory.chart();
+      if (trend != null) answer.charts = [trend];
+      answer.followUps = [tr('Was bedeutet meine Steuerklasse?'), tr('Lohnt sich eine Steuererklärung für mich?')];
+      if (!answer.text.contains('⚠︎')) {
+        BuddyTasks.doneByText(tr('Abrechnung prüfen'));
+        await LifeProgress.payslipChecked();
+        await LifeProgress.sync();
+      }
+      BuddyJournal.add(text.isEmpty ? tr('Meine Gehaltsabrechnung') : text, answer.text);
+    } catch (e) {
+      answer
+        ..text = friendlyError(e)
+        ..error = true;
+    }
+    BuddyService.activity.value = null;
+    if (!mounted) return;
+    setState(() {
+      _thinking = false;
+      answer.streaming = false;
+    });
+    _persist();
+    _scrollDown();
   }
 
   Future<void> _apply(_Message m, int i) async {
@@ -273,56 +652,66 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (e.type == 'goal' &&
         !PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
       await showPlus(context,
-          reason: 'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.');
+          reason: tr('Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.'));
       if (!PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) return;
     }
     HapticFeedback.mediumImpact();
     try {
       final done = await BuddyEntries.apply(e);
+      await LifeProgress.sync();
       if (!mounted) return;
       setState(() => m.applied[i] = done);
+      _celebrate();
+      _tickLifeStage(e);
       if (e.type == 'recategorize' || e.type == 'recategorize_all') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('$done. Buddy merkt sich die Regel für künftige Buchungen.'),
-          behavior: SnackBarBehavior.floating,
-        ));
+        _snack(tr('{done}. Buddy merkt sich die Regel für künftige Buchungen.', {'done': done}));
       } else if (e.type == 'vorsorge' && done == 'Gespeichert') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Rentenrechner gespeichert'),
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Öffnen',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())),
-          ),
-        ));
+        _snack(tr('Rentenrechner gespeichert'),
+            open: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())));
       } else if (e.type == 'goal' && done == 'Angelegt') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Sparziel angelegt'),
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Öffnen',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())),
-          ),
-        ));
+        _snack(tr('Sparziel angelegt'),
+            open: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalsScreen())));
       } else if (e.type == 'holding' && done == 'Im Depot') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Im Depot'),
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Öffnen',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DepotScreen())),
-          ),
-        ));
+        _snack(tr('Im Depot'), open: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DepotScreen())));
       }
     } catch (err) {
-      if (mounted) setState(() => m.applied[i] = 'Ging nicht. ${friendlyError(err)}');
+      if (mounted) setState(() => m.applied[i] = tr('Ging nicht. {x}', {'x': friendlyError(err)}));
     }
+  }
+
+  // a confirmed savings goal "Notgroschen" ticks off that step of the life stage
+  void _tickLifeStage(BuddyEntry e) {
+    final stage = LifeStages.current;
+    if (stage == null || e.type != 'goal') return;
+    final name = '${e.note} ${e.name}'.toLowerCase();
+    for (final step in stage.steps) {
+      if (name.contains('notgroschen') && step.id == 'notgroschen') LifeStages.setDone(stage, step, true);
+      if (name.contains('umzug') && step.id == 'kaution') LifeStages.setDone(stage, step, true);
+    }
+  }
+
+  void _snack(String text, {VoidCallback? open}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text),
+      behavior: SnackBarBehavior.floating,
+      action: open == null ? null : SnackBarAction(label: tr('Öffnen'), onPressed: open),
+    ));
+  }
+
+  Future<void> _remember(_Message m) async {
+    final fact = m.remember;
+    if (fact == null) return;
+    HapticFeedback.mediumImpact();
+    final ok = await BuddyMemory.add(fact);
+    if (!mounted) return;
+    setState(() => m.rememberState = ok ? 'saved' : 'known');
+    if (ok) _celebrate();
   }
 
   // asks only for missing fields, then shows the same confirm card as a booking
   Future<void> _runWizard(String text) async {
     _input.clear();
-    final answer = _Message(false, '');
+    final answer = _Message(false, '')..streaming = true;
     setState(() {
       _messages.add(_Message(true, text));
       _messages.add(answer);
@@ -336,14 +725,20 @@ class _BuddyScreenState extends State<BuddyScreen> {
         if (!mounted) return;
         turn = _wizard.quoted(instrument: q.instrument, cents: q.cents, live: q.live, options: q.options);
       }
-      answer.text = turn.text.isEmpty ? 'Das habe ich nicht verstanden.' : turn.text;
+      answer.text = turn.text.isEmpty ? tr('Das habe ich nicht verstanden.') : turn.text;
       if (turn.proposal != null) answer.entries = [turn.proposal!];
     } catch (e) {
       _wizard.reset();
       answer.text = friendlyError(e);
       answer.error = true;
     }
-    if (mounted) setState(() => _thinking = false);
+    if (mounted) {
+      setState(() {
+        _thinking = false;
+        answer.streaming = false;
+      });
+    }
+    _persist();
     _scrollDown();
   }
 
@@ -377,10 +772,73 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return (instrument: instrument, cents: cents, live: fresh, options: const <Instrument>[]);
   }
 
+  // "Merk dir, dass …": Buddy repeats it as a card; it is kept only on "Merken"
+  bool _rememberCommand(String text) {
+    if (_guest) return false;
+    final fact = BuddyMemory.fromCommand(text);
+    if (fact == null) return false;
+    _input.clear();
+    final allowed = BuddyMemory.allowed(fact);
+    setState(() {
+      _messages.add(_Message(true, text));
+      _messages.add(_Message(
+          false,
+          allowed
+              ? tr('Soll ich mir das merken? Dann muss ich nicht jedes Mal neu fragen.')
+              : tr('Das merke ich mir lieber nicht. Gesundheit, Glaube, Politik und Zugangsdaten bleiben bei dir.'))
+        ..remember = allowed ? fact : null);
+    });
+    _persist();
+    _scrollDown();
+    return true;
+  }
+
+  // a spoken question gets a spoken answer
+  bool _spokenInput = false;
+  bool _speakNext = false;
+
+  // stop generation: keep text that already arrived, drop an empty bubble
+  void _stop() {
+    _answerGen++;
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _pendingPiece = null;
+    _sub?.cancel();
+    _sub = null;
+    BuddyService.cancelAsk();
+    GuestBuddy.cancelAsk();
+    if (!mounted) return;
+    setState(() {
+      _thinking = false;
+      if (_messages.isNotEmpty && !_messages.last.fromUser) {
+        final last = _messages.last;
+        last.streaming = false;
+        if (last.text.trim().isEmpty) _messages.removeLast();
+      }
+    });
+    _persist();
+  }
+
   Future<void> _send(String text) async {
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
+    if (VoiceInput.listening.value) VoiceInput.stop();
+    BuddyVoice.stop();
+    _speakNext = _spokenInput && question == _input.text.trim();
+    _spokenInput = false;
     HapticFeedback.selectionClick();
+    if (_photo == null && BuddyAppGuide.matches(question)) return _appGuide(question);
+    if (_photo == null && BuddyHelp.matches(question)) return _help(question);
+    // privacy is answered from the app's own list, never improvised
+    if (_photo == null && DataMap.matches(question)) return _privacy(question);
+    // "Monatsrückblick" / story share stays on-device
+    if (_photo == null && _wantsMonthStory(question)) {
+      _offerMonthStory(question);
+      return;
+    }
+    if (_guest) return _sendGuest(question);
+    if (_photo == null && BuddyOnboarding.active && question.isNotEmpty && await _runOnboarding(question)) return;
+    if (_photo == null && _rememberCommand(question)) return;
     // setup runs on the device: no KI quota, nothing saved until Übernehmen.
     // a photo is a receipt, not an answer to the wizard
     if (_photo != null) {
@@ -395,7 +853,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (live && _photo != null && !PlusService.allowed(PlusFeature.receiptScan)) {
       if (!mounted) return;
       await showPlus(context,
-          reason: 'Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.');
+          reason: tr('Gratis-Scans aufgebraucht. Mit Plus erfasst du jeden Beleg in Sekunden.'));
       if (!PlusService.active.value) return;
     }
     // AI answers cost money: the free tier has a few per month
@@ -404,8 +862,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       await showPlus(
           context,
           reason:
-              'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. '
-              'Ohne Plus antwortet Buddy weiter offline aus deinen Daten.');
+              tr('Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.'));
       // declined Plus → still answer offline (like consent decline)
       if (!PlusService.active.value) live = false;
     }
@@ -413,7 +870,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     // last free question: soft note, never blocks send
     if (live && _photo == null && PlusService.left(PlusFeature.aiQuestion) == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Noch 1 Gratis-Frage diesen Monat'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(tr('Noch 1 Gratis-Frage diesen Monat')), behavior: SnackBarBehavior.floating),
       );
     }
     if (await _entries(question, live)) return;
@@ -422,377 +879,1255 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _input.clear();
     setState(() {
       _messages.add(_Message(true, question));
-      _messages.add(_Message(false, '', offline: !live));
+      // streaming from the first frame, so the thread shows the thinking row
+      // and not an empty assistant block before the first token
+      _messages.add(_Message(false, '', offline: !live)..streaming = true);
       _thinking = true;
     });
     _scrollDown();
 
-    final history = [
-      for (final m in _messages.sublist(0, _messages.length - 1))
-        if (m.text.isNotEmpty) ChatMessage(m.fromUser, m.text)
-    ];
+    final history = _history();
     final answer = _messages.last;
-    _sub = BuddyService.ask(history, live: live).listen(
+    _stream(answer, BuddyService.ask(history, live: live),
+        question: question,
+        countsQuestion: live,
+        onLimit: live
+            ? () => _stream(answer, BuddyService.ask(history, live: false), question: question, degraded: true)
+            : null);
+  }
+
+  List<ChatMessage> _history() => [
+        for (final m in _messages.sublist(0, _messages.length - 1))
+          if (m.text.isNotEmpty && !m.error)
+            ChatMessage(m.fromUser, m.fromUser ? m.text : BuddyMarkers.parse(m.text).text)
+      ];
+
+  // before sign-up: real AI while the day's free answers last, then offline
+  Future<void> _sendGuest(String question) async {
+    if (question.isEmpty) return;
+    _input.clear();
+    final live = _live == true && GuestBuddy.left() > 0;
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, '', offline: !live)..streaming = true);
+      _thinking = true;
+    });
+    _scrollDown();
+    final answer = _messages.last;
+    if (!live) {
+      _stream(answer, _typed(GuestBuddy.offline(question)), question: question);
+      return;
+    }
+    final history = [for (final m in _history()) (fromUser: m.fromUser, text: m.text)];
+    _stream(answer, GuestBuddy.ask(history),
+        question: question,
+        anyErrorFallsBack: true,
+        onLimit: () => _stream(answer, _typed(GuestBuddy.offline(question)), question: question, degraded: true));
+  }
+
+  // a ready answer, handed out in small pieces so it reads like a live one
+  static Stream<String> _typed(String text) async* {
+    for (final word in RegExp(r'\S+\s*').allMatches(text)) {
+      await Future.delayed(const Duration(milliseconds: 36));
+      yield word.group(0)!;
+    }
+  }
+
+  void _flushPending(_Message answer, int gen, {bool jump = true}) {
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    final chunk = _pendingPiece;
+    _pendingPiece = null;
+    if (chunk == null || chunk.isEmpty) return;
+    if (!mounted || gen != _answerGen) return;
+    setState(() => answer.text += chunk);
+    _scrollDownThrottled(jump: jump);
+  }
+
+  void _scrollDownThrottled({bool jump = false}) {
+    final now = DateTime.now();
+    final last = _lastScrollAt;
+    if (last != null && now.difference(last) < const Duration(milliseconds: 280)) {
+      if (jump && _scroll.hasClients) {
+        _scroll.jumpTo(_scroll.position.maxScrollExtent);
+        _lastScrollAt = now;
+      }
+      return;
+    }
+    _lastScrollAt = now;
+    _scrollDown(jump: jump);
+  }
+
+  // runs one answer stream into [answer]; [onLimit] retries offline when the
+  // AI is out of quota (or, with [anyErrorFallsBack], on any error)
+  void _stream(_Message answer, Stream<String> pieces,
+      {required String question,
+      VoidCallback? onLimit,
+      bool degraded = false,
+      bool countsQuestion = false,
+      bool anyErrorFallsBack = false}) {
+    final gen = ++_answerGen;
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _pendingPiece = null;
+    _sub?.cancel();
+    setState(() {
+      answer
+        ..text = ''
+        ..streaming = true
+        ..error = false
+        ..question = question;
+      if (degraded) {
+        answer
+          ..offline = true
+          ..degraded = true;
+      }
+    });
+    _sub = pieces.listen(
       (piece) {
-        setState(() => answer.text += piece);
-        _scrollDown();
+        if (!mounted || gen != _answerGen) return;
+        if (piece == BuddyService.restart) {
+          // a number didn't hold up: the checked answer replaces this one
+          _flushTimer?.cancel();
+          _flushTimer = null;
+          _pendingPiece = null;
+          setState(() {
+            answer
+              ..text = ''
+              ..corrected = true;
+          });
+          return;
+        }
+        _pendingPiece = '${_pendingPiece ?? ''}$piece';
+        _flushTimer ??= Timer(const Duration(milliseconds: 50), () {
+          _flushPending(answer, gen);
+        });
       },
       onError: (e) {
+        if (!mounted || gen != _answerGen) return;
+        _flushPending(answer, gen, jump: false);
         final text = '$e';
-        if (!mounted) return;
-        // the free AI's quota is used up for now: answer from the data on the device
-        if (live &&
-            (text.contains('ausgelastet') ||
-                text.contains('Tageslimit') ||
-                text.contains('429') ||
-                text.contains('Limit'))) {
-          setState(() {
-            answer.text = '';
-            answer.offline = true;
-            answer.degraded = true;
-          });
-          _sub?.cancel();
-          _sub = BuddyService.ask(history, live: false).listen(
-            (piece) => setState(() => answer.text += piece),
-            onError: (e) {
-              if (!mounted) return;
-              setState(() {
-                answer.text = friendlyError(e,
-                    fallback: 'Offline-Antwort fehlgeschlagen. Versuch es gleich noch einmal.');
-                answer.error = true;
-                _thinking = false;
-              });
-            },
-            onDone: () {
-              if (mounted) {
-                setState(() {
-                  _thinking = false;
-                  if (!answer.error) {
-                    answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
-                  }
-                });
-              }
-              _scrollDown();
-            },
-          );
+        final limit = text.contains('ausgelastet') ||
+            text.contains('Tageslimit') ||
+            text.contains('429') ||
+            text.contains('Limit') ||
+            text.contains('aufgebraucht');
+        if (onLimit != null && (limit || anyErrorFallsBack)) {
+          onLimit();
           return;
         }
         HapticFeedback.heavyImpact();
         setState(() {
-          answer.text = friendlyError(e,
-              fallback: 'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.');
-          answer.error = true;
+          answer
+            ..text = friendlyError(e,
+                fallback: tr('Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'))
+            ..error = true
+            ..streaming = false;
           _thinking = false;
         });
       },
       onDone: () {
+        if (gen != _answerGen) return;
+        _flushPending(answer, gen, jump: false);
         // only an answer that arrived uses up one of the free questions
-        if (live && !answer.error) PlusService.count(PlusFeature.aiQuestion);
-        if (mounted) {
-          setState(() {
-            _thinking = false;
-            if (!answer.error) answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
-          });
-          _scrollDown();
-        }
+        if (countsQuestion && !answer.error && !answer.degraded) PlusService.count(PlusFeature.aiQuestion);
+        if (!mounted || answer.error) return;
+        final extras = BuddyService.takeExtras();
+        setState(() {
+          _thinking = false;
+          answer.streaming = false;
+          answer
+            ..proposals = extras.proposals
+            ..charts = extras.charts
+            ..tools = extras.tools;
+          _finish(answer, question);
+        });
+        _persist();
+        if (!_guest && !answer.offline) BuddyJournal.add(question, answer.text);
+        _scrollDown();
         HapticFeedback.lightImpact();
+        if (_speakNext) {
+          _speakNext = false;
+          BuddyVoice.speak(answer.text);
+        }
       },
     );
   }
 
-  void _scrollDown() {
+  // an answer is complete: follow-ups, a fact to remember, next-step buttons
+  void _finish(_Message answer, String question) {
+    final parsed = BuddyMarkers.parse(answer.text);
+    answer.followUps = parsed.followUps.isNotEmpty ? parsed.followUps : _localFollowUps(question);
+    final fact = parsed.remember;
+    if (!_guest && fact != null && BuddyMemory.allowed(fact) && !BuddyMemory.knows(fact)) answer.remember = fact;
+    if (!_guest) answer.actions = BuddyActions.forQuestion(question, BuddyService.snapshot());
+    // the next step stays open until it is done; Buddy picks it up again
+    final step = _stepOf(answer.text);
+    if (!_guest && step != null) BuddyTasks.add(step);
+  }
+
+  static String? _stepOf(String text) {
+    final m = RegExp(r'^\**(?:Nächster Schritt|Next step):\**\s*(.+)$', multiLine: true, caseSensitive: false).firstMatch(text);
+    final step = m?.group(1)?.replaceAll('**', '').trim();
+    return step == null || step.isEmpty ? null : step;
+  }
+
+  // offline answers have no follow-ups from the AI: the next steps of the
+  // matching life stage, or two good general questions
+  List<String> _localFollowUps(String question) {
+    final step = LifeStages.stepFor(question);
+    if (step != null) {
+      for (final stage in LifeStages.all) {
+        final i = stage.steps.indexWhere((s) => identical(s, step));
+        if (i >= 0) return [for (final s in stage.steps.skip(i + 1).take(2)) s.title];
+      }
+    }
+    final pool = _guest ? BuddyScreen.guestSuggestions : BuddySuggestions.fallback;
+    return [for (final c in pool) if (c.text.toLowerCase() != question.toLowerCase()) c.text].take(2).toList();
+  }
+
+  // a follow-up that names a life stage step sends that step's full question
+  void _follow(String f) {
+    if (f == tr('Monats-Story teilen')) {
+      _shareMonthStory();
+      return;
+    }
+    for (final stage in LifeStages.all) {
+      for (final s in stage.steps) {
+        if (s.title == f) return _send(s.prompt).ignore();
+      }
+    }
+    _send(f);
+  }
+
+  void _scrollDown({bool jump = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
+      if (!_scroll.hasClients) return;
+      if (jump) {
+        _scroll.jumpTo(_scroll.position.maxScrollExtent);
+      } else {
         _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+            duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
       }
     });
   }
 
+  Future<void> _newChat() async {
+    if (_thinking) return;
+    HapticFeedback.mediumImpact();
+    _sub?.cancel();
+    _wizard.reset();
+    setState(() => _messages.clear());
+    await BuddyHistory.clear(guest: _guest);
+    _warmStart();
+  }
+
+  void _openStage(LifeStage stage) =>
+      showLifeStage(context, stage, onAsk: (q) => _send(q), save: !_guest).then((_) {
+        if (mounted) setState(() {});
+      });
+
+  void _message(_Message m) {
+    final plain = m.fromUser ? m.text : BuddyMarkers.parse(m.text).text;
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (sheet) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.copy_rounded),
+            title: Text(tr('Kopieren')),
+            onTap: () async {
+              Navigator.pop(sheet);
+              await Clipboard.setData(ClipboardData(text: plain.replaceAll('**', '')));
+              if (mounted) _snack(tr('Kopiert'));
+            },
+          ),
+          if (!m.fromUser && !m.error)
+            ListTile(
+              leading: const Icon(Icons.ios_share_rounded),
+              title: Text(tr('Als Karte teilen')),
+              subtitle: Text(tr('Beträge kannst du vorher ausblenden')),
+              onTap: () {
+                Navigator.pop(sheet);
+                _shareAnswer(m);
+              },
+            ),
+        ]),
+      ),
+    );
+  }
+
+  void _shareAnswer(_Message m) {
+    final i = _messages.indexOf(m);
+    final question = i > 0 && _messages[i - 1].fromUser ? _messages[i - 1].text : tr('Frag Buddy');
+    final body = BuddyMarkers.parse(m.text).text;
+    showShareCard(
+      context,
+      ShareCardData(
+        kicker: tr('Frag Buddy'),
+        headline: question.length > 90 ? '${question.substring(0, 89)}…' : question,
+        body: body.length > 420 ? '${body.substring(0, 419)}…' : body,
+        text: tr('{q} Buddy von Ahead hat mir das in Sekunden ausgerechnet.', {'q': question}),
+      ),
+    );
+  }
+
+  bool _wantsMonthStory(String q) {
+    final t = q.toLowerCase();
+    return t.contains('rückblick') ||
+        t.contains('rueckblick') ||
+        t.contains('monats-story') ||
+        t.contains('monatsstory') ||
+        t.contains('month story') ||
+        t.contains('monthly recap') ||
+        t.contains('monthly review') ||
+        (t.contains('story') && (t.contains('monat') || t.contains('teilen')));
+  }
+
+  // the question stays in the chat; the chip opens the current month's story
+  void _offerMonthStory(String question) {
+    _input.clear();
+    final now = DateTime.now();
+    final has = RecapService.build(DB.getTx(), DateTime(now.year, now.month)) != null;
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(
+          false,
+          has
+              ? tr('Dein Monatsrückblick als Story, nur Prozente.')
+              : tr('Für diesen Monat gibt es noch zu wenig Verlauf.'))
+        ..offline = true
+        ..followUps = has ? [tr('Monats-Story teilen')] : const []);
+    });
+    _persist();
+    _scrollDown();
+    if (has) _shareMonthStory();
+  }
+
+  // month as a story card (percentages only), opened from Buddy's menu or chat
+  void _shareMonthStory() {
+    final now = DateTime.now();
+    final month = DateTime(now.year, now.month);
+    final recap = RecapService.build(DB.getTx(), month);
+    if (recap == null) {
+      _snack(tr('Für diesen Monat gibt es noch zu wenig Verlauf.'));
+      return;
+    }
+    final name = Dates.months[month.month - 1];
+    showStoryShare(
+      context,
+      recap,
+      fallbackText: tr('Mein {month} mit Ahead.', {'month': name}),
+    );
+  }
+
+  // ---------------------------------------------------------------- layout
+
   @override
   Widget build(BuildContext context) {
+    // the glow sits behind the whole screen, the bar included
+    return ColoredBox(
+      color: AppColors.bg,
+      child: AmbientGlow(
+        child: _scaffold(),
+      ),
+    );
+  }
+
+  Widget _scaffold() {
     return Scaffold(
-      appBar: AppBar(
-        // without a back button the tab's title keeps the page margin
-        titleSpacing: widget.tab ? 20 : 0,
-        title: Row(children: [
-          BuddyOrb(size: 30, active: _thinking),
-          const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Buddy',
-                style: TextStyle(
-                    fontFamily: AppFonts.display,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3)),
-            // tippen schaltet die KI um, wenn der Server sie anbietet
-            InkWell(
-              onTap: _live == true ? _toggleAi : null,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: _aiOn ? AppColors.positive : AppColors.textDim,
-                      shape: BoxShape.circle,
-                    ),
+      backgroundColor: Colors.transparent,
+      appBar: _guest ? _guestBar() : _bar(),
+      body: Column(children: [
+        if (!_guest && _live == true && !BuddyService.hasConsent) _aiOffBanner(),
+        Expanded(
+          child: Stack(children: [
+            Positioned.fill(child: _messages.isEmpty ? _welcome() : _chat()),
+            Positioned(
+              right: 16,
+              bottom: 12,
+              child: AnimatedScale(
+                scale: _away && _messages.isNotEmpty ? 1 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: Material(
+                  color: AppColors.surface,
+                  shape: CircleBorder(side: BorderSide(color: AppColors.hairline)),
+                  child: IconButton(
+                    tooltip: tr('Zur neuesten Nachricht'),
+                    onPressed: () => _scrollDown(),
+                    icon: const Icon(Icons.arrow_downward_rounded, size: 18),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    _statusLabel,
-                    style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
-                  ),
-                  if (_live == true) ...[
-                    const SizedBox(width: 4),
-                    Icon(Icons.expand_more_rounded, size: 14, color: AppColors.textDim),
-                  ],
-                ]),
-              ),
-            ),
-          ]),
-        ]),
-        actions: [
-          if (_live == true)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                tooltip: _aiOn ? 'KI ausschalten' : 'KI einschalten',
-                onPressed: _toggleAi,
-                icon: Icon(
-                  _aiOn ? Icons.cloud_rounded : Icons.cloud_off_outlined,
-                  color: _aiOn ? AppColors.primaryText : AppColors.textDim,
                 ),
               ),
             ),
-        ],
-      ),
-      body: Column(children: [
-        if (_live == true && !BuddyService.hasConsent) _aiOffBanner(),
-        Expanded(child: _messages.isEmpty ? _welcome() : _chat()),
+          ]),
+        ),
         _inputBar(),
       ]),
     );
   }
 
+  PreferredSizeWidget _bar() => AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        // without a back button the tab's title keeps the page margin
+        titleSpacing: widget.tab ? 20 : 0,
+        title: Row(children: [
+          BuddyOrb(size: 28, mood: _mood),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(tr('Buddy'),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.4, height: 1.15)),
+              // connection only; "schreibt" and tool lines live in the thread
+              InkWell(
+                onTap: _live == true ? _toggleAi : null,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    _statusLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, height: 1.2, color: AppColors.textDim, fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ]),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: tr('Mehr'),
+            icon: const Icon(Icons.more_horiz_rounded),
+            color: AppColors.surfaceAlt,
+            onSelected: (v) {
+              switch (v) {
+                case 'memory':
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen()));
+                case 'log':
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen()));
+                case 'stage':
+                  _openStage(LifeStages.current ?? LifeStages.firstJob);
+                case 'story':
+                  _shareMonthStory();
+                case 'new':
+                  _newChat();
+                default:
+                  _toggleAi();
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'stage', child: _menuRow(Icons.flag_outlined, tr('Lebenslage'))),
+              PopupMenuItem(value: 'story', child: _menuRow(Icons.auto_stories_outlined, tr('Monats-Story teilen'))),
+              PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Buddy weiß'))),
+              PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Buddy getan hat'))),
+              if (_messages.isNotEmpty)
+                PopupMenuItem(value: 'new', child: _menuRow(Icons.add_comment_outlined, tr('Neuer Chat'))),
+              if (_live == true)
+                PopupMenuItem(
+                    value: 'ai',
+                    child: _menuRow(_aiOn ? Icons.cloud_off_outlined : Icons.cloud_outlined,
+                        _aiOn ? tr('KI ausschalten') : tr('KI einschalten'))),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      );
+
+  Widget _menuRow(IconData icon, String text) => Row(children: [
+        Icon(icon, size: 20, color: AppColors.textDim),
+        const SizedBox(width: 12),
+        Text(text),
+      ]);
+
+  // before sign-up the opening is copper light, like the landing page; once
+  // the chat starts the bar turns quiet
+  PreferredSizeWidget _guestBar() {
+    final copper = _messages.isEmpty;
+    return AppBar(
+      titleSpacing: 20,
+      backgroundColor: copper ? CopperLight.top : Colors.transparent,
+      surfaceTintColor: copper ? Colors.transparent : null,
+      foregroundColor: copper ? Colors.white : null,
+      systemOverlayStyle: copper ? SystemUiOverlayStyle.light : null,
+      title: Row(children: [
+        BrandMark(size: 30, inverse: copper),
+        const SizedBox(width: 10),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: copper
+                ? const Text('Ahead.',
+                    style: TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.8,
+                        color: Colors.white))
+                : const Wordmark(size: 21),
+          ),
+        ),
+      ]),
+      actions: [
+        TextButton(
+          style: copper ? TextButton.styleFrom(foregroundColor: Colors.white) : null,
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
+          child: Text(tr('Anmelden')),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 12, left: 2),
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              backgroundColor: copper ? Colors.white : AppColors.brand,
+              foregroundColor: copper ? const Color(0xFF17120E) : Colors.white,
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+            child: Text(tr('Starten')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // the guest's opening: one question, one line, nothing else competing
+  Widget _guestHero() => Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text.rich(
+              TextSpan(children: [
+                TextSpan(text: tr('Was mach ich jetzt mit meinem ')),
+                TextSpan(text: tr('Gehalt?'), style: const TextStyle(color: CopperLight.peach)),
+              ]),
+              style: const TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 44,
+                height: 0.96,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -2,
+                color: Color(0xFFFFF7F0),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              tr('Frag Buddy. Ohne Anmeldung.'),
+              style: const TextStyle(fontSize: 17, height: 1.4, color: Color(0xDBFFF7F0)),
+            ),
+          ]),
+      );
+
+  // three short ways in, as small pills right above the input
+  static List<({String label, String question})> get _guestStarts => [
+        (label: tr('Erste Gehaltsabrechnung?'), question: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
+        (label: tr('Wie viel Notgroschen?'), question: tr('Wie viel Notgroschen brauche ich?')),
+        (label: tr('Lohnt sich ein ETF?'), question: tr('Was ist ein ETF-Sparplan?')),
+      ];
+
   String get _statusLabel {
-    if (_live == null) return 'verbindet …';
-    if (_live != true) return 'Offline-Modus';
-    return _aiOn ? 'KI an' : 'KI aus · tippen zum Einschalten';
+    if (BuddyScreen.debugStatus != null) return BuddyScreen.debugStatus!;
+    if (_live == null) return tr('verbindet …');
+    if (_live != true) return tr('Offline-Modus');
+    return _aiOn ? tr('KI an') : tr('KI aus · tippen zum Einschalten');
   }
 
-  String get _quotaLine {
+  String? get _quotaLine {
+    if (_guest) {
+      final left = GuestBuddy.left();
+      if (_live != true) return tr('Ohne KI');
+      if (left == 0) return tr('KI für heute aufgebraucht, Grundlagen gehen weiter');
+      return left == 1 ? tr('Noch 1 KI-Antwort heute') : tr('Noch {n} KI-Antworten heute', {'n': left});
+    }
+    if (_live != true || PlusService.active.value) return null;
     final left = PlusService.left(PlusFeature.aiQuestion);
-    if (left == 0) return 'Gratis-KI-Fragen aufgebraucht · Offline-Antworten gehen weiter';
-    if (left == 1) return 'Noch 1 Gratis-KI-Frage diesen Monat';
-    return 'Noch $left von ${PlusService.freeAiQuestions} Gratis-KI-Fragen diesen Monat';
+    if (left == 0) return tr('Gratis-KI-Fragen aufgebraucht');
+    if (left == 1) return tr('Noch 1 Gratis-KI-Frage diesen Monat');
+    return tr('Noch {left} von {x} Gratis-KI-Fragen', {'left': left, 'x': PlusService.limit(PlusFeature.aiQuestion)});
   }
 
+  // hidden while typing, and on an empty start with nothing else to say
+  String? _footnote(String? note) {
+    if (_focus.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0) return null;
+    final parts = [
+      if (note != null) note,
+      if (_messages.isNotEmpty) tr('Kann sich irren, keine Anlageberatung'),
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  // --------------------------------------------------------------- welcome
+
+  // Logged-in start: the free-cash number when we have one, then one obvious question.
+  // Without a forecast, one salary question. Life stages stay in the chat.
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      children: [
-        const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 56)),
-        const SizedBox(height: 32),
-        Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
-            style: TextStyle(
-                fontFamily: AppFonts.display,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.7)),
-        const SizedBox(height: 8),
-        Text(
-          AccountService.current.value == null
-              ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
-              : 'Dein Coach für die ersten eigenen Finanzen. Frag, was du mit deinem Gehalt machst — '
-                  'oder ob du dir etwas leisten kannst. Ich nutze deine Ausgaben, Budgets und Verträge.',
-          style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
-        ),
-        const SizedBox(height: 24),
-        for (final s in BuddySuggestions.pick(BuddyService.snapshot()))
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Material(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => _send(s.text),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Row(children: [
-                    Icon(s.icon, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(s.text, style: const TextStyle(fontWeight: FontWeight.w600))),
-                    Icon(Icons.north_east_rounded, color: AppColors.textDim, size: 18),
-                  ]),
-                ),
+    if (_guest) {
+      // the question on top, the ways in at the bottom next to the input
+      return LayoutBuilder(
+        builder: (context, box) => SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: box.maxHeight),
+            // one copper surface from the question down to the ways in
+            child: IntrinsicHeight(
+              child: CopperLight(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  _guestHero(),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+                    child: Wrap(spacing: 8, runSpacing: 8, children: [
+                      for (final g in _guestStarts)
+                        ActionChip(
+                          key: Key('start-${g.label}'),
+                          label: Text(g.label),
+                          onPressed: () => _send(g.question),
+                          labelStyle: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                          side: const BorderSide(color: Color(0x33FFFFFF)),
+                          backgroundColor: CopperLight.card,
+                          shape: const StadiumBorder(),
+                        ),
+                    ]),
+                  ),
+                ]),
               ),
             ),
           ),
-        if (AccountService.current.value == null) ...[
-          const SizedBox(height: 12),
-          _signInHint(),
-        ] else if (_live == false) ...[
-          const SizedBox(height: 12),
-          _offlineHint(),
+        ),
+      );
+    }
+    final brief = _startBrief;
+    final chips = _startChips ?? const <BuddyChip>[];
+    final tip = brief?.tip;
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
+      children: [
+        Center(child: BuddyOrb(size: 52, mood: _mood)),
+        const SizedBox(height: 18),
+        if (brief != null && brief.free != null) ...[
+          Text(
+            name != null ? tr('Hey {name}, noch frei', {'name': name}) : tr('Noch frei'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 22,
+                fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
+                letterSpacing: -0.6,
+                height: 1.15,
+                color: AppColors.textDim),
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(brief.free!,
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 56,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -2.2,
+                    height: 1.02,
+                    color: AppColors.glow)),
+          ),
+          const SizedBox(height: 6),
+          Text(tr('etwa {x} pro Tag', {'x': brief.perDay!}),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 14.5, color: AppColors.textDim, height: 1.3)),
+        ] else ...[
+          Text(
+            name != null ? tr('Hey {name}', {'name': name}) : tr('Hey'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 30,
+                fontWeight: ThemeController.isDark.value ? FontWeight.w400 : FontWeight.w500,
+                letterSpacing: -0.8,
+                height: 1.15,
+                color: AppColors.text),
+          ),
+          if (brief != null && !brief.numbers && tip == null) ...[
+            const SizedBox(height: 6),
+            Text(tr('Frag nach deinem Gehalt.'),
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
+          ],
+        ],
+        if (tip != null) ...[
+          const SizedBox(height: 22),
+          _remark(tip),
+        ],
+        if (chips.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          for (var i = 0; i < chips.length; i++) _suggestion(chips[i], lead: i == 0),
         ],
       ],
     );
   }
 
-  Widget _aiOffBanner() {
-    return Material(
-      color: AppColors.surfaceAlt,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-        child: Row(children: [
-          Icon(Icons.cloud_off_outlined, size: 18, color: AppColors.textDim),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'KI ist aus. Buddy antwortet offline aus deinen Daten. Tippe oben auf „KI an“.',
-              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
-            ),
-          ),
-          TextButton(
-            onPressed: _toggleAi,
-            child: const Text('Einschalten'),
-          ),
-        ]),
-      ),
-    );
+  // after the first paint: one forecast for the number, the tip, and which question leads
+  void _warmStart() {
+    if (!mounted || _guest || _messages.isNotEmpty) return;
+    final brief = _brief();
+    // a tip is already the one way in when there is nothing to forecast
+    final chips = brief.numbers || brief.tip == null ? BuddySuggestions.openers(hasNumbers: brief.numbers) : const <BuddyChip>[];
+    if (!mounted) return;
+    setState(() {
+      _startChips = chips;
+      _startBrief = brief;
+    });
   }
 
-  Widget _offlineHint() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-      child: Row(children: [
-        Icon(Icons.wifi_off_rounded, size: 18, color: AppColors.textDim),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.',
-            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
-          ),
-        ),
-      ]),
-    );
+  // what Buddy says on top of his start: the money left this month and,
+  // when something stands out, one remark
+  ({String? free, String? perDay, BuddyTip? tip, bool numbers}) _brief() {
+    try {
+      final tx = DB.getTx();
+      final cash = LedgerBusy.cashOr(DB.balanceOf(tx) + MoneyAccounts.openingTotal);
+      // one forecast for the number and the tip; BuddyTips would scan the ledger again
+      final f = tx.isEmpty || !OnboardingService.balanceKnown
+          ? null
+          : ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash);
+      final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash, knownForecast: f);
+      if (f == null) return (free: null, perDay: null, tip: tip, numbers: false);
+      if (f.freeCents < 0) return (free: null, perDay: null, tip: tip, numbers: true);
+      final hidden = Settings.hideAmounts.value;
+      return (
+        free: hidden ? Money.hidden : Money.format(f.freeCents),
+        perDay: hidden ? Money.hidden : Money.format(f.perDayCents),
+        tip: tip,
+        numbers: true,
+      );
+    } catch (_) {
+      return (free: null, perDay: null, tip: null, numbers: false);
+    }
   }
 
-  Widget _signInHint() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primaryText),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            'Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. '
-            'Offline-Antworten ohne Limit auch ohne Konto.',
-            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _chat() {
-    return ListView.builder(
-      controller: _scroll,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      itemCount: _messages.length,
-      itemBuilder: (_, i) {
-        final m = _messages[i];
-        if (m.fromUser) return _userBubble(m.text, m.image);
-        final waiting = m.text.isEmpty && _thinking && i == _messages.length - 1;
-        return _buddyBubble(m, waiting);
-      },
-    );
-  }
-
-  Widget _userBubble(String text, [Uint8List? image]) => Align(
-        alignment: Alignment.centerRight,
-        child: Container(
-          margin: const EdgeInsets.only(left: 48, bottom: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(6),
-            ),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
-            if (image != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.memory(image, height: 140, fit: BoxFit.cover),
-              ),
-            if (image != null && text.isNotEmpty) const SizedBox(height: 8),
-            if (text.isNotEmpty) Text(text, style: TextStyle(color: AppColors.onPrimary, fontSize: 15, height: 1.4)),
+  // one remark and the question that opens it, as text, not a card
+  Widget _remark(BuddyTip tip) => InkWell(
+        onTap: () => _send(tip.question),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tip.text,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, height: 1.4, letterSpacing: -0.15, color: AppColors.text)),
+            const SizedBox(height: 6),
+            Text(tip.question, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5, height: 1.3, color: AppColors.brandText)),
           ]),
         ),
       );
 
-  Widget _buddyBubble(_Message m, bool waiting) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 24, bottom: 16),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Padding(padding: const EdgeInsets.only(top: 4), child: BuddyOrb(size: 26, active: waiting)),
-        const SizedBox(width: 10),
-        Flexible(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: m.error ? AppColors.error.withValues(alpha: 0.12) : AppColors.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(6),
-                  topRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-              ),
-              child: waiting ? const _TypingDots() : RichMarkdown(m.text),
-            ),
-            if (m.offline && m.text.isNotEmpty && !m.error)
+  // the first row is the question to tap; the rest stay quiet
+  Widget _suggestion(BuddyChip s, {bool lead = false}) => Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _send(s.text),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Padding(
-                padding: const EdgeInsets.only(top: 6, left: 4),
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(s.icon, color: lead ? AppColors.brandText : AppColors.textDim, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(s.text,
+                    style: TextStyle(
+                        fontWeight: lead ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: 15.5,
+                        color: lead ? AppColors.brandText : AppColors.text,
+                        height: 1.35)),
+              ),
+            ]),
+          ),
+        ),
+      );
+
+  Widget _aiOffBanner() => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 2, 8, 0),
+        child: Row(children: [
+          Expanded(
+            child: Text(
+              tr('KI ist aus. Buddy antwortet offline aus deinen Daten.'),
+              style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact, foregroundColor: AppColors.brandText, padding: const EdgeInsets.symmetric(horizontal: 10)),
+            onPressed: _toggleAi,
+            child: Text(tr('Einschalten')),
+          ),
+        ]),
+      );
+
+  // ------------------------------------------------------------------ chat
+
+  int get _guestAnswers => _messages.where((m) => !m.fromUser && !m.error && !m.streaming).length;
+
+  bool get _showCta => _guest && !_ctaClosed && !_thinking && _guestAnswers >= 2;
+
+  Widget _chat() {
+    final count = _messages.length + (_showCta ? 1 : 0);
+    return ListView.builder(
+      controller: _scroll,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      itemCount: count,
+      itemBuilder: (_, i) {
+        if (i == _messages.length) return _signUpCard();
+        final m = _messages[i];
+        final prev = i > 0 ? _messages[i - 1] : null;
+        final newDay = prev == null || !_sameDay(prev.at, m.at);
+        final last = i == _messages.length - 1;
+        final bubble = m.fromUser ? _userBubble(m) : _buddyMessage(m, last: last);
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          if (newDay) _dayChip(m.at),
+          _Appear(key: ObjectKey(m), animate: !m.restored, child: bubble),
+        ]);
+      },
+    );
+  }
+
+  Widget _dayChip(DateTime at) {
+    final now = DateTime.now();
+    final label = _sameDay(at, now)
+        ? tr('Heute')
+        : _sameDay(at, now.subtract(const Duration(days: 1)))
+            ? tr('Gestern')
+            : Dates.dayMonth(at);
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 12),
+      child: Center(
+        child: Text(label,
+            style: TextStyle(fontSize: 12, letterSpacing: 0.2, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+      ),
+    );
+  }
+
+  Widget _userBubble(_Message m) => Align(
+        alignment: Alignment.centerRight,
+        // screen readers hear who speaks and what a long press does
+        child: Semantics(
+          container: true,
+          label: tr('Du'),
+          onLongPressHint: tr('Kopieren und mehr'),
+          child: GestureDetector(
+          onLongPress: () => _message(m),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width.clamp(0, 480) * 0.8),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
+                if (m.image != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.memory(m.image!, height: 150, fit: BoxFit.cover),
+                  ),
+                if (m.image != null && m.text.isNotEmpty) const SizedBox(height: 8),
+                if (m.text.isNotEmpty)
+                  Text(m.text, style: TextStyle(color: AppColors.text, fontSize: 15.5, height: 1.45)),
+              ]),
+            ),
+          ),
+        ),
+        ),
+      );
+
+  Widget _buddyMessage(_Message m, {required bool last}) {
+    final text = BuddyMarkers.parse(m.text).text;
+    // no assistant block until the first token: a one-line thinking row instead
+    if (text.isEmpty && m.streaming && !m.error) return _thinkingRow();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 26),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (m.checkIn)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(children: [
+                  Icon(Icons.notifications_none_rounded, size: 14, color: AppColors.brand),
+                  const SizedBox(width: 4),
+                  Text(tr('Buddy meldet sich'),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brandText)),
+                ]),
+              ),
+            Semantics(
+              container: true,
+              label: tr('Buddy'),
+              // the finished answer is read out without moving focus
+              liveRegion: last && !m.streaming,
+              onLongPressHint: tr('Kopieren und mehr'),
+              child: GestureDetector(
+              onLongPress: () => _message(m),
+              child: m.error
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Text(text, style: TextStyle(color: AppColors.text, height: 1.45)),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: RichMarkdown(text,
+                              streaming: m.streaming,
+                              onAsk: _send,
+                              // chat stays body-size; lead size is for welcome marketing
+                              lead: false,
+                              stepDone: m.stepDone,
+                              onStepHelp: _guest || m.offline ? null : (step) => _send(tr('Hilf mir bei diesem Schritt: {x}', {'x': step})),
+                              onStepDone: _guest
+                                  ? null
+                                  : (step) {
+                                      HapticFeedback.lightImpact();
+                                      BuddyTasks.doneByText(step);
+                                      setState(() => m.stepDone = true);
+                                    }),
+                    ),
+            ),
+            ),
+            // tools mid-answer: show under the growing text, like ChatGPT tool status
+            if (m.streaming && !m.error && text.isNotEmpty) _toolStatusLine(),
+            if (m.offline && text.isNotEmpty && !m.error && !m.streaming)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
                 child: Text(
                     m.degraded
-                        ? 'KI gerade ausgelastet. Antwort offline aus deinen Daten'
-                        : 'Ohne KI berechnet aus deinen Daten',
+                        ? (_guest
+                            ? tr('KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen')
+                            : tr('KI gerade ausgelastet · Antwort offline aus deinen Daten'))
+                        : (_guest ? tr('Ohne KI · aus Buddys Grundwissen') : tr('Ohne KI berechnet aus deinen Daten')),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
-            for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
-            if (m.actions.isNotEmpty)
+            if (m.corrected && !m.streaming && !m.error)
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.verified_outlined, size: 13, color: AppColors.textDim),
+                  const SizedBox(width: 4),
+                  Flexible(
+                      child: Text(tr('Buddy hat eine Zahl nachgeprüft'),
+                          style: TextStyle(fontSize: 11, color: AppColors.textDim))),
+                ]),
+              ),
+            if (!m.streaming)
+              for (final c in m.charts) BuddyChartCard(c),
+            if (m.proposals.isNotEmpty && !m.streaming) _confirmNote(),
+            if (!m.streaming)
+              for (var i = 0; i < m.proposals.length; i++) _proposalCard(m, i),
+            if (m.entries.isNotEmpty && !m.streaming) _confirmNote(),
+            if (!m.streaming)
+              for (var i = 0; i < m.entries.length; i++) _entryCard(m, i),
+            if (m.remember != null) _rememberCard(m),
+            if (m.actions.isNotEmpty && !m.streaming)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
                 child: Wrap(spacing: 8, runSpacing: 8, children: [
                   for (final a in m.actions)
-                    ActionChip(
-                      avatar: Icon(a.icon, size: 18, color: AppColors.primary),
-                      label: Text(a.label),
-                      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      onPressed: () {
+                    _Pill(
+                      icon: a.icon,
+                      label: a.label,
+                      onTap: () {
                         HapticFeedback.selectionClick();
                         a.run(context);
                       },
                     ),
                 ]),
               ),
+            if (!m.streaming && !m.error && m.text.trim().isNotEmpty) _answerTools(m),
+            if (last && m.followUps.isNotEmpty && !m.streaming && !_thinking)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Wrap(spacing: 8, runSpacing: 8, children: [
+                  // onboarding choices stay; suggested questions stop at two, like Claude
+                  for (final f in (BuddyOnboarding.active ? m.followUps : m.followUps.take(2)))
+                    _Pill(icon: Icons.subdirectory_arrow_right_rounded, label: f, quiet: true, onTap: () => _follow(f)),
+                ]),
+              ),
+          ]),
+    );
+  }
+
+  // one quiet line until the first token. Tools replace "schreibt …".
+  Widget _thinkingRow() => ValueListenableBuilder<String?>(
+        valueListenable: BuddyService.activity,
+        builder: (_, looking, __) {
+          final line = looking == null || looking.trim().isEmpty ? tr('schreibt …') : buddyToolLine(looking);
+          return Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 18),
+            child: Semantics(
+              container: true,
+              liveRegion: true,
+              label: line,
+              child: ExcludeSemantics(
+                child: Row(children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(color: AppColors.brand, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(line,
+                        style: TextStyle(fontSize: 14, height: 1.35, color: AppColors.textDim, fontWeight: FontWeight.w400)),
+                  ),
+                ]),
+              ),
+            ),
+          );
+        },
+      );
+
+  // while tools run after text already started
+  Widget _toolStatusLine() => ValueListenableBuilder<String?>(
+        valueListenable: BuddyService.activity,
+        builder: (_, looking, __) {
+          if (looking == null || looking.trim().isEmpty) return const SizedBox.shrink();
+          final line = buddyToolLine(looking);
+          return Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Semantics(
+              liveRegion: true,
+              label: line,
+              child: Row(children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: AppColors.brand.withValues(alpha: 0.85), shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(line,
+                      style: TextStyle(fontSize: 13, height: 1.35, color: AppColors.textDim, fontWeight: FontWeight.w400)),
+                ),
+              ]),
+            ),
+          );
+        },
+      );
+
+  // under an answer: read aloud, and for live answers thumbs up or down
+  Widget _answerTools(_Message m) => Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Row(children: [
+          ValueListenableBuilder<String?>(
+            valueListenable: BuddyVoice.speaking,
+            builder: (_, now, __) => IconButton(
+              tooltip: now == m.text ? tr('Stopp') : tr('Vorlesen'),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              iconSize: 18,
+              color: now == m.text ? AppColors.brandText : AppColors.textDim,
+              icon: Icon(now == m.text ? Icons.stop_circle_outlined : Icons.volume_up_outlined),
+              onPressed: () => BuddyVoice.toggle(m.text),
+            ),
+          ),
+          if (!m.offline && !m.checkIn && m.question != null && _live == true) ..._rating(m),
+        ]),
+      );
+
+  // thumbs under a live answer; down asks why, so it can become a test case
+  List<Widget> _rating(_Message m) => [
+          if (m.liked != null)
+            Text(m.liked! ? tr('Danke!') : tr('Danke, das hilft Buddy.'),
+                style: TextStyle(fontSize: 12, color: AppColors.textDim))
+          else ...[
+            IconButton(
+              tooltip: tr('Gute Antwort'),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              iconSize: 18,
+              color: AppColors.textDim,
+              icon: const Icon(Icons.thumb_up_alt_outlined),
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                setState(() => m.liked = true);
+                BuddyService.feedback(up: true, question: m.question!, answer: m.text, tools: m.tools);
+              },
+            ),
+            IconButton(
+              tooltip: tr('Schlechte Antwort'),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              iconSize: 18,
+              color: AppColors.textDim,
+              icon: const Icon(Icons.thumb_down_alt_outlined),
+              onPressed: () => _dislike(m),
+            ),
+          ],
+        ];
+
+  Future<void> _dislike(_Message m) async {
+    // German keys go to the server, so feedback counts the same in both languages
+    const reasons = ['Zahl stimmt nicht', 'Hilft mir nicht', 'Zu lang', 'Falscher Ton', 'Anderes'];
+    String? reason;
+    final note = TextEditingController();
+    final sent = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(ctx).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tr('Was war nicht gut?'),
+                style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 14),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final r in reasons)
+                ChoiceChip(label: Text(tr(r)), selected: reason == r, onSelected: (_) => set(() => reason = r)),
+            ]),
+            const SizedBox(height: 14),
+            TextField(
+              controller: note,
+              maxLength: 300,
+              decoration: InputDecoration(hintText: tr('Was hättest du erwartet? (optional)')),
+            ),
+            Text(tr('Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.'),
+                style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: reason == null ? null : () => Navigator.pop(ctx, true),
+                child: Text(tr('Senden')),
+              ),
+            ),
           ]),
         ),
-      ]),
+      ),
+    );
+    if (sent != true || !mounted) return;
+    setState(() => m.liked = false);
+    BuddyService.feedback(
+        up: false, question: m.question!, answer: m.text, reason: reason ?? '', note: note.text, tools: m.tools);
+  }
+
+  Widget _confirmNote() => Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Row(children: [
+          Icon(Icons.lock_outline_rounded, size: 13, color: AppColors.textDim),
+          const SizedBox(width: 5),
+          Text(tr('Passiert erst, wenn du bestätigst'),
+              style: TextStyle(fontSize: 11.5, color: AppColors.textDim, fontWeight: FontWeight.w500)),
+        ]),
+      );
+
+  // one thing Buddy's tools propose (budget, goal, letter …); nothing
+  // happens until the button
+  Widget _proposalCard(_Message m, int i) {
+    final p = m.proposals[i];
+    final done = m.proposalDone[i];
+    final dropped = m.proposalDropped.contains(i);
+    final icon = switch (p.kind) {
+      ProposalKind.budget => Icons.pie_chart_outline_rounded,
+      ProposalKind.goal => Icons.flag_outlined,
+      ProposalKind.cancel => Icons.mark_email_read_outlined,
+      ProposalKind.category => Icons.label_outline_rounded,
+      ProposalKind.reminder => Icons.notifications_none_rounded,
+      ProposalKind.save => Icons.savings_outlined,
+    };
+    // one card is one unit for a screen reader; buttons say which card they act on
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: dropped ? 0.55 : 1,
+      child: Semantics(
+        container: true,
+        child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: done == null && !dropped ? AppColors.brand.withValues(alpha: 0.55) : AppColors.hairline),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, size: 19, color: AppColors.text),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(p.title, style: const TextStyle(fontWeight: FontWeight.w700, height: 1.3)),
+                const SizedBox(height: 2),
+                Text(p.detail, style: TextStyle(fontSize: 13, color: AppColors.textDim, height: 1.35)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          if (done != null)
+            Row(children: [
+              Expanded(
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text('✓ $done',
+                      semanticsLabel: tr('Erledigt: {x}', {'x': done}),
+                      style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700, height: 1.35)),
+                ),
+              ),
+              if (p.kind != ProposalKind.cancel)
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen())),
+                  child: Text(tr('Rückgängig')),
+                ),
+            ])
+          else if (dropped)
+            Text(tr('Verworfen'), style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600))
+          else
+            Row(children: [
+              TextButton(
+                onPressed: () {
+                  setState(() => m.proposalDropped.add(i));
+                  final p = m.proposals[i];
+                  BuddyDeclined.add(p.kind.name, '${p.title} (${p.detail})');
+                },
+                child: Text(tr('Verwerfen'), semanticsLabel: tr('{x} verwerfen', {'x': p.title})),
+              ),
+              const Spacer(),
+              FilledButton(
+                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  try {
+                    final before = {for (final g in GoalsService.all()) if (g.reached) g.id};
+                    final said = await p.apply();
+                    await LifeProgress.sync();
+                    if (mounted) setState(() => m.proposalDone[i] = said);
+                    // putting money aside filled a goal: the same celebration as in Sparziele
+                    final done = GoalsService.all().where((g) => g.reached && !before.contains(g.id)).firstOrNull;
+                    if (done != null && mounted) celebrateGoal(context, done);
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(friendlyError(e, fallback: tr('Das ging gerade nicht.')))));
+                    }
+                  }
+                },
+                child: Text(tr(p.confirm), semanticsLabel: '${tr(p.confirm)}: ${p.title}'),
+              ),
+            ]),
+        ]),
+      ),
+      ),
     );
   }
 
@@ -800,45 +2135,187 @@ class _BuddyScreenState extends State<BuddyScreen> {
   Widget _entryCard(_Message m, int i) {
     final e = m.entries[i];
     final done = m.applied[i];
+    final dropped = m.dismissed.contains(i);
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: dropped ? 0.55 : 1,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+              color: done == null && !dropped ? AppColors.brand.withValues(alpha: 0.55) : AppColors.border),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(e.title, style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 2),
+          Text(e.summary, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.35)),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: done != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      child: Text('✓ $done',
+                          style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w700)),
+                    )
+                  : dropped
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                          child: Text(tr('Verworfen'),
+                              style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
+                        )
+                      : Row(mainAxisSize: MainAxisSize.min, children: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact, foregroundColor: AppColors.textDim),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => m.dismissed.add(i));
+                            },
+                            child: Text(tr('Verwerfen')),
+                          ),
+                          const SizedBox(width: 4),
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: AppColors.brand,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () => _apply(m, i),
+                            child: Text(tr('Übernehmen')),
+                          ),
+                        ]),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Widget _rememberCard(_Message m) {
+    final state = m.rememberState;
     return Container(
       margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: done == null ? AppColors.primary.withValues(alpha: 0.5) : AppColors.border),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: state == null ? AppColors.brand.withValues(alpha: 0.45) : Colors.transparent),
       ),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(e.title, style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 2),
-            Text(e.summary, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.3)),
-          ]),
-        ),
-        const SizedBox(width: 8),
-        done == null
-            ? FilledButton(
-                style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
-                onPressed: () => _apply(m, i),
-                child: const Text('Übernehmen'),
-              )
-            : Text('✓ $done', style: TextStyle(color: AppColors.positiveText, fontWeight: FontWeight.w600)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(state == 'saved' ? Icons.bookmark_rounded : Icons.bookmark_add_outlined,
+                size: 19, color: AppColors.brand),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                  state == 'saved'
+                      ? tr('Gemerkt')
+                      : state == 'known'
+                          ? tr('Weiß ich schon')
+                          : state == 'no'
+                              ? tr('Nicht gemerkt')
+                              : tr('Soll Buddy sich das merken?'),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(m.remember!, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.35)),
+            ]),
+          ),
+        ]),
+        if (state == null || state == 'saved')
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (state == null) ...[
+                  TextButton(
+                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact, foregroundColor: AppColors.textDim),
+                    onPressed: () => setState(() => m.rememberState = 'no'),
+                    child: Text(tr('Nein')),
+                  ),
+                  const SizedBox(width: 4),
+                  FilledButton(
+                    style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
+                    onPressed: () => _remember(m),
+                    child: Text(tr('Merken')),
+                  ),
+                ] else
+                  TextButton(
+                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                    onPressed: () =>
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen())),
+                    child: Text(tr('Ansehen')),
+                  ),
+              ]),
+            ),
+          ),
       ]),
     );
   }
 
+  Widget _signUpCard() => Padding(
+        padding: const EdgeInsets.only(left: 42, bottom: 18),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 8, 14),
+          decoration: BoxDecoration(
+            color: AppColors.brand.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.brand.withValues(alpha: 0.35)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Expanded(
+                child: Text(tr('Mit deinen Zahlen rechnen?'),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
+              ),
+              IconButton(
+                tooltip: tr('Schließen'),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => setState(() => _ctaClosed = true),
+                icon: Icon(Icons.close_rounded, size: 18, color: AppColors.textDim),
+              ),
+            ]),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text(
+                tr('Kostenloses Konto. Ich sehe deine Ausgaben und was bis Monatsende bleibt.'),
+                style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.brand, foregroundColor: Colors.white),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+              child: Text(tr('Kostenlos starten')),
+            ),
+          ]),
+        ),
+      );
+
+  // ----------------------------------------------------------------- input
+
   Widget _inputBar() {
+    final canSend = (_input.text.trim().isNotEmpty || _photo != null) && !_thinking;
+    final note = _quotaLine;
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (_photo != null)
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 8, left: 4),
                 child: Stack(children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -848,7 +2325,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     right: 0,
                     top: 0,
                     child: IconButton(
-                      tooltip: 'Foto entfernen',
+                      tooltip: tr('Foto entfernen'),
                       visualDensity: VisualDensity.compact,
                       style: IconButton.styleFrom(backgroundColor: Colors.black54),
                       onPressed: () => setState(() => _photo = null),
@@ -858,94 +2335,190 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 ]),
               ),
             ),
-          Row(children: [
-            IconButton(
-              tooltip: 'Foto senden',
-              onPressed: _thinking ? null : _pickPhoto,
-              icon: Icon(Icons.add_photo_alternate_rounded, color: AppColors.primaryText),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.fromLTRB(4, 3, 4, 3),
+            decoration: BoxDecoration(
+              color: ThemeController.isDark.value ? const Color(0x14FFFFFF) : AppColors.surface,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                  color: _focus.hasFocus ? AppColors.brand.withValues(alpha: 0.55) : AppColors.hairline),
             ),
-            Expanded(
-              child: TextField(
-                controller: _input,
-                minLines: 1,
-                maxLines: 4,
-                textInputAction: TextInputAction.send,
-                onSubmitted: _send,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Frag Buddy oder erzähl, was passiert ist …',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(color: AppColors.textDim, width: 1),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (!_guest)
+                IconButton(
+                  tooltip: tr('Foto senden'),
+                  onPressed: _thinking ? null : _pickPhoto,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                  icon: Icon(Icons.add_rounded, color: AppColors.textDim, size: 22),
+                )
+              else
+                const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _input,
+                  focusNode: _focus,
+                  minLines: 1,
+                  maxLines: 5,
+                  textInputAction: TextInputAction.send,
+                  textCapitalization: TextCapitalization.sentences,
+                  onSubmitted: _send,
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(fontSize: 15.5),
+                  decoration: InputDecoration(
+                    hintText: VoiceInput.listening.value
+                        ? tr('Ich höre zu …')
+                        : tr('Nachricht an Buddy'),
+                    hintMaxLines: 1,
+                    filled: false,
+                    isDense: true,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.fromLTRB(4, 11, 4, 11),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
-              opacity: (_input.text.trim().isEmpty && _photo == null) || _thinking ? 0.4 : 1,
-              child: Semantics(
-                button: true,
-                label: 'Senden',
-                enabled: (_input.text.trim().isNotEmpty || _photo != null) && !_thinking,
-                child: GestureDetector(
-                onTap: () => _send(_input.text),
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary,
+              const SizedBox(width: 4),
+              // ChatGPT-style: while Buddy writes, the send button becomes Stop
+              if (_thinking)
+                _ChatAction(
+                  tooltip: tr('Stoppen'),
+                  onPressed: _stop,
+                  background: AppColors.text,
+                  icon: Icon(Icons.stop_rounded, size: 16, color: AppColors.bg),
+                )
+              else if (!canSend && _photo == null)
+                ValueListenableBuilder<bool>(
+                  valueListenable: VoiceInput.listening,
+                  builder: (_, on, __) => _ChatAction(
+                    tooltip: on ? tr('Zuhören beenden') : tr('Sprechen'),
+                    onPressed: _voice,
+                    background: on ? AppColors.brand : Colors.transparent,
+                    icon: Icon(on ? Icons.stop_rounded : Icons.mic_none_rounded,
+                        size: 22, color: on ? Colors.white : AppColors.textDim),
                   ),
-                  child: Icon(Icons.arrow_upward_rounded, color: AppColors.onPrimary),
+                )
+              else
+                _ChatAction(
+                  tooltip: tr('Senden'),
+                  onPressed: canSend ? () => _send(_input.text) : null,
+                  background: AppColors.brand,
+                  icon: const Icon(Icons.arrow_upward_rounded, size: 20, color: Colors.white),
                 ),
-              )),
+            ]),
+          ),
+          if (PlusService.syncError.value != null && !_guest) ...[
+            const SizedBox(height: 5),
+            TextButton(
+              onPressed: () => PlusService.syncWithServer(fresh: true),
+              child: Text(tr('{syncError} Erneut versuchen', {'syncError': PlusService.syncError.value}),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDim, decoration: TextDecoration.underline)),
             ),
-          ]),
-          const SizedBox(height: 6),
-          if (PlusService.syncError.value != null)
-            GestureDetector(
-              onTap: () => PlusService.syncWithServer(fresh: true),
-              child: Text('${PlusService.syncError.value} Erneut versuchen',
-                  style: TextStyle(fontSize: 11, color: AppColors.textDim, decoration: TextDecoration.underline)),
-            )
-          else if (_live == true && !PlusService.active.value)
-            Text(_quotaLine,
-                style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-          Text('Buddy kann sich irren. Keine Anlage- oder Steuerberatung.',
-              style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+          ] else if (_footnote(note) case final line?) ...[
+            const SizedBox(height: 5),
+            Text(line,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.3)),
+          ],
         ]),
       ),
     );
   }
 }
 
+// Round control in the chat field: keyboard focus, a 44px target, same copper circle.
+class _ChatAction extends StatelessWidget {
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final Color background;
+  final Widget icon;
+  const _ChatAction({required this.tooltip, required this.onPressed, required this.background, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        minimumSize: const Size(44, 44),
+        fixedSize: const Size(44, 44),
+        padding: EdgeInsets.zero,
+        backgroundColor: background,
+        shape: const CircleBorder(),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: icon,
+    );
+  }
+}
+
+// One line while a tool runs. [looking] is the German activity phrase
+// ("Konten", or the older "deine Konten").
+String buddyToolLine(String looking) {
+  final noun = tr(_shortToolNoun(looking));
+  final shown = L10n.isDe ? noun : noun.toLowerCase();
+  return tr('Prüft {x}…', {'x': shown});
+}
+
+String _shortToolNoun(String looking) => switch (looking) {
+      'ob es passt' => 'Leistbarkeit',
+      'die letzten Monate' => 'Monatsverlauf',
+      'deinen Monat' => 'Monatsprognose',
+      'die Gehaltsrechnung' => 'Gehalt',
+      'deinen Schulden-Plan' => 'Schuldenplan',
+      'deine Abrechnung' => 'Abrechnung',
+      _ => looking.replaceFirst(RegExp(r'^(deinen|deine|dein|einen|ein|die|den)\s+'), ''),
+    };
+
 class _Message {
   final bool fromUser;
   String text;
+  final DateTime at;
   bool offline;
   bool degraded = false; // live KI failed → offline fallback
   bool error = false;
+  bool streaming = false;
+  bool restored = false; // from last time: no entry animation
+  bool checkIn = false; // Buddy spoke first
+  bool corrected = false; // rewritten after the number check
   List<BuddyAction> actions = const []; // next steps under an answer
+  List<BuddyProposal> proposals = const []; // what Buddy's tools propose, confirmed by the user
+  final Map<int, String> proposalDone = {}; // proposal index -> what was done
+  final Set<int> proposalDropped = {};
+  List<BuddyChart> charts = const []; // small charts under the answer
+  bool stepDone = false; // the next step is marked done
+  String? question; // what this answer answers, for feedback
+  List<String> tools = const []; // which tools it used
+  bool? liked; // thumbs up (true) or down (false)
   List<BuddyEntry> entries = const []; // what Buddy would book, each confirmed by the user
   final Map<int, String> applied = {}; // entry index -> what was done
+  final Set<int> dismissed = {}; // entries the user waved away
+  List<String> followUps = const [];
+  bool langNote = false; // "from now on in English": replaced by the next switch
+  String? remember; // a fact Buddy suggests to keep
+  String? rememberState; // saved, known, no
   Uint8List? image; // a photo the user sent
-  _Message(this.fromUser, this.text, {this.offline = false, this.image});
+  _Message(this.fromUser, this.text, {DateTime? at, this.offline = false, this.image}) : at = at ?? DateTime.now();
 }
 
-class _TypingDots extends StatefulWidget {
-  const _TypingDots();
+// a short fade and lift for new messages
+class _Appear extends StatefulWidget {
+  final Widget child;
+  final bool animate;
+  const _Appear({super.key, required this.child, this.animate = true});
 
   @override
-  State<_TypingDots> createState() => _TypingDotsState();
+  State<_Appear> createState() => _AppearState();
 }
 
-class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-    ..repeat();
+class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 260), value: widget.animate ? 0 : 1)
+        ..forward();
 
   @override
   void dispose() {
@@ -955,69 +2528,95 @@ class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderState
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 20,
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, __) => Row(mainAxisSize: MainAxisSize.min, children: [
-          for (int i = 0; i < 3; i++)
-            Transform.translate(
-              offset: Offset(0, -4 * (1 - ((_c.value * 3 - i).abs() % 3).clamp(0.0, 1.0))),
-              child: Container(
-                width: 7,
-                height: 7,
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                decoration: BoxDecoration(color: AppColors.textDim, shape: BoxShape.circle),
-              ),
-            ),
-        ]),
+    final curve = CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+    return FadeTransition(
+      opacity: curve,
+      child: SlideTransition(
+        position: Tween(begin: const Offset(0, 0.08), end: Offset.zero).animate(curve),
+        child: widget.child,
       ),
     );
   }
 }
 
-// The little markdown Buddy writes: **bold** and "- " bullet lines.
-class RichMarkdown extends StatelessWidget {
-  final String text;
-  const RichMarkdown(this.text, {super.key});
+class _Pill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool quiet;
+  const _Pill({required this.icon, required this.label, required this.onTap, this.quiet = false});
 
-  List<TextSpan> _spans(String line) {
-    final spans = <TextSpan>[];
-    final parts = line.split('**');
-    for (int i = 0; i < parts.length; i++) {
-      spans.add(TextSpan(
-        text: parts[i],
-        style: i.isOdd ? const TextStyle(fontWeight: FontWeight.w700) : null,
-      ));
-    }
-    return spans;
+  @override
+  Widget build(BuildContext context) => Material(
+        color: quiet ? Colors.transparent : AppColors.surface,
+        shape: StadiumBorder(side: BorderSide(color: AppColors.border)),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: quiet ? 7 : 8),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+              if (!quiet) ...[
+                Icon(icon, size: 16, color: AppColors.brand),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: Text(label,
+                    style: TextStyle(
+                        fontSize: quiet ? 13.5 : 13,
+                        fontWeight: quiet ? FontWeight.w500 : FontWeight.w600,
+                        height: 1.3,
+                        color: AppColors.text)),
+              ),
+            ]),
+          ),
+        ),
+      );
+}
+
+// the large orb on the welcome screen, breathing slowly
+class _HeroOrb extends StatefulWidget {
+  const _HeroOrb();
+
+  @override
+  State<_HeroOrb> createState() => _HeroOrbState();
+}
+
+class _HeroOrbState extends State<_HeroOrb> with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final base = TextStyle(color: AppColors.text, fontSize: 15, height: 1.45);
-    // models like long dashes even when asked not to: a comma reads the same
-    final lines = text.replaceAll(' — ', ', ').replaceAll('—', ', ').split('\n');
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      for (final raw in lines)
-        if (raw.trim().isEmpty)
-          const SizedBox(height: 6)
-        else if (raw.trimLeft().startsWith('- ') || raw.trimLeft().startsWith('• '))
-          Padding(
-            padding: const EdgeInsets.only(top: 2, bottom: 2),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8, right: 8, left: 2),
-                child: Container(
-                    width: 5, height: 5, decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        widthFactor: 1,
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (_, child) {
+            final t = Curves.easeInOut.transform(_c.value);
+            return Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.brand.withValues(alpha: 0.18 + 0.17 * t),
+                    blurRadius: 18 + 14 * t,
+                    spreadRadius: 1 + 3 * t,
+                  ),
+                ],
               ),
-              Expanded(child: Text.rich(TextSpan(children: _spans(raw.trimLeft().substring(2))), style: base)),
-            ]),
-          )
-        else
-          Text.rich(TextSpan(children: _spans(raw)), style: base),
-    ]);
-  }
+              child: child,
+            );
+          },
+          child: const BuddyOrb(size: 52),
+        ),
+      );
 }
 
 // Entry on the home screen: Buddy's orb with a short tip from the user's own
@@ -1087,21 +2686,21 @@ class _BuddyCardState extends State<BuddyCard> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(tip != null ? 'Buddy hat einen Tipp' : 'Frag Buddy',
+                    Text(tip != null ? tr('Buddy hat einen Tipp') : tr('Frag Buddy'),
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
                     const SizedBox(height: 3),
                     if (tip != null)
                       Text(tip.text, style: TextStyle(color: AppColors.textDim, fontSize: 13.5, height: 1.35))
                     else
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      layoutBuilder: (current, previous) =>
-                          Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
-                      child: Text('„${s[_i % s.length].text}“',
-                          key: ValueKey(_i),
-                          style: TextStyle(color: AppColors.textDim, fontSize: 13.5),
-                          overflow: TextOverflow.ellipsis),
-                    ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        layoutBuilder: (current, previous) =>
+                            Stack(alignment: Alignment.centerLeft, children: [...previous, if (current != null) current]),
+                        child: Text(tr('„{x}“', {'x': s[_i % s.length].text}),
+                            key: ValueKey(_i),
+                            style: TextStyle(color: AppColors.textDim, fontSize: 13.5),
+                            overflow: TextOverflow.ellipsis),
+                      ),
                   ]),
                 ),
                 Icon(Icons.north_east_rounded, size: 18, color: AppColors.textDim.withValues(alpha: 0.75)),

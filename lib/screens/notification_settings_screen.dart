@@ -5,6 +5,7 @@ import '../services/backend_service.dart';
 import '../services/notification_service.dart';
 import '../utils/theme.dart';
 import '../widgets/settings_list.dart';
+import '../l10n/l10n.dart';
 
 // Mitteilungen: one main switch, then each topic on its own.
 class NotificationSettingsScreen extends StatefulWidget {
@@ -70,9 +71,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('WhatsApp'),
+          title: Text(tr('WhatsApp')),
           content: Text(text),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Verstanden'))],
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Verstanden')))],
         ),
       );
     } catch (e) {
@@ -84,7 +85,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   void _waError(Object e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e is String ? e : 'Gerade nicht erreichbar.')),
+      SnackBar(content: Text(e is String ? e : tr('Gerade nicht erreichbar.'))),
     );
   }
 
@@ -93,6 +94,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         NotifyTopic.contracts => Icons.receipt_long_rounded,
         NotifyTopic.weekly => Icons.insights_rounded,
         NotifyTopic.account => Icons.workspace_premium_rounded,
+        NotifyTopic.buddy => Icons.auto_awesome_rounded,
       };
 
   Future<void> _toggle(bool on) async {
@@ -111,22 +113,22 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mitteilungen')),
+      appBar: AppBar(title: Text(tr('Mitteilungen'))),
       body: ValueListenableBuilder<bool>(
         valueListenable: NotificationService.enabled,
         builder: (context, on, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
-            Text('Buddy meldet sich nur, wenn es wirklich zählt. Kein Spam, keine Werbung.',
+            Text(tr('Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             SettingsGroup([
               SettingsRow(
                 icon: on ? Icons.notifications_active_rounded : Icons.notifications_off_outlined,
-                title: 'Mitteilungen erlauben',
+                title: tr('Mitteilungen erlauben'),
                 // where it cannot work, the reason is shown instead of a switch that fails
                 subtitle: !on && !NotificationService.canAsk
-                    ? 'Hier gerade nicht möglich'
+                    ? tr('Hier gerade nicht möglich')
                     : null,
                 trailing: Switch(value: on, onChanged: !on && !NotificationService.canAsk ? null : _toggle),
               ),
@@ -136,15 +138,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 padding: const EdgeInsets.only(top: 10, left: 4, right: 4),
                 child: Text(
                   kIsWeb
-                      ? 'Dein Browser lässt BudgetBuddy keine Mitteilungen schicken. Du kannst das in den '
-                          'Website-Einstellungen ändern (Schloss-Symbol neben der Adresse). Die Hinweise in der '
-                          'App bekommst du trotzdem.'
-                      : 'Erlaube Mitteilungen für BudgetBuddy in den Einstellungen deines Geräts. Die Hinweise in '
-                          'der App bekommst du trotzdem.',
+                      ? tr('Dein Browser blockiert Mitteilungen. Änder das in den Website-Einstellungen (Schloss neben der Adresse). Hinweise in der App bleiben.')
+                      : tr('Erlaube Mitteilungen für Ahead in den Geräteeinstellungen. Hinweise in der App bleiben.'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
                 ),
               ),
-            const SectionLabel('Worüber Buddy Bescheid sagt'),
+            SectionLabel(tr('Worüber Buddy Bescheid sagt')),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: on ? 1 : 0.45,
@@ -170,24 +169,21 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             const SizedBox(height: 16),
             Text(
               kIsWeb
-                  ? 'Im Browser: Hinweise nur, während BudgetBuddy offen ist. Geplante Erinnerungen '
-                      '(z. B. Sonntag Wochenbericht, ablaufende Bank-Freigabe) gibt es in der iPhone- und Android-App.'
-                  : 'Erinnerungen werden auf deinem Gerät geplant. Deine Daten gehen dafür an keinen Server.',
+                  ? tr('Im Browser nur, solange Ahead offen ist. Geplante Erinnerungen (Wochenbericht, Bank-Freigabe) gibt es in der App.')
+                  : tr('Erinnerungen plant dein Gerät. Dafür gehen keine Daten an einen Server.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
-            const SectionLabel('WhatsApp'),
+            SectionLabel(tr('WhatsApp')),
             Text(
-              'Aus, bis du zustimmst. Versand über die WhatsApp Cloud API von Meta. Nur drei Arten, kein Spam '
-              'und keine Werbung: Wochenbericht, Budget-Warnung, Split-Erinnerung. Deine Nummer speichern wir '
-              'nicht im Klartext, nur einen Hash. Abmelden geht mit dem Schalter oder mit „Stop“ in WhatsApp.',
+              tr('Aus, bis du zustimmst. Versand über WhatsApp (Meta): Wochenbericht, Budget-Warnung, Split-Erinnerung. Kein Spam. Nummer nur als Hash. Abmelden per Schalter oder „Stop“.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
             ),
             const SizedBox(height: 12),
             SettingsGroup([
               SettingsRow(
                 icon: Icons.chat_rounded,
-                title: 'Mitteilungen per WhatsApp',
-                subtitle: _waReady ? (_waOn ? 'An, jederzeit abmeldbar' : 'Aus') : 'Bald / Server einrichten',
+                title: tr('Mitteilungen per WhatsApp'),
+                subtitle: _waReady ? (_waOn ? tr('An, jederzeit abmeldbar') : tr('Aus')) : tr('Bald / Server einrichten'),
                 trailing: Switch(
                   value: _waReady && _waOn,
                   onChanged: _waReady && !_waBusy ? _toggleWhatsApp : null,
@@ -220,17 +216,17 @@ class _WaPhoneDialogState extends State<_WaPhoneDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('WhatsApp-Nummer'),
+      title: Text(tr('WhatsApp-Nummer')),
       content: TextField(
         controller: _ctrl,
         autofocus: true,
         keyboardType: TextInputType.phone,
-        decoration: const InputDecoration(labelText: 'Nummer', hintText: '+491701234567'),
+        decoration: InputDecoration(labelText: tr('Nummer'), hintText: '+491701234567'),
         onSubmitted: (_) => Navigator.pop(context, _ctrl.text.trim()),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
-        TextButton(onPressed: () => Navigator.pop(context, _ctrl.text.trim()), child: const Text('Freigeben')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Abbrechen'))),
+        TextButton(onPressed: () => Navigator.pop(context, _ctrl.text.trim()), child: Text(tr('Freigeben'))),
       ],
     );
   }

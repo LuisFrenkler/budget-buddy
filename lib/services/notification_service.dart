@@ -20,30 +20,36 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'buddy_service.dart';
+import 'buddy_tasks.dart';
 import 'cancellation_service.dart';
 import 'contracts.dart';
+import 'overdraft.dart';
 import 'db.dart';
 import 'goals_service.dart';
 import 'hints_service.dart';
 import 'plus_service.dart';
 import 'settings_service.dart';
 import 'weekly_report.dart';
+import '../l10n/l10n.dart';
 
-enum NotifyTopic { spending, contracts, weekly, account }
+enum NotifyTopic { spending, contracts, weekly, account, buddy }
 
 extension NotifyTopicLabel on NotifyTopic {
   String get label => switch (this) {
-        NotifyTopic.spending => 'Budgets & Ausgaben',
-        NotifyTopic.contracts => 'Verträge & Abbuchungen',
+        NotifyTopic.spending => tr('Budgets & Ausgaben'),
+        NotifyTopic.contracts => tr('Verträge & Abbuchungen'),
         NotifyTopic.weekly => 'Wochenbericht',
         NotifyTopic.account => 'Abo & Bankverbindung',
+        NotifyTopic.buddy => 'Buddy-Momente',
       };
 
   String get description => switch (this) {
-        NotifyTopic.spending => 'Budget überschritten, ungewöhnliche Ausgaben, Sparziele',
-        NotifyTopic.contracts => 'Preiserhöhungen und große Abbuchungen am Tag vorher',
-        NotifyTopic.weekly => 'Jeden Sonntag um 18 Uhr',
+        NotifyTopic.spending => tr('Budget überschritten, ungewöhnliche Ausgaben, Sparziele'),
+        NotifyTopic.contracts => tr('Preiserhöhungen und große Abbuchungen am Tag vorher'),
+        NotifyTopic.weekly => tr('Jeden Sonntag um 18 Uhr'),
         NotifyTopic.account => 'Ende des Gratis-Tests, ablaufende Bankverbindung',
+        NotifyTopic.buddy => tr('Gehalt ist da, Ziel erreicht'),
       };
 }
 
@@ -69,7 +75,10 @@ class NotificationService {
 
   static final enabled = ValueNotifier<bool>(false);
 
-  static bool topic(NotifyTopic t) => _box.get('notify_${t.name}', defaultValue: true) as bool;
+  // warnings are on once notifications are; the nice-to-know ones (weekly
+  // report, Buddy moments) Buddy offers in the chat after the first week
+  static bool topic(NotifyTopic t) =>
+      _box.get('notify_${t.name}', defaultValue: t != NotifyTopic.weekly && t != NotifyTopic.buddy) as bool;
 
   static Future<void> setTopic(NotifyTopic t, bool on) async {
     await _box.put('notify_${t.name}', on);
@@ -125,7 +134,7 @@ class NotificationService {
   static Future<bool> enable() async {
     if (!_ready) await init();
     if (!_ready) {
-      problem = 'Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.';
+      problem = tr('Dieser Browser unterstützt keine Mitteilungen. In der App für iPhone und Android geht es.');
       return false;
     }
     bool? granted;
@@ -145,8 +154,7 @@ class NotificationService {
       granted = true;
     }
     if (granted != true) {
-      problem = 'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen '
-          '${kIsWeb ? 'deines Browsers' : 'deines Geräts'} für BudgetBuddy erlauben.';
+      problem = tr('Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen {x} für Ahead erlauben.', {'x': kIsWeb ? 'deines Browsers' : tr('deines Geräts')});
       return false;
     }
     await _box.put('notifyOn', true);
@@ -166,16 +174,16 @@ class NotificationService {
   // a short confirmation right after turning it on
   static Future<void> hello() => _show(
         1,
-        'Buddy meldet sich ab jetzt',
-        'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.',
+        tr('Buddy meldet sich ab jetzt'),
+        tr('Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.'),
         'home',
       );
 
-  static const _details = NotificationDetails(
+  static NotificationDetails get _details => NotificationDetails(
     android: AndroidNotificationDetails(
       'buddy',
       'Buddy',
-      channelDescription: 'Hinweise, Erinnerungen und Wochenbericht',
+      channelDescription: tr('Hinweise, Erinnerungen und Wochenbericht'),
       importance: Importance.high,
       priority: Priority.high,
     ),
@@ -200,7 +208,12 @@ class NotificationService {
   }
 
   static NotifyTopic? _topicOf(HintKind k) => switch (k) {
-        HintKind.budgetOver || HintKind.bigExpense => NotifyTopic.spending,
+        HintKind.budgetOver || HintKind.budgetClose || HintKind.budgetUnreal || HintKind.bigExpense || HintKind.lowMonth =>
+          NotifyTopic.spending,
+        HintKind.salaryIn || HintKind.salaryUp || HintKind.taxReturn || HintKind.goalReached || HintKind.monthReview || HintKind.goalBehind => NotifyTopic.buddy,
+        HintKind.doubleCharge || HintKind.bankFees || HintKind.returnedDebit || HintKind.dunning => NotifyTopic.contracts,
+        HintKind.overdraft || HintKind.incomeMissing => NotifyTopic.spending,
+        HintKind.weekPlan => NotifyTopic.buddy,
         HintKind.priceUp || HintKind.stillCharging => NotifyTopic.contracts,
         _ => null, // the rest is planned ahead as a reminder
       };
@@ -212,6 +225,8 @@ class NotificationService {
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
         cancellations: CancellationService.all,
+        freeCents: BuddyService.freeCents(),
+        balanceCents: BuddyService.cashCents(),
         now: now,
       ).where((h) => _topicOf(h.kind) != null).toList();
 
@@ -230,13 +245,19 @@ class NotificationService {
     if (!_ready || !enabled.value) return;
     final today = now ?? DateTime.now();
 
-    // 1. urgent hints, each only once, at most three at a time
+    // 1. urgent hints, each only once. A finance buddy that spams loses
+    // trust: at most one a day and three a week, the most urgent first
     final seen = _shown;
-    final fresh = _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(3).toList();
+    final log = _sentLog(today);
+    final room = quietRoom(log, today);
+    final fresh =
+        _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(room).toList();
     for (final h in fresh) {
-      await _show(_idFor(h.id), h.title, h.text, 'hint:${h.target.name}');
+      // a hint with a question opens Buddy's chat with it
+      await _show(_idFor(h.id), h.title, h.text, h.question != null ? 'buddy:${h.question}' : 'hint:${h.target.name}');
     }
     await _markShown(fresh.map((h) => h.id));
+    if (fresh.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in fresh) today.toIso8601String()]);
 
     // 2. the browser cannot schedule: show this week's report once when it is ready
     if (kIsWeb) {
@@ -245,7 +266,7 @@ class NotificationService {
         final key = 'weekly-${report?.start.toIso8601String().substring(0, 10)}';
         final fresh = report != null && today.difference(report.end).inDays < 2 && !_shown.contains(key);
         if (fresh) {
-          await _show(_idFor(key), 'Dein Wochenbericht ist da', report.summary, 'weekly');
+          await _show(_idFor(key), tr('Dein Wochenbericht ist da'), report.summary, 'weekly');
           await _markShown([key]);
         }
       }
@@ -260,8 +281,13 @@ class NotificationService {
         goals: GoalsService.all(),
         subscription: PlusService.subscription.value,
         bankValidUntil: Settings.bankValidUntil,
+        tasks: [
+          for (final t in BuddyTasks.open(now: today))
+            if (t.due != null) (text: t.text, due: t.due!)
+        ],
+        balanceCents: BuddyService.cashCents(),
         now: today,
-      ).where((r) => topic(r.topic));
+      ).where((r) => topic(r.topic) || r.payload.startsWith('buddy:'));
       for (final r in planned) {
         await _plugin.zonedSchedule(
           id: r.id,
@@ -277,21 +303,91 @@ class NotificationService {
     } catch (_) {}
   }
 
+  static const maxPerWeek = 3;
+
+  // when hints went out in the last week
+  static List<String> _sentLog(DateTime now) => [
+        for (final t in (_box.get('notifyLog') as List? ?? const []).cast<String>())
+          if (now.difference(DateTime.tryParse(t) ?? DateTime(2000)).inDays < 7) t
+      ];
+
+  // how many hints may go out now: none if one went out today, and never
+  // more than three in seven days
+  static int quietRoom(List<String> log, DateTime now) {
+    final times = [for (final t in log) DateTime.tryParse(t)].whereType<DateTime>();
+    if (times.any((t) => t.year == now.year && t.month == now.month && t.day == now.day)) return 0;
+    final week = times.where((t) => now.difference(t).inDays < 7).length;
+    return (maxPerWeek - week).clamp(0, 1);
+  }
+
+  // planned nudges, calm: account things (trial ending, bank link expiring)
+  // always; everything else at most once a day and three times a week
+  static List<Reminder> calm(List<Reminder> planned) {
+    final sorted = [...planned]..sort((a, b) => a.when.compareTo(b.when));
+    final days = <String>{};
+    final weeks = <String, int>{};
+    final out = <Reminder>[];
+    for (final r in sorted) {
+      if (r.topic == NotifyTopic.account) {
+        out.add(r);
+        continue;
+      }
+      final day = '${r.when.year}-${r.when.month}-${r.when.day}';
+      final monday = DateTime(r.when.year, r.when.month, r.when.day - (r.when.weekday - 1));
+      final week = '${monday.year}-${monday.month}-${monday.day}';
+      if (days.contains(day) || (weeks[week] ?? 0) >= maxPerWeek) continue;
+      days.add(day);
+      weeks[week] = (weeks[week] ?? 0) + 1;
+      out.add(r);
+    }
+    return out;
+  }
+
   // what to remind of, and when (pure, so it can be tested)
   static List<Reminder> plan({
     required List<Transaction> tx,
     required List<Goal> goals,
     Subscription? subscription,
     DateTime? bankValidUntil,
+    // reminders the person asked Buddy for
+    List<({String text, DateTime due})> tasks = const [],
+    // the cash today, for the morning warning before the account dips below zero
+    int? balanceCents,
     required DateTime now,
   }) {
     final out = <Reminder>[];
     DateTime at(DateTime d, int hour) => DateTime(d.year, d.month, d.day, hour);
+
+    // asked for, so always on: in the morning of the day, the chat opens with help
+    for (final t in tasks) {
+      final when = at(t.due, 9);
+      if (when.isAfter(now)) {
+        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, tr('Erinnerung von Buddy'), t.text, NotifyTopic.buddy,
+            'buddy:Hilf mir bei diesem Schritt: ${t.text}'));
+      }
+    }
     DateTime before(DateTime d, int days, int hour) => DateTime(d.year, d.month, d.day - days, hour);
 
+    // the morning of the day the account would dip below zero, at 8
+    if (balanceCents != null) {
+      final d = Overdraft.firstNegativeDay(tx, balanceCents: balanceCents, now: now);
+      if (d != null) {
+        final when = at(d, 8);
+        if (when.isAfter(now)) {
+          out.add(Reminder(
+              _idFor('overdraft-$d'),
+              when,
+              tr('Heute rutscht dein Konto ins Minus'),
+              tr('Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.'),
+              NotifyTopic.spending,
+              'buddy:${tr('Mein Konto rutscht heute ins Minus. Was kann ich jetzt noch tun?')}'));
+        }
+      }
+    }
+
     final weekly = WeeklyReportService.nextReady(now);
-    out.add(Reminder(_idFor('weekly-$weekly'), weekly, 'Dein Wochenbericht ist da',
-        'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.', NotifyTopic.weekly, 'weekly'));
+    out.add(Reminder(_idFor('weekly-$weekly'), weekly, tr('Dein Wochenbericht ist da'),
+        tr('Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.'), NotifyTopic.weekly, 'weekly'));
 
     for (final c in Contracts.detect(tx, now: now)) {
       if (c.monthlyCents < 5000) continue;
@@ -309,9 +405,8 @@ class NotificationService {
         out.add(Reminder(
             _idFor('trial-${sub.trialEnds}'),
             when,
-            'Dein Gratis-Test endet in 2 Tagen',
-            'Ab ${Dates.dayMonth(sub.trialEnds)} kostet Plus ${Money.format(sub.priceCents)}. '
-                'Wenn du nicht weitermachen willst, kündige vorher.',
+            tr('Dein Gratis-Test endet in 2 Tagen'),
+            tr('Ab {x} kostet Plus {y}. Wenn du nicht weitermachen willst, kündige vorher.', {'x': Dates.dayMonth(sub.trialEnds), 'y': Money.format(sub.priceCents)}),
             NotifyTopic.account,
             'subscription'));
       }
@@ -320,8 +415,8 @@ class NotificationService {
     if (bankValidUntil != null) {
       final when = before(bankValidUntil, 3, 10);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('bank-$bankValidUntil'), when, 'Bankverbindung läuft in 3 Tagen ab',
-            'Einmal kurz bestätigen, dann kommen deine Umsätze weiter.', NotifyTopic.account, 'connections'));
+        out.add(Reminder(_idFor('bank-$bankValidUntil'), when, tr('Bankverbindung läuft in 3 Tagen ab'),
+            tr('Einmal kurz bestätigen, dann kommen deine Umsätze weiter.'), NotifyTopic.account, 'connections'));
       }
     }
 
@@ -330,7 +425,7 @@ class NotificationService {
       if (d == null || g.reached) continue;
       final when = before(d, 7, 10);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('goal-${g.id}-$d'), when, '${g.emoji} ${g.name}: noch eine Woche',
+        out.add(Reminder(_idFor('goal-${g.id}-$d'), when, tr('{x} {y}: noch eine Woche', {'x': g.emoji, 'y': g.name}),
             'Es fehlen ${Money.format(g.remainingCents)}. Ein kleiner Endspurt?', NotifyTopic.spending, 'goals'));
       }
     }
@@ -338,7 +433,6 @@ class NotificationService {
     // keep well below the systems' limits (iOS: 64 pending)
     final limit = at(now, 0).add(const Duration(days: 60));
     out.removeWhere((r) => r.when.isBefore(now) || r.when.isAfter(limit));
-    out.sort((a, b) => a.when.compareTo(b.when));
-    return out.take(40).toList();
+    return calm(out).take(40).toList();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/sub_tips.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +12,10 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/big_number.dart';
+import '../widgets/share_card.dart';
 import '../widgets/tx_row.dart';
+import '../l10n/l10n.dart';
+import 'connections_screen.dart';
 
 // Contracts and subscriptions found in the bookings, what they cost per
 // month and year, when each is due next and which ones got more expensive.
@@ -29,18 +33,25 @@ class ContractsScreen extends StatelessWidget {
         final raised = contracts.where((c) => c.priceChange > 0).toList();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Verträge & Abos')),
+          appBar: AppBar(title: Text(tr('Verträge & Abos')), actions: [
+            if (contracts.isNotEmpty)
+              IconButton(
+                tooltip: tr('Als Karte teilen'),
+                onPressed: () => _share(context, contracts, monthly),
+                icon: const Icon(Icons.ios_share_rounded),
+              ),
+            const SizedBox(width: 8),
+          ]),
           body: contracts.isEmpty
-              ? _empty()
+              ? _empty(context)
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                   children: [
                     BigNumber(
-                      label: 'Pro Monat',
+                      label: tr('Pro Monat'),
                       cents: monthly,
                       below: Text(
-                          '${contracts.length} ${contracts.length == 1 ? 'Vertrag' : 'Verträge'} · '
-                          '${Settings.hideAmounts.value ? Money.hidden : Money.format(monthly * 12)} im Jahr',
+                          tr('{x} · {x2}', {'x': contracts.length == 1 ? tr('1 Vertrag') : tr('{n} Verträge', {'n': contracts.length}), 'x2': tr('{x} im Jahr', {'x': Settings.hideAmounts.value ? Money.hidden : Money.format(monthly * 12)})}),
                           style: TextStyle(color: AppColors.textDim, fontSize: 14)),
                     ),
                     if (raised.isNotEmpty) ...[
@@ -60,7 +71,7 @@ class ContractsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                        'Erkannt an regelmäßigen, gleich hohen Zahlungen an denselben Empfänger.',
+                        tr('Gleiche Zahlung, gleicher Empfänger, regelmäßig.'),
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textDim, fontSize: 12)),
                   ],
@@ -73,8 +84,8 @@ class ContractsScreen extends StatelessWidget {
   Widget _raisedBanner(BuildContext context, List<Contract> raised) {
     final c = raised.first;
     final text = raised.length == 1
-        ? '${c.name} kostet seit der letzten Zahlung ${Money.format(c.priceChange)} mehr.'
-        : '${raised.length} Verträge sind teurer geworden, z. B. ${c.name} (+${Money.format(c.priceChange)}).';
+        ? tr('{name} kostet {x} mehr.', {'name': c.name, 'x': Money.format(c.priceChange)})
+        : tr('{raised} teurer, z. B. {name} (+{x}).', {'raised': raised.length, 'name': c.name, 'x': Money.format(c.priceChange)});
     return Material(
       color: AppColors.warning.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(16),
@@ -113,8 +124,8 @@ class ContractsScreen extends StatelessWidget {
                 final sent = CancellationService.sentAt(c.name);
                 return Text(
                     sent != null
-                        ? 'Gekündigt am ${Dates.dayMonth(sent)}'
-                        : 'Monatlich · nächste am ${Dates.dayMonth(c.nextDate)}',
+                        ? tr('Gekündigt am {x}', {'x': Dates.dayMonth(sent)})
+                        : tr('Monatlich · nächste am {x}', {'x': Dates.dayMonth(c.nextDate)}),
                     style: TextStyle(fontSize: 12, color: sent != null ? AppColors.warningText : AppColors.textDim),
                     overflow: TextOverflow.ellipsis);
               }),
@@ -135,17 +146,23 @@ class ContractsScreen extends StatelessWidget {
     );
   }
 
-  Widget _empty() => Center(
+  Widget _empty(BuildContext context) => Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(Icons.receipt_long_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 16),
-            const Text('Noch keine Verträge erkannt', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('Noch keine Verträge erkannt'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. '
-                'Mit verbundenem Bankkonto geht das automatisch.',
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+            Text(tr('Drei gleiche Monate in Folge. Mit Bank automatisch.'),
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(minimumSize: const Size(200, 48)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
+              icon: const Icon(Icons.account_balance_rounded, size: 18),
+              label: Text(tr('Bank verbinden')),
+            ),
           ]),
         ),
       );
@@ -179,14 +196,14 @@ class ContractsCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Verträge & Abos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(tr('Verträge & Abos'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 ValueListenableBuilder<bool>(
                   valueListenable: Settings.hideAmounts,
                   builder: (_, hidden, __) => Text(
                     [
                       '${contracts.length} erkannt',
-                      hidden ? '${Money.hidden} / Monat' : '${Money.format(monthly)} / Monat',
+                      hidden ? tr('{x} / Monat', {'x': Money.hidden}) : tr('{x} / Monat', {'x': Money.format(monthly)}),
                       if (raised > 0) '$raised teurer',
                     ].join(' · '),
                     style: TextStyle(fontSize: 13, color: raised > 0 ? AppColors.warningText : AppColors.textDim),
@@ -241,7 +258,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     return CancellationService.letter(
       provider: widget.contract.name,
       // a visible gap rather than a letter without a name
-      name: account?.name ?? '[Dein Name]',
+      name: account?.name ?? tr('[Dein Name]'),
       email: account?.email ?? '',
       customerNo: _customerNo.text.trim(),
     );
@@ -253,7 +270,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     if (!mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500),
-        content: Text('Vermerkt. Buddy prüft in den nächsten Wochen, ob ${widget.contract.name} wirklich aufhört.')));
+        content: Text(tr('Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.', {'name': widget.contract.name}))));
   }
 
   Future<void> _mail() async {
@@ -272,8 +289,8 @@ class _ContractSheetState extends State<_ContractSheet> {
     HapticFeedback.selectionClick();
     if (!mounted) return;
     setState(() => _prepared = true);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        duration: Duration(milliseconds: 2400), content: Text('Kündigung kopiert. Füg sie beim Anbieter ein.')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(milliseconds: 2400), content: Text(tr('Kündigung kopiert. Füg sie beim Anbieter ein.'))));
   }
 
   // a regular payment that isn't a contract (pocket money, a rent share)
@@ -286,8 +303,8 @@ class _ContractSheetState extends State<_ContractSheet> {
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 5),
-      content: Text('„$name“ wird nicht mehr als Vertrag gezählt'),
-      action: SnackBarAction(label: 'Rückgängig', onPressed: () => Contracts.hide(name, hide: false)),
+      content: Text(tr('„{name}“ wird nicht mehr als Vertrag gezählt', {'name': name})),
+      action: SnackBarAction(label: tr('Rückgängig'), onPressed: () => Contracts.hide(name, hide: false)),
     ));
   }
 
@@ -304,8 +321,8 @@ class _ContractSheetState extends State<_ContractSheet> {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(c.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                Text('${Money.format(c.monthlyCents)} im Monat · ${Money.format(c.monthlyCents * 12)} im Jahr',
+                Text(c.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
+                Text(tr('{x} im Monat · {x2} im Jahr', {'x': Money.format(c.monthlyCents), 'x2': Money.format(c.monthlyCents * 12)}),
                     style: TextStyle(color: AppColors.textDim)),
               ]),
             ),
@@ -313,10 +330,24 @@ class _ContractSheetState extends State<_ContractSheet> {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () => showTransactionsSheet(context,
-                title: c.name, subtitle: 'Alle Zahlungen', tx: c.payments.reversed.toList()),
+                title: c.name, subtitle: tr('Alle Zahlungen'), tx: c.payments.reversed.toList()),
             icon: const Icon(Icons.receipt_long_rounded, size: 18),
-            label: Text('Alle ${c.payments.length} Zahlungen'),
+            label: Text(tr('Alle {payments} Zahlungen', {'payments': c.payments.length})),
           ),
+          // the same provider, cheaper: ads, yearly, shared, student
+          if (SubTips.forName(c.name) case final tip? when sent == null) ...[
+            const SizedBox(height: 14),
+            Container(
+              key: const Key('sub-tip'),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(16)),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.savings_outlined, size: 18, color: AppColors.brand),
+                const SizedBox(width: 10),
+                Expanded(child: Text(tip.text, style: const TextStyle(height: 1.4))),
+              ]),
+            ),
+          ],
           const SizedBox(height: 18),
           if (sent != null) ...[
             Container(
@@ -324,7 +355,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
               child: Text(
-                  'Gekündigt am ${Dates.full(sent)}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.',
+                  tr('Gekündigt am {x}. Weitere Abbuchung meldet Buddy.', {'x': Dates.full(sent)}),
                   style: const TextStyle(height: 1.4)),
             ),
             TextButton(
@@ -332,7 +363,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                 await CancellationService.undo(c.name);
                 if (context.mounted) Navigator.pop(context);
               },
-              child: const Text('Kündigung zurücknehmen'),
+              child: Text(tr('Kündigung zurücknehmen')),
             ),
           ] else if (!_writing)
             FilledButton.icon(
@@ -340,16 +371,16 @@ class _ContractSheetState extends State<_ContractSheet> {
                   minimumSize: const Size.fromHeight(52), backgroundColor: AppColors.error.withValues(alpha: 0.9)),
               onPressed: () => setState(() => _writing = true),
               icon: const Icon(Icons.description_outlined, size: 18),
-              label: Text('${c.name} kündigen'),
+              label: Text(tr('{name} kündigen', {'name': c.name})),
             )
           else ...[
-            const Text('Dein Kündigungsschreiben',
+            Text(tr('Dein Kündigungsschreiben'),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             TextField(
               controller: _customerNo,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(labelText: 'Kundennummer (optional)'),
+              decoration: InputDecoration(labelText: tr('Kundennummer (optional)')),
             ),
             const SizedBox(height: 10),
             Container(
@@ -361,7 +392,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            Text('Viele Anbieter haben einen Button „Verträge hier kündigen“. Dort kannst du den Text einfügen.',
+            Text(tr('Viele haben „Verträge hier kündigen“. Text dort einfügen.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.4)),
             const SizedBox(height: 14),
             Row(children: [
@@ -370,7 +401,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                   style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
                   onPressed: _copy,
                   icon: const Icon(Icons.copy_rounded, size: 18),
-                  label: const Text('Kopieren'),
+                  label: Text(tr('Kopieren')),
                 ),
               ),
               const SizedBox(width: 10),
@@ -379,7 +410,7 @@ class _ContractSheetState extends State<_ContractSheet> {
                   style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
                   onPressed: _mail,
                   icon: const Icon(Icons.send_rounded, size: 18),
-                  label: const Text('Per E-Mail'),
+                  label: Text(tr('Per E-Mail')),
                 ),
               ),
             ]),
@@ -392,17 +423,38 @@ class _ContractSheetState extends State<_ContractSheet> {
                     foregroundColor: AppColors.text),
                 onPressed: _sent,
                 icon: const Icon(Icons.check_rounded, size: 18),
-                label: const Text('Ich habe sie abgeschickt'),
+                label: Text(tr('Ich habe sie abgeschickt')),
               ),
             ],
           ],
           if (sent == null)
             TextButton(
               onPressed: _notAContract,
-              child: Text('Kein Vertrag? Nicht mehr mitzählen', style: TextStyle(color: AppColors.textDim)),
+              child: Text(tr('Kein Vertrag? Nicht mehr mitzählen'), style: TextStyle(color: AppColors.textDim)),
             ),
         ]),
       ),
     );
   }
+}
+
+// "Buddy hat 7 Abos gefunden": a card for the story, amounts hidden by default
+void _share(BuildContext context, List<Contract> contracts, int monthly) {
+  final top = [...contracts]..sort((a, b) => b.monthlyCents.compareTo(a.monthlyCents));
+  final n = contracts.length;
+  showShareCard(
+    context,
+    ShareCardData(
+      kicker: tr('Abo-Check'),
+      headline: tr('Buddy hat {n} {x} gefunden: {y} im Jahr.',
+          {'n': n, 'x': n == 1 ? tr('Abo') : tr('Abos und Verträge'), 'y': Money.raw(monthly * 12)}),
+      body: [
+        for (final c in top.take(4)) tr('- **{x}**: {y} im Monat', {'x': c.name, 'y': Money.raw(c.monthlyCents)}),
+        if (n > 4) tr('- und {n} weitere', {'n': n - 4}),
+        '',
+        tr('Nächster Schritt: Prüfen, was du nutzt.'),
+      ].join('\n'),
+      text: tr('Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?', {'n': n}),
+    ),
+  );
 }
