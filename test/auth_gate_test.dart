@@ -52,7 +52,7 @@ void main() {
     // still locked: a page pushed on top (e.g. from a notification) stays hidden
     key.currentState!.push(MaterialPageRoute(builder: (_) => const Text('Verträge 897,88 €')));
     await tester.pumpAndSettle();
-    expect(find.text('BudgetBuddy ist gesperrt'), findsOneWidget);
+    expect(find.text('Ahead ist gesperrt'), findsOneWidget);
     expect(find.text('Verträge 897,88 €', skipOffstage: false), findsOneWidget); // kept, not shown
     expect(find.text('Verträge 897,88 €').hitTestable(), findsNothing);
 
@@ -60,7 +60,7 @@ void main() {
     ok = true;
     await tester.tap(find.text('Entsperren'));
     await tester.pumpAndSettle();
-    expect(find.text('BudgetBuddy ist gesperrt'), findsNothing);
+    expect(find.text('Ahead ist gesperrt'), findsNothing);
     expect(find.text('Verträge 897,88 €').hitTestable(), findsOneWidget);
   });
 

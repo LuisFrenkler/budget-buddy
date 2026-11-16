@@ -1,5 +1,5 @@
 name: budget_buddy
-description: finance tracker (BudgetBuddy)
+description: Ahead — your buddy for money and the future
 version: 1.0.0+1
 
 environment:
@@ -61,8 +61,9 @@ flutter:
 
   assets:
     - assets/fonts/Inter-OFL.txt
+    - assets/fonts/BricolageGrotesque-OFL.txt
 
-  # Inter (SIL Open Font License, see assets/fonts/Inter-OFL.txt)
+  # Inter for body, Bricolage for headlines (both SIL OFL)
   fonts:
     - family: Inter
       fonts:
@@ -75,6 +76,20 @@ flutter:
           weight: 700
         - asset: assets/fonts/Inter-ExtraBold.ttf
           weight: 800
+    - family: Bricolage
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-Light.ttf
+          weight: 300
+        - asset: assets/fonts/BricolageGrotesque-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/BricolageGrotesque-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BricolageGrotesque-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BricolageGrotesque-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/BricolageGrotesque-ExtraBold.ttf
+          weight: 800
 
 # app icon generation (run: dart run flutter_launcher_icons)
 flutter_launcher_icons:
@@ -84,15 +99,19 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   web:
     generate: true
-    background_color: "#0B0B10"
+    background_color: "#0C0A09"
     theme_color: "#B06030"
-  adaptive_icon_background: "#B06030"
+  adaptive_icon_background: "#1A0D07"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
 
 # native splash screen (run: dart run flutter_native_splash:create)
 flutter_native_splash:
-  color: "#0B0B10"
+  color: "#FBF7F3"
   image: "assets/icon/splash.png"
+  color_dark: "#0C0A09"
+  image_dark: "assets/icon/splash_dark.png"
   android_12:
-    color: "#0B0B10"
+    color: "#FBF7F3"
     image: "assets/icon/splash_android12.png"
+    color_dark: "#0C0A09"
+    image_dark: "assets/icon/splash_android12_dark.png"
