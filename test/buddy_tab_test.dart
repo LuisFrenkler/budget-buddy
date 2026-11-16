@@ -87,7 +87,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.enterText(find.byType(TextField), 'Was kannst du alles?');
     await tester.pump();
-    await tester.tap(find.bySemanticsLabel('Senden'));
+    await tester.tap(find.byTooltip('Senden'));
     for (var i = 0; i < 40; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
@@ -113,7 +113,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.enterText(find.byType(TextField), 'Was kannst du alles?');
     await tester.pump();
-    await tester.tap(find.bySemanticsLabel('Senden'));
+    await tester.tap(find.byTooltip('Senden'));
     for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
@@ -156,7 +156,7 @@ void main() {
     await pumpShell(tester);
     await tester.enterText(find.byType(TextField), 'Monatsrückblick');
     await tester.pump();
-    await tester.tap(find.bySemanticsLabel('Senden'));
+    await tester.tap(find.byTooltip('Senden'));
     for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
