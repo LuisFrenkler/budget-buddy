@@ -16,8 +16,8 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Ahead — dein Buddy für Geld und Zukunft. Buddy rechnet mit deinen echten Zahlen.">
-  <meta name="theme-color" content="#0C0A09">
+  <meta name="description" content="Ahead: Dein Buddy für Geld und Zukunft. Finanz-Apps zeigen dir dein Geld, Ahead sagt dir, was du jetzt tun solltest.">
+  <meta name="theme-color" content="#110E0C">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -32,83 +32,70 @@
   <link rel="manifest" href="manifest.json">
   
   
-  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  
+  
+  
+  
   
   
   
   
   <style id="splash-screen-style">
-    html {
-      height: 100%
+    /* Ahead's start: Buddy's orb glowing, the name under it. Night (dark)
+       or Glow (light), like the app. Gone as soon as Flutter draws. */
+    @font-face{font-family:"Bricolage";font-weight:600;font-display:swap;
+      src:url("assets/assets/fonts/BricolageGrotesque-SemiBold.ttf") format("truetype")}
+    html{height:100%}
+    body{margin:0;min-height:100%;background:#0C0A09}
+    #splash{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;
+      background:radial-gradient(70% 55% at 50% 42%,rgba(217,129,63,.30),rgba(12,10,9,0) 70%),#0C0A09;
+      color:#F5EFEA;font-family:"Bricolage",ui-sans-serif,system-ui,sans-serif;transition:opacity .35s ease}
+    #splash.gone{opacity:0}
+    #splash .mark{display:flex;flex-direction:column;align-items:center;gap:22px;transform:translateY(-4vh)}
+    #splash .orb{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;
+      background:radial-gradient(circle at 34% 28%,#FFEBD9 0%,#F4B98A 27%,#C8682F 63%,#7A3A16 100%);
+      box-shadow:0 0 50px rgba(217,129,63,.6),0 0 120px rgba(217,129,63,.3);animation:breathe 2.6s ease-in-out infinite alternate}
+    #splash .orb svg{width:100%;height:100%}
+    #splash .name{font-size:44px;font-weight:600;letter-spacing:-.04em;line-height:1}
+    #splash .tag{margin-top:-10px;font:500 15px/1.3 ui-sans-serif,system-ui,-apple-system,sans-serif;color:#A79C93}
+    #splash .bar{position:absolute;bottom:calc(64px + env(safe-area-inset-bottom));left:50%;width:120px;height:3px;margin-left:-60px;
+      border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+    #splash .bar i{position:absolute;inset:0;width:40%;border-radius:3px;background:linear-gradient(90deg,#F4B98A,#B06030);animation:run 1.2s ease-in-out infinite}
+    @keyframes breathe{from{transform:scale(.97);box-shadow:0 0 36px rgba(217,129,63,.45),0 0 90px rgba(217,129,63,.2)}to{transform:scale(1.03)}}
+    @keyframes run{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+    @media (prefers-color-scheme:light){
+      body{background:#FBF7F3}
+      #splash{background:radial-gradient(70% 55% at 50% 40%,rgba(244,183,138,.55),rgba(251,247,243,0) 70%),#FBF7F3;color:#17120E}
+      #splash .orb{box-shadow:0 22px 50px rgba(176,96,48,.35)}
+      #splash .tag{color:#6B625B}
+      #splash .bar{background:rgba(23,18,14,.08)}
     }
-
-    body {
-      margin: 0;
-      min-height: 100%;
-      background-color: #0C0A09;
-          background-size: 100% 100%;
-    }
-
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-    }
-
-    .contain {
-      display:block;
-      width:100%; height:100%;
-      object-fit: contain;
-    }
-
-    .stretch {
-      display:block;
-      width:100%; height:100%;
-    }
-
-    .cover {
-      display:block;
-      width:100%; height:100%;
-      object-fit: cover;
-    }
-
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
-    }
-
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-    }
+    @media (prefers-reduced-motion:reduce){#splash .orb,#splash .bar i{animation:none}}
   </style>
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
+      const el = document.getElementById("splash");
+      if (!el) return;
+      el.classList.add("gone");
+      setTimeout(() => el.remove(), 380);
       document.body.style.background = "transparent";
     }
+    // Flutter tells the page when its first frame is on screen
+    window.addEventListener("flutter-first-frame", removeSplashFromWeb);
   </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
+  <div id="splash" aria-label="Ahead lädt">
+    <div class="mark">
+      <div class="orb"><svg viewBox="0 0 1024 1024" aria-hidden="true"><path fill="#FFF7F0" d="M317.8 718.0 L455.9 318.0 L568.1 318.0 L706.2 718.0 L622.6 718.0 L516.5 379.2 L508.1 379.2 L400.8 718.0 Z M391.1 635.6 L391.1 581.6 L643.2 581.6 L643.2 635.6 Z"></path></svg></div>
+      <div class="name">Ahead.</div>
+      <div class="tag">Dein Buddy fürs Geld</div>
+    </div>
+    <div class="bar"><i></i></div>
+  </div>
+  
+  
   
   
   
@@ -129,7 +116,7 @@
       });
     }
   </script>
-  <script src="flutter_bootstrap.js?v=1794819095" async=""></script>
+  <script src="flutter_bootstrap.js?v=20261116170616" async=""></script>
 
 
 </body></html>
