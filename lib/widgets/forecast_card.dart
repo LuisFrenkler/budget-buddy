@@ -53,8 +53,9 @@ class ForecastCard extends StatelessWidget {
             Wrap(crossAxisAlignment: WrapCrossAlignment.end, spacing: 10, runSpacing: 2, children: [
               Text(Money.format(f.freeCents),
                   style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
+                      fontFamily: AppFonts.display,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: -0.8,
                       color: f.freeCents < 0 ? AppColors.errorText : AppColors.text)),
               if (f.freeCents > 0)

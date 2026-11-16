@@ -9,7 +9,9 @@
 <meta property="og:description" content="Ahead ist der Coach für die ersten eigenen Finanzen. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt — Gehalt, Miete, Abos.">
 <meta property="og:image" content="og.png">
 <meta name="theme-color" content="#8E4620">
-<meta name="ahead-api" content="">
+<!-- where the Ahead server runs (waitlist and asking Buddy); empty = same origin, "demo" = preview without a server.
+     GitHub Pages is static: keep "demo" until PUBLIC_URL is live, then set e.g. content="https://api.example.com". -->
+<meta name="ahead-api" content="demo">
 <link rel="icon" href="appicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -247,7 +249,7 @@
         </form>
         <div class="err" role="alert"></div>
         <p class="hint" data-join-why data-en="Early access when we invite you. Ask Buddy below already.">Früher Zugang, sobald wir einladen. Buddy fragst du schon hier.</p>
-        <p class="hint" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
+        <p class="hint" data-demo hidden data-en="GitHub Pages preview — the waitlist needs the Ahead server. An email here is not stored.">Vorschau auf GitHub Pages — die Warteliste braucht den Ahead-Server. Eine E-Mail hier wird nicht gespeichert.</p>
         <div class="spot">
           <p class="ok" data-en="You’re on the list.">Du bist auf der Liste.</p>
           <p data-en="Next is your invite by email — TestFlight, once the app is ready.">Als Nächstes kommt die Einladung per E-Mail — TestFlight, sobald die App bereit ist.</p>
@@ -346,7 +348,7 @@
         </form>
         <div class="err" role="alert"></div>
         <p class="hint" data-join-why data-en="Early access when we invite you.">Früher Zugang, sobald wir einladen.</p>
-        <p class="hint" data-demo hidden data-en="Preview. No waitlist is connected. An email here is not saved.">Vorschau. Keine Warteliste verbunden. Eine E-Mail hier wird nicht gespeichert.</p>
+        <p class="hint" data-demo hidden data-en="GitHub Pages preview — the waitlist needs the Ahead server. An email here is not stored.">Vorschau auf GitHub Pages — die Warteliste braucht den Ahead-Server. Eine E-Mail hier wird nicht gespeichert.</p>
       </div>
     </div>
   </div>
@@ -365,6 +367,8 @@
 (function () {
   'use strict';
   var API = (document.querySelector('meta[name="ahead-api"]').content || '').replace(/\/$/, '');
+  // Static hosts (GitHub Pages) have no /waitlist/join — fall back to preview mode
+  if (!API && /\.github\.io$/i.test(location.hostname)) API = 'demo';
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -374,6 +378,7 @@
     window.fetch = function (url, opts) {
       var u = String(url);
       function reply(o) { return Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } })); }
+      // no place, no headcount: a queue exists only on a real server
       if (u.indexOf('demo/waitlist/') === 0) return reply({ preview: true });
       if (u.indexOf('demo/') === 0) return Promise.reject(new Error('preview'));
       return realFetch(url, opts);
@@ -444,6 +449,14 @@
       el.setAttribute('alt', lang === 'en' ? el.dataset.enAlt : el.dataset.deAlt);
     });
     document.querySelector('[data-lang]').textContent = lang === 'en' ? 'DE' : 'EN';
+    document.querySelectorAll('[data-preview]').forEach(function (el) {
+      var mail = 'luis.frenkler@t-online.de';
+      var href = 'mailto:' + mail + '?subject=' + encodeURIComponent(L('Ahead Warteliste', 'Ahead waitlist'));
+      el.innerHTML = L(
+        'Hier auf GitHub Pages läuft noch kein Server. <a href="' + href + '">Mail an ' + mail + ' schicken</a> — dann nehmen wir dich auf.',
+        'No server on this GitHub Pages preview yet. <a href="' + href + '">Email ' + mail + '</a> and we’ll add you.'
+      );
+    });
   }
   applyLang();
   showTalk(current);
@@ -464,6 +477,8 @@
   var ref = new URLSearchParams(location.search).get('ref');
   if (ref) store.set('ahead-ref', ref);
 
+  // ------------------------------------------------------------ waitlist
+  if (API === 'demo') document.querySelectorAll('[data-demo]').forEach(function (el) { el.hidden = false; });
   var spot = document.querySelector('.spot');
   function myLink(code) { return location.origin + location.pathname + '?ref=' + code; }
   function onStatus(d) { if (d && d.preview) { store.set('ahead-code', ''); return; } if (d) showSpot(d); }
@@ -503,13 +518,34 @@
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { delete err.dataset.preview; err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); return; }
       delete err.dataset.preview; err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
       fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref'), lang: lang }) })
-        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(lang === 'en' ? '' : j.error || 'Fehler'); return j; }); })
+        .then(function (r) {
+          return r.text().then(function (t) {
+            var j = null;
+            try { j = t ? JSON.parse(t) : {}; } catch (e) { throw new Error('unreachable'); }
+            if (!r.ok) throw new Error((lang === 'en' ? '' : (j && j.error)) || 'unreachable');
+            return j;
+          });
+        })
         .then(function (d) {
-          if (d && d.preview) { err.dataset.preview = '1'; err.textContent = L('Nicht gespeichert. Vorschau, keine Warteliste.', 'Not saved. Preview, no waitlist.'); return; }
+          if (d && d.preview) {
+            err.dataset.preview = '1';
+            var mail = 'luis.frenkler@t-online.de';
+            var href = 'mailto:' + mail + '?subject=' + encodeURIComponent(L('Ahead Warteliste', 'Ahead waitlist')) + '&body=' + encodeURIComponent(email);
+            err.innerHTML = L(
+              'Hier auf GitHub Pages läuft noch kein Server. <a href="' + href + '">Mail an ' + mail + ' schicken</a> — dann nehmen wir dich auf.',
+              'No server on this GitHub Pages preview yet. <a href="' + href + '">Email ' + mail + '</a> and we’ll add you.'
+            );
+            return;
+          }
           delete err.dataset.preview;
           showSpot(d); var r = spot.getBoundingClientRect(); scrollTo({ top: Math.max(0, r.top + scrollY - 120), behavior: 'smooth' });
         })
-        .catch(function (x) { delete err.dataset.preview; err.textContent = x.message && x.message !== 'Failed to fetch' && x.message !== 'preview' ? x.message : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.'); })
+        .catch(function (x) {
+          delete err.dataset.preview;
+          var msg = x && x.message;
+          var raw = msg && msg !== 'Failed to fetch' && msg !== 'preview' && msg !== 'unreachable' && msg.indexOf('Unexpected token') === -1 && msg.indexOf('<') === -1;
+          err.textContent = raw ? msg : L('Gerade nicht erreichbar. Versuch es gleich noch einmal.', 'Not reachable right now. Please try again in a moment.');
+        })
         .finally(function () { btn.disabled = false; btn.textContent = label; });
     });
   });
