@@ -15,9 +15,12 @@ import '../services/buddy_service.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
+import '../services/demo_data.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/buddy_orb.dart';
+import 'auth_screens.dart';
 import 'buddy_actions.dart';
 import 'depot_screen.dart';
 import 'goals_screen.dart';
@@ -25,15 +28,19 @@ import 'vorsorge_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 
-// Chat with Buddy, the finance coach that knows your numbers.
+// Chat with Buddy, the finance coach that knows your numbers. Also the first
+// screen before sign-up ([guest]): useful from the first message, no account
+// and no bank link needed.
 class BuddyScreen extends StatefulWidget {
   // asked right away, e.g. from a suggestion on the home screen
   final String? question;
   // the Buddy tab of the app shell: the one chat the rest of the app talks to
   final bool tab;
+  // first screen before sign-up: offline answers + auth CTAs in the header
+  final bool guest;
   // shell scroll: re-tapping Buddy jumps to the top of the chat
   final ScrollController? scroll;
-  const BuddyScreen({super.key, this.question, this.tab = false, this.scroll});
+  const BuddyScreen({super.key, this.question, this.tab = false, this.guest = false, this.scroll});
 
   // a question for the Buddy tab ('' just opens it); the shell switches to the tab
   static final ask = ValueNotifier<String?>(null);
@@ -193,7 +200,50 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
   }
 
+  Future<void> _needAccount(String reason) async {
+    if (!mounted) return;
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            const BuddyOrb(size: 44),
+            const SizedBox(height: 14),
+            Text('Weiter mit Konto',
+                style: TextStyle(
+                    fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.4)),
+            const SizedBox(height: 8),
+            Text(reason, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 18),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Konto erstellen'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Ich habe schon ein Konto'),
+            ),
+          ]),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (go == true) {
+      _openSignUp();
+    } else if (go == false) {
+      _openSignIn();
+    }
+  }
+
   Future<void> _pickPhoto() async {
+    if (_isGuest) {
+      await _needAccount('Belege lesen kann Buddy mit KI — dafür reicht ein kostenloses Konto.');
+      return;
+    }
     final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
     final file = result?.files.firstOrNull;
     if (file?.bytes == null) return;
@@ -269,6 +319,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   Future<void> _apply(_Message m, int i) async {
+    if (_isGuest) {
+      await _needAccount(
+          'Zum Speichern brauchst du ein kostenloses Konto. Dann bleiben Buchungen und Ziele bei dir.');
+      return;
+    }
     final e = m.entries[i];
     if (e.type == 'goal' &&
         !PlusService.allowed(PlusFeature.goal, current: GoalsService.all().where((g) => !g.reached).length)) {
@@ -509,17 +564,33 @@ class _BuddyScreenState extends State<BuddyScreen> {
     });
   }
 
+  bool get _isGuest => widget.guest || AccountService.current.value == null;
+
+  void _openSignUp() {
+    HapticFeedback.selectionClick();
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
+  }
+
+  void _openSignIn() {
+    HapticFeedback.selectionClick();
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         // without a back button the tab's title keeps the page margin
-        titleSpacing: widget.tab ? 20 : 0,
+        titleSpacing: widget.tab || widget.guest ? 20 : 0,
         title: Row(children: [
-          BuddyOrb(size: 30, active: _thinking),
-          const SizedBox(width: 12),
+          if (widget.guest) ...[
+            const BrandMark(size: 28),
+            const SizedBox(width: 10),
+          ] else
+            BuddyOrb(size: 30, active: _thinking),
+          if (!widget.guest) const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Buddy',
+            Text(widget.guest ? 'Ahead' : 'Buddy',
                 style: TextStyle(
                     fontFamily: AppFonts.display,
                     fontSize: 20,
@@ -527,7 +598,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     letterSpacing: -0.3)),
             // tippen schaltet die KI um, wenn der Server sie anbietet
             InkWell(
-              onTap: _live == true ? _toggleAi : null,
+              onTap: !widget.guest && _live == true ? _toggleAi : null,
               borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
@@ -536,7 +607,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     width: 7,
                     height: 7,
                     decoration: BoxDecoration(
-                      color: _aiOn ? AppColors.positive : AppColors.textDim,
+                      color: widget.guest
+                          ? AppColors.brandText
+                          : (_aiOn ? AppColors.positive : AppColors.textDim),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -545,7 +618,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                     _statusLabel,
                     style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w500),
                   ),
-                  if (_live == true) ...[
+                  if (!widget.guest && _live == true) ...[
                     const SizedBox(width: 4),
                     Icon(Icons.expand_more_rounded, size: 14, color: AppColors.textDim),
                   ],
@@ -555,7 +628,23 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ]),
         ]),
         actions: [
-          if (_live == true)
+          if (widget.guest) ...[
+            TextButton(
+              onPressed: _openSignIn,
+              child: const Text('Anmelden'),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                onPressed: _openSignUp,
+                child: const Text('Konto'),
+              ),
+            ),
+          ] else if (_live == true)
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: IconButton(
@@ -570,7 +659,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ],
       ),
       body: Column(children: [
-        if (_live == true && !BuddyService.hasConsent) _aiOffBanner(),
+        if (!widget.guest && _live == true && !BuddyService.hasConsent) _aiOffBanner(),
         Expanded(child: _messages.isEmpty ? _welcome() : _chat()),
         _inputBar(),
       ]),
@@ -578,6 +667,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   String get _statusLabel {
+    if (widget.guest) return 'Frag ohne Konto';
     if (_live == null) return 'verbindet …';
     if (_live != true) return 'Offline-Modus';
     return _aiOn ? 'KI an' : 'KI aus · tippen zum Einschalten';
@@ -590,6 +680,30 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return 'Noch $left von ${PlusService.freeAiQuestions} Gratis-KI-Fragen diesen Monat';
   }
 
+  List<BuddyChip> get _welcomeChips {
+    if (widget.guest) {
+      return const [
+        (icon: Icons.flight_takeoff_rounded, text: 'Kann ich mir 800 € Urlaub leisten?'),
+        (icon: Icons.savings_rounded, text: 'Wo kann ich sparen?'),
+        (icon: Icons.science_rounded, text: 'Zeig mir Beispieldaten'),
+        (icon: Icons.receipt_long_rounded, text: 'Welche Abos und Verträge habe ich?'),
+      ];
+    }
+    return BuddySuggestions.pick(BuddyService.snapshot());
+  }
+
+  Future<void> _tapChip(BuddyChip s) async {
+    if (widget.guest && s.text == 'Zeig mir Beispieldaten') {
+      HapticFeedback.selectionClick();
+      await DemoData.load();
+      if (!mounted) return;
+      setState(() {});
+      await _send('Zeig mir einen Überblick');
+      return;
+    }
+    await _send(s.text);
+  }
+
   Widget _welcome() {
     final name = AccountService.current.value?.firstName;
     return ListView(
@@ -597,7 +711,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
       children: [
         const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 56)),
         const SizedBox(height: 32),
-        Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
+        Text(
+            widget.guest
+                ? 'Hallo, ich bin Buddy.'
+                : (name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.'),
             style: TextStyle(
                 fontFamily: AppFonts.display,
                 fontSize: 28,
@@ -605,14 +722,17 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 letterSpacing: -0.7)),
         const SizedBox(height: 8),
         Text(
-          AccountService.current.value == null
-              ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
-              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. '
-                  'Ich nutze deine Ausgaben, Budgets und Verträge.',
+          widget.guest
+              ? 'Frag mich einfach — auch ohne Konto. Mit echten Zahlen wird’s genauer: '
+                  'Konto erstellen, Bank verbinden oder Beispieldaten laden.'
+              : (AccountService.current.value == null
+                  ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
+                  : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. '
+                      'Ich nutze deine Ausgaben, Budgets und Verträge.'),
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
         const SizedBox(height: 24),
-        for (final s in BuddySuggestions.pick(BuddyService.snapshot()))
+        for (final s in _welcomeChips)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Material(
@@ -620,7 +740,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               borderRadius: BorderRadius.circular(16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
-                onTap: () => _send(s.text),
+                onTap: () => _tapChip(s),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(children: [
@@ -633,7 +753,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               ),
             ),
           ),
-        if (AccountService.current.value == null) ...[
+        if (widget.guest || AccountService.current.value == null) ...[
           const SizedBox(height: 12),
           _signInHint(),
         ] else if (_live == false) ...[
@@ -686,18 +806,41 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   Widget _signInHint() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
       decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primaryText),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            'Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. '
-            'Offline-Antworten ohne Limit auch ohne Konto.',
-            style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.person_outline_rounded, size: 18, color: AppColors.primaryText),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              widget.guest
+                  ? 'Konto speichert deine Zahlen und schaltet KI und Beleg-Scan frei. '
+                      'Fragen gehen auch so — offline auf dem Gerät.'
+                  : 'Kostenloses Konto: KI-Fragen und Beleg-Scans monatlich begrenzt, Sync auf allen Geräten. '
+                      'Offline-Antworten ohne Limit auch ohne Konto.',
+              style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
+            ),
           ),
-        ),
+        ]),
+        if (widget.guest) ...[
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _openSignIn,
+                child: const Text('Anmelden'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FilledButton(
+                onPressed: _openSignUp,
+                child: const Text('Konto erstellen'),
+              ),
+            ),
+          ]),
+        ],
       ]),
     );
   }

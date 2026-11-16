@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,207 +11,18 @@ import '../services/settings_service.dart';
 import '../utils/errors.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
-import '../widgets/brand.dart';
 import 'buddy_screen.dart';
 import 'connections_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
 
-// First screen for anyone not signed in: what the app does (a slowly
-// turning carousel) and sign-up / sign-in. Replaces a separate intro.
-class WelcomeScreen extends StatefulWidget {
+// First screen for anyone not signed in: Buddy himself. Useful from the first
+// message without an account; sign-up and sign-in sit in the Buddy header.
+class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  final _pages = PageController();
-  int _page = 0;
-  Timer? _auto;
-
-  static const _slides = [
-    (
-      icon: Icons.chat_bubble_outline_rounded,
-      title: 'Kann ich mir\ndas leisten?',
-      text: 'Buddy, dein KI-Finanzcoach, rechnet mit deinen echten Zahlen und antwortet klar.',
-    ),
-    (
-      icon: Icons.chat_bubble_outline_rounded,
-      title: 'Erfassen, wie\ndu sprichst.',
-      text: 'Tipp „Döner 8,50 gestern“ oder knips den Beleg. Fertig. Kein Formular.',
-    ),
-    (
-      icon: Icons.receipt_long_rounded,
-      title: 'Abos im Griff.\nErhöhungen auch.',
-      text: 'Ahead erkennt Verträge von selbst und warnt, wenn etwas teurer wird.',
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _auto = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!_pages.hasClients) return;
-      _pages.animateToPage((_page + 1) % _slides.length,
-          duration: const Duration(milliseconds: 600), curve: Curves.easeInOutCubic);
-    });
-  }
-
-  @override
-  void dispose() {
-    _auto?.cancel();
-    _pages.dispose();
-    super.dispose();
-  }
-
-  void _open(Widget screen) => Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-
-  @override
-  Widget build(BuildContext context) {
-    // copper light behind the brand moment; the rest of the app stays calm
-    return Scaffold(
-      backgroundColor: CopperLight.top,
-      body: CopperLight(
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
-                child: Row(children: [
-                  BrandMark(size: 40, inverse: true),
-                  SizedBox(width: 12),
-                  _WelcomeWordmark(),
-                ]),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pages,
-                  itemCount: _slides.length,
-                  onPageChanged: (i) => setState(() => _page = i),
-                  itemBuilder: (_, i) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _slide(_slides[i]),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Row(children: [
-                    for (int i = 0; i < _slides.length; i++)
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        margin: const EdgeInsets.only(right: 6),
-                        width: i == _page ? 22 : 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: i == _page ? Colors.white : Colors.white.withValues(alpha: 0.28),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                  ]),
-                  const SizedBox(height: 28),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF17120E),
-                      minimumSize: const Size.fromHeight(52),
-                      shape: const StadiumBorder(),
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                    onPressed: () => _open(const SignUpScreen()),
-                    child: const Text('Konto erstellen'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
-                      minimumSize: const Size.fromHeight(52),
-                      shape: const StadiumBorder(),
-                      textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                    ),
-                    onPressed: () => _open(const SignInScreen()),
-                    child: const Text('Ich habe schon ein Konto'),
-                  ),
-                  const SizedBox(height: 12),
-                  Text('Wir halten kein Geld · Nur Lesezugriff · Keine Kontonummern an die KI',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.72), fontSize: 12, height: 1.35)),
-                ]),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // sits at the bottom like a title card; with large system text it scrolls
-  // instead of overflowing
-  Widget _slide(({IconData icon, String title, String text}) s) {
-    return LayoutBuilder(
-      builder: (context, box) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: box.maxHeight),
-          child: _slideBody(s),
-        ),
-      ),
-    );
-  }
-
-  Widget _slideBody(({IconData icon, String title, String text}) s) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-          ),
-          child: Icon(s.icon, color: Colors.white, size: 28),
-        ),
-        const SizedBox(height: 24),
-        Text(s.title,
-            style: TextStyle(
-              fontFamily: AppFonts.display,
-              fontSize: 40,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -1.4,
-              height: 1.02,
-              color: Colors.white,
-            )),
-        const SizedBox(height: 14),
-        Text(s.text,
-            style: TextStyle(fontSize: 17, color: Colors.white.withValues(alpha: 0.82), height: 1.45)),
-        const SizedBox(height: 28),
-      ],
-    );
-  }
-}
-
-// cream wordmark for the copper welcome ground
-class _WelcomeWordmark extends StatelessWidget {
-  const _WelcomeWordmark();
-
-  @override
-  Widget build(BuildContext context) {
-    return Text.rich(
-      TextSpan(children: [
-        TextSpan(text: 'Ahead', style: TextStyle(color: Colors.white)),
-        TextSpan(text: '.', style: TextStyle(color: AppColors.peach)),
-      ]),
-      style: TextStyle(
-          fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.9),
-    );
-  }
+  Widget build(BuildContext context) => const BuddyScreen(guest: true);
 }
 
 // --- sign up ---

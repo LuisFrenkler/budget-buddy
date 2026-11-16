@@ -371,9 +371,9 @@ class LocalBuddy {
   static String _overview(FinanceSnapshot s) {
     final m = s.current;
     if (s.past.isEmpty && m.expenses == 0 && m.income == 0 && s.depotCents == 0) {
-      return 'Hier ist noch wenig Verlauf. Verbinde deine Bank oder erfasse ein paar Ausgaben, '
-          'dann kann ich konkret rechnen.\n\n'
-          'Du kannst trotzdem fragen, z. B. **„Wo kann ich sparen?“** oder **„Wie lege ich ein Sparziel an?“**';
+      return 'Hier ist noch wenig Verlauf. Mit **Beispieldaten**, Bank oder ein paar Ausgaben '
+          'kann ich konkret rechnen.\n\n'
+          'Frag trotzdem, z. B. **„Kann ich mir 800 € Urlaub leisten?“** oder **„Wo kann ich sparen?“**';
     }
     return 'Dein Überblick:\n- Kontostand: **${_eur(s.balanceCents)}**\n- Depot: ${_eur(s.depotCents)}\n'
         '- Diesen Monat: ${_eur(m.income)} rein, ${_eur(m.expenses)} raus\n\n'
