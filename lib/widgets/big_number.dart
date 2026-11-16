@@ -90,9 +90,10 @@ class BigNumber extends StatelessWidget {
             signed: signed,
             animate: animate,
             style: TextStyle(
+              fontFamily: AppFonts.display,
               color: AppColors.text,
               fontSize: 44,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               letterSpacing: -1.8,
               height: 1.05,
             ),

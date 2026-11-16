@@ -1,11 +1,11 @@
 {
-    "name": "BudgetBuddy",
-    "short_name": "BudgetBuddy",
+    "name": "Ahead",
+    "short_name": "Ahead",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0B0B10",
+    "background_color": "#0C0A09",
     "theme_color": "#B06030",
-    "description": "Deine Finanzen mit KI",
+    "description": "Dein Buddy für Geld und Zukunft",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

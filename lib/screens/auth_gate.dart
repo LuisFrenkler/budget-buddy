@@ -130,8 +130,12 @@ class _AuthGateState extends State<AuthGate> with WidgetsBindingObserver {
               children: [
                 const BrandMark(size: 72),
                 const SizedBox(height: 24),
-                const Text('Ahead ist gesperrt',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Ahead ist gesperrt',
+                    style: TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4)),
                 const SizedBox(height: 8),
                 Text(
                     _bioAvailable
