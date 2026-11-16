@@ -153,7 +153,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
       builder: (_, dark, __) => MaterialApp(
-        title: 'BudgetBuddy',
+        title: 'Ahead',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false, // hide debug banner
         theme: AppTheme.theme(dark), // reactive light/dark theme

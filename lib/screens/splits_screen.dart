@@ -885,7 +885,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
           backgroundColor: AppColors.surface,
           title: const Text('Gemeinsam rechnen'),
           content: const Text('Damit alle in der Gruppe denselben Stand sehen, braucht ihr jeweils ein '
-              'kostenloses BudgetBuddy-Konto.'),
+              'kostenloses Ahead-Konto.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Später')),
             TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Konto erstellen')),
@@ -908,7 +908,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!context.mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = 'Komm in unsere Gruppe „${group.name}“ bei BudgetBuddy, dann sehen wir alle, wer wem was schuldet. '
+    final text = 'Komm in unsere Gruppe „${group.name}“ bei Ahead, dann sehen wir alle, wer wem was schuldet. '
         '${link != null ? 'Einfach hier tippen: $link\n' : ''}Code: ${group.code}';
     final next = await showModalBottomSheet<String>(
       context: context,
@@ -1006,7 +1006,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
     }
     if (!mounted) return;
     final link = SplitService.inviteLink(group.code ?? '');
-    final text = 'Hallo $found, komm in unsere Gruppe „${group.name}“ bei BudgetBuddy. '
+    final text = 'Hallo $found, komm in unsere Gruppe „${group.name}“ bei Ahead. '
         '${link != null ? 'Tipp hier: $link\n' : ''}Code: ${group.code}. Dann wähl deinen Namen „$found“.';
     await showDialog(
       context: this.context,
@@ -1091,7 +1091,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
       if (name == null) {
         setState(() {
           _busy = false;
-          _error = 'Kein BudgetBuddy-Konto mit dieser E-Mail.';
+          _error = 'Kein Ahead-Konto mit dieser E-Mail.';
         });
         return;
       }
@@ -1115,7 +1115,7 @@ class _EmailLookupSheetState extends State<_EmailLookupSheet> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Text('Person suchen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        Text('Genau die E-Mail ihres BudgetBuddy-Kontos. Keine öffentliche Namenssuche.',
+        Text('Genau die E-Mail ihres Ahead-Kontos. Keine öffentliche Namenssuche.',
             style: TextStyle(color: AppColors.textDim, height: 1.35)),
         const SizedBox(height: 14),
         TextField(

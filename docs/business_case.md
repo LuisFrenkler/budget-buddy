@@ -205,4 +205,4 @@ Nicht Übersicht. Nicht ETF-Theater. Nicht ChatGPT ohne Ledger.
 ### Verwandte Docs
 
 - Pitch: [pitch_deck.md](pitch_deck.md) · [pitch_deck.html](pitch_deck.html) · [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf)  
-- README · [launch.md](launch.md) · [store_listing_de.md](store_listing_de.md)
+- README · [product_focus.md](product_focus.md) · [launch.md](launch.md) · [store_listing_de.md](store_listing_de.md)

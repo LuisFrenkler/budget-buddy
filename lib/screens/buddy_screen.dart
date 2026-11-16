@@ -69,7 +69,7 @@ class BuddyScreen extends StatefulWidget {
             const Text('Buddy mit KI nutzen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 10),
             Text(
-              'Damit Buddy deine Fragen beantworten kann, schickt BudgetBuddy eine Zusammenfassung deiner Finanzen '
+              'Damit Buddy deine Fragen beantworten kann, schickt Ahead eine Zusammenfassung deiner Finanzen '
               '(Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, '
               'Splits und Plus-Status, ohne Kontonummern und ohne Zahlungsdaten) an die KI von '
               '${BuddyService.provider == 'google' ? 'Google (Gemini)' : 'Anthropic'}. '
@@ -598,8 +598,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
         Text(
           AccountService.current.value == null
               ? 'Mit Konto antwortet Buddy online und kann Belege lesen. Ohne Anmeldung rechnet er offline auf deinem Gerät.'
-              : 'Dein Finanzcoach für den Alltag. Frag, ob du dir etwas leisten kannst. '
-                  'Ich nutze deine Ausgaben, Budgets und Verträge.',
+              : 'Dein Coach für die ersten eigenen Finanzen. Frag, was du mit deinem Gehalt machst — '
+                  'oder ob du dir etwas leisten kannst. Ich nutze deine Ausgaben, Budgets und Verträge.',
           style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.45),
         ),
         const SizedBox(height: 24),
