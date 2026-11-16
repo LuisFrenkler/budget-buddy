@@ -102,7 +102,7 @@ class BuddySuggestions {
           text: tr('Wie baue ich meinen Notgroschen auf?'),
         ));
       }
-    } else {
+    } else if (s.depotCents > 0 || s.balanceCents > 50000) {
       add((
         icon: Icons.pie_chart_outline_rounded,
         text: tr('Wie ist mein Vermögen verteilt?'),
