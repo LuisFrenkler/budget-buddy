@@ -1,9 +1,40 @@
 # Ahead — Investor Business Case
 
-**Stand:** November 2026 · **Stage:** Pre-Seed / Soft Launch · **Markt:** DACH, Fokus DE  
-**Produkt:** Ahead (ehem. BudgetBuddy) — KI-Finanzcoach „Buddy“ für junge Erwachsene
+**Stand:** November 2026 · **Stage:** Pre-Seed / Soft Launch · **Markt:** Deutschland  
+**Produkt:** Ahead — Buddy hilft beim **Lebensstart mit Geld** (erstes Gehalt, erste Wohnung, erste Abos)
 
-> **Investment-These:** Die meisten deutschen Money-Apps zeigen *was du hast*. Ahead beantwortet *was du als Nächstes tun kannst* — mit den echten Zahlen des Nutzers, in den Momenten, die bei 18–30 entscheiden (Urlaub, Umzug, erster Job, Abos). Das ist kein weiteres Multibanking; das ist eine Entscheidungs-Schicht darüber.
+> **Scharfe These:** Ahead ist nicht „noch eine KI-Finanz-App“. Ahead ist der Coach für die **ersten eigenen Finanzen** in Deutschland — bevor Urlaub, Miete, BAV und Abos schiefgehen. Finanzguru besitzt Übersicht. Finanzfluss besitzt Vermögen/Content. ChatGPT besitzt Gerede ohne Ledger. Ahead besitzt den Moment: *Was mach ich jetzt mit meinem Gehalt?*
+
+---
+
+## 0. Differenzierungs-Audit (ehrlich)
+
+### Die Angst ist berechtigt
+
+Wenn Ahead als „Haushaltsbuch + Chat“ oder „Multibanking mit KI“ verkauft wird, bist du:
+
+| Vergleich | Warum es so wirkt | Urteil |
+|---|---|---|
+| **Schlechteres ChatGPT** | Chat-UI, allgemeine Tipps, wenn der Ledger dünn ist | **Risiko hoch**, solange Buddy nicht *nur* mit echten Zahlen und nächsten Schritten glänzt |
+| **Schlechterer Finanzguru** | Bank, Abos, Kategorien, Plus-Abo | **Risiko hoch**, wenn Bank/Depot/Feature-Liste der Hero sind |
+| **Schlechterer Finanzfluss** | Vorsorge, Depot, „finanzielle Bildung“ | **Risiko mittel**, wenn Wealth/ETF-Story mitläuft |
+
+**Fazit ohne Nische:** Nein — dann hebst du dich nicht genug ab. Dann bist du Feature-Overlap mit schwächerer Marke und weniger Banken.
+
+### Wann du dich *doch* abhebst
+
+Nur wenn die Kategorie klar ist und das Produkt sie erzwingt:
+
+1. **Andere Job-to-be-done** — nicht „Zeig mir alle Konten“, sondern „Hilf mir in den ersten Geld-Jahren, eine Entscheidung zu treffen.“  
+2. **Anderer Kunde** — 18–27, erstes Gehalt / erste Wohnung / WG — nicht der Finanzguru-Power-User mit fünf Banken.  
+3. **Andere Beweisform** — nächster Schritt mit Euro-Betrag aus *ihren* Zahlen; Buchung/Bestätigung in der App; offline. Das kann ChatGPT strukturell nicht (kein deutsches Alltags-Ledger, keine Abos/BAV/WG-Loops als Produkt).  
+4. **Andere Trajektorie der Incumbents** — Finanzguru bleibt Aggregator + Verträge + Marktplatz. Finanzfluss bleibt Content + Vermögen. KI-Chat darauf zu schrauben ändert die Identität nicht über Nacht.
+
+### Litmus-Test (für dich und Investoren)
+
+- Wenn du die Bank-Verbindung weglässt: Bleibt Ahead nützlich? → **Muss ja** (Buddy + manuelle/Erfassungs-Zahlen).  
+- Wenn Finanzguru morgen „KI-Buddy“ shippt: Bist du noch klar anders? → **Nur**, wenn Lebensstart-Playbooks und „Entscheidung vor dem Kauf“ dein Kern sind — nicht Übersicht.  
+- Wenn du Depot und Wealth-Hero aus dem Marketing streichst: Tut die Story weh? → **Wenn ja, war die Nische nie echt.**
 
 ---
 
@@ -11,261 +42,167 @@
 
 | | |
 |---|---|
-| **Problem** | Junge Erwachsene in DE tracken Geld in Banking-Apps, treffen Kauf-/Lebensentscheidungen aber weiterhin mit Bauchgefühl oder generischem ChatGPT ohne ihre Zahlen. |
-| **Lösung** | **Buddy** — chat-first Coach, der Ausgaben, Budgets, Abos und Szenarien *des Nutzers* nutzt. Offline-fähig, consent-gated Cloud-KI, keine IBANs an Modelle. |
-| **Keil (Wedge)** | *„Frag Buddy, bevor du buchst.“* — Affordability + Abo-Druck + Monats-Prognose. Bank/Depot sind Datenquellen, nicht das Produkt. |
-| **Modell** | Freemium → **Ahead Plus** 4,99 €/Monat bzw. 39,99 €/Jahr (7 Tage Trial). |
-| **Status** | End-to-end Produkt (Flutter + Dart-Backend + Vault + PSD2-Pfad + Buddy-Agent) soft-launch-fähig; Store-/Legal-/Bank-Ops noch offen. |
-| **Ask (Vorschlag)** | **150–250 k€ Pre-Seed** für 12–18 Monate: Go-to-Market, Trust/Legal, kommerzielle Bankanbindung, Conversion-Loop Buddy→Plus. |
-
-Warum Investoren jetzt einsteigen: **Produkt und Positionierung sind gebaut**, der Markt (Gen Z + Open Banking + KI) ist heiß, aber **noch niemand in DE besitzt klar den „Decision Coach“-Slot** — Finanzguru besitzt Tracking/Verträge, Finanzfluss besitzt Content/Depot. Ahead zielt auf die Lücke dazwischen.
-
----
-
-## 2. Problem
-
-### Was heute passiert
-
-1. **Überblick ohne Entscheidung.** Banking- und Multibanking-Apps (Hausbank, Finanzguru, Copilot) beantworten „Was habe ich?“ — selten „Kann ich mir X leisten, ohne mein Polster zu killen?“
-2. **Generische KI ohne Kontext.** ChatGPT/Claude kennen keine echten Umsätze, Abos und Budgets. Nutzer copy-pasten Screenshots — unsicher, ungenau, nicht handlungsfähig.
-3. **Lebensphasen-Stress.** Erster Job, Umzug, WG, Jobwechsel: hohe finanzielle Unsicherheit, wenig Beratung, die sich junge Leute leisten oder der sie vertrauen.
-4. **Abo-Leakage.** Streaming, Fitness, Tools — Preiserhöhungen und „vergessene“ Verträge sind Alltag; Erkennung allein reicht nicht, wenn niemand zum Kündigen/Umplanen nudgt.
-
-### Evidenz (Markt, nicht Traction)
-
-- ~95 % der 16–29-Jährigen in DE nutzen Online-Banking (Bitkom Digital Finance 2025).
-- 82 % der Gen Z nutzen die Banking-App zur Finanzkontrolle; Multibanking-Apps nur ~8 % (ING/Visa). → **Raum für eine Schicht über der Hausbank**, die nicht „noch eine Bank-App“ sein muss.
-- Finanzguru kommuniziert ~1,5 Mio. Nutzer und eine sehr breite Zielgruppe — Beweis, dass DE Personal Finance massenmarkttauglich ist; gleichzeitig Fokus auf Konten/Verträge, nicht auf Coach-Entscheidungen.
+| **Nische** | **Erste eigene Finanzen in DE (ca. 18–27)** — Gehalt, Miete, Abos, BAV, WG, Notgroschen |
+| **Problem** | Die Bank-App zeigt den Kontostand. Die Frage *„Kann ich mir das leisten / was soll ich jetzt tun?“* bleibt Bauchgefühl oder ChatGPT ohne Ledger. |
+| **Lösung** | **Buddy** — rechnet mit den Zahlen in Ahead und nennt **einen** nächsten Schritt (Euro-Betrag). |
+| **Nicht-Lösung** | Kein Multibanking-Krieg. Kein Depot-Tracker. Kein allgemeines ChatGPT für Finanzen. |
+| **Keil** | *Was mach ich jetzt mit meinem Gehalt?* → Affordability, Abos, erste Fixkosten, Lebensstart-Momente |
+| **Modell** | Freemium → Ahead Plus 4,99 €/Monat oder 39,99 €/Jahr (7 Tage Trial) |
+| **Status** | Produkt end-to-end gebaut; Lebensstart-Playbooks müssen Produkt-Priorität werden (nicht nur Copy) |
+| **Ask** | 150–250 k€ Pre-Seed: Distribution in der Nische + Trust/Legal + Playbooks schärfen — nicht Feature-Parity |
 
 ---
 
-## 3. Lösung & Produkt
+## 2. Problem (in der Nische)
 
-### Kernprodukt: Buddy
+**Persona:** Lena, 23, erstes festes Gehalt, gerade ausgezogen oder kurz davor.
 
-Buddy ist ein **tool-using Agent** mit den Finanzdaten des Nutzers:
+1. Bank-App: „2.400 €“ — keine Antwort auf Urlaub, Kaution, Fitnessstudio.  
+2. Freund: „Spar 20 %“ — ohne ihre Abos und Fixkosten.  
+3. ChatGPT: kluge Sätze — ohne Miete, ohne Netflix-Erhöhung, ohne WG-Schulden.  
+4. Finanzguru/Copilot: stark, wenn sie schon *tracken* will — zu schwer / zu „Finanz-Profi“, wenn sie eigentlich nur den nächsten Monat überleben und vernünftig starten will.
 
-- Fragen wie „Kann ich mir 800 € Urlaub leisten?“ → Rechnung aus Restbudget, Abos, Zielen
-- Was-wäre-wenn-Simulator (Abos pausieren, Einmalausgaben, Sparrate)
-- Natürliche Erfassung („Döner 8,50 gestern“) und Beleg-Scan
-- Abo-/Vertragserkennung inkl. Preisanstieg
-- Proaktive Tipps und **Next-Step-Buttons** (nicht nur Text)
-- Offline-Fallback (`LocalBuddy`) wenn keine Cloud-KI / kein Consent
-- Privacy by design: lokale Hive-Daten, optional AES-Vault, keine IBANs in KI-Summaries
-
-### Bewusst sekundär
-
-PSD2-Bank (Enable Banking), Depot, Splits, grobe Rentenlücke — **Kontext für Buddy**, nicht Store-Hero. Das schützt vor Feature-Parity-Krieg gegen Finanzguru/Copilot.
-
-### Marke
-
-**Ahead** — „Your buddy for money and the future.“ Früher BudgetBuddy; Repositionierung auf Coach-first ist Teil der Investment-Story (Klarheit vor Feature-Liste).
+**Job-to-be-done:** *Hilf mir, in den ersten eigenen Geld-Jahren keine dumme Entscheidung zu treffen — konkret, heute, mit meinen Zahlen.*
 
 ---
 
-## 4. Markt
+## 3. Lösung & Produktfokus
 
-Alle Größen sind **Annäherungen mit Annahmen** — für Investorengespräche als Modell, nicht als auditierte Zahlen.
+### Kern (bleiben / verstärken)
 
-### TAM (DACH Personal Finance Apps / Coaching-Schicht)
+- Buddy mit echten Zahlen + Next Step  
+- „Kann ich mir X leisten?“ / noch frei / Was-wäre-wenn  
+- Abos erkennen + teurer geworden  
+- Schnellerfassung / Beleg  
+- WG/geteilt (passt zum Lebensstart)  
+- Notgroschen-Orientierung, BAV-Frage als Coach-Thema  
+- Local-first, Consent, offline Buddy  
 
-| Ebene | Definition | Größenordnung |
+### Sekundär / Marketing-Demote (wichtig für Abgrenzung)
+
+- Depot & Wealth-Charts → optionaler Kontext, **nie** Store-Hero  
+- „Alle Banken“ → Waitlist/optional, kein Versprechen gegen Finanzguru  
+- Allgemeine Haushaltsbuch-Positonierung → ersetzen durch Lebensstart  
+
+### Roadmap-Pflicht (sonst bleibt die Nische Story)
+
+Drei Playbooks als echte Flows (nicht nur Suggestion-Chips):
+
+1. **Erste Abrechnung** — Netto verstehen, Fixkosten, Notgroschen-Start  
+2. **Erste Wohnung / Umzug** — Kaution, Einrichtung, „kann ich die Miete?“  
+3. **Betriebsrente / erste Vorsorge-Frage** — Orientierung, kein Advice-Theater  
+
+Ohne diese Produkt-Schärfung bleibt Ahead angreifbar als „Chat auf Finanz-App“.
+
+---
+
+## 4. Markt (enger geschnitten)
+
+| Ebene | Definition | Größe (Orientierung) |
 |---|---|---|
-| **TAM** | Online-Banking-Nutzer DE mit Smartphone-First Finanzen (~47 Mio. laut Finanzguru-Branchenlogik; Bitkom: 86 % Online-Banking gesamt) | sehr groß, nicht unser Fokus |
-| **SAM** | 18–34 in DE, die aktiv Ausgaben steuern / budgetieren wollen (~10–12 Mio. Altersgruppe; konservativ 25–35 % „money-interested“ ≈ **2,5–4 Mio.**) | Kernadresse |
-| **SOM (36 Monate)** | 0,5–1,5 % von SAM als registrierte Nutzer ≈ **15–40 k**; davon 8–15 % Paying Plus | Early scale |
+| **TAM** | Digitale Banking-Nutzer DE | groß, egal |
+| **SAM** | 18–27 in DE, die zum ersten Mal allein wirtschaften (~6–7 Mio. Altersgruppe; Teilmenge „erste eigene Finanzen“) | Kern |
+| **SOM 36 Mon.** | 0,5–1 % der erreichbaren Lebensstarter ≈ **10–25 k** registriert; Plus-Anteil 8–15 % | Early scale |
 
-### Warum der Timing stimmt
-
-| Treiber | Bedeutung für Ahead |
-|---|---|
-| Gen Z = App-native Banking | Kein Erklärungsaufwand für Mobile-first |
-| KI-Erwartung | Nutzer akzeptieren Chat als Interface — aber wollen *eigene* Zahlen |
-| Abo-Wirtschaft | Hoher wiederkehrender Schmerz, den Buddy greifbar macht |
-| Privacy-Diskurs DE | Local-first + Consent ist Verkaufsargument, nicht nur Compliance |
-| Lücke im Wettbewerb | Tracking und Content sind besetzt; **Decision Coach** noch nicht |
+Lieber **kleiner und verteidigbar** als 2,5–4 Mio. „money-interested 18–34“ — das ist Incumbent-Terrain.
 
 ---
 
-## 5. Wettbewerb & Differenzierung
+## 5. Wettbewerb — klare Anti-Positionierung
 
-| Spieler | Stärke | Lücke vs. Ahead |
+| | Sie gewinnen mit… | Ahead gewinnt mit… |
 |---|---|---|
-| **Finanzguru** | Banken, Verträge, Marke, Capital | Dashboard/Verträge-first; KI ist Begleiter, nicht Entscheidungs-Keil |
-| **Finanzfluss Copilot** | Content-Marke, Vermögen/Depot | Anleger-lastig; teurer PLUS; wenig „Alltags-leisten“ |
-| **AI Money / ähnliche** | KI-Eingabe, Belege | Weniger tiefes Finance-OS (Budgets, Szenarien, Vault, Agent-Tools) |
-| **MoneyCoach** | Apple-Ökosystem, Privacy | Kein Android; kein chat-first Coach für DE-Lebensphasen |
-| **Hausbank-Apps** | Tägliche Habit | Kein plattformübergreifender Coach, kein „kann ich mir X“ |
-| **ChatGPT** | Starke Konversation | Kennt die Zahlen nicht; keine Buchung, kein Abo-Graph |
+| **ChatGPT** | Allgemeinem Gerede, Tempo | Ledger + Abos + Bestätigen von Buchungen + Offline + DE-Alltag |
+| **Finanzguru** | Bankenliste, Verträge, Marke | Lebensstart-Entscheidung *ohne* Multibanking-Zwang |
+| **Finanzfluss Copilot** | Content, Depot, Anleger-Vertrauen | Alltagsentscheidung vor dem Kauf, nicht Portfolio |
+| **Hausbank** | Täglichem Login | Frage „Kann ich?“ über ein Konto hinaus, Coach-Ton |
 
-### Moat-Pfad (was Investoren hören wollen)
+**Was Incumbents „falsch“ machen (Eckel — Trajektorie):**  
+Annahme: *Wer Geld klar sieht, entscheidet gut.*  
+Unsere Gegenannahme: *Übersicht ist für Lebensstarter oft schon da (Bank-App). Knapp ist der vertrauenswürdige nächste Schritt.*  
+Deshalb ist „KI aufs Dashboard“ keine Kopie von Ahead — es ist dieselbe alte Annahme mit Chat-UI.
 
-1. **Datennetzwerk-Effekt im Kleinen:** gelernte Händlerregeln, Abo-Graph, Kategorie-Coach → bessere Antworten mit der Zeit  
-2. **Lebensphasen-Playbooks** (Produktisierung von Umzug / erster Job / WG) — Content+Agent, schwer nur mit Multibanking zu kopieren  
-3. **Vertrauen:** local-first, ehrliche Disclaimers, DE UX — Wechselkosten steigen mit Vault + Historie  
-4. **Nicht:** „mehr Banken als Finanzguru“ — das gewinnen wir nicht und brauchen wir für den Keil nicht
+**Moat-Pfad (realistisch):**
 
-**Positionierungssatz fürs Pitch-Deck:**  
-*Ahead is the money decision layer for young adults in Germany — Buddy answers with your numbers, before you spend.*
+1. Playbooks + gelernte DE-Händler/Abo-Muster in der Nische  
+2. Habit: fragen → Schritt → Buchung  
+3. Trust (local-first) bei Gen Z  
+4. **Nicht:** mehr Banken, mehr Charts  
 
 ---
 
 ## 6. Geschäftsmodell
 
-### Preise (live im Produkt)
+Unverändert im Kern: Free (Gewohnheit) → Plus 4,99 €/Mon. oder 39,99 €/Jahr.
 
-| | Free | Ahead Plus |
-|---|---|---|
-| Preis | 0 € | **4,99 €/Monat** oder **39,99 €/Jahr** (~3,33 €/Monat) |
-| Trial | — | 7 Tage |
-| Buddy KI | 5 Fragen / Monat | unbegrenzt |
-| Belege | 3 Scans | unbegrenzt |
-| Sparziele | 1 | unbegrenzt |
-| Offline-Buddy, Budgets, Abos | ja | ja |
+**Conversion-Logik in der Nische:** Paywall an Buddy-Fragen und Playbook-Tiefe — nicht am „Haushaltsbuch sperren“.
 
-### Unit Economics (Modell — Annahmen markiert)
-
-| Annahme | Wert | Kommentar |
-|---|---|---|
-| Blended ARPU Paying | ~4,20 €/Monat | Mix Monat/Jahr |
-| Gross margin Ziel | 70–85 % | nach LLM + Bank-API + Store-Fees |
-| LLM-Kosten/aktive Plus-Frage | ~0,001–0,01 € | Gemini Flash / Haiku-Pfad |
-| CAC Ziel (organisch + Creator) | 8–20 € | Early; paid social später testen |
-| Payback Ziel | < 4 Monate | bei ≥10 % Free→Plus der aktiv Fragenden |
-| Churn Ziel Jahr 1 | < 8 % Monat (Monatstarif) / deutlich niedriger Jahr | Coach-Habit + Abo-Alerts |
-
-**Hebel:** Nicht „mehr Features“, sondern **Fragen die konvertieren** (Affordability, Abo-Druck) und Playbooks die Retention erzeugen.
-
-### Erweiterte Revenue-Optionen (Phase 2+, nicht Pre-Seed-Kern)
-
-- B2B2C (Arbeitgeber / Uni / Genossenschaftsbanken White-Label Coach)  
-- Affiliate nur wo trust-kompatibel (z. B. Tagesgeld-Vergleich) — bewusst nachrangig, um Coach-Glaubwürdigkeit zu schützen  
+Unit-Economics-Ziele (Modelle): ARPU ~4,20 € · Margin 70–85 % · CAC früh über Creator/Campus 8–20 € · North Stars: Buddy-Fragen zu Affordability/Lebensstart, Free→Plus, D30.
 
 ---
 
-## 7. Go-to-Market
+## 7. Go-to-Market (nur Nische)
 
-### ICP
-
-- 18–30 Jahre, DE, erstes eigenes Gehalt oder Jobwechsel  
-- Nutzt schon Banking-App, führt aber kein diszipliniertes Haushaltsbuch  
-- Fragt sich konkret: Urlaub, Technik-Kauf, WG-Umzug, „wo geht mein Geld hin?“  
-
-### Motion (12 Monate)
-
-1. **Soft Launch:** TestFlight / Play Internal → Freundeskreis + Creator-Codes (`CREATOR60`, `BUDDY30`)  
-2. **Content-Wedge:** kurze Clips „Buddy rechnet live“ (TikTok/Reels/Shorts) — eine Frage, eine Zahl, ein CTA  
-3. **Campus & Community:** Unis, Azubi-Netzwerke, WG-Gruppen — Splits als Viralschleife  
-4. **ASO:** Untertitel *KI-Coach für dein Alltagsgeld*; Screenshots Buddy-first  
-5. **Bank:** Demo/Waitlist bis Nachfrage; dann Enable Banking commercial — nicht als Launch-Blocker für den Coach-Keil  
-
-### North-Star-Metriken
-
-| Metrik | Warum |
-|---|---|
-| Wöchentliche Buddy-Fragen / User | Engagement am Keil |
-| „Affordability“-Fragenanteil | Product-Market-Fit Signal |
-| Free→Plus Conversion (Tag 7 / Tag 30) | Monetarisierbarkeit |
-| Abo erkannt → Aktion (Pause/Kündigungshinweis) | Outcome, nicht Vanity |
-| D7 / D30 Retention | Habit |
+- Clips: „Erstes Gehalt — Buddy, was jetzt?“ / „Kann ich mir die Wohnung leisten?“  
+- Azubi-/Uni-/WG-Kanäle  
+- Creator 20–26, kein Finanzfluss-Anleger-Publikum  
+- ASO: Buddy + Lebensstart, keine Depot-Screenshots  
 
 ---
 
-## 8. Traction & Status (ehrlich)
+## 8. Traction & ehrlicher Status
 
-**Was gebaut und getestet ist**
+**Gebaut:** App, Buddy, Vault, Abos, Budgets, Splits, Plus-Hooks, Soft-Launch-Pfad.  
+**Noch dünn für die Nische:** dedizierte Lebensstart-Playbooks als Produkt.  
+**Noch offen:** Store-Ops, kommerzielle Bank, externe Traction.
 
-- Flutter-App (iOS/Android/Web-Pfad), Dart-Backend  
-- Auth, lokales Finance-OS, Cloud-Vault (AES-256-GCM)  
-- Buddy (Cloud + Offline), Quotas, Consent, Actions, Entries  
-- Verträge/Abos, Budgets, Prognose/Simulator, Sparziele, Splits  
-- Plus-Gates, Stripe-Web + Store-Verify-Hooks  
-- Umfangreiche UX-Härte + Testsuite (laut Launch-/UX-Docs launch-nah)
-
-**Was noch fehlt für Public Scale**
-
-- Store-Submit Ops (Signing, Live-IAP, Privacy/Impressum final)  
-- Kommerzielle PSD2-Produktion  
-- Messbare externe Traction (Downloads, Paying, Retention) — **Pre-Seed-Realität**  
-- Marken-Rollout Ahead in Landing/Store (README bereits repositioniert)
-
-Investoren investieren hier in **Execution + Keil-Klarheit**, nicht in bereits skalierte ARR.
+Investoren wetten auf: **Klarheit der Nische + Execution**, nicht auf schon skalierte ARR.
 
 ---
 
 ## 9. Team
 
-**Luis Frenkler** — Solo-Founder, Full-Stack: Flutter-Client, Backend, Vault, Bank-Sync, Buddy-Agent, Soft-Launch-Pfad.
-
-**Pre-Seed-Implikation:** Capital finanziert vor allem *Distribution, Trust und Tempo* — und optional erste kritische Rollen (Growth/Content oder Teilzeit Legal/Compliance), nicht ein Rewrite des Produkts.
+Luis Frenkler — Solo, Full-Stack. Capital/WHU = Distribution in der Nische + Legal + Playbook-Tiefe, kein Rewrite.
 
 ---
 
-## 10. Ask, Use of Funds, Meilensteine
+## 10. Ask & Meilensteine
 
-### Ask (Vorschlag zum Pitch)
+**150–250 k€** · 12–18 Monate  
 
-**150–250 k€** als Pre-Seed (SAFE/Equity nach Gespräch), Runway **12–18 Monate**.
-
-| Verwendung | Anteil | Wofür |
-|---|---|---|
-| Go-to-Market & Creator | 35–45 % | Clips, Creator-Deals, ASO, Campus |
-| Trust & Legal | 15–20 % | Anwalt AGB/Datenschutz/KI, Impressum, Store-Compliance |
-| Infrastructure & Bank | 15–20 % | EU-Hosting, Enable Banking commercial, Monitoring |
-| Product (Keil vertiefen) | 15–25 % | Lebensphasen-Playbooks, Proaktivität, Conversion-Loops |
-| Buffer | 5–10 % | Apple Dev, Reserven |
-
-### 18-Monats-Meilensteine (für Diligence)
-
-| Zeitraum | Ziel |
+| Posten | Fokus |
 |---|---|
-| 0–3 Mon. | Public Soft Launch Ahead-Brand; 1.000 registrierte Nutzer; Buddy-Fragen als NS |
-| 3–9 Mon. | 10 k registriert; ≥8 % der aktiven Fragenden auf Plus-Trial; erste Creator-Pipeline |
-| 9–18 Mon. | 25–40 k registriert; belastbare Unit Economics; Seed-ready mit Retention-Story |
+| ~40 % GTM | Lebensstart-Creator, Campus, ASO |
+| ~25 % Product | Drei Playbooks, Messung der Wedge-Fragen |
+| ~20 % Trust/Legal | Store, Datenschutz, KI-Consent |
+| ~15 % Infra | Hosting, optional Bank wenn Nachfrage |
 
-*(Zahlen sind Ziele/Modelle, keine Zusagen.)*
+| Zeit | Ziel |
+|---|---|
+| 0–3 Mon. | Soft Launch Ahead · Playbook v1 · 1.000 Nutzer in ICP |
+| 3–9 Mon. | ~8–12 k · Plus aus Buddy-Habit · Creator-Pipeline |
+| 9–18 Mon. | 20–35 k · belastbare Retention in der Nische · Seed-Story |
 
 ---
 
-## 11. Risiken & Mitigation
+## 11. Risiken
 
 | Risiko | Mitigation |
 |---|---|
-| Feature-Krieg gegen Finanzguru | Keil halten; nicht Bankenliste optimieren |
-| KI = austauschbar | Eigene Tools, Offline, Playbooks, Outcomes messen |
-| Regulierung / „Beratung“ | Klare Disclaimers; keine Anlage-/Rechtsberatung; Orientierung statt Advice |
-| Bank-API-Kosten | Coach ohne Bank nutzbar; Bank hinter Nachfrage |
-| Solo-Founder-Key-Person | Runway + dokumentierter Code; erste Hire entlang GTM |
-| Markenverwirrung BudgetBuddy/Ahead | Einheitlicher Ahead-Rollout in Store + Landing (Priorität) |
+| Wirkt wie ChatGPT | Nur Antworten mit Zahlen + Next Step; keine generischen Tipps als Hero |
+| Wirkt wie Mini-Finanzguru | Depot/Bank aus Marketing; Playbooks first |
+| Nische zu klein | Erst gewinnen, dann angrenzende Momente (Jobwechsel, Paar) |
+| Solo-Founder | Fokus > Feature-Breite |
 
 ---
 
-## 12. Warum jetzt / warum Ahead
+## Anhang — One-Pager
 
-1. **Produkt existiert** — nicht nur Slideware.  
-2. **Klarer Keil** gegen besetzte Incumbents.  
-3. **Struktureller Rückenwind:** Gen Z × KI × Abo-Wirtschaft × Privacy.  
-4. **Kapitaleffizienter Early Path:** Soft Launch ohne sofortigen Bank-CapEx; LLM-Kosten kontrollierbar.  
-5. **Upside:** Decision Layer kann später B2B2C und tiefere Life-Stage-Produkte tragen, ohne den Kern zu verraten.
+**Ahead** hilft Menschen in Deutschland in den **ersten eigenen Geld-Jahren**, Entscheidungen zu treffen — mit Buddy, der ihre Zahlen kennt.  
+Nicht Übersicht. Nicht ETF-Theater. Nicht ChatGPT ohne Ledger.  
+**Plus 4,99 €/Monat.** Pre-Seed **150–250 k€**, um die Nische zu besetzen, nicht um Bankenlisten zu gewinnen.
 
----
+### Verwandte Docs
 
-## Anhang A — One-Pager Pitch
-
-**Ahead** hilft jungen Erwachsenen in Deutschland, Geld-Entscheidungen *mit ihren echten Zahlen* zu treffen.  
-**Buddy** antwortet auf „Kann ich mir das leisten?“, erkennt Abos und simuliert den Monat — privat, auf Deutsch, chat-first.  
-Wir verkaufen nicht Multibanking. Wir verkaufen **Klarheit vor dem Kauf**.  
-**Plus 4,99 €/Monat.** Pre-Seed **150–250 k€**, um Distribution und Trust hinter ein bereits gebautes Produkt zu legen.
-
-## Anhang B — Quellen (Auswahl)
-
-- Bitkom, Digital Finance 2025 (Online-Banking-Penetration)  
-- ING / Visa Gen-Z-Banking-Analyse (App-Nutzung zur Finanzkontrolle)  
-- Branchenberichte zu Finanzguru-Nutzerzahlen / Personal-Finance-App-Rankings DE  
-- Interne Produkt-/Launch-Docs: `docs/launch.md`, `docs/store_listing_de.md`, README
-
-## Anhang C — Verwandte Docs
-
-- Produktpositionierung & Tech: [README](../README.md)  
-- Soft-Launch: [launch.md](launch.md)  
-- Store-Listing DE: [store_listing_de.md](store_listing_de.md)
+- Pitch: [pitch_deck.md](pitch_deck.md) · [pitch_deck.html](pitch_deck.html) · [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf)  
+- README · [product_focus.md](product_focus.md) · [launch.md](launch.md) · [store_listing_de.md](store_listing_de.md)

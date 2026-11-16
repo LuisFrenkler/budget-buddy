@@ -27,7 +27,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Über BudgetBuddy')),
+      appBar: AppBar(title: const Text('Über Ahead')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
@@ -69,14 +69,14 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.mail_outline_rounded,
               title: 'Support kontaktieren',
               subtitle: 'Wir antworten meist innerhalb eines Tages',
-              onTap: () => _mail(context, 'BudgetBuddy Support'),
+              onTap: () => _mail(context, 'Ahead Support'),
               external: true,
             ),
             SettingsRow(
               icon: Icons.lightbulb_outline_rounded,
               title: 'Idee vorschlagen',
-              subtitle: 'Was würde BudgetBuddy für dich besser machen?',
-              onTap: () => _mail(context, 'Idee für BudgetBuddy'),
+              subtitle: 'Was würde Ahead für dich besser machen?',
+              onTap: () => _mail(context, 'Idee für Ahead'),
               external: true,
             ),
             SettingsRow(
@@ -106,7 +106,7 @@ class AboutScreen extends StatelessWidget {
               title: 'Open-Source-Lizenzen',
               onTap: () => showLicensePage(
                 context: context,
-                applicationName: 'BudgetBuddy',
+                applicationName: 'Ahead',
                 applicationVersion: LegalInfo.appVersion,
                 applicationIcon: const Padding(padding: EdgeInsets.all(12), child: BrandMark(size: 48)),
               ),

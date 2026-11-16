@@ -64,7 +64,7 @@ class _BalanceSheetState extends State<_BalanceSheet> {
         Text(MoneyAccounts.several ? 'Wie viel ist gerade auf ${(widget.account ?? MoneyAccounts.main).name}?' : 'Wie viel ist gerade auf deinem Konto?',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.2)),
         const SizedBox(height: 6),
-        Text('Schau kurz in deine Banking-App. Ab dann rechnet BudgetBuddy mit jeder Buchung weiter.',
+        Text('Schau kurz in deine Banking-App. Ab dann rechnet Ahead mit jeder Buchung weiter.',
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 18),
         TextField(
@@ -104,9 +104,9 @@ class GettingStartedCard extends StatelessWidget {
   const GettingStartedCard({super.key});
 
   static const _steps = {
-    OnboardingStep.booking: (Icons.edit_note_rounded, 'Erste Ausgabe', 'Tipp „Kaffee 3,20“ oder Bank verbinden'),
-    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit Vermögen und „noch frei“ stimmen'),
-    OnboardingStep.budget: (Icons.pie_chart_rounded, 'Budget setzen', 'Limits aus deinen Umsätzen vorschlagen'),
+    OnboardingStep.booking: (Icons.edit_note_rounded, 'Erste Ausgabe', 'Tipp „Kaffee 3,20“ — oder später Bank'),
+    OnboardingStep.balance: (Icons.account_balance_wallet_rounded, 'Kontostand oder Bank', 'Damit Buddy „noch frei“ und Miete rechnen kann'),
+    OnboardingStep.budget: (Icons.pie_chart_rounded, 'Budget setzen', 'Limits für den ersten eigenen Monat'),
   };
 
   Future<void> _open(BuildContext context, OnboardingStep s) async {
@@ -165,7 +165,7 @@ class GettingStartedCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
               Text(
                   complete
-                      ? 'Buchung, Kontostand und Budget stehen. Als Nächstes: Polster und Vorsorge.'
+                      ? 'Buchung, Kontostand und Budget stehen. Als Nächstes: Notgroschen und Abos.'
                       : '$done von $total erledigt',
                   style: TextStyle(color: AppColors.textDim, fontSize: 13)),
             ]),
