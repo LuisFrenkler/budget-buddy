@@ -61,11 +61,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primaryText),
             const SizedBox(height: 12),
-            const Text('Du nutzt BudgetBuddy gratis',
+            const Text('Du nutzt Ahead gratis',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(
-                'Gratis: ${PlusService.freeAiQuestions} KI-Fragen, ${PlusService.freeReceiptScans} Belege, '
+                'Gratis: ${PlusService.freeAiQuestions} Buddy-Fragen, ${PlusService.freeReceiptScans} Belege, '
                 '${PlusService.freeGoals} Sparziel gratis, mit Plus unbegrenzt.',
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
@@ -79,8 +79,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
                 builder: (context) => AlertDialog(
                   title: const Text('Immer gratis'),
                   content: Text(
-                    'Konto & Depot, Budgets, Monatsprognose, Verträge inkl. Kündigung, '
-                    'Notgroschen & Vorsorge-Orientierung, Hinweise, geteilte Ausgaben und dein Monatsrückblick.',
+                    'Budgets, Monatsprognose, Verträge inkl. Kündigung, Notgroschen, '
+                    'geteilte Ausgaben, Monatsrückblick — und optional Bank oder Depot als Kontext.',
                     style: TextStyle(color: AppColors.textDim, height: 1.45),
                   ),
                   actions: [
@@ -128,7 +128,7 @@ class _Details extends StatelessWidget {
             Row(children: [
               Icon(Icons.workspace_premium_outlined, size: 22, color: sub.cancelled ? AppColors.primaryText : Colors.white),
               const SizedBox(width: 8),
-              Text('BudgetBuddy Plus',
+              Text('Ahead Plus',
                   style: TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w800, color: sub.cancelled ? AppColors.text : Colors.white)),
             ]),

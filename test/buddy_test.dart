@@ -90,10 +90,11 @@ void main() {
     expect(LocalBuddy.answer('Wie steht die Rente?', s), contains('nicht eingerichtet'));
     expect(LocalBuddy.answer('Kann ich mir 800 € Urlaub leisten?', rich), contains('1.786,01'));
     final chips = BuddySuggestions.pick(rich);
-    expect(chips.map((c) => c.text), contains('Richte meine Vorsorge ein'));
-    expect(chips.map((c) => c.text), contains('Zeig mein Nettovermögen'));
-    expect(chips.map((c) => c.text), contains('Was schuldet mir die WG?'));
+    expect(chips.map((c) => c.text), contains('Was mach ich mit meinem Gehalt?'));
+    expect(chips.map((c) => c.text), contains('Kann ich mir 800 € Urlaub leisten?'));
     expect(chips.map((c) => c.text), contains('Wer schuldet mir noch Geld in WG?'));
     expect(chips.length, lessThanOrEqualTo(6));
+    // Depot/wealth never displace life-start anchors
+    expect(chips.take(3).map((c) => c.text).toList(), BuddySuggestions.anchors.map((a) => a.text).toList());
   });
 }

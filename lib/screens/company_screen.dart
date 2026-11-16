@@ -19,7 +19,7 @@ class CompanyScreen extends StatelessWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: LegalInfo.email,
-      query: 'subject=${Uri.encodeComponent('Mitarbeit bei BudgetBuddy')}',
+      query: 'subject=${Uri.encodeComponent('Mitarbeit bei Ahead')}',
     );
     if (LegalInfo.email.startsWith('[') || !await launchUrl(uri)) {
       if (context.mounted) {
@@ -39,28 +39,28 @@ class CompanyScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
           _block(
-            'Über BudgetBuddy',
-            'BudgetBuddy hilft, Alltagsgeld zu verstehen: was reinkommt, was regelmäßig '
-                'weggeht, und was für Ziele oder eine grobe Vorsorge übrig bleibt. Die App '
-                'führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.',
+            'Über Ahead',
+            'Ahead ist der Coach für die ersten eigenen Finanzen: erstes Gehalt, erste Miete, '
+                'erste Abos. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. '
+                'Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.',
             dim,
           ),
           _block(
             'Für Nutzer',
-            'Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen '
-                'zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, '
-                'die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. '
+            'Die App ist privacy-first gebaut. Umsätze, Budgets und Ziele liegen zuerst auf '
+                'deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät '
+                'vor dem Hochladen verschlüsselt — wir können sie nicht lesen. '
                 'Keine Werbung, kein Tracking, kein Verkauf von Daten.',
             dim,
           ),
           _block(
             'Für Investoren',
-            'Finanzguru ist der etablierte Kontenüberblick für ein großes Publikum. '
-                'BudgetBuddy setzt daneben an und ist früher dran: ein privater Coach für '
-                'den Alltag, Buddy nur mit Zustimmung, Verträge aus den eigenen Buchungen, '
-                'Depot und Vorsorge als Orientierung ohne Vermittlung. Wir nennen keine '
-                'Nutzerzahlen, die einen Vergleich tragen würden, und beanspruchen den Markt '
-                'nicht. Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird, '
+            'Finanzguru besitzt Übersicht. Finanzfluss besitzt Vermögen und Content. '
+                'Ahead setzt früher an: Lebensstart mit Geld (~18–27), Buddy nur mit Zustimmung, '
+                'Abos aus den eigenen Buchungen, Notgroschen und erste Vorsorge-Frage als '
+                'Orientierung ohne Vermittlung. Depot und Bank bleiben optionaler Kontext. '
+                'Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. '
+                'Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird — '
                 'mit dem Unterschied, dass die Finanzdaten bei der Person bleiben.',
             dim,
           ),
