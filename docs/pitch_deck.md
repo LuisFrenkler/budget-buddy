@@ -1,48 +1,38 @@
-# Ahead — Pitch Deck
+# Ahead — Investor Pitch Deck
 
-**Guy Kawasaki 10** · **10/20/30** · Ahead brand (landing) · Competition per [Max Eckel](https://kellogg.whu.edu/de/news-insights/whu-magazin/artikel/competition-slide-pitch-deck-mistakes/) · WHU MiE
+**Kawasaki 10** · Ahead brand · Competition per [Max Eckel](https://kellogg.whu.edu/de/news-insights/whu-magazin/artikel/competition-slide-pitch-deck-mistakes/)  
+**Craft:** one investor question per slide · headline = the answer · show product · sparse support
 
 | File | Use |
 |---|---|
 | [pitch_deck.html](pitch_deck.html) | Present / print |
-| [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf) | WHU upload |
+| [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf) | WHU / investor upload |
 
-Design system: paper `#FAF7F4`, copper `#B06030`, ember, peach · **Bricolage Grotesque** + **Figtree** · coin mark · product phones from `landing/`.
+## How investors read a deck
 
----
+In ~3 seconds per slide they ask: *Why should I care? Why now? Why you? How do you make money? How do you win? What do you need?*  
+Perfect slides answer **one** of those. The headline does the work; the rest is proof.
 
-## 1 — Title
-**What do I do with my salary?**  
-Buddy works with your numbers and names one next step — with a real euro amount.  
-Luis Frenkler · github.com/LuisFrenkler/budget-buddy
+## How to present (≤20 min + discussion)
 
-## 2 — Problem / Opportunity
-They already see money. They still guess when it matters.  
-95% online banking (16–29) · 82% Gen Z bank app / ~8% multibanking · Gap = decisions, not dashboards.
+1. **Don’t read.** Speak the story; slides are proof boards.  
+2. **First 60s:** what Ahead is + why it matters + that the product exists.  
+3. **Demo beat** on Magic: one live question → number → next step.  
+4. **Pause after competition** — that’s where smart pushback lives.  
+5. **Close on the Ask** — amount, milestones money unlocks, what “winning” looks like.  
+6. Goal of the pitch (Kawasaki): **stay in the game** for the next meeting — not an instant check.
 
-## 3 — Value Proposition
-**Ask Buddy before you spend.** Affordability · actionable subscriptions · life-stage next steps.  
-Bank & portfolio = context for Buddy.
+## Slide map (investor question → answer)
 
-## 4 — Underlying Magic
-Tool-using coach on the finance graph: grounded tools · action loop · offline Buddy · trust by design.
-
-## 5 — Business Model
-Free → Ahead Plus **€4.99/mo** or **€39.99/yr** (7-day trial). Pay when asking often.
-
-## 6 — Go-to-Market
-ICP 18–30 DE · soft launch + creators · clips · campus · ASO · bank waitlist. Not “go viral.”
-
-## 7 — Competitive Analysis (Eckel)
-Trade-offs understandable. **Reject:** “See money clearly → decide well.”  
-Opening: decision layer on the bank they already use — hard for dashboard-first trajectories.
-
-## 8 — Management Team
-Luis Frenkler — built end to end. Gap: GTM/legal. WHU = distribution, not rewrite.
-
-## 9 — Financials & Key Metrics
-SAM 2.5–4M · SOM 15–40k · ARPU ~€4.20 · margin 70–85% · NS: Buddy asks, Free→Plus, D30.
-
-## 10 — Current Status & Use of Funds
-Product built · 0–3 / 3–9 / 9–18 milestones · **€150–250k** use of funds.  
-*Decisions are the product — not more dashboards.*
+| # | Kawasaki | Investor question | Headline answer |
+|---|---|---|---|
+| 1 | Title | What do you do? | Decision layer for young adults in DE |
+| 2 | Problem / Opportunity | Why does this hurt? | They see the balance — still can’t answer “Can I?” |
+| 3 | Value Proposition | How do you fix it? | Ask Buddy before you spend |
+| 4 | Underlying Magic | What’s hard to copy? | Coach on the finance graph |
+| 5 | Business Model | How do you make money? | Subscribe when asking becomes habit |
+| 6 | Go-to-Market | How do you get customers? | One question · one number · one CTA |
+| 7 | Competitive Analysis | Why do you win? | They optimize overview · we optimize the decision |
+| 8 | Management Team | Why this founder? | Already built the hard part |
+| 9 | Financials & Metrics | Is the math sane? | Bottoms-up · measure the wedge |
+| 10 | Status & Use of Funds | What do you need? | €150–250k → milestones |
