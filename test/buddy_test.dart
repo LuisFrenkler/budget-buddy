@@ -138,6 +138,8 @@ void main() {
     ]));
     expect(texts, contains('Wer schuldet mir noch Geld in WG?'));
     expect(chips.length, lessThanOrEqualTo(6));
+    // Depot/wealth never displace life-start anchors
+    expect(chips.take(3).map((c) => c.text).toList(), BuddySuggestions.anchors.map((a) => a.text).toList());
   });
 
   test('the empty chat asks for euros, or one salary question', () {

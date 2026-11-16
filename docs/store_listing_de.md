@@ -1,42 +1,44 @@
 # App Store / Play Store: Listing (Deutsch)
 
-Positionierung: **Alltagsgeld-Coach** (Buddy, Abos, schnelle Erfassung), kein Depot-Tracker.
+Positionierung: **Coach für die ersten eigenen Finanzen** (Gehalt, Miete, Abos, nächster Schritt).  
+Kein Depot-Tracker. Kein Multibanking-Hero. Kein generisches ChatGPT.
 
 ## Untertitel (≤ 30 Zeichen)
 
-`KI-Coach für dein Alltagsgeld`
+`Dein Coach zum ersten Gehalt`
 
-(29 Zeichen inkl. Leerzeichen)
+(28 Zeichen inkl. Leerzeichen)
+
+Alt, falls belegt: `Frag Buddy vor dem Kauf` (23)
 
 ## Promo-Text (kurz, oben sichtbar)
 
-Kann ich mir das leisten? Buddy rechnet mit deinen echten Zahlen. Tippe Ausgaben wie du sprichst, erkenne Abos, baue ein Polster und sieh grob, was für die Vorsorge noch fehlt. Klar, privat, auf Deutsch.
+Was mach ich jetzt mit meinem Gehalt? Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt — Urlaub, Miete, Abos, Notgroschen. Klar, privat, auf Deutsch. Für die ersten eigenen Geld-Jahre.
 
 ## Beschreibung
 
-**Ahead ist dein KI-Finanzcoach für den Alltag.**
+**Ahead ist dein Coach für die ersten eigenen Finanzen.**
 
-Statt nur Kontostände und Kurse zu zeigen, beantwortet Buddy konkrete Fragen: „Kann ich mir 800 € Urlaub leisten?“, „Wo kann ich sparen?“, „Welche Abos habe ich?“. Er rechnet mit deinen Ausgaben, Budgets und Verträgen.
+Statt nur Kontostände und Kurse zu zeigen, hilft Buddy bei dem, was am Anfang zählt: „Kann ich mir das leisten?“, „Welche Abos habe ich?“, „Was bleibt diesen Monat?“. Er rechnet mit deinen Ausgaben, Budgets und Verträgen und nennt einen konkreten nächsten Schritt.
 
 **Drei Dinge, die sofort helfen**
 
-1. **Buddy fragen:** kurze, ehrliche Antworten mit deinen Zahlen (auch offline auf dem Gerät; mit KI nach Zustimmung).
-2. **Erfassen, wie du sprichst:** „Döner 8,50 gestern“ oder Beleg fotografieren. Fertig.
-3. **Abos im Griff:** feste Kosten werden erkannt; Warnung, wenn etwas teurer wird.
+1. **Buddy fragen:** ehrliche Antworten mit deinen Zahlen (auch offline; mit KI nach Zustimmung).
+2. **Erfassen, wie du sprichst:** „Döner 8,50 gestern“ oder Beleg fotografieren.
+3. **Abos im Griff:** feste Kosten erkennen; Warnung, wenn etwas teurer wird.
 
 **Optional: Bank verbinden**
 
-Über PSD2 (reiner Lesezugriff) kommen Umsätze und Kontostand von selbst. Login nur bei deiner Bank. Ohne Bank startest du leer oder mit Beispieldaten.
+Über PSD2 (nur lesen) kommen Umsätze von selbst. Login bei deiner Bank. Ohne Bank startest du mit Tippen oder Beispieldaten — Ahead bleibt nützlich.
 
 **Auch dabei**
 
-- Budgets mit Ampel und Tempo
-- Sparziele und Prognose „noch frei“
-- Notgroschen, Sparquote, Schulden & Versicherungs-Inventar
-- Vorsorge: grobe Rentenlücke (Orientierung, keine Beratung)
-- Depot mitführen (Import / Kurse), der Fokus bleibt der Alltag
-- App-Sperre (Face ID / Fingerabdruck), Beträge verbergen
-- Dark Mode, CSV/Backup, geteilte Ausgaben
+- Budgets und Prognose „noch frei“
+- Sparziele und Notgroschen
+- Geteilte Ausgaben (WG, Urlaub, zu zweit)
+- Grobe Vorsorge-Orientierung (keine Beratung)
+- Depot kannst du mitführen — der Fokus bleibt der Lebensstart
+- App-Sperre, Beträge verbergen, Backup
 
 **Kostenlos und Plus**
 
@@ -44,41 +46,37 @@ Kostenlos: Konto, Budgets, Prognose, Verträge, Notgroschen, 30 Fragen an Buddy 
 
 **Privatsphäre**
 
-Keine Kontonummern an die KI. Buddy-Zusammenfassung nur nach deiner Zustimmung. Konto in der App löschbar.
+Keine Kontonummern an die KI. Buddy nur nach Zustimmung. Konto in der App löschbar.
 
-Buddy kann sich irren. Keine Anlage-, Steuer-, Renten- oder Rechtsberatung. Vorsorge-Zahlen sind Orientierung.
+Buddy kann sich irren. Keine Anlage-, Steuer-, Renten- oder Rechtsberatung.
 
-## Screenshot-Reihenfolge (5–6 Frames)
-
-Nimm die Frames im Simulator / Gerät; Bildunterschriften so setzen:
+## Screenshot-Reihenfolge
 
 | # | Screen | Bildunterschrift |
 |---|--------|------------------|
-| 1 | Buddy mit Frage „Kann ich mir 800 € Urlaub leisten?“ | Frag Buddy, bevor du buchst |
-| 2 | Buddy-Antwort mit konkreter Zahl / Zeitraum | Antwort mit deinen echten Zahlen |
-| 3 | Schnellerfassung „Döner 8,50 gestern“ | Tippen wie du sprichst |
-| 4 | Verträge / Abos mit Monatssumme | Abos erkannt. Erhöhungen auch. |
-| 5 | Start mit „noch frei“ + Polster/Vorsorge | Noch frei, und was als Nächstes kommt |
-| 6 | (optional) Plus / Buddy ohne Limit | Buddy ohne Limit, gleiche Ehrlichkeit |
+| 1 | Buddy: „Was mach ich mit meinem Gehalt?“ | Dein Coach zum ersten Gehalt |
+| 2 | Buddy: „Kann ich mir 800 € Urlaub leisten?“ + Zahl | Frag Buddy, bevor du buchst |
+| 3 | Next Step mit Euro-Betrag | Ein nächster Schritt. Konkret. |
+| 4 | Abos / Verträge | Abos erkannt. Erhöhungen auch. |
+| 5 | Schnellerfassung „Döner 8,50 gestern“ | Tippen wie du sprichst |
+| 6 | (optional) Plus | Mehr Buddy, gleiche Ehrlichkeit |
 
-Vermeide als erstes Frame: reines Depot-Chart oder leeres Dashboard ohne Buddy.
+**Nie als erstes Frame:** Depot-Chart, leeres Dashboard, Nettovermögen-Hero.
 
-## ASO-Keywords (Orientierung, DE)
+## ASO-Keywords (Orientierung)
 
-Primär: Budget, Haushaltsbuch, KI, Finanzcoach, Abos, Verträge, Ausgaben  
-Sekundär: Bank verbinden, Beleg scannen, Sparziel, Budgets  
+Primär: Gehalt, Budget, Abos, KI, Finanzcoach, Ausgaben, Sparziel  
+Sekundär: Haushaltsbuch, Beleg, WG, Notgroschen  
 
-Nicht überladen; Untertitel und erste Beschreibungzeilen tragen die Keywords natürlich.
+## Bewusst nicht versprechen
 
-## Was wir bewusst nicht versprechen
-
-- „Besser als Finanzfluss“ / Konkurrenten namentlich
+- Besser als Finanzguru / Finanzfluss (namentlich)
 - Anlageberatung oder Garantien
-- Unbegrenzte Bankenliste als Hauptversprechen (Bank ist optional)
+- Bankenliste als Hauptnutzen
 
 ## Check vor dem Einreichen
 
-- [ ] Impressum / Support in der App vollständig (`lib/legal/legal_info.dart`)
-- [ ] Screenshots in der Reihenfolge oben
-- [ ] Untertitel und Beschreibung identisch mit Landing-Story
-- [ ] Datenschutz-URL und AGB verlinkt
+- [ ] Listing sagt **Ahead**, nicht BudgetBuddy
+- [ ] Screenshots Buddy / Lebensstart first
+- [ ] Gleicher Claim wie Landing + Pitch
+- [ ] Datenschutz / AGB verlinkt

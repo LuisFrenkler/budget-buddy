@@ -1,12 +1,12 @@
 # Ahead
 
-**Your buddy for money and the future.**
+**Coach for first own finances in Germany.**
 
-Ahead is a Flutter finance app for young adults in Germany. The product is **Buddy** — an AI money coach in chat that answers with *your* numbers. Banking, portfolio, and retirement context are data sources for Buddy, not the centre of the product.
+Ahead is a Flutter finance app for people in their first money years (~18–27). The product is **Buddy** — a coach in chat that answers with *your* numbers: salary, rent, Abos, next step. Banking and portfolio are optional context, not the centre.
 
 > ChatGPT does not know your numbers. Buddy does.
 
-Formerly *BudgetBuddy* — same codebase, new brand and positioning.
+Formerly *BudgetBuddy* — same codebase, new brand and niche.
 
 <p align="center">
   <img src="docs/images/bb_readme_hero.jpg" alt="Ahead — Buddy answers with your real numbers" width="720">
@@ -15,35 +15,45 @@ Formerly *BudgetBuddy* — same codebase, new brand and positioning.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/images/bb_readme_buddy.jpg" alt="Buddy AI coach chat" width="140">
-  <img src="docs/images/bb_readme_start.jpg" alt="Overview: net worth and remaining budget" width="140">
-  <img src="docs/images/bb_readme_forecast.jpg" alt="What-if monthly simulator" width="140">
+  <img src="docs/images/bb_readme_buddy.jpg" alt="Buddy: what do I do with my salary?" width="140">
+  <img src="docs/images/bb_readme_start.jpg" alt="Still free this month" width="140">
+  <img src="docs/images/bb_readme_forecast.jpg" alt="What-if before you spend" width="140">
+  <img src="docs/images/bb_readme_contracts.jpg" alt="Abos and price rises" width="140">
   <img src="docs/images/bb_readme_konto.jpg" alt="Account and transactions" width="140">
-  <img src="docs/images/bb_readme_contracts.jpg" alt="Subscriptions and contracts" width="140">
-  <img src="docs/images/bb_readme_depot.jpg" alt="Brokerage portfolio" width="140">
+  <img src="docs/images/bb_readme_depot.jpg" alt="Optional portfolio context" width="140">
 </p>
 
 ## Positioning
 
-Most German money apps show **what you have**. Ahead focuses on **what to do next in your life stage** — first job, job change, moving in together, and similar moments — with a coach that can explain, calculate, and suggest next steps (never regulated investment advice).
+Ahead is for **first own finances in Germany** (~18–27): first salary, first flat, first Abos — not another multibanking or depot app.
+
+Most money apps show **what you have**. Buddy answers **what to do next** with *your* numbers (never regulated investment advice). Banking and portfolio stay optional context.
+
+**Not** ChatGPT without a ledger. **Not** a worse Finanzguru/Finanzfluss — a different job (life-start decisions).
+
+North star: [docs/product_focus.md](docs/product_focus.md)  
+Investor brief (DE): [docs/business_case.md](docs/business_case.md) — includes an honest differentiation audit.  
+Pitch: [docs/pitch_deck.md](docs/pitch_deck.md) · [docs/pitch_deck.html](docs/pitch_deck.html) · [docs/Luis_Frenkler_PitchDeck.pdf](docs/Luis_Frenkler_PitchDeck.pdf).  
+Store listing (DE): [docs/store_listing_de.md](docs/store_listing_de.md).
 
 ## Product
 
-**Buddy (AI coach)**
-- Chat-first home screen; answers grounded in the user’s real spending, budgets, contracts, goals, and portfolio
-- Tool-using agent on device (search transactions, run month scenarios, calculate savings plans)
+**Buddy (life-start coach)**
+- Chat-first; answers grounded in spending, budgets, contracts, goals
+- Default questions: Gehalt, Urlaub, Miete — not depot/wealth vanity
+- Tool-using agent on device (search transactions, run month scenarios, savings plans)
 - Receipt scan and natural-language quick entry
-- Consent-gated cloud AI; on-device fallback when unavailable; no IBANs in summaries
+- Consent-gated cloud AI; on-device fallback; no IBANs in summaries
 
 **Cash flow & foresight**
-- Remaining budget for the month and a what-if simulator (skip subscriptions, one-offs, adjust savings — nothing persisted)
+- Remaining budget and what-if (skip Abos, one-offs — nothing persisted)
 - Subscriptions detected from recurring payments, including price-rise signals
-- Savings goals and a rough retirement gap as orientation (not advice)
+- Notgroschen and a rough BAV / retirement question as orientation (not advice)
 
-**Accounts & portfolio (supporting)**
+**Accounts & portfolio (supporting — never the hero)**
 - PSD2 bank link (Enable Banking, read-only) and demo bank
 - Auto-categorization and learned merchant rules
-- Holdings with quotes / imports — useful context for Buddy, not the hero feature
+- Holdings / imports as optional Buddy context
 
 **Security & sync**
 - Local-first Hive storage; optional encrypted cloud vault (AES-256-GCM, password-derived key)

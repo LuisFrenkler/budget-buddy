@@ -1,5 +1,5 @@
 name: budget_buddy
-description: finance tracker (BudgetBuddy)
+description: Ahead — your buddy for money and the future
 version: 1.0.0+1
 
 environment:
@@ -63,8 +63,9 @@ flutter:
 
   assets:
     - assets/fonts/Inter-OFL.txt
+    - assets/fonts/BricolageGrotesque-OFL.txt
 
-  # Inter (SIL Open Font License, see assets/fonts/Inter-OFL.txt)
+  # Inter for body, Bricolage for headlines (both SIL OFL)
   fonts:
     - family: Inter
       fonts:

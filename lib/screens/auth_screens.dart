@@ -30,6 +30,23 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) => const BuddyScreen(guest: true);
 }
 
+// cream wordmark for the copper welcome ground
+class _WelcomeWordmark extends StatelessWidget {
+  const _WelcomeWordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: 'Ahead', style: TextStyle(color: Colors.white)),
+        TextSpan(text: '.', style: TextStyle(color: AppColors.peach)),
+      ]),
+      style: TextStyle(
+          fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.9),
+    );
+  }
+}
+
 // --- sign up ---
 
 class SignUpScreen extends StatefulWidget {
