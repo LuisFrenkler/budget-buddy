@@ -24,6 +24,7 @@ import '../services/buddy_history.dart';
 import '../services/buddy_markers.dart';
 import '../services/buddy_memory.dart';
 import '../services/account_isolation.dart';
+import '../services/demo_data.dart';
 import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/guest_buddy.dart';
@@ -214,6 +215,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
   late final ValueListenable _consentListenable;
   late final VoidCallback _consentListener;
 
+  // signed out: the wipe of a former session's numbers, awaited before answering
+  Future<void>? _guestReady;
+
   @override
   void initState() {
     super.initState();
@@ -226,7 +230,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     };
     _consentListenable.addListener(_consentListener);
     // signed out, the chat must not see another session's ledger or stale demo numbers
-    if (_guest) unawaited(_isolateGuestFinance());
+    if (_guest) _guestReady = _isolateGuestFinance();
     _scroll.addListener(_onScroll);
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
@@ -439,6 +443,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (DemoData.guestSessionActive) return;
     await AccountIsolation.wipeLocalFinance();
     if (mounted) setState(() {});
+  }
+
+  Future<void> _awaitGuestReady() async {
+    final ready = _guestReady;
+    if (ready != null) await ready;
   }
 
   void _asked() {
@@ -830,6 +839,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   }
 
   Future<void> _send(String text) async {
+    await _awaitGuestReady();
+    if (!mounted) return;
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
     if (VoiceInput.listening.value) VoiceInput.stop();

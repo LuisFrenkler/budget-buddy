@@ -26,6 +26,7 @@ import 'buddy_tasks.dart';
 import 'buddy_tools.dart';
 import 'life_stages.dart';
 import 'db.dart';
+import 'demo_data.dart';
 import 'finance_snapshot.dart';
 import 'goals_service.dart';
 import 'onboarding_service.dart';
@@ -101,6 +102,15 @@ class BuddyService {
   static Future<bool> liveAllowed() async => await live() && hasConsent;
 
   static FinanceSnapshot snapshot() {
+    // unsigned without intentional Beispieldaten this run: never read Hive ledger
+    if (AccountService.current.value == null && !DemoData.guestSessionActive) {
+      return FinanceSnapshot.build(
+        tx: const [],
+        openingCents: 0,
+        budgets: const [],
+        holdings: const [],
+      );
+    }
     final tx = DB.getTx();
     final holdings = DB.getHoldings();
     final goals = _goals();
