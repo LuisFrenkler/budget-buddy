@@ -1,203 +1,210 @@
-# Ahead — Pitch Deck (WHU Master in Entrepreneurship)
+# Ahead — Pitch Deck (Guy Kawasaki 10 / WHU MiE)
 
-**Format:** 10 slides · **Language:** English (WHU accepts EN/DE; MiE materials typically EN)  
-**Audience:** WHU MiE admissions / entrepreneurship review  
-**Aligned with:** [WHU recommended structure](https://www.whu.edu/en/programs/master-of-science-programs/master-in-entrepreneurship/application-admissions) + Guy Kawasaki 10 slides · **Competition slide** follows [Max Eckel / WHU](https://kellogg.whu.edu/de/news-insights/whu-magazin/artikel/competition-slide-pitch-deck-mistakes/) (assumption → why it matters → opening; trajectory, not present)
+**Format:** Exactly **10 slides** · **10/20/30 rule** ([Guy Kawasaki](https://guykawasaki.com/the-only-10-slides-you-need-in-your-pitch/)) · present in ≤20 minutes · large type  
+**Audience:** WHU Master in Entrepreneurship (+ investors)  
+**Competition slide:** [Max Eckel / WHU](https://kellogg.whu.edu/de/news-insights/whu-magazin/artikel/competition-slide-pitch-deck-mistakes/) — trade-offs, assumption we reject, opening vs. trajectory  
+**Language:** English
 
-**Presentable HTML:** [pitch_deck.html](pitch_deck.html)  
-**PDF for WHU upload:** [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf)  
-**Full investor brief:** [business_case.md](business_case.md)
+| # | Kawasaki slide | Ahead content |
+|---|---|---|
+| 1 | Title | Ahead · contact · one-liner |
+| 2 | Problem / Opportunity | Overview without decisions · why now |
+| 3 | Value Proposition | Why the decision layer is valuable |
+| 4 | Underlying Magic | Buddy agent + ledger tools + privacy |
+| 5 | Business Model | Freemium → Plus |
+| 6 | Go-to-Market Plan | ICP · creators · campus · ASO |
+| 7 | Competitive Analysis | Eckel-style assumption slide |
+| 8 | Management Team | Luis Frenkler |
+| 9 | Financial Projections & Key Metrics | SAM/SOM · unit economics · NS metrics |
+| 10 | Current Status & Use of Funds | Built · milestones · €150–250k |
 
-**Regenerate PDF:** open `pitch_deck.html` in Chrome → Print → Save as PDF → Landscape → Margins: None → Background graphics: On.
+**Files:** [pitch_deck.html](pitch_deck.html) · [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf) · [business_case.md](business_case.md)
 
 ---
 
-## Slide 1 — Title & Overview
+## 1 — Title
 
 **Ahead**  
 *Your buddy for money and the future.*
 
-The money **decision layer** for young adults in Germany.  
-Buddy — an AI coach that answers with *your* numbers, before you spend.
+The money **decision layer** for young adults in Germany.
 
-| | |
+**Luis Frenkler** · Solo founder  
+github.com/LuisFrenkler/budget-buddy
+
+*ChatGPT does not know your numbers. Buddy does.*
+
+---
+
+## 2 — Problem / Opportunity
+
+**Problem:** Young adults already *see* their money. They still **guess** when it matters.
+
+- Banking apps answer “What do I have?”
+- ChatGPT talks well — without their ledger
+- Trips, moves, first salary: high stakes, weak coaching
+
+**Opportunity (why now):**
+
+- ~95% of 16–29s in DE use online banking (Bitkom)
+- 82% of Gen Z use the banking app to stay in control; ~8% use multibanking (ING/Visa)
+- AI made chat normal — personal numbers are still missing
+
+**Pulse line:** Own the *decision moment* on top of the bank they already open.
+
+---
+
+## 3 — Value Proposition
+
+**If Buddy answers before they spend, young adults waste less and feel in control — without becoming spreadsheet people.**
+
+| For the user | For the business |
 |---|---|
-| Stage | Pre-seed / soft launch |
-| Product | Built end-to-end (Flutter + backend + Buddy agent) |
-| Model | Freemium → Ahead Plus €4.99/mo or €39.99/yr |
-| Ask (optional for investors) | €150–250k · 12–18 months runway |
-
-One-liner: *ChatGPT does not know your numbers. Buddy does.*
-
----
-
-## Slide 2 — Opportunity (Why now)
-
-Three forces meet in Germany:
-
-1. **Gen Z is app-native.** ~95% of 16–29s use online banking (Bitkom). 82% of Gen Z use the banking app to stay in control (ING/Visa) — yet only ~8% use multibanking apps.
-2. **AI raised the bar for answers** — but generic chat has no budgets, subscriptions, or real cash flow.
-3. **Subscription leakage + life-stage shocks** (first salary, moving, flatshare) create repeated decision moments that dashboards do not close.
-
-**Opening:** Own the *decision moment* on top of the bank the user already opens daily — do not fight to become their twelfth finance dashboard.
-
----
-
-## Slide 3 — Problem
-
-Young adults already *see* money. They still **guess** when it matters.
-
-| Today | Gap |
-|---|---|
-| Banking / multibanking apps | Answer “What do I have?” |
-| ChatGPT & co. | Talk well, without the user’s real numbers |
-| Life moments (trip, move, job) | High stakes, little trusted, affordable coaching |
-
-**Consequence:** Overspend, forgotten subscriptions, delayed buffers — not from lack of data, but from lack of a clear next step grounded in *their* ledger.
-
----
-
-## Slide 4 — Solution
-
-**Buddy:** a chat-first money coach that calculates with the user’s spending, budgets, contracts, and goals.
+| Clear yes/no on affordability | Habit around high-intent questions |
+| Subscription pressure made actionable | Natural Free → Plus when asks run out |
+| Life-stage clarity (move, job, flatshare) | Retention via playbooks, not more dashboards |
 
 **Wedge:** *Ask Buddy before you spend.*  
-(“Can I afford an €800 trip?” → answer from remaining budget + subscriptions + goals.)
-
-Also in the loop: natural-language entry, receipt scan, subscription detection with price-rise signals, what-if month simulator, next-step actions (not only text).
-
-**Deliberately secondary:** bank link & portfolio = *context for Buddy*, not the hero. Avoids a feature race against multibanking incumbents.
-
-Never regulated investment advice — orientation and calculation only.
+Bank & portfolio = context for Buddy — not the product centre.
 
 ---
 
-## Slide 5 — Business Model & Financials
+## 4 — Underlying Magic
+
+**Secret sauce:** a tool-using coach on the user’s real finance graph — not a chatbot bolted onto a dashboard.
+
+1. **Grounded answers** — remaining budget, contracts, goals, what-if scenarios  
+2. **Action loop** — next-step buttons, confirmed bookings from natural language / receipts  
+3. **Works offline** — on-device `LocalBuddy` when cloud/consent is off  
+4. **Trust design** — local-first Hive, optional AES vault, no IBANs in AI summaries  
+5. **Hard to bolt-on** — identity is “decide with me,” not “show me everything”
+
+Demo beat: *“Can I afford an €800 trip?”* → number + next step.
+
+---
+
+## 5 — Business Model
+
+**Who has the money → how it reaches us:** young adults pay a subscription when Buddy becomes useful enough to ask often.
 
 | | Free | Ahead Plus |
 |---|---|---|
-| Price | €0 | **€4.99 / month** or **€39.99 / year** (~€3.33/mo) |
+| Price | €0 | **€4.99 / month** or **€39.99 / year** |
 | Trial | — | 7 days |
-| Cloud Buddy | 5 questions / month | Unlimited |
+| Cloud Buddy | 5 asks / month | Unlimited |
 | Receipts / goals | Limited | Unlimited |
-| Offline Buddy, budgets, subscriptions | Included | Included |
 
-**Unit economics (modeled targets, labeled as assumptions)**
+Offline Buddy, budgets, and subscriptions stay free — so the product teaches the habit before the paywall.
+
+---
+
+## 6 — Go-to-Market Plan
+
+**Not “go viral.”** Repeatable paths:
+
+**ICP:** 18–30 in DE · first salary / job change · already has a banking app · asks concrete money questions  
+
+1. Soft launch + creator codes (`CREATOR60`, `BUDDY30`)  
+2. Short clips: one question → one Buddy number → CTA  
+3. Campus & flatshare networks (splits as a loop)  
+4. ASO: Buddy-first screenshots  
+5. Bank link behind waitlist until the coach converts  
+
+---
+
+## 7 — Competitive Analysis *(Eckel)*
+
+Make their choices **understandable**. Then disagree with an **assumption**. Position against **trajectory**.
+
+| Player | Rational trade-off | Optimizes for |
+|---|---|---|
+| Finanzguru | Banks + contracts as core | Aggregation habit |
+| Finanzfluss Copilot | Content + wealth | Investor / net-worth brand |
+| Bank apps | Daily payments & balance | Own the login |
+| Generic LLMs | Universal chat | Distribution without a ledger |
+
+**Assumption we reject:** *“If young adults see money clearly enough, good decisions follow.”*  
+
+**Our assumption:** Overview is mostly solved by the bank app. The scarce product is a trustworthy **decision in the moment** with real numbers.
+
+**Why hard for them to fix:** UX, growth, and Plus packaging are built around dashboards. Adding “AI chat” still trains users to *look*, not to *ask before spending*. We do not need to win the bank-count race they are structured to keep fighting.
+
+**Opening:** Decision layer on top of the bank people already use.
+
+*Also honest:* they have brand, capital, and bank coverage we do not — yet.
+
+---
+
+## 8 — Management Team
+
+**Luis Frenkler** — Founder  
+
+Built Ahead end to end: Flutter client · Dart backend · encrypted vault · bank sync path · Buddy agent · Plus gating · soft-launch path.
+
+**Gap (honest):** solo founder — GTM / content and legal capacity are the first adds after capital or program support. WHU accelerates distribution and networks, not a product rewrite.
+
+---
+
+## 9 — Financial Projections & Key Metrics
+
+**Market (bottoms-up framing)**
+
+| | |
+|---|---|
+| SAM | ≈ 2.5–4M money-interested 18–34 in DE |
+| SOM 36 mo | ≈ 15–40k registered · 8–15% on Plus |
+
+**Unit economics (modeled targets)**
 
 | Metric | Target |
 |---|---|
 | Blended ARPU (paying) | ~€4.20 / month |
-| Gross margin | 70–85% after LLM + bank API + store fees |
-| CAC (organic + creators, early) | €8–20 |
+| Gross margin | 70–85% after LLM + bank + store |
+| Early CAC | €8–20 |
 | Payback | < 4 months if ≥10% of active askers convert |
-| North stars | Weekly Buddy asks · affordability-ask share · Free→Plus · D30 retention |
 
-Phase 2+ (not core of this deck): trust-compatible B2B2C (campus / employers) — after consumer habit is proven.
+**Key metrics that matter more than vanity downloads**
 
----
+- Weekly Buddy asks / user  
+- Share of affordability asks  
+- Free → Plus (D7 / D30)  
+- Subscription detected → action  
+- D30 retention  
 
-## Slide 6 — Market
-
-| Layer | Definition | Order of magnitude |
-|---|---|---|
-| **TAM** | Online-banking users in DE (Bitkom ~86%; industry often cites ~47M addressable online-banking users) | Large — not our focus |
-| **SAM** | Ages 18–34 in DE who actively want to steer spending (~2.5–4M “money-interested”) | Core addressable |
-| **SOM (36 mo)** | 0.5–1.5% of SAM registered ≈ **15–40k**; 8–15% of those on Plus | Early scale |
-
-Proof the category works at mass scale in DE: incumbents like Finanzguru report ~1.5M users — while remaining **tracking / contracts-first**, not decision-coach-first.
+*Illustrative only — early stage; not audited forecasts.*
 
 ---
 
-## Slide 7 — Competition *(WHU / Max Eckel lens)*
+## 10 — Current Status & Use of Funds
 
-> Do not claim “we do more.” Make competitor **trade-offs understandable**, then state the **assumption we disagree with**, why it matters, and the **opening**. Position against **trajectory**, not today’s feature list.
+**Built today:** end-to-end app · Buddy (cloud + offline) · budgets · subscriptions · vault · Plus hooks · soft-launch path  
 
-### Their choices (rational)
+**Still open:** store ops · commercial PSD2 · external traction numbers  
 
-| Player | Sensible trade-off | What that optimizes |
-|---|---|---|
-| **Finanzguru** | Breadth of banks + contracts as core loop | Habit via aggregation; monetize Plus around overview & contracts |
-| **Finanzfluss Copilot** | Content brand + wealth / portfolio | Trust via education; monetize investors & net-worth tracking |
-| **Bank apps** | Daily payments & balance | Own the login; keep customer inside the bank |
-| **Generic LLMs** | Universal conversation | Distribution; no personal ledger |
+**18-month plan**
 
-They are not “missing AI.” They will add assistants. That is the trajectory.
+| Window | Milestone |
+|---|---|
+| 0–3 mo | Public Ahead launch · 1,000 registered · Buddy asks as north star |
+| 3–9 mo | ~10k · ≥8% of askers into Plus trial · creator pipeline · life-stage playbooks |
+| 9–18 mo | ~25–40k · credible unit economics · Seed-ready |
 
-### Assumption we disagree with
+**Use of €150–250k pre-seed:** ~40% GTM/creators · ~20% trust/legal · ~20% infra/bank · ~20% product on the wedge  
 
-**Incumbent assumption:** *If young adults see their money clearly enough, good decisions follow.*  
-**Our assumption:** *Overview is already mostly solved by the bank app. The scarce product is a trustworthy decision in the moment — with the user’s real numbers.*
-
-### Why that is hard for them to “just fix”
-
-- Product identity, UX, and growth loops are built around **aggregation and dashboards**. Bolting chat onto “show everything” still trains users to *look*, not to *decide before spending*.
-- Moving the hero to “Ask before you book” **competes with their own core narrative** and with existing Plus packaging.
-- Winning our wedge does not require winning the bank-count race — the race they are structured to keep fighting.
-
-### Our opening
-
-Start as the **decision layer on top of the bank people already use** — affordability, subscription pressure, month scenarios — for 18–30 in Germany. Compete on **decision quality and life-stage playbooks**, not on “full-stack multibanking.”
+**Close:** Stay in the game. Ahead wins by making **decisions** the product — not by shipping more dashboard features.
 
 ---
 
-## Slide 8 — Go-to-Market
+## 10/20/30 checklist
 
-**ICP:** 18–30 in DE, first salary or job change, already uses a banking app, does not keep a strict household book, asks concrete questions (trip, gadgets, flatshare).
+- [x] Ten slides only — Kawasaki names and order  
+- [x] Designed for ≤20 minutes + discussion  
+- [x] Large type in HTML/PDF (sparse copy; speak the detail)  
+- [x] Competition = assumption + trajectory (Eckel), not logo 2×2  
+- [x] No “we’ll go viral” as the GTM plan  
+- [x] Metrics bottoms-up; no “1% of China”  
 
-**Motion**
+## Speaker notes (WHU: often without slides, ~5 min)
 
-1. Soft launch (TestFlight / Play Internal) + creator promo codes  
-2. Short “Buddy calculates live” clips (Reels / TikTok / Shorts) — one question, one number, one CTA  
-3. Campus & flatshare networks (splits as a viral loop)  
-4. ASO: Buddy-first screenshots; subtitle *KI-Coach für dein Alltagsgeld*  
-5. Bank link: demo / waitlist until demand; commercial PSD2 when conversion proves the coach
-
----
-
-## Slide 9 — Team
-
-**Luis Frenkler** — Solo founder  
-Built Ahead end to end: Flutter client, Dart backend, encrypted vault, bank sync path, Buddy agent, Plus gating, soft-launch path.
-
-**Why this matters for WHU:** the idea is not slideware — there is a working product and a clear wedge. Capital and program support primarily accelerate **distribution, trust/legal, and life-stage playbooks**, not a rewrite.
-
----
-
-## Slide 10 — Next Steps / Planning
-
-**Now → 3 months**  
-Public soft launch under Ahead · first 1,000 registered · instrument Buddy asks as north star · finish store / legal ops  
-
-**3 → 9 months**  
-~10k registered · ≥8% of active askers into Plus trial · creator pipeline · deepen life-stage playbooks (move, first job, flatshare)  
-
-**9 → 18 months**  
-~25–40k registered · credible unit economics · Seed-ready retention story  
-
-**Use of a €150–250k pre-seed (if raised):** ~40% GTM/creators · ~20% trust/legal · ~20% infra/bank · ~20% product on the wedge  
-
-**Closing line:** Ahead does not win by doing more finance features. Ahead wins by seeing that **decisions**, not dashboards, are the product.
-
----
-
-## Speaker notes (5-minute verbal pitch without slides)
-
-WHU MiE interviews often require pitching **without slides**. Suggested arc (~5 min):
-
-1. Hook (20s): “Most money apps show what you have. Ahead answers what to do next — with your numbers.”  
-2. Problem (60s): Bank apps + ChatGPT gap; Gen Z already has overview.  
-3. Solution + demo story (90s): “Can I afford €800 holiday?” → Buddy; wedge.  
-4. Why not Finanzguru (60s): their trade-off is rational; assumption we disagree with; trajectory.  
-5. Model + ask/status (60s): Plus pricing; product built; next milestones.  
-6. Close (20s): Decision layer, not another multibanking app.
-
----
-
-## Design checklist (WHU / Eckel)
-
-- [x] Exactly **10 slides**  
-- [x] Covers Title, Opportunity, Problem, Solution, Business Model & Financials, Market, Competition, GTM, Team, Next Steps  
-- [x] Competition slide avoids “logo 2×2 / we are full-stack / they only do one thing”  
-- [x] Competition states **assumption → why it matters → opening** and competitor **trade-offs**  
-- [x] Numbers labeled as models/targets where not proven traction  
-- [x] Honest stage (product built, external traction early)
+1. Title hook → 2. Pulse (problem) → 3. Value → 4. Demo/magic → 5–6. Model + GTM → 7. Assumption we reject → 8. You → 9. Metrics → 10. Status / ask  
+Purpose of the pitch: **stay in the game** (next meeting / due diligence) — not shock-and-awe for an instant yes (Kawasaki).

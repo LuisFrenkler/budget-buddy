@@ -30,7 +30,7 @@ Most German money apps show **what you have**. Ahead focuses on **what to do nex
 **Wedge:** *Ask Buddy before you spend.* Banking and portfolio are data sources for Buddy, not the product centre.
 
 Investor brief (DE): [docs/business_case.md](docs/business_case.md) — problem, market, competition, model, ask.  
-WHU MiE pitch deck (10 slides, EN): [docs/pitch_deck.md](docs/pitch_deck.md) · [docs/pitch_deck.html](docs/pitch_deck.html) (print to PDF).
+Pitch deck (Guy Kawasaki 10 / WHU MiE, EN): [docs/pitch_deck.md](docs/pitch_deck.md) · [docs/pitch_deck.html](docs/pitch_deck.html) · [docs/Luis_Frenkler_PitchDeck.pdf](docs/Luis_Frenkler_PitchDeck.pdf).
 
 ## Product
 

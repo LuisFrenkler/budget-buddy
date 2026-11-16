@@ -266,7 +266,7 @@ Wir verkaufen nicht Multibanking. Wir verkaufen **Klarheit vor dem Kauf**.
 
 ## Anhang C — Verwandte Docs
 
-- **WHU Pitch Deck (10 slides):** [pitch_deck.md](pitch_deck.md) · presentable [pitch_deck.html](pitch_deck.html)  
+- **Pitch Deck (Guy Kawasaki 10 / WHU MiE):** [pitch_deck.md](pitch_deck.md) · [pitch_deck.html](pitch_deck.html) · [Luis_Frenkler_PitchDeck.pdf](Luis_Frenkler_PitchDeck.pdf)  
 - Produktpositionierung & Tech: [README](../README.md)  
 - Soft-Launch: [launch.md](launch.md)  
 - Store-Listing DE: [store_listing_de.md](store_listing_de.md)
