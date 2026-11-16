@@ -169,10 +169,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           borderRadius: BorderRadius.circular(12),
           onTap: () => setState(() => _accepted = !_accepted),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Checkbox(
-              value: _accepted,
-              onChanged: (v) => setState(() => _accepted = v ?? false),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            IgnorePointer(
+              child: Checkbox(
+                value: _accepted,
+                onChanged: (_) {},
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+              ),
             ),
             Expanded(
               child: Padding(
@@ -194,6 +196,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _ErrorText(_error),
         const SizedBox(height: 20),
         _PrimaryButton(tr('Konto erstellen'), busy: _busy, onPressed: _valid ? _submit : null),
+        if (!_valid) ...[
+          const SizedBox(height: 10),
+          Text(
+            tr('Zum Erstellen brauchst du Vorname, E-Mail, mindestens 8 Zeichen und die Bedingungen.'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12.5, height: 1.35, color: AppColors.textDim),
+          ),
+        ],
         const SizedBox(height: 8),
         Center(
           child: TextButton(
@@ -318,6 +328,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 onChanged: (_) => setState(() => _error = null),
                 onSubmitted: (_) => _valid && !_busy ? _submit() : null,
                 suffix: IconButton(
+                  tooltip: _hide ? tr('Passwort zeigen') : tr('Passwort verbergen'),
                   icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, color: AppColors.textDim),
                   onPressed: () => setState(() => _hide = !_hide),
                 ),

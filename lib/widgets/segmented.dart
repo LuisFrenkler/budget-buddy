@@ -42,13 +42,16 @@ class Segmented extends StatelessWidget {
                       selected: i == index,
                       label: labels[i],
                       excludeSemantics: true,
-                      child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
+                      child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
                       onTap: () {
                         if (i == index) return;
                         HapticFeedback.selectionClick();
                         onChanged(i);
                       },
+                      borderRadius: BorderRadius.circular(10),
+                      focusColor: AppColors.brand.withValues(alpha: 0.22),
                       child: Center(
                         child: AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 200),
@@ -60,6 +63,7 @@ class Segmented extends StatelessWidget {
                           ),
                           child: Text(labels[i]),
                         ),
+                      ),
                       ),
                     ),
                     ),

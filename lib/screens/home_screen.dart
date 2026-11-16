@@ -248,9 +248,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Buddy is the heart of the app, so he is not one tab among four: the
-  // tabs and "+" share a slim pill, and beside it Buddy stands on his own as
-  // a big glowing orb that breathes softly
+  // Buddy is the heart of the app, so he is not one tab among four.
+  // Überblick, Konto and Depot share a slim pill. Buddy stands beside it
+  // as a glowing orb. Adding lives on Konto and on the Überblick shortcuts.
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
@@ -311,9 +311,13 @@ class _HomeScreenState extends State<HomeScreen> {
       selected: active,
       label: label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
         onTap: () => _open(i),
+        borderRadius: BorderRadius.circular(23),
+        focusColor: const Color(0x66F4C7A1),
+        hoverColor: const Color(0x18FFFFFF),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 280),
           curve: Curves.easeOutCubic,
@@ -338,6 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : const SizedBox.shrink(),
             ),
           ]),
+        ),
         ),
       ),
     );
@@ -460,11 +465,21 @@ class _BuddyButton extends StatefulWidget {
 
 class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderStateMixin {
   bool _down = false;
+  final _focus = FocusNode();
   late final AnimationController _breath =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat(reverse: true);
 
   @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
+    _focus.dispose();
     _breath.dispose();
     super.dispose();
   }
@@ -479,11 +494,15 @@ class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderSta
       selected: widget.active,
       label: tr('Buddy'),
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _down = true),
-        onTapUp: (_) => setState(() => _down = false),
-        onTapCancel: () => setState(() => _down = false),
+      child: Material(
+        type: MaterialType.transparency,
+        shape: const CircleBorder(),
+        child: InkWell(
+        focusNode: _focus,
+        customBorder: const CircleBorder(),
+        focusColor: const Color(0x55F4C7A1),
+        hoverColor: const Color(0x22FFFFFF),
+        onHighlightChanged: (v) => setState(() => _down = v),
         onTap: () {
           HapticFeedback.mediumImpact();
           widget.onTap();
@@ -500,10 +519,10 @@ class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderSta
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: widget.active
+                  color: widget.active || _focus.hasFocus
                       ? (night ? const Color(0xFFF4C7A1) : const Color(0xFFB06030))
                       : Colors.transparent,
-                  width: 2,
+                  width: _focus.hasFocus && !widget.active ? 3 : 2,
                 ),
               ),
               child: AnimatedScale(
@@ -520,6 +539,7 @@ class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderSta
             );
           },
           child: CustomPaint(painter: MarkPainter(color: const Color(0xF2FFF7F0))),
+        ),
         ),
       ),
     );
