@@ -66,12 +66,14 @@
         background:radial-gradient(120% 90% at 70% 20%,#F6B98A 0%,#D9813F 26%,#A4542A 52%,#5E2C14 78%,#1F0E07 100%)}
   .hero::before,.hero::after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(80px);pointer-events:none;will-change:transform}
   .hero::before{width:58vmax;height:58vmax;left:-20vmax;top:-24vmax;background:radial-gradient(circle,#C7703A 0%,transparent 65%);opacity:.7;animation:drift 24s ease-in-out infinite alternate}
-  .hero::after{width:48vmax;height:48vmax;right:-18vmax;bottom:-18vmax;background:radial-gradient(circle,#FFD6B0 0%,transparent 62%);opacity:.5;animation:drift 30s ease-in-out infinite alternate-reverse}
+  .hero::after{width:48vmax;height:48vmax;right:-18vmax;bottom:12vh;background:radial-gradient(circle,#FFD6B0 0%,transparent 62%);opacity:.5;animation:drift 30s ease-in-out infinite alternate-reverse}
+  .hero-fade{position:absolute;left:0;right:0;bottom:0;z-index:3;height:clamp(48px,8vh,88px);pointer-events:none;
+             background:linear-gradient(to bottom,rgba(250,247,244,0),var(--paper))}
   @keyframes drift{to{transform:translate(5vmax,3vmax) scale(1.06)}}
   .grain{position:absolute;inset:0;z-index:-1;opacity:.18;mix-blend-mode:overlay;pointer-events:none;
          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
   .hero-grid{flex:1;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,56px);align-items:end;
-             padding-top:calc(88px + env(safe-area-inset-top));min-height:0}
+             padding-top:calc(88px + env(safe-area-inset-top))}
   .hero-copy{padding-bottom:clamp(40px,8vh,88px);max-width:34em}
   .hero-brand{font:600 clamp(18px,2vw,22px)/1 var(--display);letter-spacing:-.03em;margin-bottom:18px;color:rgba(255,247,240,.92)}
   .hero h1{font-size:clamp(42px,7vw,84px);font-weight:600;letter-spacing:-.045em;max-width:9em}
@@ -99,6 +101,7 @@
   .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px;color:#FFE8D4}
   .err:not(:empty){animation:rise-in .4s var(--ease) both}
   .hint{margin-top:12px;font:500 13px/1.4 var(--text);color:rgba(255,247,240,.68);max-width:34em}
+  #platz .hint,#platz .err{max-width:460px;text-align:center}
   .hint + .hint{margin-top:6px}
   .hint[data-demo]{color:rgba(255,247,240,.56)}
   .spot{display:none;margin-top:20px;max-width:460px}
@@ -119,12 +122,15 @@
   .bars{display:flex;gap:6px;margin:14px 0 0;max-width:180px}
   .bars i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.28)}.bars i.on{background:#fff}
 
-  .stage{position:relative;align-self:end;display:grid;justify-items:center;perspective:1200px;min-width:0}
+  .stage{position:relative;align-self:end;display:grid;justify-items:center;perspective:1200px;min-width:0;
+         padding-bottom:clamp(48px,8vh,88px)}
   .phone-tilt{transform-style:preserve-3d;will-change:transform}
   .phone{width:clamp(240px,28vw,300px);aspect-ratio:780/1500;border-radius:44px 44px 0 0;padding:9px 9px 0;
          background:#0D0B0A;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 40px 80px -28px rgba(40,15,0,.55);
          will-change:transform}
+  .stage .phone{width:clamp(220px,24vw,272px);aspect-ratio:780/1688;border-radius:44px;padding:9px}
   .phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:36px 36px 0 0}
+  .stage .phone img{border-radius:36px}
 
   /* paper sections — one job each */
   main section{padding:clamp(88px,12vw,148px) 0}
@@ -181,7 +187,7 @@
   .again{margin-top:64px}
   .again h3{font-size:clamp(26px,3.2vw,36px)}
   .again .join{margin:20px auto 0}
-  .again .hint,.again .err{color:rgba(255,247,240,.72)}
+  .again .hint,.again .err{max-width:460px;margin-left:auto;margin-right:auto;text-align:center;color:rgba(255,247,240,.72)}
   .again .err{color:#FFE8D4}
 
   footer{padding:28px 0 max(36px,env(safe-area-inset-bottom));font-size:13px;color:var(--soft)}
@@ -217,6 +223,7 @@
     .hero h1{font-size:clamp(34px,8.8vw,48px)}
     .hero .lead{margin-top:14px}
     .join,.mailstep{margin-top:22px;max-width:none}
+    #platz .hint,#platz .err{max-width:none}
     .finale .mailstep{margin-top:20px}
     .stage{width:100%;max-width:420px;justify-self:center}
     .phone{width:min(248px,68vw)}
@@ -260,6 +267,7 @@
 
 <section class="hero" data-hero>
   <div class="grain"></div>
+  <div class="hero-fade" aria-hidden="true"></div>
   <div class="w hero-grid">
     <div class="hero-copy">
       <p class="hero-brand hi hi-1">Ahead.</p>
