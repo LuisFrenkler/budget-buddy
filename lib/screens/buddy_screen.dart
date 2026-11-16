@@ -23,6 +23,7 @@ import '../services/buddy_service.dart';
 import '../services/buddy_history.dart';
 import '../services/buddy_markers.dart';
 import '../services/buddy_memory.dart';
+import '../services/account_isolation.dart';
 import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/guest_buddy.dart';
@@ -224,6 +225,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (mounted) setState(() {});
     };
     _consentListenable.addListener(_consentListener);
+    // signed out, the chat must not see another session's ledger or stale demo numbers
+    if (_guest) unawaited(_isolateGuestFinance());
     _scroll.addListener(_onScroll);
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
@@ -429,6 +432,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (!_scroll.hasClients) return;
     final away = _scroll.position.maxScrollExtent - _scroll.offset > 280;
     if (away != _away) setState(() => _away = away);
+  }
+
+  // unsigned chat must not inherit another session's ledger or stale demo
+  Future<void> _isolateGuestFinance() async {
+    if (DemoData.guestSessionActive) return;
+    await AccountIsolation.wipeLocalFinance();
+    if (mounted) setState(() {});
   }
 
   void _asked() {
