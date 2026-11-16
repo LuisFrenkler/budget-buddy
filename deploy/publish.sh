@@ -23,8 +23,10 @@ sed -i.bak "s|<meta name=\"ahead-api\" content=\"\">|<meta name=\"ahead-api\" co
 rm -f deploy/site/landing/index.html.bak
 
 echo "3/4 Hochladen nach $SERVER"
-ssh "$SERVER" "mkdir -p /opt/ahead/deploy /opt/ahead/backend"
-rsync -az --delete --exclude .data --exclude .env --exclude '*.pem' --exclude .dart_tool backend/ "$SERVER:/opt/ahead/backend/"
+ssh "$SERVER" "mkdir -p /opt/ahead/deploy /opt/ahead/backend /opt/ahead/lib/legal"
+rsync -az --delete --exclude .data --exclude .env --exclude '*.pem' --exclude .dart_tool --exclude test backend/ "$SERVER:/opt/ahead/backend/"
+# the server imports ../lib/legal, so it goes up too
+rsync -az --delete lib/legal/ "$SERVER:/opt/ahead/lib/legal/"
 rsync -az --delete --exclude .env --exclude keys deploy/ "$SERVER:/opt/ahead/deploy/"
 
 echo "4/4 Starten"

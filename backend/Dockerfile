@@ -1,11 +1,15 @@
 # The Ahead server as one small native binary.
-#   docker build -t ahead-server backend/
+#   docker build -f backend/Dockerfile -t ahead-server .     (from the repo root)
+# The build context is the repo root, because server.dart imports
+# ../lib/legal (privacy texts shared with the app). Only backend/ and
+# lib/legal/ are copied; backend/Dockerfile.dockerignore keeps secrets out.
 # Data (accounts, vault, waitlist, ...) lives in /app/.data: mount a volume there.
 FROM dart:3.10 AS build
-WORKDIR /src
-COPY pubspec.yaml pubspec.lock ./
+WORKDIR /src/backend
+COPY backend/pubspec.yaml backend/pubspec.lock ./
 RUN dart pub get
-COPY . .
+COPY backend/ ./
+COPY lib/legal/ /src/lib/legal/
 RUN dart compile exe server.dart -o /out/server
 
 FROM debian:bookworm-slim

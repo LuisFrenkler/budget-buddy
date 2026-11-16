@@ -8,7 +8,22 @@ Ergebnis: drei Adressen mit HTTPS auf einem kleinen Server in Deutschland.
 | `https://app.DOMAIN` | die Web-App |
 | `https://api.DOMAIN` | der Ahead-Server (Buddy, Konten, Warteliste, Bank) |
 
-Kosten: Server ca. 4–5 € im Monat, Domain ca. 5–15 € im Jahr, KI nach Verbrauch.
+Kosten: Server ca. 6 € im Monat, Domain ca. 5–15 € im Jahr, KI nach Verbrauch.
+
+## 0. Testphase ohne Server: der eigene Mac
+
+Für ein paar Wochen mit wenigen Testern reicht der Mac:
+
+```sh
+brew install cloudflared              # einmalig
+cp backend/.env.example backend/.env  # einmalig, KI-Schlüssel selbst eintragen
+tool/mac_testserver.sh
+```
+
+Das Skript startet den Server, macht ihn über einen kostenlosen Cloudflare-Tunnel
+mit HTTPS erreichbar und zeigt den `flutter run`-Befehl für das iPhone. Die
+Adresse ändert sich bei jedem Start, und ist der Mac zu, ist Buddy offline.
+Für TestFlight und den App Store deshalb den richtigen Server unten nehmen.
 
 ## 1. Domain kaufen
 
@@ -26,7 +41,7 @@ vier Einträge anlegen, alle auf die IP aus Schritt 2:
 
 1. <https://console.hetzner.cloud> → neues Projekt → **Server hinzufügen**
 2. Standort **Falkenstein** oder **Nürnberg**, Image unter **Apps: Docker CE**
-3. Typ **CX22** reicht für den Start
+3. Typ **CX23** (oder **CAX11**, ARM) reicht für den Start. Sind beide nicht bestellbar, einen anderen deutschen Anbieter mit 2 Kernen und 4 GB nehmen
 4. Deinen SSH-Schlüssel hinzufügen (`cat ~/.ssh/id_ed25519.pub`, sonst vorher `ssh-keygen -t ed25519`)
 5. Unter **Firewalls** eine Firewall mit eingehend TCP 22, 80, 443 und UDP 443 anlegen
 

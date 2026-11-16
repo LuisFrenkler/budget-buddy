@@ -71,3 +71,6 @@ CLAUDE.md
 deploy/.env
 deploy/keys/
 deploy/site/
+
+# local test server (tool/mac_testserver.sh)
+.testserver/

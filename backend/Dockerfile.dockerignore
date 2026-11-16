@@ -1,0 +1,9 @@
+# context is the repo root: send only what the server build needs
+*
+!backend/
+!lib/legal/
+backend/.data
+backend/.dart_tool
+backend/.env
+backend/**/*.pem
+backend/test

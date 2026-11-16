@@ -505,8 +505,18 @@ nicht drängeln.''';
     } else if (type != null) {
       out['type'] = '$type'.toUpperCase();
     }
-    if (schema['description'] != null) out['description'] = schema['description'];
-    if (schema['enum'] != null) out['enum'] = schema['enum'];
+    final enums = schema['enum'] as List?;
+    // Gemini allows enum only on strings; for numbers the allowed values go
+    // into the description instead (else the whole request fails with 400)
+    final numberEnum = enums != null && enums.any((v) => v is! String);
+    final desc = schema['description'] as String?;
+    if (numberEnum) {
+      final allowed = 'Erlaubt: ${enums.join(', ')}';
+      out['description'] = desc == null || desc.isEmpty ? allowed : '$desc ($allowed)';
+    } else if (desc != null) {
+      out['description'] = desc;
+    }
+    if (enums != null && !numberEnum) out['enum'] = enums;
     if (schema['required'] != null) out['required'] = schema['required'];
     final props = schema['properties'] as Map?;
     if (props != null) {

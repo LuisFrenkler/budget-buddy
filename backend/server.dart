@@ -193,9 +193,13 @@ Future<void> main() async {
   _redirectUrl = _env('EB_REDIRECT_URL').isNotEmpty ? _env('EB_REDIRECT_URL') : '$_publicUrl/bank/callback';
 
   final keyPath = _env('EB_PRIVATE_KEY_PATH');
-  if (_env('EB_APP_ID').isNotEmpty && keyPath.isNotEmpty) {
+  if (_env('EB_APP_ID').isNotEmpty && keyPath.isNotEmpty && File(keyPath).existsSync()) {
     _bank = EnableBanking(appId: _env('EB_APP_ID'), privateKeyPem: await File(keyPath).readAsString());
   } else {
+    if (_env('EB_APP_ID').isNotEmpty && keyPath.isNotEmpty) {
+      // a wrong path must not take the whole server down; say it loudly
+      stderr.writeln('WARNUNG: EB_PRIVATE_KEY_PATH zeigt auf keine Datei ($keyPath). Bank läuft im Demo-Modus.');
+    }
     _bank = DemoBank(_publicUrl);
   }
   _depotRedirect =
