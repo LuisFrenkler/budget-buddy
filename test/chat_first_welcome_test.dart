@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:budget_buddy/screens/auth_screens.dart';
 import 'package:budget_buddy/utils/theme.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    Hive.init('test_chat_first');
+    Hive.init(Directory.systemTemp.createTempSync('bb_chat_first').path);
     for (final name in [
       'transactions',
       'budgets',
