@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ahead — Pitch Deck · Luis Frenkler</title>
+<style>
+  :root {
+    --bg: #0f0f12;
+    --surface: #18181f;
+    --line: #2a2a36;
+    --text: #f4f4f7;
+    --dim: #9a9aab;
+    --brand: #c47a45;
+    --brand-soft: #e0a878;
+    --ok: #3d9a6a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    color: var(--text);
+    font: 16px/1.45 "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .deck { max-width: 1120px; margin: 0 auto; padding: 24px; }
+  .toolbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    padding: 12px 0 20px; background: #111;
+    color: var(--dim); font-size: 14px;
+  }
+  .toolbar strong { color: var(--text); }
+  .toolbar button, .toolbar a.btn {
+    appearance: none; border: 1px solid var(--line); background: var(--surface);
+    color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    font: inherit; text-decoration: none;
+  }
+  .toolbar button:hover, .toolbar a.btn:hover { border-color: var(--brand); }
+  .slide {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 48px 56px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--brand);
+  }
+  .kicker {
+    color: var(--brand-soft); font-size: 13px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  h1 { font-size: clamp(36px, 4.2vw, 52px); line-height: 1.08; letter-spacing: -1.2px; font-weight: 800; }
+  h2 { font-size: clamp(28px, 3.2vw, 40px); line-height: 1.12; letter-spacing: -0.8px; font-weight: 800; margin-bottom: 18px; }
+  h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .lead { font-size: 20px; color: var(--dim); max-width: 42rem; }
+  .foot {
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--dim); font-size: 12px; padding-top: 16px; border-top: 1px solid var(--line);
+  }
+  .foot b { color: var(--brand-soft); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .card p, .body p { color: var(--dim); font-size: 15px; }
+  .card strong, .body strong { color: var(--text); }
+  ul { margin: 0; padding-left: 1.1rem; color: var(--dim); }
+  li { margin: 6px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--brand-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td { color: var(--dim); }
+  td:first-child, th:first-child { color: var(--text); font-weight: 600; }
+  .pill {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--line); font-size: 12px; color: var(--dim); margin-right: 6px;
+  }
+  .accent { color: var(--brand-soft); }
+  .quote {
+    border-left: 3px solid var(--brand); padding-left: 14px;
+    color: var(--text); font-size: 17px; font-weight: 600; margin: 12px 0;
+  }
+  .big-stat { font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .title-brand { color: var(--brand-soft); }
+  @page { size: landscape; margin: 0; }
+  @media print {
+    html, body { background: #0f0f12; width: 100%; height: auto; }
+    .toolbar { display: none !important; }
+    .deck { max-width: none; width: 100%; padding: 0; margin: 0; }
+    .slide {
+      margin: 0; border: none; border-radius: 0;
+      width: 100%; height: 100vh; min-height: 100vh;
+      aspect-ratio: auto; box-sizing: border-box;
+      page-break-after: always; break-after: page;
+      page-break-inside: avoid; break-inside: avoid;
+    }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+  }
+  @media (max-width: 800px) {
+    .slide { aspect-ratio: auto; min-height: 520px; padding: 28px 24px; }
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="toolbar">
+    <strong>Ahead · 10-slide pitch deck</strong>
+    <span>WHU MiE structure · Competition slide per Max Eckel</span>
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <a class="btn" href="pitch_deck.md">Markdown source</a>
+  </div>
+
+  <!-- 1 -->
+  <section class="slide" id="s1">
+    <div>
+      <div class="kicker">Slide 1 · Title &amp; Overview</div>
+      <h1><span class="title-brand">Ahead</span></h1>
+      <p class="lead" style="margin-top:14px">Your buddy for money and the future.</p>
+      <p class="lead" style="margin-top:18px;color:var(--text);font-weight:600">
+        The money decision layer for young adults in Germany.
+        Buddy answers with <em class="accent">your</em> numbers — before you spend.
+      </p>
+      <div style="margin-top:28px">
+        <span class="pill">Pre-seed / soft launch</span>
+        <span class="pill">Product built</span>
+        <span class="pill">Plus €4.99 / mo</span>
+      </div>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Luis Frenkler</span><span>1 / 10</span></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide" id="s2">
+    <div class="body">
+      <div class="kicker">Slide 2 · Opportunity</div>
+      <h2>Why now</h2>
+      <div class="grid3">
+        <div class="card">
+          <div class="big-stat">95%</div>
+          <h3>App-native Gen Z</h3>
+          <p>16–29s in DE use online banking (Bitkom). 82% of Gen Z use the banking app to stay in control — only ~8% use multibanking (ING/Visa).</p>
+        </div>
+        <div class="card">
+          <div class="big-stat">AI</div>
+          <h3>Answers expected</h3>
+          <p>Users accept chat as an interface — but generic LLMs have no budgets, subscriptions, or real cash flow.</p>
+        </div>
+        <div class="card">
+          <div class="big-stat">Life</div>
+          <h3>Decision moments</h3>
+          <p>First salary, moving, flatshare, trips: repeated high-stakes choices dashboards do not close.</p>
+        </div>
+      </div>
+      <p class="quote">Own the decision moment on top of the bank they already open — don’t fight to be dashboard #12.</p>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Opportunity</span><span>2 / 10</span></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide" id="s3">
+    <div class="body">
+      <div class="kicker">Slide 3 · Problem</div>
+      <h2>They already see money.<br>They still guess when it matters.</h2>
+      <table>
+        <thead><tr><th>Today</th><th>Gap</th></tr></thead>
+        <tbody>
+          <tr><td>Banking / multibanking</td><td>Answers “What do I have?”</td></tr>
+          <tr><td>ChatGPT &amp; co.</td><td>Talk well — without the user’s real numbers</td></tr>
+          <tr><td>Life moments</td><td>High stakes, little trusted affordable coaching</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:18px;color:var(--dim)">
+        Overspend and forgotten subscriptions are often not a <strong style="color:var(--text)">data</strong> problem —
+        they are a <strong style="color:var(--text)">next-step</strong> problem.
+      </p>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Problem</span><span>3 / 10</span></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide" id="s4">
+    <div class="body">
+      <div class="kicker">Slide 4 · Solution</div>
+      <h2>Buddy: ask before you spend</h2>
+      <div class="grid2">
+        <div>
+          <p class="quote">“Can I afford an €800 trip?” → answer from remaining budget, subscriptions, and goals.</p>
+          <ul>
+            <li>Chat-first coach on the user’s ledger</li>
+            <li>Natural-language entry &amp; receipt scan</li>
+            <li>Subscriptions + price-rise signals</li>
+            <li>What-if month simulator &amp; next-step actions</li>
+            <li>Offline fallback · consent-gated cloud AI · no IBANs to models</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Deliberately secondary</h3>
+          <p>Bank link and portfolio are <strong>context for Buddy</strong>, not the hero product. That avoids a feature race against multibanking incumbents.</p>
+          <p style="margin-top:12px">Orientation and calculation only — never regulated investment advice.</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Solution</span><span>4 / 10</span></div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide" id="s5">
+    <div class="body">
+      <div class="kicker">Slide 5 · Business Model &amp; Financials</div>
+      <h2>Freemium → Ahead Plus</h2>
+      <div class="grid2">
+        <table>
+          <thead><tr><th></th><th>Free</th><th>Plus</th></tr></thead>
+          <tbody>
+            <tr><td>Price</td><td>€0</td><td><strong style="color:var(--brand-soft)">€4.99/mo</strong> or €39.99/yr</td></tr>
+            <tr><td>Trial</td><td>—</td><td>7 days</td></tr>
+            <tr><td>Cloud Buddy</td><td>5 asks / mo</td><td>Unlimited</td></tr>
+            <tr><td>Receipts / goals</td><td>Limited</td><td>Unlimited</td></tr>
+          </tbody>
+        </table>
+        <div class="card">
+          <h3>Modeled targets (assumptions)</h3>
+          <ul>
+            <li>Blended ARPU paying ≈ €4.20/mo</li>
+            <li>Gross margin 70–85% after LLM / bank / store</li>
+            <li>Early CAC €8–20 · payback &lt; 4 months</li>
+            <li>NS: weekly Buddy asks · affordability share · Free→Plus · D30</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Model</span><span>5 / 10</span></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide" id="s6">
+    <div class="body">
+      <div class="kicker">Slide 6 · Market</div>
+      <h2>TAM · SAM · SOM</h2>
+      <table>
+        <thead><tr><th>Layer</th><th>Definition</th><th>Size</th></tr></thead>
+        <tbody>
+          <tr><td>TAM</td><td>Online-banking users in DE</td><td>Very large — not focus</td></tr>
+          <tr><td>SAM</td><td>18–34, money-interested</td><td>≈ 2.5–4M</td></tr>
+          <tr><td>SOM (36 mo)</td><td>0.5–1.5% of SAM registered</td><td>≈ 15–40k · 8–15% Plus</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:16px;color:var(--dim)">
+        Category proof: multibanking works at mass scale in DE (e.g. Finanzguru ~1.5M users) —
+        while remaining <strong style="color:var(--text)">tracking-first</strong>, not decision-coach-first.
+      </p>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Market</span><span>6 / 10</span></div>
+  </section>
+
+  <!-- 7 COMPETITION — Eckel -->
+  <section class="slide" id="s7">
+    <div class="body">
+      <div class="kicker">Slide 7 · Competition · assumption, not 2×2</div>
+      <h2>We disagree with their assumption</h2>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="card">
+          <h3>Their rational trade-offs</h3>
+          <p><strong>Finanzguru</strong> — bank breadth + contracts → habit via aggregation.</p>
+          <p style="margin-top:8px"><strong>Finanzfluss Copilot</strong> — content + wealth → trust via education.</p>
+          <p style="margin-top:8px"><strong>Bank apps / LLMs</strong> — daily login / universal chat. They will add AI. That is the trajectory.</p>
+        </div>
+        <div class="card">
+          <h3>Assumption we reject</h3>
+          <p><em>“If young adults see money clearly enough, good decisions follow.”</em></p>
+          <p style="margin-top:10px"><strong>Our view:</strong> Overview is mostly solved by the bank app. The scarce product is a trustworthy <span class="accent">decision in the moment</span> with real numbers.</p>
+        </div>
+      </div>
+      <p style="color:var(--dim);font-size:14px">
+        <strong style="color:var(--text)">Why hard to fix on their path:</strong> identity, UX, and Plus packaging are built around dashboards.
+        Bolting chat onto “show everything” still trains users to look — not to decide before spending.
+        Our opening: decision layer on top of the bank they already use — not “full-stack multibanking.”
+      </p>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Competition (Eckel)</span><span>7 / 10</span></div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide" id="s8">
+    <div class="body">
+      <div class="kicker">Slide 8 · Go-to-Market</div>
+      <h2>ICP &amp; motion</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Who</h3>
+          <p>18–30 in Germany · first salary or job change · already uses a banking app · asks concrete questions (trip, gadget, flatshare).</p>
+        </div>
+        <div class="card">
+          <h3>How</h3>
+          <ul>
+            <li>Soft launch + creator codes</li>
+            <li>“Buddy calculates live” short clips</li>
+            <li>Campus &amp; flatshare (splits loop)</li>
+            <li>ASO: Buddy-first screenshots</li>
+            <li>Bank: waitlist until coach converts</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · GTM</span><span>8 / 10</span></div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide" id="s9">
+    <div class="body">
+      <div class="kicker">Slide 9 · Team</div>
+      <h2>Luis Frenkler</h2>
+      <p class="lead" style="color:var(--text);font-weight:600;max-width:40rem">
+        Solo founder — built Ahead end to end: Flutter client, Dart backend, encrypted vault,
+        bank sync path, Buddy agent, Plus gating, soft-launch path.
+      </p>
+      <div class="card" style="margin-top:22px;max-width:40rem">
+        <h3>Why this matters for WHU</h3>
+        <p>Not slideware: working product + clear wedge. Program and capital accelerate distribution, trust/legal, and life-stage playbooks — not a rewrite.</p>
+      </div>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Team</span><span>9 / 10</span></div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" id="s10">
+    <div class="body">
+      <div class="kicker">Slide 10 · Next Steps / Planning</div>
+      <h2>18-month plan</h2>
+      <div class="grid3">
+        <div class="card">
+          <h3>0–3 mo</h3>
+          <p>Public soft launch · 1,000 registered · Buddy asks as north star · store/legal ops</p>
+        </div>
+        <div class="card">
+          <h3>3–9 mo</h3>
+          <p>~10k registered · ≥8% of askers into Plus trial · creators · life-stage playbooks</p>
+        </div>
+        <div class="card">
+          <h3>9–18 mo</h3>
+          <p>~25–40k · credible unit economics · Seed-ready retention story</p>
+        </div>
+      </div>
+      <p class="quote" style="margin-top:18px">
+        Ahead does not win by doing more finance features. Ahead wins by seeing that
+        <span class="accent">decisions</span>, not dashboards, are the product.
+      </p>
+    </div>
+    <div class="foot"><span><b>Ahead</b> · Next steps</span><span>10 / 10</span></div>
+  </section>
+</div>
+</body>
+</html>
