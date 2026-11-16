@@ -49,6 +49,18 @@ if ! grep -Eq '^(GEMINI_API_KEY|ANTHROPIC_API_KEY)=.+' backend/.env; then
   [ "$answer" = "j" ] || exit 1
 fi
 
+# --- Reste eines früheren Laufs beenden (eigene PIDs aus .testserver/pids) --
+if [ -f "$RUN/pids" ]; then
+  for p in $(cat "$RUN/pids"); do
+    if kill -0 "$p" 2>/dev/null; then
+      pkill -P "$p" 2>/dev/null || true
+      kill "$p" 2>/dev/null || true
+    fi
+  done
+  rm -f "$RUN/pids"
+  sleep 1
+fi
+
 # --- freier Port (ein alter Server, etwa aus Cursor, darf nicht im Weg sein) --
 port_busy() { curl -s -m 1 -o /dev/null "http://127.0.0.1:$1/" 2>/dev/null; }
 if port_busy "$PORT"; then
@@ -59,13 +71,23 @@ if port_busy "$PORT"; then
   done
   echo "→ nehme Port $PORT"
 fi
+# der Server öffnet zusätzlich einen lokalen HTTPS-Port; auch der muss frei sein
+HTTPS_PORT="${HTTPS_PORT:-8443}"
+for p in $(seq "$HTTPS_PORT" $((HTTPS_PORT + 20))); do
+  if ! (command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$p" -sTCP:LISTEN >/dev/null 2>&1); then
+    HTTPS_PORT="$p"; break
+  fi
+done
 
 # --- Aufräumen beim Beenden -------------------------------------------------
 PIDS=""
 cleanup() {
   trap - EXIT INT TERM
-  for p in $PIDS; do kill "$p" 2>/dev/null || true; done
-  rm -f "$RUN/url"
+  for p in $PIDS; do
+    pkill -P "$p" 2>/dev/null || true
+    kill "$p" 2>/dev/null || true
+  done
+  rm -f "$RUN/url" "$RUN/pids"
   echo
   echo "Server und Tunnel gestoppt."
 }
@@ -76,6 +98,7 @@ echo "1/3 Tunnel starten …"
 : > "$RUN/tunnel.log"
 "$CLOUDFLARED" tunnel --no-autoupdate --url "http://127.0.0.1:$PORT" >"$RUN/tunnel.log" 2>&1 &
 PIDS="$PIDS $!"
+echo "$PIDS" > "$RUN/pids"
 URL=""
 for _ in $(seq 1 60); do
   URL="$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' "$RUN/tunnel.log" | head -1 || true)"
@@ -95,10 +118,12 @@ echo "2/3 Server starten …"
 (
   cd backend
   # nur lokal erreichbar; der Tunnel reicht die Anfragen durch
-  BIND=127.0.0.1 PORT="$PORT" PUBLIC_URL="$URL" TRUST_PROXY=1 \
-    exec "$DART" run server.dart
+  # "dart server.dart" statt "dart run": ein Prozess, den Ctrl+C sicher beendet
+  BIND=127.0.0.1 PORT="$PORT" HTTPS_PORT="$HTTPS_PORT" PUBLIC_URL="$URL" TRUST_PROXY=1 \
+    exec "$DART" server.dart
 ) >"$RUN/server.log" 2>&1 &
 PIDS="$PIDS $!"
+echo "$PIDS" > "$RUN/pids"
 for _ in $(seq 1 90); do
   if curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then break; fi
   sleep 1
