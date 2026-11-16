@@ -15,8 +15,8 @@ Future<void> presentWeeklyStory(BuildContext context, WeeklyReport report) {
   final change = report.change;
   final pct = change == null ? null : (change * 100).round().abs();
   final fallback = change == null || report.roughlyUsual
-      ? 'Meine Woche mit BudgetBuddy: ${report.headline}'
-      : 'Meine Woche: $pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst · BudgetBuddy';
+      ? 'Meine Woche mit Ahead: ${report.headline}'
+      : 'Meine Woche: $pct % ${change < 0 ? 'weniger' : 'mehr'} als sonst · Ahead';
   Hive.box('settings').put('weeklySeen', report.start.toIso8601String());
   return showWeeklyStoryShare(context, report, fallbackText: fallback);
 }
@@ -57,7 +57,12 @@ class WeeklyStory extends StatelessWidget {
                   const Row(children: [
                     BrandMark(size: 30),
                     SizedBox(width: 10),
-                    Text('BudgetBuddy', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text('Ahead',
+                        style: TextStyle(
+                            fontFamily: AppFonts.display,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                            letterSpacing: -0.3)),
                   ]),
                   const Spacer(),
                   Text('KW ${r.week}',

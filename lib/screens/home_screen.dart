@@ -250,14 +250,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 64,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: 0.94),
+                  color: AppColors.surface.withValues(alpha: ThemeController.isDark.value ? 0.92 : 0.96),
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.85)),
+                  border: Border.all(color: AppColors.hairline),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.35 : 0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
+                      color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.4 : 0.07),
+                      blurRadius: 28,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
@@ -350,7 +350,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Text('Neu', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+                child: Text('Neu',
+                    style: TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5)),
               ),
               _sectionLabel('Schnell'),
               _addOption(sheet, Icons.edit_note_rounded, 'Schnell erfassen',
@@ -470,16 +475,21 @@ class _AddFabState extends State<_AddFab> {
           height: 64,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.brand,
+            gradient: const RadialGradient(
+              center: Alignment(-0.32, -0.44),
+              radius: 0.95,
+              colors: [Color(0xFFFFEBD9), Color(0xFFF4B98A), Color(0xFFC8682F), Color(0xFF7A3A16)],
+              stops: [0, 0.28, 0.66, 1],
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: const Color(0xFFD9813F).withValues(alpha: ThemeController.isDark.value ? 0.45 : 0.28),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+          child: const Icon(Icons.add_rounded, color: Color(0xFFF7F7FA), size: 30),
         ),
       ),
     );

@@ -70,10 +70,12 @@ void main() async {
   unawaited(BankSync.refreshIfStale());
   unawaited(DepotSync.refreshIfStale());
 
-  // the Inter font ships with the app, so its licence belongs on the licences page
+  // fonts ship with the app, so their licences belong on the licences page
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
         ['Inter'], await rootBundle.loadString('assets/fonts/Inter-OFL.txt'));
+    yield LicenseEntryWithLineBreaks(['Bricolage Grotesque'],
+        await rootBundle.loadString('assets/fonts/BricolageGrotesque-OFL.txt'));
   });
 
   // reminders: open the matching page on tap, then bring them up to date
@@ -153,7 +155,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
       builder: (_, dark, __) => MaterialApp(
-        title: 'BudgetBuddy',
+        title: 'Ahead',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false, // hide debug banner
         theme: AppTheme.theme(dark), // reactive light/dark theme
@@ -166,7 +168,7 @@ class _BudgetBuddyAppState extends State<BudgetBuddyApp> {
         // on wide screens (desktop browser, Mac) keep a phone-width column
         // in the middle instead of stretching every screen edge to edge
         builder: (context, child) => ColoredBox(
-          color: dark ? const Color(0xFF05070A) : const Color(0xFFE6EAF0),
+          color: dark ? const Color(0xFF0C0A09) : const Color(0xFFF3ECE6),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),

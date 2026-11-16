@@ -519,7 +519,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
           BuddyOrb(size: 30, active: _thinking),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Buddy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text('Buddy',
+                style: TextStyle(
+                    fontFamily: AppFonts.display,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3)),
             // tippen schaltet die KI um, wenn der Server sie anbietet
             InkWell(
               onTap: _live == true ? _toggleAi : null,
@@ -593,7 +598,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
         const Align(alignment: Alignment.centerLeft, child: BuddyOrb(size: 56)),
         const SizedBox(height: 32),
         Text(name != null ? 'Hallo $name, ich bin Buddy.' : 'Hallo, ich bin Buddy.',
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
+            style: TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.7)),
         const SizedBox(height: 8),
         Text(
           AccountService.current.value == null
