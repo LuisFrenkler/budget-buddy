@@ -28,6 +28,9 @@ class DemoData {
   // sample data is on this device right now
   static bool get active => _settings?.get('demoKeys') != null;
 
+  // guest chat loaded Beispieldaten this run — keep until refresh / sign-in wipe
+  static bool guestSessionActive = false;
+
   // takes out exactly what [load] added, and puts the settings back
   static Future<void> remove() async {
     final settings = _settings;

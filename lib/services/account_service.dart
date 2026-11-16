@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'account_isolation.dart';
 import 'backend_service.dart';
 import 'cloud_sync.dart';
+import 'demo_data.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
 import 'split_service.dart';
@@ -74,8 +75,25 @@ class AccountService {
       current.value = account;
       await AccountIsolation.claimLocalFor(account.id);
       await AccountIsolation.reconcileLinksWithServer();
+    } else {
+      // unsigned / half session: never show another identity's ledger or demo
+      await _clearUnsignedLocal();
     }
     if (_token != null) _verify();
+  }
+
+  /// Drop dangling auth crumbs and wipe finance so guests start empty.
+  static Future<void> _clearUnsignedLocal() async {
+    if (_token != null) {
+      try {
+        await SecureStore.delete(_tokenKey);
+      } catch (_) {}
+      _token = null;
+    }
+    await _box.delete('account');
+    current.value = null;
+    DemoData.guestSessionActive = false;
+    await AccountIsolation.wipeLocalFinance();
   }
 
   // the server may have ended the session (deleted, expired); sign out then.
@@ -162,6 +180,7 @@ class AccountService {
     // stop stale vault pushes / sync watches before touching the cache
     await CloudSync.forget();
     // Trade Republic model: device starts empty for this session, then vault loads
+    DemoData.guestSessionActive = false;
     await AccountIsolation.wipeLocalFinance();
     if (invite != null) await SplitService.setPendingJoin(invite);
 
@@ -179,6 +198,7 @@ class AccountService {
     final token = _token;
     // cancel vault debounce / sync watches before clearing, so nothing writes back
     await CloudSync.forget();
+    DemoData.guestSessionActive = false;
     await AccountIsolation.wipeLocalFinance();
     await _forget();
     if (token == null) return;

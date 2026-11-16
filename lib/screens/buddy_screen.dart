@@ -12,6 +12,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/buddy_tips.dart';
 import '../services/buddy_suggestions.dart';
 import '../services/buddy_service.dart';
+import '../services/account_isolation.dart';
 import '../services/account_service.dart';
 import '../services/plus_service.dart';
 import 'plus_screen.dart';
@@ -146,6 +147,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (mounted) setState(() {});
     };
     _consentListenable.addListener(_consentListener);
+    if (widget.guest) unawaited(_isolateGuestFinance());
     BuddyService.live().then((v) {
       if (!mounted) return;
       setState(() => _live = v);
@@ -153,6 +155,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
       if (widget.tab) _asked();
     });
     if (widget.tab) BuddyScreen.ask.addListener(_asked);
+  }
+
+  // unsigned chat must not inherit another session's ledger or stale demo
+  Future<void> _isolateGuestFinance() async {
+    if (DemoData.guestSessionActive) return;
+    await AccountIsolation.wipeLocalFinance();
+    if (mounted) setState(() {});
   }
 
   void _asked() {
@@ -696,6 +705,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (widget.guest && s.text == 'Zeig mir Beispieldaten') {
       HapticFeedback.selectionClick();
       await DemoData.load();
+      DemoData.guestSessionActive = true;
       if (!mounted) return;
       setState(() {});
       await _send('Zeig mir einen Überblick');
