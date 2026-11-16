@@ -28,6 +28,7 @@ import '../services/bank_sync.dart';
 import '../services/depot_sync.dart';
 import 'plus_screen.dart';
 import 'subscription_screen.dart';
+import 'about_screen.dart';
 import 'company_screen.dart';
 import 'account_screen.dart';
 import 'splits_screen.dart';
@@ -278,15 +279,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SettingsRow(
                   icon: Icons.chat_bubble_outline_rounded,
-                  title: tr('Feedback zur Testversion'),
-                  subtitle: tr('Was hakt oder fehlt'),
+                  title: tr('Feedback senden'),
+                  subtitle: tr('Was wir besser machen können'),
                   onTap: _sendFeedback,
                 ),
                 SettingsRow(
-                  icon: Icons.checklist_rounded,
-                  title: tr('Soft-Launch Tipps'),
-                  subtitle: tr('Zum Ausprobieren'),
-                  onTap: _softLaunchTips,
+                  icon: Icons.help_outline_rounded,
+                  title: tr('Hilfe & Lizenzen'),
+                  subtitle: tr('Support, Open Source'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
                 ),
                 SettingsRow(
                   icon: Icons.apartment_rounded,
@@ -593,42 +594,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final uri = Uri(
       scheme: 'mailto',
       path: LegalInfo.email,
-      query: 'subject=${Uri.encodeComponent('Ahead Feedback (Test)')}'
-          '&body=${Uri.encodeComponent('Gerät / OS:\nWas ich getestet habe:\nWas gut lief:\nWas hakt:\n')}',
+      query: 'subject=${Uri.encodeComponent(tr('Feedback zu Ahead'))}'
+          '&body=${Uri.encodeComponent(tr('Was gut läuft:\nWas hakt:\n'))}',
     );
     if (!await launchUrl(uri) && mounted) {
       _snack(tr('Schreib an {email}', {'email': LegalInfo.email}));
     }
-  }
-
-  void _softLaunchTips() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('Soft-Launch Tipps'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 10),
-            Text(
-              tr('Kurz durchklicken, Feedback wenn etwas hakt:\n\n1. Konto anlegen, erneut anmelden\n2. Bank verbinden (oder Demo), Sync ziehen\n3. Buddy fragen, Sonstiges aufräumen (Start)\n4. 1 Sparziel gratis · Autopilot braucht Plus\n5. Wochenbericht öffnen, „Mit Buddy weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein. Echte Freigaben kommen mit der öffentlichen Version.'),
-              style: TextStyle(color: AppColors.textDim, height: 1.45),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _sendFeedback();
-              },
-              child: Text(tr('Feedback senden')),
-            ),
-          ]),
-        ),
-      ),
-    );
   }
 
   Widget _advancedHeader() {

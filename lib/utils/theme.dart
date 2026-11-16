@@ -1,4 +1,5 @@
 // colors, theme, categories and badges
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // Reactive theme mode. Flip ThemeController.isDark to switch the whole app

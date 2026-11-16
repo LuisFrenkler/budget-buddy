@@ -6,8 +6,9 @@ String friendlyError(Object e, {String? fallback}) {
   final s = '$e'.trim();
   if (s.isEmpty) return fb;
   // already German product copy from services
+  // product copy (often German from the server) goes through tr, so English UI stays English
   if (s.contains(' ') && !s.contains('Exception') && !s.contains('Error:') && !s.startsWith('Http')) {
-    if (s.length <= 180) return s;
+    if (s.length <= 180) return tr(s);
   }
   if (s.toLowerCase().contains('socket') ||
       s.toLowerCase().contains('failed host lookup') ||

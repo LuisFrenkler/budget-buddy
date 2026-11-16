@@ -1357,15 +1357,21 @@ class _BuddyScreenState extends State<BuddyScreen> {
       title: Row(children: [
         BrandMark(size: 30, inverse: copper),
         const SizedBox(width: 10),
-        copper
-            ? const Text('Ahead.',
-                style: TextStyle(
-                    fontFamily: AppFonts.display,
-                    fontSize: 21,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.8,
-                    color: Colors.white))
-            : const Wordmark(size: 21),
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: copper
+                ? const Text('Ahead.',
+                    style: TextStyle(
+                        fontFamily: AppFonts.display,
+                        fontSize: 21,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.8,
+                        color: Colors.white))
+                : const Wordmark(size: 21),
+          ),
+        ),
       ]),
       actions: [
         TextButton(
@@ -2345,7 +2351,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   onPressed: _thinking ? null : _pickPhoto,
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                   icon: Icon(Icons.add_rounded, color: AppColors.textDim, size: 22),
                 )
               else
@@ -2378,64 +2384,38 @@ class _BuddyScreenState extends State<BuddyScreen> {
               const SizedBox(width: 4),
               // ChatGPT-style: while Buddy writes, the send button becomes Stop
               if (_thinking)
-                Semantics(
-                  button: true,
-                  label: tr('Stoppen'),
-                  child: GestureDetector(
-                    onTap: _stop,
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.text),
-                      child: Icon(Icons.stop_rounded, size: 16, color: AppColors.bg),
-                    ),
-                  ),
+                _ChatAction(
+                  tooltip: tr('Stoppen'),
+                  onPressed: _stop,
+                  background: AppColors.text,
+                  icon: Icon(Icons.stop_rounded, size: 16, color: AppColors.bg),
                 )
               else if (!canSend && _photo == null)
                 ValueListenableBuilder<bool>(
                   valueListenable: VoiceInput.listening,
-                  builder: (_, on, __) => Semantics(
-                    button: true,
-                    label: on ? tr('Zuhören beenden') : tr('Sprechen'),
-                    child: GestureDetector(
-                      onTap: _voice,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: on ? AppColors.brand : Colors.transparent,
-                        ),
-                        child: Icon(on ? Icons.stop_rounded : Icons.mic_none_rounded,
-                            size: 22, color: on ? Colors.white : AppColors.textDim),
-                      ),
-                    ),
+                  builder: (_, on, __) => _ChatAction(
+                    tooltip: on ? tr('Zuhören beenden') : tr('Sprechen'),
+                    onPressed: _voice,
+                    background: on ? AppColors.brand : Colors.transparent,
+                    icon: Icon(on ? Icons.stop_rounded : Icons.mic_none_rounded,
+                        size: 22, color: on ? Colors.white : AppColors.textDim),
                   ),
                 )
               else
-                Semantics(
-                  button: true,
-                  label: tr('Senden'),
-                  enabled: canSend,
-                  child: GestureDetector(
-                    onTap: () => _send(_input.text),
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.brand),
-                      child: const Icon(Icons.arrow_upward_rounded, size: 20, color: Colors.white),
-                    ),
-                  ),
+                _ChatAction(
+                  tooltip: tr('Senden'),
+                  onPressed: canSend ? () => _send(_input.text) : null,
+                  background: AppColors.brand,
+                  icon: const Icon(Icons.arrow_upward_rounded, size: 20, color: Colors.white),
                 ),
             ]),
           ),
           if (PlusService.syncError.value != null && !_guest) ...[
             const SizedBox(height: 5),
-            GestureDetector(
-              onTap: () => PlusService.syncWithServer(fresh: true),
+            TextButton(
+              onPressed: () => PlusService.syncWithServer(fresh: true),
               child: Text(tr('{syncError} Erneut versuchen', {'syncError': PlusService.syncError.value}),
-                  style: TextStyle(fontSize: 11, color: AppColors.textDim, decoration: TextDecoration.underline)),
+                  style: TextStyle(fontSize: 12, color: AppColors.textDim, decoration: TextDecoration.underline)),
             ),
           ] else if (_footnote(note) case final line?) ...[
             const SizedBox(height: 5),
@@ -2446,6 +2426,32 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ],
         ]),
       ),
+    );
+  }
+}
+
+// Round control in the chat field: keyboard focus, a 44px target, same copper circle.
+class _ChatAction extends StatelessWidget {
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final Color background;
+  final Widget icon;
+  const _ChatAction({required this.tooltip, required this.onPressed, required this.background, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        minimumSize: const Size(44, 44),
+        fixedSize: const Size(44, 44),
+        padding: EdgeInsets.zero,
+        backgroundColor: background,
+        shape: const CircleBorder(),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: icon,
     );
   }
 }

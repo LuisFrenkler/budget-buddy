@@ -15,6 +15,7 @@ import '../widgets/big_number.dart';
 import '../widgets/share_card.dart';
 import '../widgets/tx_row.dart';
 import '../l10n/l10n.dart';
+import 'connections_screen.dart';
 
 // Contracts and subscriptions found in the bookings, what they cost per
 // month and year, when each is due next and which ones got more expensive.
@@ -42,7 +43,7 @@ class ContractsScreen extends StatelessWidget {
             const SizedBox(width: 8),
           ]),
           body: contracts.isEmpty
-              ? _empty()
+              ? _empty(context)
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                   children: [
@@ -145,7 +146,7 @@ class ContractsScreen extends StatelessWidget {
     );
   }
 
-  Widget _empty() => Center(
+  Widget _empty(BuildContext context) => Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -154,7 +155,14 @@ class ContractsScreen extends StatelessWidget {
             Text(tr('Noch keine Verträge erkannt'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(tr('Drei gleiche Monate in Folge. Mit Bank automatisch.'),
-                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
+                textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(minimumSize: const Size(200, 48)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
+              icon: const Icon(Icons.account_balance_rounded, size: 18),
+              label: Text(tr('Bank verbinden')),
+            ),
           ]),
         ),
       );

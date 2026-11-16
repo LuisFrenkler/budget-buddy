@@ -3681,4 +3681,16 @@ const en = <String, String>{
   'Wie steht meine Altersvorsorge?': 'How is my retirement savings?',
   'Wie baue ich meinen Notgroschen auf?': 'How do I build my emergency fund?',
   'Wie steht mein Sparziel {x}?': 'How is my {x} savings goal doing?',
+
+  'Was wir besser machen können': 'What we can do better',
+  'Feedback zu Ahead': 'Feedback for Ahead',
+  'Was gut läuft:\nWas hakt:\n': 'What works:\nWhat is stuck:\n',
+  'Was Ahead nicht ist': 'What Ahead is not',
+  'Keine Bank und keine Beratung. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.':
+      'Not a bank, and not advice. Buddy uses your numbers and names a next step. The decision stays with you.',
+  'Wir bauen Ahead selbst. Für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze reichen.':
+      'We build Ahead ourselves. For working students, internships, and people who take product, Flutter or the backend seriously. A few sentences are enough.',
+  'Zum Erstellen brauchst du Vorname, E-Mail, mindestens 8 Zeichen und die Bedingungen.':
+      'To create an account you need a first name, email, at least 8 characters, and the terms.',
+  'E-Mail oder Passwort ist falsch.': 'Email or password is wrong.',
 };

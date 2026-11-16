@@ -50,13 +50,13 @@ class CompanyScreen extends StatelessWidget {
             dim,
           ),
           _block(
-            tr('Für Investoren'),
-            tr('Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.'),
+            tr('Was Ahead nicht ist'),
+            tr('Keine Bank und keine Beratung. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.'),
             dim,
           ),
           _block(
             tr('Karriere & Weiterbildung'),
-            tr('Wir bauen selbst. Gesucht: Werkstudenten, Praktika, Produkt, Flutter, Backend. Ein paar Sätze reichen.'),
+            tr('Wir bauen Ahead selbst. Für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze reichen.'),
             dim,
           ),
           SettingsGroup([
