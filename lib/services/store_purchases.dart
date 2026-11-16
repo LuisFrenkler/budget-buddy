@@ -1,4 +1,4 @@
-// BudgetBuddy Plus in the iPhone and Android app: bought through the App
+// Ahead Plus in the iPhone and Android app: bought through the App
 // Store or Google Play (in_app_purchase), as both stores require for digital
 // subscriptions.
 //
@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'backend_service.dart';
 import 'plus_service.dart';
+import '../l10n/l10n.dart';
 
 enum StoreResult { done, cancelled, pending }
 
@@ -30,8 +31,8 @@ class StoreError implements Exception {
 class StorePurchases {
   // the same ids in App Store Connect and the Play Console
   static const ids = {
-    PlusPlan.monthly: 'budgetbuddy_plus_monthly',
-    PlusPlan.yearly: 'budgetbuddy_plus_yearly',
+    PlusPlan.monthly: 'ahead_plus_monthly',
+    PlusPlan.yearly: 'ahead_plus_yearly',
   };
 
   static bool get supported =>
@@ -107,10 +108,10 @@ class StorePurchases {
   // opens the store's purchase sheet; done once the server has confirmed it
   static Future<StoreResult> buy(PlusPlan plan) async {
     if (_products[plan] == null && !await loadProducts()) {
-      throw StoreError('Der $storeName ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.');
+      throw StoreError(tr('Der {storeName} ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.', {'storeName': storeName}));
     }
     final product = _products[plan];
-    if (product == null) throw StoreError('Plus ist im $storeName gerade nicht verfügbar.');
+    if (product == null) throw StoreError(tr('Plus ist im {storeName} gerade nicht verfügbar.', {'storeName': storeName}));
     _buying = Completer<StoreResult>();
     // subscriptions are bought like non-consumables
     final started = await _iap.buyNonConsumable(purchaseParam: PurchaseParam(productDetails: product));
@@ -140,7 +141,7 @@ class StorePurchases {
           _finish(StoreResult.cancelled);
         case PurchaseStatus.error:
           if (p.pendingCompletePurchase) await _iap.completePurchase(p);
-          _fail(p.error?.message ?? 'Der Kauf hat nicht geklappt.');
+          _fail(p.error?.message ?? tr('Der Kauf hat nicht geklappt.'));
         case PurchaseStatus.purchased || PurchaseStatus.restored:
           await _verify(p);
       }
@@ -155,13 +156,12 @@ class StorePurchases {
     }
     // Apple: the transaction id, Google: the purchase token
     final id = platform == 'apple' ? p.purchaseID : p.verificationData.serverVerificationData;
-    if (id == null || id.isEmpty) return _fail('Der Kauf kam ohne Kennung zurück.');
+    if (id == null || id.isEmpty) return _fail(tr('Der Kauf kam ohne Kennung zurück.'));
     try {
       await PlusService.applyStore(await BackendService.plusStore(platform, id), platform: platform, id: id);
     } catch (e) {
       // not finished with the store: it comes back and is checked again
-      return _fail('Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden. '
-          'Er wird automatisch nachgeholt.');
+      return _fail(tr('Dein Kauf ist angekommen, konnte aber noch nicht bestätigt werden. Er wird automatisch nachgeholt.'));
     }
     if (p.pendingCompletePurchase) await _iap.completePurchase(p);
     _finish(StoreResult.done);

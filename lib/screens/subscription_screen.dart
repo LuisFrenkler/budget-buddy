@@ -13,6 +13,7 @@ import 'checkout_screen.dart';
 import 'plus_screen.dart';
 import 'about_screen.dart';
 import '../legal/legal_texts.dart';
+import '../l10n/l10n.dart';
 
 // "Mein Abo": status, plan, payment method, invoices, codes and cancelling,
 // all in one place so nobody has to search for how to quit.
@@ -49,7 +50,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
     return ValueListenableBuilder<Subscription?>(
       valueListenable: PlusService.subscription,
       builder: (context, sub, _) => Scaffold(
-        appBar: AppBar(title: const Text('Mein Abo')),
+        appBar: AppBar(title: Text(tr('Mein Abo'))),
         body: sub == null ? _empty(context) : _Details(sub: sub),
       ),
     );
@@ -61,34 +62,32 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primaryText),
             const SizedBox(height: 12),
-            const Text('Du nutzt Ahead gratis',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+            Text(tr('Du nutzt Ahead gratis'),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 6),
             Text(
-                'Gratis: ${PlusService.freeAiQuestions} Buddy-Fragen, ${PlusService.freeReceiptScans} Belege, '
-                '${PlusService.freeGoals} Sparziel gratis, mit Plus unbegrenzt.',
+                tr('Gratis: {x} KI-Fragen, {x2} Belege, {freeGoals} Ziel. Plus ohne Limit.', {'x': PlusService.freeAiQuestions, 'x2': PlusService.freeReceiptScans, 'freeGoals': PlusService.freeGoals}),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             const FreeTierUsage(),
             const SizedBox(height: 20),
-            FilledButton(onPressed: () => showPlus(context), child: const Text('Plus entdecken')),
+            FilledButton(onPressed: () => showPlus(context), child: Text(tr('Plus entdecken'))),
             const SizedBox(height: 6),
             TextButton(
               onPressed: () => showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Immer gratis'),
+                  title: Text(tr('Immer gratis')),
                   content: Text(
-                    'Budgets, Monatsprognose, Verträge inkl. Kündigung, Notgroschen, '
-                    'geteilte Ausgaben, Monatsrückblick — und optional Bank oder Depot als Kontext.',
+                    tr('Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.45),
                   ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Verstanden')),
+                    TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Verstanden'))),
                   ],
                 ),
               ),
-              child: Text('Was ist gratis?', style: TextStyle(color: AppColors.textDim)),
+              child: Text(tr('Was ist gratis?'), style: TextStyle(color: AppColors.textDim)),
             ),
           ]),
         ),
@@ -109,10 +108,10 @@ class _Details extends StatelessWidget {
     final store = sub.fromStore;
 
     final status = sub.cancelled
-        ? 'Gekündigt · läuft bis ${Dates.full(sub.endsAt!)}'
+        ? tr('Gekündigt · läuft bis {x}', {'x': Dates.full(sub.endsAt!)})
         : trial
-            ? 'Gratis-Test · noch ${_daysLeft(now, sub.trialEnds)}'
-            : 'Aktiv';
+            ? tr('Gratis-Test · noch {x}', {'x': _daysLeft(now, sub.trialEnds)})
+            : tr('Aktiv');
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
@@ -128,7 +127,7 @@ class _Details extends StatelessWidget {
             Row(children: [
               Icon(Icons.workspace_premium_outlined, size: 22, color: sub.cancelled ? AppColors.primaryText : Colors.white),
               const SizedBox(width: 8),
-              Text('Ahead Plus',
+              Text(tr('Ahead Plus'),
                   style: TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w800, color: sub.cancelled ? AppColors.text : Colors.white)),
             ]),
@@ -148,53 +147,53 @@ class _Details extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               sub.cancelled
-                  ? 'Du behältst alles bis zum Ende. Danach geht es gratis weiter, deine Daten bleiben.'
+                  ? tr('Alles bis zum Ende. Danach gratis, Daten bleiben.')
                   : trial
-                      ? 'Erste Zahlung am ${Dates.full(sub.trialEnds)}: ${PlusService.price(sub.plan)}. Vorher kündigen kostet nichts.'
-                      : 'Nächste Zahlung am ${Dates.full(next)}: ${PlusService.price(sub.plan)}.',
+                      ? tr('Erste Zahlung am {x}: {x2}. Vorher kündigen kostet nichts.', {'x': Dates.full(sub.trialEnds), 'x2': PlusService.price(sub.plan)})
+                      : tr('Nächste Zahlung am {x}: {x2}.', {'x': Dates.full(next), 'x2': PlusService.price(sub.plan)}),
               style: TextStyle(color: sub.cancelled ? AppColors.textDim : Colors.white70, fontSize: 13.5, height: 1.35),
             ),
           ]),
         ),
 
-        _label('Abo'),
+        _label(tr('Abo')),
         _group([
           _row(
             icon: Icons.workspace_premium_rounded,
-            title: yearly ? 'Jährlich' : 'Monatlich',
+            title: yearly ? tr('Jährlich') : tr('Monatlich'),
             subtitle: '${PlusService.price(sub.plan)} ${yearly ? 'im Jahr' : 'im Monat'}',
-            trailing: yearly ? null : 'Sparen',
+            trailing: yearly ? null : tr('Sparen'),
             onTap: sub.cancelled ? null : () => sub.managed ? _portal(context) : _choosePlan(context),
           ),
           _row(
             icon: Icons.event_rounded,
-            title: sub.cancelled ? 'Endet am' : 'Nächste Zahlung',
+            title: sub.cancelled ? tr('Endet am') : tr('Nächste Zahlung'),
             subtitle: sub.cancelled
                 ? Dates.full(sub.endsAt!)
                 : '${Dates.full(next)} · ${PlusService.price(sub.plan)}',
           ),
           _row(
             leading: MethodLogo(sub.method),
-            title: 'Zahlungsmethode',
+            title: tr('Zahlungsmethode'),
             subtitle: sub.methodText,
             onTap: () async {
               if (sub.managed) return _portal(context);
               if (await changePaymentMethod(context) && context.mounted) {
-                _snack(context, 'Zahlungsmethode gespeichert');
+                _snack(context, tr('Zahlungsmethode gespeichert'));
               }
             },
           ),
         ]),
 
-        _label('Rechnungen'),
+        _label(tr('Rechnungen')),
         _group([
           if (sub.managed)
             _row(
               icon: Icons.receipt_long_rounded,
-              title: 'Rechnungen ansehen',
+              title: tr('Rechnungen ansehen'),
               subtitle: store
-                  ? 'Die Kaufbelege schickt dir ${StorePurchases.storeName} per E-Mail'
-                  : 'Als PDF im Kundenportal von Stripe',
+                  ? tr('Belege per E-Mail von {storeName}', {'storeName': StorePurchases.storeName})
+                  : tr('PDF bei Stripe'),
               onTap: () => _portal(context),
             )
           else if (invoices.isEmpty)
@@ -206,8 +205,8 @@ class _Details extends StatelessWidget {
                 Expanded(
                   child: Text(
                     sub.cancelled
-                        ? 'Keine. Bei einer Kündigung im Test zahlst du nichts.'
-                        : 'Noch keine. Die erste kommt am ${Dates.full(sub.trialEnds)}.',
+                        ? tr('Keine. Im Test zahlst du nichts.')
+                        : tr('Noch keine. Erste am {x}.', {'x': Dates.full(sub.trialEnds)}),
                     style: TextStyle(color: AppColors.textDim, fontSize: 13),
                   ),
                 ),
@@ -224,46 +223,46 @@ class _Details extends StatelessWidget {
               ),
         ]),
 
-        _label('Mehr'),
+        _label(tr('Mehr')),
         _group([
           // with a real payment a code is entered at checkout
           if (!sub.managed)
-            _row(icon: Icons.redeem_rounded, title: 'Gutscheincode einlösen', onTap: () => _redeem(context)),
+            _row(icon: Icons.redeem_rounded, title: tr('Gutscheincode einlösen'), onTap: () => _redeem(context)),
           _row(
             icon: Icons.restore_rounded,
-            title: 'Käufe wiederherstellen',
-            subtitle: 'Nach einem neuen Gerät oder einer Neuinstallation',
+            title: tr('Käufe wiederherstellen'),
+            subtitle: tr('Neues Gerät oder Neuinstallation'),
             onTap: () async {
               final found = await PlusService.restore();
-              if (context.mounted) _snack(context, found ? 'Dein Plus-Abo ist aktiv' : 'Kein Abo gefunden');
+              if (context.mounted) _snack(context, found ? tr('Dein Plus-Abo ist aktiv') : tr('Kein Abo gefunden'));
             },
           ),
           if (sub.cancelled)
             _row(
               icon: Icons.replay_rounded,
-              title: 'Abo fortsetzen',
-              subtitle: 'Läuft dann einfach weiter wie bisher',
+              title: tr('Abo fortsetzen'),
+              subtitle: tr('Läuft weiter wie bisher'),
               onTap: () async {
                 if (store) return StorePurchases.manage();
                 if (!await _attempt(context, PlusService.resume)) return;
                 HapticFeedback.mediumImpact();
-                if (context.mounted) _snack(context, 'Schön, dass du bleibst.');
+                if (context.mounted) _snack(context, tr('Schön, dass du bleibst.'));
               },
             )
           else
             _row(
               icon: Icons.cancel_outlined,
-              title: store ? 'Im ${StorePurchases.storeName} kündigen' : 'Vertrag hier kündigen',
+              title: store ? tr('Im {storeName} kündigen', {'storeName': StorePurchases.storeName}) : tr('Vertrag hier kündigen'),
               danger: true,
               onTap: () => store ? StorePurchases.manage() : _cancel(context, sub),
             ),
           if (PlusService.canWithdraw(sub))
             _row(
               icon: Icons.undo_rounded,
-              title: store ? 'Erstattung anfragen' : 'Vertrag widerrufen',
+              title: store ? tr('Erstattung anfragen') : tr('Vertrag widerrufen'),
               subtitle: store
-                  ? 'Über Erstattungen von Käufen im ${StorePurchases.storeName} entscheidet der Store'
-                  : 'Innerhalb von 14 Tagen nach Abschluss, ohne Angabe von Gründen',
+                  ? tr('{storeName} entscheidet über die Erstattung', {'storeName': StorePurchases.storeName})
+                  : tr('14 Tage nach Abschluss, ohne Grund'),
               danger: true,
               onTap: () => store ? StorePurchases.requestRefund() : _withdraw(context, sub),
             ),
@@ -273,19 +272,16 @@ class _Details extends StatelessWidget {
           child: TextButton(
             onPressed: () => Navigator.push(
                 context, MaterialPageRoute(builder: (_) => LegalDocScreen(doc: LegalTexts.terms))),
-            child: const Text('Nutzungsbedingungen'),
+            child: Text(tr('Nutzungsbedingungen')),
           ),
         ),
         const SizedBox(height: 18),
         Text(
           store
-              ? 'Gekauft über ${StorePurchases.storeName}. Zahlung, Kündigung und Belege laufen über '
-                  '${StorePurchases.platform == 'apple' ? 'deine Apple-ID' : 'dein Google-Konto'}.'
+              ? tr('Über {storeName}. Zahlung, Kündigung und Belege über {x}.', {'storeName': StorePurchases.storeName, 'x': StorePurchases.platform == 'apple' ? tr('deine Apple-ID') : tr('dein Google-Konto')})
               : sub.managed
-              ? 'Zahlung und Rechnungen laufen über unseren Zahlungsanbieter Stripe. '
-                  'Deine Zahlungsdaten liegen nur dort.'
-              : 'Testmodus: Es wurde und wird nichts abgebucht. Im Store-Release laufen Zahlung und '
-                  'Rechnungen über App Store, Google Play oder unseren Zahlungsanbieter.',
+              ? tr('Zahlung und Rechnungen über Stripe. Zahlungsdaten nur dort.')
+              : tr('Testmodus: nichts abgebucht. Im Store über App Store, Google Play oder Stripe.'),
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 11.5),
         ),
@@ -295,7 +291,7 @@ class _Details extends StatelessWidget {
 
   static String _daysLeft(DateTime now, DateTime end) {
     final days = DateTime(end.year, end.month, end.day).difference(DateTime(now.year, now.month, now.day)).inDays;
-    return days <= 1 ? '1 Tag' : '$days Tage';
+    return days <= 1 ? tr('1 Tag') : tr('{days} Tage', {'days': days});
   }
 
   Widget _label(String text) => Padding(
@@ -385,7 +381,7 @@ class _Details extends StatelessWidget {
       await PlusService.syncWithServer(fresh: true);
     } catch (e) {
       if (context.mounted) {
-        _snack(context, friendlyError(e, fallback: 'Kundenportal gerade nicht erreichbar.'));
+        _snack(context, friendlyError(e, fallback: tr('Kundenportal gerade nicht erreichbar.')));
       }
     }
   }
@@ -398,9 +394,9 @@ class _Details extends StatelessWidget {
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Plan wechseln', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(tr('Plan wechseln'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          Text('Der neue Preis gilt ab der nächsten Zahlung.', style: TextStyle(color: AppColors.textDim)),
+          Text(tr('Der neue Preis gilt ab der nächsten Zahlung.'), style: TextStyle(color: AppColors.textDim)),
           const SizedBox(height: 16),
           for (final p in PlusPlan.values)
             Padding(
@@ -414,8 +410,8 @@ class _Details extends StatelessWidget {
                 title: Text('${p == PlusPlan.yearly ? 'Jährlich' : 'Monatlich'} · ${PlusService.price(p)}',
                     style: const TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text(p == PlusPlan.yearly
-                    ? 'Nur ${PlusService.yearlyPerMonth} im Monat, du sparst 33 %'
-                    : 'Monatlich kündbar'),
+                    ? tr('Nur {yearlyPerMonth} im Monat, du sparst 33 %', {'yearlyPerMonth': PlusService.yearlyPerMonth})
+                    : tr('Monatlich kündbar')),
                 trailing: p == sub.plan ? Icon(Icons.check_rounded, color: AppColors.primary) : null,
                 onTap: () => Navigator.pop(context, p),
               ),
@@ -427,7 +423,7 @@ class _Details extends StatelessWidget {
     await PlusService.changePlan(chosen);
     HapticFeedback.mediumImpact();
     if (context.mounted) {
-      _snack(context, chosen == PlusPlan.yearly ? 'Jährlich: du sparst ab jetzt 33 %' : 'Ab der nächsten Zahlung monatlich');
+      _snack(context, chosen == PlusPlan.yearly ? tr('Jährlich: du sparst ab jetzt 33 %') : tr('Ab der nächsten Zahlung monatlich'));
     }
   }
 
@@ -445,18 +441,18 @@ class _Details extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('Rechnung ${inv.number}'),
+        title: Text(tr('Rechnung {number}', {'number': inv.number})),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          line('Datum', Dates.full(inv.date)),
-          line('Leistung', 'Plus ${inv.plan == PlusPlan.yearly ? 'jährlich' : 'monatlich'}'),
-          line('Netto', Money.raw(net)),
+          line(tr('Datum'), Dates.full(inv.date)),
+          line(tr('Leistung'), tr('Plus {x}', {'x': inv.plan == PlusPlan.yearly ? tr('jährlich') : 'monatlich'})),
+          line(tr('Netto'), Money.raw(net)),
           line('MwSt. 19 %', Money.raw(inv.cents - net)),
           Divider(color: AppColors.border),
-          line('Gesamt', Money.raw(inv.cents), bold: true),
+          line(tr('Gesamt'), Money.raw(inv.cents), bold: true),
           const SizedBox(height: 8),
-          Text('Testmodus: nicht abgebucht', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+          Text(tr('Testmodus: nicht abgebucht'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
         ]),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Schließen'))],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Schließen')))],
       ),
     );
   }
@@ -469,7 +465,7 @@ class _Details extends StatelessWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           backgroundColor: AppColors.surface,
-          title: const Text('Gutscheincode'),
+          title: Text(tr('Gutscheincode')),
           content: TextField(
             controller: ctrl,
             autofocus: true,
@@ -477,16 +473,16 @@ class _Details extends StatelessWidget {
             decoration: InputDecoration(hintText: 'z. B. FREUND', errorText: error),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
             TextButton(
               onPressed: () async {
                 if (await PlusService.redeem(ctrl.text)) {
                   if (context.mounted) Navigator.pop(context, true);
                 } else {
-                  setState(() => error = 'Diesen Code kennen wir nicht');
+                  setState(() => error = tr('Diesen Code kennen wir nicht'));
                 }
               },
-              child: const Text('Einlösen'),
+              child: Text(tr('Einlösen')),
             ),
           ],
         ),
@@ -494,7 +490,7 @@ class _Details extends StatelessWidget {
     );
     if (ok == true && context.mounted) {
       HapticFeedback.heavyImpact();
-      _snack(context, '${PlusService.promoDays(ctrl.text)} Tage gratis gutgeschrieben.');
+      _snack(context, tr('{x} Tage gratis gutgeschrieben.', {'x': PlusService.promoDays(ctrl.text)}));
     }
   }
 
@@ -505,17 +501,16 @@ class _Details extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Vertrag widerrufen?'),
+        title: Text(tr('Vertrag widerrufen?')),
         content: Text(paid
-            ? 'Plus endet sofort. Bereits gezahlte Beträge erstatten wir dir binnen 14 Tagen, '
-                'abzüglich des Anteils für die Zeit, in der du Plus schon genutzt hast.'
-            : 'Plus endet sofort. Es entstehen keine Kosten.'),
+            ? tr('Plus endet sofort. Gezahltes kommt in 14 Tagen zurück, abzüglich der genutzten Zeit.')
+            : tr('Plus endet sofort. Es entstehen keine Kosten.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Jetzt widerrufen'),
+            child: Text(tr('Jetzt widerrufen')),
           ),
         ],
       ),
@@ -523,7 +518,7 @@ class _Details extends StatelessWidget {
     if (ok != true || !context.mounted) return;
     if (!await _attempt(context, PlusService.withdraw)) return;
     HapticFeedback.mediumImpact();
-    if (context.mounted) _snack(context, 'Widerruf bestätigt. Plus ist beendet.');
+    if (context.mounted) _snack(context, tr('Widerruf bestätigt. Plus ist beendet.'));
   }
 
   // honest, two taps, no maze; offers the cheaper plan only when it helps
@@ -538,21 +533,21 @@ class _Details extends StatelessWidget {
       builder: (context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Plus kündigen?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Plus kündigen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Text(
             sub.inTrial(now)
-                ? 'Du zahlst nichts. Plus bleibt bis ${Dates.full(end)} aktiv.'
-                : 'Plus bleibt bis ${Dates.full(end)} aktiv, danach wird nichts mehr abgebucht.',
+                ? tr('Du zahlst nichts. Plus bleibt bis {x} aktiv.', {'x': Dates.full(end)})
+                : tr('Plus bleibt bis {x}, danach keine Abbuchung.', {'x': Dates.full(end)}),
             style: TextStyle(color: AppColors.textDim, height: 1.35),
           ),
           const SizedBox(height: 16),
-          Text('Danach gilt wieder', style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
+          Text(tr('Danach gilt wieder'), style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           for (final t in [
-            '${PlusService.freeAiQuestions} Fragen an Buddy im Monat',
-            '${PlusService.freeReceiptScans} Belege im Monat',
-            '${PlusService.freeGoals} Sparziel',
+            tr('{x} Fragen an Buddy im Monat', {'x': PlusService.freeAiQuestions}),
+            tr('{x} Belege im Monat', {'x': PlusService.freeReceiptScans}),
+            tr('{freeGoals} Sparziel', {'freeGoals': PlusService.freeGoals}),
           ])
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
@@ -567,20 +562,20 @@ class _Details extends StatelessWidget {
             OutlinedButton(
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               onPressed: () => Navigator.pop(context, 'yearly'),
-              child: Text('Lieber jährlich: nur ${PlusService.yearlyPerMonth} im Monat'),
+              child: Text(tr('Lieber jährlich: nur {yearlyPerMonth} im Monat', {'yearlyPerMonth': PlusService.yearlyPerMonth})),
             ),
             const SizedBox(height: 10),
           ],
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
             onPressed: () => Navigator.pop(context),
-            child: const Text('Plus behalten'),
+            child: Text(tr('Plus behalten')),
           ),
           const SizedBox(height: 6),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('Jetzt kündigen'),
+            child: Text(tr('Jetzt kündigen')),
           ),
         ]),
       ),
@@ -589,11 +584,11 @@ class _Details extends StatelessWidget {
     if (choice == 'yearly') {
       if (sub.managed) return _portal(context);
       await PlusService.changePlan(PlusPlan.yearly);
-      if (context.mounted) _snack(context, 'Jährlich: du sparst ab jetzt 33 %');
+      if (context.mounted) _snack(context, tr('Jährlich: du sparst ab jetzt 33 %'));
     } else if (choice == 'cancel') {
       if (!await _attempt(context, PlusService.cancel)) return;
       HapticFeedback.mediumImpact();
-      if (context.mounted) _snack(context, 'Gekündigt. Plus läuft noch bis ${Dates.full(end)}.');
+      if (context.mounted) _snack(context, tr('Gekündigt. Plus läuft noch bis {x}.', {'x': Dates.full(end)}));
     }
   }
 }

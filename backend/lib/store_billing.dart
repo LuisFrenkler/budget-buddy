@@ -1,4 +1,4 @@
-// BudgetBuddy Plus bought in the apps through the App Store or Google Play.
+// Ahead Plus bought in the apps through the App Store or Google Play.
 //
 // The app never decides on its own that someone has Plus: after a purchase it
 // sends the store's id for it (Apple: the transaction id, Google: the purchase
@@ -25,7 +25,7 @@ import 'net.dart';
 class PlusProducts {
   final String monthly;
   final String yearly;
-  const PlusProducts({this.monthly = 'budgetbuddy_plus_monthly', this.yearly = 'budgetbuddy_plus_yearly'});
+  const PlusProducts({this.monthly = 'ahead_plus_monthly', this.yearly = 'ahead_plus_yearly'});
 
   bool known(String id) => id == monthly || id == yearly;
   String plan(String id) => id == yearly ? 'yearly' : 'monthly';
@@ -51,7 +51,7 @@ Entitlement appleEntitlement({
   required PlusProducts products,
   required String environment,
 }) {
-  if (transaction['bundleId'] != bundleId) throw const BillingError('Dieser Kauf gehört nicht zu BudgetBuddy.');
+  if (transaction['bundleId'] != bundleId) throw const BillingError('Dieser Kauf gehört nicht zu Ahead.');
   final product = '${transaction['productId']}';
   if (!products.known(product)) throw const BillingError('Unbekanntes Produkt.');
   final started = _ms(transaction['originalPurchaseDate'] ?? transaction['purchaseDate']);

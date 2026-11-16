@@ -18,6 +18,7 @@ import 'vorsorge_screen.dart';
 import 'wealth_screen.dart';
 import '../widgets/misc_sort_sheet.dart';
 import '../widgets/scenario_sheet.dart';
+import '../l10n/l10n.dart';
 
 class BuddyAction {
   final IconData icon;
@@ -31,28 +32,28 @@ class BuddyActions {
 
   static List<BuddyAction> forQuestion(String question, FinanceSnapshot s) {
     final q = question.toLowerCase();
-    final contracts = BuddyAction(Icons.receipt_long_rounded, 'Verträge & Abos ansehen',
+    final contracts = BuddyAction(Icons.receipt_long_rounded, tr('Verträge & Abos ansehen'),
         (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const ContractsScreen())));
     final taken = {for (final b in s.budgets) b.category};
 
     if (_has(q, ['vorsorge', 'rentenrechner', 'altersvorsorge', 'rentenlücke', 'rentenluecke'])) {
       return [
-        BuddyAction(Icons.savings_rounded, 'Rentenrechner öffnen',
+        BuddyAction(Icons.savings_rounded, tr('Rentenrechner öffnen'),
             (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const VorsorgeScreen()))),
       ];
     }
     if (_has(q, ['depot', 'aktie', 'aktien', 'etf', 'krypto']) &&
         _has(q, ['hinzu', 'anlegen', 'einrichten', 'wo', 'wie', 'füge', 'fuege'])) {
       return [
-        BuddyAction(Icons.add_chart_rounded, 'Position hinzufügen',
+        BuddyAction(Icons.add_chart_rounded, tr('Position hinzufügen'),
             (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const AddHoldingScreen()))),
-        BuddyAction(Icons.pie_chart_rounded, 'Depot öffnen',
+        BuddyAction(Icons.pie_chart_rounded, tr('Depot öffnen'),
             (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const DepotScreen()))),
       ];
     }
     if (_has(q, ['vermögen', 'vermoegen', 'schulden']) || (q.contains('notgroschen') && !q.contains('sparziel'))) {
       return [
-        BuddyAction(Icons.account_balance_wallet_rounded, 'Vermögen öffnen',
+        BuddyAction(Icons.account_balance_wallet_rounded, tr('Vermögen öffnen'),
             (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const WealthScreen()))),
       ];
     }
@@ -60,11 +61,11 @@ class BuddyActions {
       final amount = RegExp(r'(\d[\d.]*)').firstMatch(q);
       final euros = amount == null ? null : int.tryParse(amount.group(1)!.replaceAll('.', ''));
       final name = q.contains('urlaub')
-          ? 'Urlaub'
+          ? tr('Urlaub')
           : q.contains('handy')
-              ? 'Neues Handy'
+              ? tr('Neues Handy')
               : q.contains('auto')
-                  ? 'Auto'
+                  ? tr('Auto')
                   : null;
       // a goal of that name exists already: go there instead of a second one
       final existing = name == null || !Hive.isBoxOpen('goals')
@@ -72,11 +73,11 @@ class BuddyActions {
           : GoalsService.all().where((g) => g.name.toLowerCase() == name.toLowerCase()).firstOrNull;
       return [
         if (existing != null)
-          BuddyAction(Icons.flag_rounded, 'Zu deinem Ziel „${existing.name}“',
+          BuddyAction(Icons.flag_rounded, tr('Zu deinem Ziel „{name}“', {'name': existing.name}),
               (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const GoalsScreen())))
         else
           BuddyAction(Icons.flag_rounded,
-              euros == null ? 'Als Sparziel anlegen' : 'Sparziel${name == null ? '' : ' „$name“'} · $euros €',
+              euros == null ? tr('Als Sparziel anlegen') : tr('Sparziel{x} · {euros} €', {'x': name == null ? '' : ' „$name“', 'euros': euros}),
               (c) => addGoal(c, name: name, cents: euros == null ? null : euros * 100)),
       ];
     }
@@ -84,18 +85,18 @@ class BuddyActions {
     if (_has(q, ['sonstiges', 'aufräumen', 'einordnen', 'zuordnen']) &&
         CategoryCoach.miscCount() > 0) {
       return [
-        BuddyAction(Icons.auto_fix_high_rounded, 'Sonstiges aufräumen',
+        BuddyAction(Icons.auto_fix_high_rounded, tr('Sonstiges aufräumen'),
             (c) => showMiscSortSheet(c)),
       ];
     }
     if (_has(q, ['was bleibt', 'noch ausgeben', 'prognose', 'monatsende', 'noch frei', 'was wäre', 'leisten']) &&
         s.forecast != null) {
       return [
-        BuddyAction(Icons.tune_rounded, 'Was wäre wenn…?', (c) {
+        BuddyAction(Icons.tune_rounded, tr('Was wäre wenn…?'), (c) {
           BuddyScreen.ask.value = null;
           showScenarioSheet(c);
         }),
-        BuddyAction(Icons.insights_rounded, 'Prognose auf Start', (c) {
+        BuddyAction(Icons.insights_rounded, tr('Prognose auf Start'), (c) {
           BuddyScreen.ask.value = null;
           Navigator.popUntil(c, (r) => r.isFirst);
           HomeScreen.goTab.value = 0;
@@ -104,7 +105,7 @@ class BuddyActions {
     }
     if (_has(q, ['split', 'schuldet', 'geteilt']) && s.splits.any((g) => g.myCents != 0)) {
       return [
-        BuddyAction(Icons.group_rounded, 'Splits öffnen',
+        BuddyAction(Icons.group_rounded, tr('Splits öffnen'),
             (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const SplitsScreen()))),
       ];
     }
@@ -115,7 +116,7 @@ class BuddyActions {
       final target = [...over, ...biggest].where((c) => !taken.contains(c) && c != 'Wohnen').firstOrNull;
       return [
         if (target != null)
-          BuddyAction(Icons.speed_rounded, 'Budget für $target anlegen', (c) => showAddBudgetDialog(c, category: target)),
+          BuddyAction(Icons.speed_rounded, tr('Budget für {target} anlegen', {'target': target}), (c) => showAddBudgetDialog(c, category: target)),
         if (_has(q, ['spar']) && s.contracts.isNotEmpty) contracts,
       ];
     }

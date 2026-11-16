@@ -14,7 +14,7 @@ final day = DateTime(2026, 10, 26);
 int ms(DateTime d) => d.millisecondsSinceEpoch;
 
 Map<String, dynamic> appleTx({
-  String product = 'budgetbuddy_plus_yearly',
+  String product = 'ahead_plus_yearly',
   String bundle = 'de.budgetbuddy.app',
   int? offerType,
   String? discount,
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('paid period without an offer is active, trial ends at the start', () {
-      final e = apple(appleTx(product: 'budgetbuddy_plus_monthly'));
+      final e = apple(appleTx(product: 'ahead_plus_monthly'));
       expect(e.status, 'active');
       expect(e.plan, 'monthly');
       expect(e.trialEnds, day);
@@ -102,7 +102,7 @@ void main() {
 
   group('Google Play', () {
     Map<String, dynamic> purchase(String state,
-            {String product = 'budgetbuddy_plus_monthly',
+            {String product = 'ahead_plus_monthly',
             bool renew = true,
             bool trial = false,
             DateTime? expires}) =>
@@ -130,7 +130,7 @@ void main() {
 
     test('active paid, yearly', () {
       final e = googleEntitlement(
-          purchase('SUBSCRIPTION_STATE_ACTIVE', product: 'budgetbuddy_plus_yearly'), 'tok', products,
+          purchase('SUBSCRIPTION_STATE_ACTIVE', product: 'ahead_plus_yearly'), 'tok', products,
           now: day);
       expect(e.status, 'active');
       expect(e.plan, 'yearly');

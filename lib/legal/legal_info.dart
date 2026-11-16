@@ -1,4 +1,4 @@
-// Who runs BudgetBuddy: the details the imprint, privacy policy and terms
+// Who runs Ahead: the details the imprint, privacy policy and terms
 // refer to. Name and support mail are set; street, city and the state data-
 // protection authority must still match the real business address before a
 // store release (see [LegalInfo.complete]).
@@ -22,7 +22,7 @@ class LegalInfo {
   static const authority =
       'Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg';
 
-  static const updated = 'Oktober 2026';
+  static const updated = 'November 2026';
 
   static String get address => '$street\n$city\n$country';
 

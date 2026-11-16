@@ -6,6 +6,7 @@ import '../legal/legal_texts.dart';
 import '../utils/theme.dart';
 import '../widgets/settings_list.dart';
 import 'about_screen.dart';
+import '../l10n/l10n.dart';
 
 // Who we are, for users, investors and people who might work with us.
 // Legal pages stay the LegalDoc screens; this page only points at them.
@@ -24,7 +25,7 @@ class CompanyScreen extends StatelessWidget {
     if (LegalInfo.email.startsWith('[') || !await launchUrl(uri)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Schreib uns an ${LegalInfo.email}')),
+          SnackBar(content: Text(tr('Schreib uns an {email}', {'email': LegalInfo.email}))),
         );
       }
     }
@@ -34,64 +35,42 @@ class CompanyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dim = TextStyle(color: AppColors.text.withValues(alpha: 0.88), fontSize: 14.5, height: 1.5);
     return Scaffold(
-      appBar: AppBar(title: const Text('Unternehmen & Vertrauen')),
+      appBar: AppBar(title: Text(tr('Unternehmen & Vertrauen'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
           _block(
-            'Über Ahead',
-            'Ahead ist der Coach für die ersten eigenen Finanzen: erstes Gehalt, erste Miete, '
-                'erste Abos. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. '
-                'Die App führt kein Konto, zahlt nichts aus und ersetzt keine Beratung.',
+            tr('Über Ahead'),
+            tr('Was reinkommt, was regelmäßig weggeht, was für Ziele oder Vorsorge bleibt. Kein Konto, keine Auszahlung, keine Beratung.'),
             dim,
           ),
           _block(
-            'Für Nutzer',
-            'Die App ist privacy-first gebaut. Umsätze, Budgets und Ziele liegen zuerst auf '
-                'deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät '
-                'vor dem Hochladen verschlüsselt — wir können sie nicht lesen. '
-                'Keine Werbung, kein Tracking, kein Verkauf von Daten.',
+            tr('Für Nutzer'),
+            tr('Auf dem Gerät: Umsätze, Budgets, Ziele, Depot. Mit Konto eine verschlüsselte Kopie, für uns unlesbar. Keine Werbung, kein Tracking, kein Datenverkauf.'),
             dim,
           ),
           _block(
-            'Für Investoren',
-            'Finanzguru besitzt Übersicht. Finanzfluss besitzt Vermögen und Content. '
-                'Ahead setzt früher an: Lebensstart mit Geld (~18–27), Buddy nur mit Zustimmung, '
-                'Abos aus den eigenen Buchungen, Notgroschen und erste Vorsorge-Frage als '
-                'Orientierung ohne Vermittlung. Depot und Bank bleiben optionaler Kontext. '
-                'Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. '
-                'Wer einsteigt, steigt in ein Produkt ein, das noch gebaut wird — '
-                'mit dem Unterschied, dass die Finanzdaten bei der Person bleiben.',
+            tr('Was Ahead nicht ist'),
+            tr('Keine Bank und keine Beratung. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.'),
             dim,
           ),
           _block(
-            'Karriere & Weiterbildung',
-            'Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und '
-                'Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar '
-                'Sätze, woran du arbeiten willst, reichen.',
+            tr('Karriere & Weiterbildung'),
+            tr('Wir bauen Ahead selbst. Für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze reichen.'),
             dim,
           ),
           SettingsGroup([
             SettingsRow(
               icon: Icons.mail_outline_rounded,
-              title: 'Mitarbeit anfragen',
+              title: tr('Mitarbeit anfragen'),
               subtitle: LegalInfo.email,
               onTap: () => _mail(context),
               external: true,
             ),
           ]),
           _block(
-            'Transparenz',
-            'Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter '
-                'Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor '
-                'einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. '
-                'Auf dem Gerät schützt zusätzlich die App-Sperre.\n\n'
-                'Die Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff '
-                'bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App '
-                'sehen deine Zugangsdaten.\n\n'
-                'Buddy mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne '
-                'Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit '
-                'sie dort möglich ist.',
+            tr('Transparenz'),
+            tr('Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.'),
             dim,
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[
@@ -105,46 +84,45 @@ class CompanyScreen extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Vor Store-Release noch ausfüllen: ${LegalInfo.missing.join(', ')}. '
-                    'Nur in Test-Versionen sichtbar.',
+                    tr('Vor Store-Release noch ausfüllen: {x}. Nur in Test-Versionen sichtbar.', {'x': LegalInfo.missing.join(', ')}),
                     style: const TextStyle(fontSize: 12.5),
                   ),
                 ),
               ]),
             ),
           ],
-          const SectionLabel('Rechtliches'),
+          SectionLabel(tr('Rechtliches')),
           SettingsGroup([
             SettingsRow(
               icon: Icons.business_rounded,
-              title: 'Impressum',
+              title: tr('Impressum'),
               onTap: () => _open(context, LegalTexts.imprint),
             ),
             SettingsRow(
               icon: Icons.privacy_tip_outlined,
-              title: 'Datenschutzerklärung',
+              title: tr('Datenschutzerklärung'),
               onTap: () => _open(context, LegalTexts.privacy),
             ),
             SettingsRow(
               icon: Icons.description_outlined,
-              title: 'Nutzungsbedingungen',
+              title: tr('Nutzungsbedingungen'),
               onTap: () => _open(context, LegalTexts.terms),
             ),
             SettingsRow(
               icon: Icons.undo_rounded,
-              title: 'Widerrufsbelehrung',
+              title: tr('Widerrufsbelehrung'),
               onTap: () => _open(context, LegalTexts.withdrawal),
             ),
             SettingsRow(
               icon: Icons.info_outline_rounded,
-              title: 'Wichtige Hinweise',
-              subtitle: 'Keine Anlageberatung, Kurse, KI',
+              title: tr('Wichtige Hinweise'),
+              subtitle: tr('Keine Beratung, Kurse, KI'),
               onTap: () => _open(context, LegalTexts.notes),
             ),
             SettingsRow(
               icon: Icons.help_outline_rounded,
-              title: 'Hilfe & Lizenzen',
-              subtitle: 'Support und Open Source',
+              title: tr('Hilfe & Lizenzen'),
+              subtitle: tr('Support, Open Source'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
           ]),

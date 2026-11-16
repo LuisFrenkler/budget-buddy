@@ -1,6 +1,6 @@
-// BudgetBuddy Plus: who has it and how much of the free tier is used.
+// Ahead Plus: who has it and how much of the free tier is used.
 //
-// Free: 5 AI questions and 3 receipt scans per month, 1 savings goal.
+// Free: 30 AI questions and 3 receipt scans per month, 1 savings goal.
 // Plus: everything without limits, 7 days free, then monthly or yearly.
 //
 // The subscription (plan, payment method, trial, renewal, cancellation) is
@@ -14,9 +14,12 @@
 // Google Play (store_purchases.dart), also checked by the server.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import '../utils/money.dart';
 import 'account_service.dart';
 import 'backend_service.dart';
+import 'product_events.dart';
 import 'store_purchases.dart';
+import '../l10n/l10n.dart';
 
 enum PlusFeature { aiQuestion, receiptScan, goal }
 
@@ -31,7 +34,7 @@ extension PayMethodLabel on PayMethod {
         PayMethod.applePay => 'Apple Pay',
         PayMethod.googlePay => 'Google Pay',
         PayMethod.paypal => 'PayPal',
-        PayMethod.card => 'Kredit- oder Debitkarte',
+        PayMethod.card => tr('Kredit- oder Debitkarte'),
         PayMethod.sepa => 'SEPA-Lastschrift',
         PayMethod.klarna => 'Klarna',
       };
@@ -169,7 +172,7 @@ class Subscription {
 }
 
 class PlusService {
-  static const freeAiQuestions = 5;
+  static const freeAiQuestions = 30;
   static const freeReceiptScans = 3;
   static const freeGoals = 1;
   static const trialDays = 7;
@@ -178,13 +181,14 @@ class PlusService {
   static const yearlyCents = 3999;
 
   // monthly and yearly price as shown on the paywall (the same in the stores)
-  static const monthlyPrice = '4,99 €';
-  static const yearlyPrice = '39,99 €';
+  // in the app's language (4,99 € or €4.99), never hidden by privacy mode
+  static String get monthlyPrice => Money.raw(499);
+  static String get yearlyPrice => Money.raw(3999);
 
   // in the apps the store's own price, as soon as it is loaded
   static String price(PlusPlan plan) =>
       StorePurchases.prices.value[plan] ?? (plan == PlusPlan.yearly ? yearlyPrice : monthlyPrice);
-  static const yearlyPerMonth = '3,33 €';
+  static String get yearlyPerMonth => Money.raw(333);
 
   // codes for creators and friends: extra free days on top of the trial
   static const promoCodes = {'BUDDY30': 30, 'FREUND': 30, 'CREATOR60': 60, 'START14': 14};
@@ -220,6 +224,15 @@ class PlusService {
     }
     subscription.value = sub;
     active.value = sub != null;
+    if (sub == null) return;
+    // trial until trialEnds; paid only once a payment date has passed
+    final now = DateTime.now();
+    try {
+      await ProductEvents.notePlus(
+        trial: sub.inTrial(now),
+        charged: !sub.inTrial(now) && sub.invoices(now).isNotEmpty,
+      );
+    } catch (_) {}
   }
 
   // --- server (signed in) ---
@@ -266,7 +279,7 @@ class PlusService {
       syncError.value = null;
       return true;
     } catch (_) {
-      syncError.value = 'Plus-Status gerade nicht abrufbar.';
+      syncError.value = tr('Plus-Status gerade nicht abrufbar.');
       return false;
     }
   }
@@ -383,8 +396,17 @@ class PlusService {
     return (raw['count'] as num).toInt();
   }
 
+  // friends who came through your invite add a few questions each (InviteService)
+  static int get inviteBonus {
+    try {
+      return Hive.isBoxOpen('settings') ? (Hive.box('settings').get('inviteBonus') as int? ?? 0) : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   static int limit(PlusFeature f) => switch (f) {
-        PlusFeature.aiQuestion => freeAiQuestions,
+        PlusFeature.aiQuestion => freeAiQuestions + inviteBonus,
         PlusFeature.receiptScan => freeReceiptScans,
         PlusFeature.goal => freeGoals,
       };

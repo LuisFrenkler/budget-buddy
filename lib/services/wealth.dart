@@ -3,23 +3,50 @@
 import 'package:hive/hive.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
-import 'contracts.dart';
+import 'emergency_plan.dart';
 import 'history.dart';
 import 'money_accounts.dart';
 import 'savings_rate.dart';
+import '../l10n/l10n.dart';
 
 class Debt {
   final String id;
   final String name;
   final int cents;
-  const Debt({required this.id, required this.name, required this.cents});
+  final double? ratePercent; // yearly interest, if known
+  const Debt(
+      {required this.id,
+      required this.name,
+      required this.cents,
+      this.ratePercent});
 
-  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'cents': cents};
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name': name,
+        'cents': cents,
+        if (ratePercent != null) 'ratePercent': ratePercent,
+      };
   factory Debt.fromMap(Map m) => Debt(
         id: '${m['id']}',
         name: '${m['name'] ?? ''}',
         cents: (m['cents'] as num? ?? 0).toInt(),
+        ratePercent: (m['ratePercent'] as num?)?.toDouble(),
       );
+
+  String? get rateLabel {
+    final r = ratePercent;
+    if (r == null) return null;
+    final n = r == r.roundToDouble() ? '${r.round()}' : '$r';
+    return tr('{x} % Zins', {'x': n});
+  }
+
+  static double? parseRate(String s) {
+    final t = s.trim().replaceAll('%', '').replaceAll(',', '.');
+    if (t.isEmpty) return null;
+    final v = double.tryParse(t);
+    if (v == null || v < 0 || v > 100) return null;
+    return v;
+  }
 }
 
 class Policy {
@@ -39,7 +66,7 @@ class Policy {
 }
 
 class EmergencyFund {
-  final int targetCents; // ~3× monthly fixed costs
+  final int targetCents; // 3 (or 6) lean months, see EmergencyPlan
   final int haveCents; // spar accounts + tagged cash
   final int fixedMonthlyCents;
   const EmergencyFund(
@@ -119,22 +146,21 @@ class Wealth {
     final netDelta = netThen != null ? netNow - netThen : null;
 
     if (netDelta != null && netDelta > 0) {
-      return 'Nettovermögen +${Money.format(netDelta)} seit letzter Woche';
+      return tr('Nettovermögen +{x} seit letzter Woche',
+          {'x': Money.format(netDelta)});
     }
     if (cashDelta > 0) {
-      return 'Konto +${Money.format(cashDelta)} seit letzter Woche';
+      return tr(
+          'Konto +{x} seit letzter Woche', {'x': Money.format(cashDelta)});
     }
     return null;
   }
 
   static EmergencyFund emergency(List<Transaction> tx, {DateTime? now}) {
-    final fixed = Contracts.monthlyTotal(Contracts.detect(tx, now: now));
-    final rate = SavingsRate.months(tx, now: now).where((m) => !m.running);
-    final avgSpend = rate.isEmpty
-        ? 0
-        : rate.fold<int>(0, (s, m) => s + m.spent) ~/ rate.length;
-    final monthly = fixed > 0 ? fixed : avgSpend;
-    final target = monthly <= 0 ? 0 : monthly * 3;
+    // what a lean month really costs, times three (six with an unsteady income)
+    final plan = EmergencyPlan.compute(tx, now: now);
+    final monthly = plan.monthlyCents;
+    final target = plan.targetCents;
     // spar accounts count toward the cushion; main giro does not (day-to-day)
     var have = 0;
     final allTx = tx;
@@ -148,8 +174,9 @@ class Wealth {
         targetCents: target, haveCents: have, fixedMonthlyCents: monthly);
   }
 
-  static int get emergencyExtraCents =>
-      Hive.isBoxOpen('settings') ? (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0 : 0;
+  static int get emergencyExtraCents => Hive.isBoxOpen('settings')
+      ? (_box.get('emergencyExtraCents') as num?)?.toInt() ?? 0
+      : 0;
 
   static Future<void> setEmergencyExtra(int cents) =>
       _box.put('emergencyExtraCents', cents < 0 ? 0 : cents);
@@ -165,7 +192,8 @@ class Wealth {
       final last = months[1].rate;
       final prev = months[2].rate;
       if (last != null && prev != null && last > prev && last > 0) {
-        return 'Sparquote letzten Monat: $last %, höher als im Monat davor';
+        return tr('Sparquote letzten Monat: {last} %, höher als im Monat davor',
+            {'last': last});
       }
     }
     return null;

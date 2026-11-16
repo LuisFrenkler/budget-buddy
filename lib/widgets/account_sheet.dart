@@ -9,6 +9,7 @@ import '../services/db.dart';
 import '../services/money_accounts.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // returns the saved account, or null when cancelled or deleted
 Future<MoneyAccount?> showAccountSheet(BuildContext context, {MoneyAccount? account}) => showModalBottomSheet<MoneyAccount>(
@@ -55,9 +56,9 @@ class _AccountSheetState extends State<_AccountSheet> {
 
   Future<void> _save() async {
     final name = _name.text.trim();
-    if (name.isEmpty) return setState(() => _error = 'Gib dem Konto einen Namen, z. B. Tagesgeld');
+    if (name.isEmpty) return setState(() => _error = tr('Gib dem Konto einen Namen, z. B. Tagesgeld'));
     final cents = _balance.text.trim().isEmpty ? 0 : Money.parseToCents(_balance.text);
-    if (_handKept && cents == null) return setState(() => _error = 'Bitte einen Betrag eingeben, z. B. 1.250,40');
+    if (_handKept && cents == null) return setState(() => _error = tr('Bitte einen Betrag eingeben, z. B. 1.250,40'));
     final account = (widget.account ?? MoneyAccount(id: const Uuid().v4(), name: name)).copyWith(name: name, kind: _kind);
     await MoneyAccounts.save(account);
     if (_handKept) await MoneyAccounts.setBalance(account, cents!, DB.getTx());
@@ -71,13 +72,13 @@ class _AccountSheetState extends State<_AccountSheet> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('${a.name} entfernen?'),
-        content: const Text('Die Buchungen dieses Kontos wandern auf dein Hauptkonto. Es geht kein Umsatz verloren.'),
+        content: Text(tr('Buchungen wandern aufs Hauptkonto. Kein Umsatz geht verloren.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Entfernen'),
+            child: Text(tr('Entfernen')),
           ),
         ],
       ),
@@ -93,7 +94,7 @@ class _AccountSheetState extends State<_AccountSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(_isNew ? 'Konto hinzufügen' : a!.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(_isNew ? tr('Konto hinzufügen') : a!.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         // no dead end: an account at a bank is better linked than typed in
         if (_isNew)
           Align(
@@ -107,12 +108,12 @@ class _AccountSheetState extends State<_AccountSheet> {
                 nav.push(MaterialPageRoute(builder: (_) => const ConnectionsScreen(start: 'bank')));
               },
               icon: const Icon(Icons.link_rounded, size: 18),
-              label: const Text('Lieber mit der Bank verbinden'),
+              label: Text(tr('Lieber mit der Bank verbinden')),
             ),
           ),
         if (a?.link != null) ...[
           const SizedBox(height: 6),
-          Text('Wird über ${a!.bank ?? 'deine Bank'} abgeglichen.', style: TextStyle(color: AppColors.textDim)),
+          Text(tr('Wird über {x} abgeglichen.', {'x': a!.bank ?? tr('deine Bank')}), style: TextStyle(color: AppColors.textDim)),
         ],
         const SizedBox(height: 16),
         Wrap(spacing: 8, children: [
@@ -128,7 +129,7 @@ class _AccountSheetState extends State<_AccountSheet> {
           controller: _name,
           autofocus: _isNew,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Name', hintText: 'z. B. Tagesgeld, Bargeld, DKB'),
+          decoration: InputDecoration(labelText: tr('Name'), hintText: tr('z. B. Tagesgeld, Bargeld, DKB')),
         ),
         if (_handKept) ...[
           const SizedBox(height: 12),
@@ -136,7 +137,7 @@ class _AccountSheetState extends State<_AccountSheet> {
             controller: _balance,
             keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
             onSubmitted: (_) => _save(),
-            decoration: const InputDecoration(labelText: 'Kontostand heute', suffixText: '€', hintText: '0,00'),
+            decoration: InputDecoration(labelText: tr('Kontostand heute'), suffixText: '€', hintText: '0,00'),
           ),
         ],
         if (_error != null) ...[
@@ -147,13 +148,13 @@ class _AccountSheetState extends State<_AccountSheet> {
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _save,
-          child: Text(_isNew ? 'Konto anlegen' : 'Speichern'),
+          child: Text(_isNew ? tr('Konto anlegen') : tr('Speichern')),
         ),
         if (a != null && !a.isMain)
           TextButton(
             onPressed: _delete,
             style: TextButton.styleFrom(foregroundColor: AppColors.errorText),
-            child: const Text('Konto entfernen'),
+            child: Text(tr('Konto entfernen')),
           ),
       ]),
     );

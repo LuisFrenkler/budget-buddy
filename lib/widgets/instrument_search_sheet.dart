@@ -7,6 +7,7 @@ import '../utils/money.dart';
 import 'instrument_avatar.dart';
 import '../utils/instruments.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 // Bottom sheet to search and pick a real instrument. Tap a hit → live Kurs +
 // Nachrichten, then „Übernehmen“ returns the Instrument to the add screen.
@@ -132,7 +133,7 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                 autofocus: true,
                 onChanged: _onQuery,
                 decoration: InputDecoration(
-                  hintText: 'Aktie, ETF oder Krypto suchen...',
+                  hintText: tr('Aktie, ETF oder Krypto suchen...'),
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searching
                       ? Padding(
@@ -153,9 +154,9 @@ class _InstrumentSearchSheetState extends State<InstrumentSearchSheet> {
                   if (q.isNotEmpty && !exact)
                     ListTile(
                       leading: Icon(Icons.add, color: AppColors.primary),
-                      title: Text('„${_q.trim()}" verwenden'),
-                      subtitle: const Text('Eigenes Wertpapier'),
-                      onTap: () => Navigator.pop(context, Instrument(_q.trim(), '', 'Aktie', 0)),
+                      title: Text(tr('„{x}“ verwenden', {'x': _q.trim()})),
+                      subtitle: Text(tr('Eigenes Wertpapier')),
+                      onTap: () => Navigator.pop(context, Instrument(_q.trim(), '', 'Aktie', 0) /* l10n: data */),
                     ),
                   for (final i in results)
                     ListTile(
@@ -239,7 +240,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(i.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                    Text(i.name, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
                     Text('${i.symbol.isEmpty ? 'ohne Symbol' : i.symbol} · ${i.type}',
                         style: TextStyle(color: AppColors.textDim)),
                   ]),
@@ -250,19 +251,19 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(16)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Aktueller Kurs', style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+                  Text(tr('Aktueller Kurs'), style: TextStyle(color: AppColors.textDim, fontSize: 13)),
                   const SizedBox(height: 4),
                   if (_priceLoading && (_cents == null || _cents == 0))
                     SizedBox(height: 28, child: Align(alignment: Alignment.centerLeft, child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))))
                   else
                     Text(
-                      (_cents != null && _cents! > 0) ? Money.format(_cents!) : 'Kurs gerade nicht verfügbar',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.6),
+                      (_cents != null && _cents! > 0) ? Money.format(_cents!) : tr('Kurs gerade nicht verfügbar'),
+                      style: const TextStyle(fontFamily: AppFonts.display, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6),
                     ),
                 ]),
               ),
               const SizedBox(height: 18),
-              Text('Nachrichten', style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(tr('Nachrichten'), style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Expanded(
                 child: _newsLoading
@@ -270,8 +271,8 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                     : _news.isEmpty
                         ? Text(
                             i.symbol.isEmpty
-                                ? 'Ohne Börsen-Symbol keine Nachrichten.'
-                                : 'Gerade keine Schlagzeilen zu ${i.symbol}.',
+                                ? tr('Ohne Börsen-Symbol keine Nachrichten.')
+                                : tr('Gerade keine Schlagzeilen zu {symbol}.', {'symbol': i.symbol}),
                             style: TextStyle(color: AppColors.textDim, height: 1.4),
                           )
                         : ListView.separated(
@@ -299,7 +300,7 @@ class _InstrumentPreviewState extends State<_InstrumentPreview> {
                   context,
                   Instrument(i.name, i.symbol, i.type, _cents ?? i.refCents),
                 ),
-                child: const Text('Übernehmen'),
+                child: Text(tr('Übernehmen')),
               ),
             ],
           ),

@@ -23,6 +23,7 @@ import 'bank_sync.dart';
 import 'depot_sync.dart';
 import 'ledger_busy.dart';
 import 'secure_store.dart';
+import '../l10n/l10n.dart';
 
 /// What [CloudSync.start] / a guarded push should do next.
 enum VaultAction { push, apply, conflict, noop }
@@ -211,7 +212,7 @@ class CloudSync {
     conflict.value = null;
     // never force-overwrite cloud after a failed first load of this account
     if (_settings.get('vaultLoadFailed') == true) {
-      throw 'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte und versuch es noch einmal.';
+      throw tr('Deine Kontodaten konnten noch nicht geladen werden. Bitte warte und versuch es noch einmal.');
     }
     // OCC: claim the remote version we are replacing, then push
     if (remote != null) {
@@ -252,7 +253,7 @@ class CloudSync {
     final res = await http.get(Uri.parse('${BackendService.base}/vault'),
         headers: {'Authorization': 'Bearer ${AccountService.token}'}).timeout(const Duration(seconds: 20));
     if (res.statusCode == 404) return null;
-    if (res.statusCode != 200) throw 'Sicherung nicht erreichbar (${res.statusCode})';
+    if (res.statusCode != 200) throw tr('Sicherung nicht erreichbar ({x})', {'x': res.statusCode});
     return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
   }
 
@@ -260,7 +261,7 @@ class CloudSync {
   static Future<void> apply(Map<String, dynamic> remote, {bool required = false}) async {
     final key = _key;
     if (key == null) {
-      if (required) throw 'Vault-Schlüssel fehlt. Bitte Passwort erneut eingeben.';
+      if (required) throw tr('Vault-Schlüssel fehlt. Bitte Passwort erneut eingeben.');
       return;
     }
     final epoch = AccountIsolation.epoch;
@@ -271,12 +272,12 @@ class CloudSync {
       payload = jsonDecode(await open(key, remote['data'] as String)) as Map<String, dynamic>;
     } catch (e) {
       if (required) {
-        throw 'Sicherung lässt sich nicht öffnen. Stimmt das Passwort? ($e)';
+        throw tr('Sicherung lässt sich nicht öffnen. Stimmt das Passwort? ({e})', {'e': e});
       }
       rethrow;
     }
     if (!_stillThisSession(epoch, uid, generation)) {
-      if (required) throw 'Sitzung hat gewechselt. Bitte noch einmal versuchen.';
+      if (required) throw tr('Sitzung hat gewechselt. Bitte noch einmal versuchen.');
       return;
     }
     _applying = true;
@@ -289,16 +290,16 @@ class CloudSync {
               ? null
               : jsonEncode(rawBackup);
       if (backupJson == null || backupJson.isEmpty) {
-        throw 'Sicherung ist leer oder beschädigt.';
+        throw tr('Sicherung ist leer oder beschädigt.');
       }
       try {
         await BackupService.restoreFromJson(backupJson);
       } catch (e) {
-        if (required) throw 'Daten konnten lokal nicht geschrieben werden ($e)';
+        if (required) throw tr('Daten konnten lokal nicht geschrieben werden ({e})', {'e': e});
         rethrow;
       }
       if (!_stillThisSession(epoch, uid, generation)) {
-        if (required) throw 'Sitzung hat gewechselt. Bitte noch einmal versuchen.';
+        if (required) throw tr('Sitzung hat gewechselt. Bitte noch einmal versuchen.');
         return;
       }
       final links = (payload['links'] as Map?) ?? const {};
@@ -344,7 +345,7 @@ class CloudSync {
   static Future<void> push({bool required = false, bool force = false}) async {
     final key = _key;
     if (key == null || AccountService.token == null) {
-      if (required) throw 'Sicherung konnte nicht hochgeladen werden.';
+      if (required) throw tr('Sicherung konnte nicht hochgeladen werden.');
       return;
     }
     final epoch = AccountIsolation.epoch;
@@ -352,11 +353,11 @@ class CloudSync {
     final generation = _generation;
     // never seed an empty vault over a good cloud copy after a failed first load
     if (_settings.get('vaultLoadFailed') == true) {
-      if (required) throw 'Deine Kontodaten konnten noch nicht geladen werden. Bitte warte kurz und versuch es noch einmal.';
+      if (required) throw tr('Deine Kontodaten konnten noch nicht geladen werden. Bitte warte kurz und versuch es noch einmal.');
       return;
     }
     if (uid != null && !ownsLocalData(uid) && AccountIsolation.hasFinanceData) {
-      if (required) throw 'Sicherung konnte nicht hochgeladen werden.';
+      if (required) throw tr('Sicherung konnte nicht hochgeladen werden.');
       return;
     }
     await _settings.put('vaultDirty', true);
@@ -370,7 +371,7 @@ class CloudSync {
           if (remoteVersion > local) {
             conflict.value = remote;
             if (required) {
-              throw 'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.';
+              throw tr('Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.');
             }
             return;
           }
@@ -403,11 +404,11 @@ class CloudSync {
         final remote = await fetch();
         if (remote != null && _stillThisSession(epoch, uid, generation)) conflict.value = remote;
       } catch (_) {}
-      if (required) throw 'Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.';
+      if (required) throw tr('Auf einem anderen Gerät gibt es neuere Daten. Bitte wähle, welche Kopie gelten soll.');
       return;
     }
     if (res.statusCode != 200) {
-      if (required) throw 'Sicherung konnte nicht hochgeladen werden (${res.statusCode}). Bitte bleib online und versuch es noch einmal.';
+      if (required) throw tr('Sicherung konnte nicht hochgeladen werden ({x}). Bitte bleib online und versuch es noch einmal.', {'x': res.statusCode});
       return; // stays dirty: the next change or start tries again
     }
     await _settings.put('vaultVersion', (jsonDecode(res.body) as Map)['version']);

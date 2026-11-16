@@ -66,3 +66,8 @@ key.properties
 .cursorrules
 AGENTS.md
 CLAUDE.md
+
+# deploy: secrets and built sites stay local
+deploy/.env
+deploy/keys/
+deploy/site/

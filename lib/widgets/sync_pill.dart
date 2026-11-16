@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/dates.dart';
 import '../utils/theme.dart';
+import '../l10n/l10n.dart';
 
 class SyncPill extends StatefulWidget {
   final String label; // e.g. the bank; empty shows only the time
@@ -14,12 +15,12 @@ class SyncPill extends StatefulWidget {
   const SyncPill({super.key, this.label = '', required this.last, required this.onSync});
 
   static String ago(DateTime? last, DateTime now) {
-    if (last == null) return 'Aktualisieren';
+    if (last == null) return tr('Aktualisieren');
     final d = now.difference(last);
-    if (d.inMinutes < 1) return 'gerade eben';
-    if (d.inMinutes < 60) return 'vor ${d.inMinutes} Min.';
-    if (d.inHours < 24) return 'vor ${d.inHours} Std.';
-    return 'am ${Dates.dayMonth(last)}';
+    if (d.inMinutes < 1) return tr('gerade eben');
+    if (d.inMinutes < 60) return tr('vor {inMinutes} Min.', {'inMinutes': d.inMinutes});
+    if (d.inHours < 24) return tr('vor {inHours} Std.', {'inHours': d.inHours});
+    return tr('am {x}', {'x': Dates.dayMonth(last)});
   }
 
   @override
@@ -48,12 +49,12 @@ class _SyncPillState extends State<SyncPill> {
 
   @override
   Widget build(BuildContext context) {
-    final when = _failed ? 'Nicht aktualisiert' : SyncPill.ago(widget.last, DateTime.now());
+    final when = _failed ? tr('Nicht aktualisiert') : SyncPill.ago(widget.last, DateTime.now());
     final text = widget.label.isEmpty ? when : '${widget.label} · $when';
     final tint = _failed ? AppColors.warningText : AppColors.textDim;
     return Semantics(
       button: true,
-      label: 'Aktualisieren, $text',
+      label: tr('Aktualisieren, {text}', {'text': text}),
       excludeSemantics: true,
       child: Material(
         color: AppColors.surface,

@@ -1,9 +1,12 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'smart_entry_sheet.dart';
 import 'package:flutter/services.dart';
 import 'splits_screen.dart';
 import 'goals_screen.dart';
 import '../services/auto_save.dart';
+import '../services/buddy_history.dart';
+import '../services/invite_service.dart';
 import '../services/account_service.dart';
 import '../services/cloud_sync.dart';
 import '../services/split_service.dart';
@@ -12,32 +15,40 @@ import '../widgets/transfer_sheet.dart';
 import '../widgets/add_account_choice.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
+import '../widgets/buddy_orb.dart';
 import '../widgets/tx_row.dart';
 import '../widgets/vault_banner.dart';
+import '../widgets/brand.dart';
 import 'account_screen.dart';
 import 'add_holding_screen.dart';
 import 'budget_screen.dart';
 import 'buddy_screen.dart';
 import 'depot_screen.dart';
 import 'overview_screen.dart';
+import '../l10n/l10n.dart';
 
-// App shell: four areas (Start, Konto, Depot, Buddy) in a floating navigation
+// App shell: Buddy first, then Überblick, Konto, Depot in a floating navigation
 // bar with a separate add button next to it.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  // switch shell tab from anywhere (e.g. Buddy action → Start / Prognose)
+  // switch shell tab from anywhere (e.g. Buddy action → Überblick / Prognose)
   static final goTab = ValueNotifier<int?>(null);
+
+  // the menu for adding by hand (quick entry, receipt, keypad, transfer);
+  // lives in the Konto tab since Buddy took over adding from the nav bar
+  static VoidCallback? addMenu;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // current tab index (0 = Start, 1 = Konto, 2 = Depot, 3 = Buddy)
-  int _tab = 0;
-  // Start always; others on first visit, avoids mounting Konto/Depot/Buddy at cold start
-  final _visited = <int>{0};
+  // current tab index (0 = Überblick, 1 = Konto, 2 = Depot, 3 = Buddy)
+  // Ahead opens in the chat: Buddy is the start screen
+  int _tab = 3;
+  // Buddy always; others on first visit, avoids mounting Überblick/Konto/Depot at cold start
+  final _visited = <int>{3};
 
   // section inside the account (0 = Umsätze, 1 = Budgets, 2 = Analyse)
   final _segment = ValueNotifier<int>(0);
@@ -48,6 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    HomeScreen.addMenu = _showAddMenu;
+    // the chat from before sign-up continues here (before the Buddy tab loads it)
+    BuddyHistory.adoptGuest();
+    // friends who joined through the invite link: bonus questions for Buddy
+    InviteService.refresh();
     // a goal filled by the autopilot gets its celebration, too
     AutoSave.reached.addListener(_goalReached);
     // an invite link opened the app: straight to joining, also right after signing in
@@ -77,15 +93,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Daten unterscheiden sich'),
-        content: const Text(
-            'Auf diesem Gerät hast du Änderungen, und in deinem Konto liegt eine neuere Sicherung '
-            'von einem anderen Gerät.\n\n'
-            'Es gibt kein Zusammenführen: eine komplette Kopie gewinnt '
-            '(Buchungen, Budgets, Depot). Die andere geht verloren.'),
+        title: Text(tr('Daten unterscheiden sich')),
+        content: Text(
+            tr('Hier sind Änderungen, im Konto eine neuere Sicherung von einem anderen Gerät.\n\nKein Zusammenführen: eine Kopie gewinnt (Buchungen, Budgets, Depot), die andere ist weg.')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Kontodaten laden')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Gerätedaten behalten')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Kontodaten laden'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(tr('Gerätedaten behalten'))),
         ],
       ),
     );
@@ -191,11 +204,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // re-reads the current colors instead of keeping stale ones
     return ValueListenableBuilder<bool>(
       valueListenable: ThemeController.isDark,
-      // Android's back button leads from Konto or Depot to Start before it leaves the app
+      // Android's back button leads from the other tabs to Buddy before it leaves the app
       builder: (context, _, __) => PopScope(
-        canPop: _tab == 0,
+        canPop: _tab == 3,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _open(0);
+          if (!didPop) _open(3);
         },
         child: Scaffold(
         // the tabs stay alive (scroll position, loaded charts) and cross-fade
@@ -235,99 +248,101 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // floating pill nav + add, inspired by modern finance apps (clear, springy, one primary CTA)
+  // Buddy is the heart of the app, so he is not one tab among four.
+  // Überblick, Konto and Depot share a slim pill. Buddy stands beside it
+  // as a glowing orb. Adding lives on Konto and on the Überblick shortcuts.
   Widget _navigation() {
     // while typing (a question to Buddy) the keyboard takes that room
     if (MediaQuery.viewInsetsOf(context).bottom > 0) return const SizedBox.shrink();
+    final night = ThemeController.isDark.value;
+    final pill = Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: night ? const Color(0x1AFFFFFF) : const Color(0xEB17120E),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: night ? const Color(0x24FFFFFF) : const Color(0x00000000)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: night ? 0.4 : 0.18),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      // small phones: the pill shrinks a little instead of overflowing
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        _navItem(Icons.insights_rounded, tr('Überblick'), 0),
+        _navItem(Icons.account_balance_wallet_outlined, tr('Konto'), 1),
+        _navItem(Icons.show_chart_rounded, tr('Depot'), 2),
+      ]),
+      ),
+    );
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 64,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.surface.withValues(alpha: ThemeController.isDark.value ? 0.92 : 0.96),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: AppColors.hairline),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: ThemeController.isDark.value ? 0.4 : 0.07),
-                      blurRadius: 28,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    _navItem(Icons.home_rounded, 'Start', 0),
-                    _navItem(Icons.account_balance_wallet_rounded, 'Konto', 1),
-                    _navItem(Icons.show_chart_rounded, 'Depot', 2),
-                    _navItem(Icons.chat_bubble_rounded, 'Buddy', 3),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Semantics(
-              button: true,
-              label: 'Schnell erfassen. Lange drücken für mehr.',
-              child: _AddFab(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  showSmartEntry(context);
-                },
-                onLongPress: _showAddMenu,
-              ),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Flexible(
+            child: night
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18), child: pill),
+                  )
+                : pill,
+          ),
+          const SizedBox(width: 12),
+          _BuddyButton(active: _tab == 3, onTap: () => _open(3)),
+        ]),
       ),
     );
   }
 
   Widget _navItem(IconData icon, String label, int i) {
     final active = _tab == i;
-    final color = active ? AppColors.primaryText : AppColors.textDim;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: active,
-        label: label,
-        excludeSemantics: true,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _open(i),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            decoration: BoxDecoration(
-              color: active ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent,
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedScale(
-                  scale: active ? 1.08 : 1,
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutBack,
-                  child: Icon(icon, color: color, size: 22),
-                ),
-                const SizedBox(height: 2),
-                Text(label,
-                    style: TextStyle(
-                        fontSize: 10.5,
-                        color: color,
-                        fontWeight: active ? FontWeight.w800 : FontWeight.w500,
-                        letterSpacing: active ? -0.2 : 0)),
-              ],
-            ),
+    final night = ThemeController.isDark.value;
+    final idle = night ? const Color(0xFFA79C93) : const Color(0xFFCFC4BB);
+    final onActive = night ? const Color(0xFF0C0A09) : const Color(0xFF17120E);
+    final activeBg = night ? const Color(0xFFF5EFEA) : Colors.white;
+    return Semantics(
+      button: true,
+      selected: active,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+        onTap: () => _open(i),
+        borderRadius: BorderRadius.circular(23),
+        focusColor: const Color(0x66F4C7A1),
+        hoverColor: const Color(0x18FFFFFF),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          height: 46,
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          padding: EdgeInsets.symmetric(horizontal: active ? 12 : 11),
+          decoration: BoxDecoration(
+            color: active ? activeBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(23),
           ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: active ? onActive : idle, size: 22),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              child: active
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Text(label,
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: onActive)),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ]),
+        ),
         ),
       ),
     );
@@ -350,41 +365,36 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Text('Neu',
-                    style: TextStyle(
-                        fontFamily: AppFonts.display,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5)),
+                child: Text(tr('Neu'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.4)),
               ),
-              _sectionLabel('Schnell'),
-              _addOption(sheet, Icons.edit_note_rounded, 'Schnell erfassen',
-                  'Eintippen wie „Döner 8,50 gestern“', () => showSmartEntry(context)),
-              _addOption(sheet, Icons.document_scanner_rounded, 'Beleg scannen',
-                  'Foto vom Kassenbon genügt', () => showSmartEntry(context, scan: true)),
-              _addOption(sheet, Icons.receipt_long_rounded, 'Umsatz erfassen',
-                  'Mit Ziffernblock', () async {
+              _sectionLabel(tr('Schnell')),
+              _addOption(sheet, Icons.edit_note_rounded, tr('Schnell erfassen'),
+                  tr('Eintippen wie „Döner 8,50 gestern“'), () => showSmartEntry(context)),
+              _addOption(sheet, Icons.document_scanner_rounded, tr('Beleg scannen'),
+                  tr('Foto vom Kassenbon genügt'), () => showSmartEntry(context, scan: true)),
+              _addOption(sheet, Icons.receipt_long_rounded, tr('Umsatz erfassen'),
+                  tr('Mit Ziffernblock'), () async {
                 if (await TxRow.openEditor(context) && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(duration: Duration(milliseconds: 2800), content: Text('Hinzugefügt')));
+                      SnackBar(duration: Duration(milliseconds: 2800), content: Text(tr('Hinzugefügt'))));
                 }
               }),
               if (MoneyAccounts.several)
-                _addOption(sheet, Icons.swap_horiz_rounded, 'Geld verschieben',
-                    'Zwischen deinen Konten', () => showTransferSheet(context)),
+                _addOption(sheet, Icons.swap_horiz_rounded, tr('Geld verschieben'),
+                    tr('Zwischen deinen Konten'), () => showTransferSheet(context)),
               const SizedBox(height: 8),
-              _sectionLabel('Einrichten'),
-              _addOption(sheet, Icons.account_balance_rounded, 'Konto hinzufügen',
-                  'Bank verbinden oder von Hand', () => showAddAccountChoice(context)),
-              _addOption(sheet, Icons.show_chart_rounded, 'Depot hinzufügen',
-                  'Trade Republic & Co. oder Position von Hand',
+              _sectionLabel(tr('Einrichten')),
+              _addOption(sheet, Icons.account_balance_rounded, tr('Konto hinzufügen'),
+                  tr('Bank verbinden oder von Hand'), () => showAddAccountChoice(context)),
+              _addOption(sheet, Icons.show_chart_rounded, tr('Depot hinzufügen'),
+                  tr('Trade Republic & Co. oder Position von Hand'),
                   () => showAddAccountChoice(context, depot: true, byHand: () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const AddHoldingScreen()));
                       })),
-              _addOption(sheet, Icons.savings_rounded, 'Budget anlegen',
-                  'Limit für eine Kategorie', () => showAddBudgetDialog(context)),
-              _addOption(sheet, Icons.call_split_rounded, 'Ausgabe teilen',
-                  'WG, Paar, Urlaub', () {
+              _addOption(sheet, Icons.savings_rounded, tr('Budget anlegen'),
+                  tr('Limit für eine Kategorie'), () => showAddBudgetDialog(context)),
+              _addOption(sheet, Icons.call_split_rounded, tr('Ausgabe teilen'),
+                  tr('WG, Paar, Urlaub'), () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const SplitsScreen()));
               }),
             ],
@@ -398,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
         child: Text(text,
             style: TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDim, letterSpacing: 0.4)),
+                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDim)),
       );
 
   Widget _addOption(BuildContext sheet, IconData icon, String title, String subtitle, VoidCallback onTap) {
@@ -442,54 +452,94 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// round + : tap = Schnell erfassen, long-press = volles Neu-Menü
-class _AddFab extends StatefulWidget {
+// Buddy beside the navigation: a big glowing orb on his own. He breathes
+// softly while you are elsewhere, and wears a ring while his chat is open.
+class _BuddyButton extends StatefulWidget {
+  final bool active;
   final VoidCallback onTap;
-  final VoidCallback onLongPress;
-  const _AddFab({required this.onTap, required this.onLongPress});
+  const _BuddyButton({required this.active, required this.onTap});
 
   @override
-  State<_AddFab> createState() => _AddFabState();
+  State<_BuddyButton> createState() => _BuddyButtonState();
 }
 
-class _AddFabState extends State<_AddFab> {
+class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderStateMixin {
   bool _down = false;
+  final _focus = FocusNode();
+  late final AnimationController _breath =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat(reverse: true);
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    _breath.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _down = true),
-      onTapUp: (_) => setState(() => _down = false),
-      onTapCancel: () => setState(() => _down = false),
-      onTap: widget.onTap,
-      onLongPress: () {
-        HapticFeedback.heavyImpact();
-        widget.onLongPress();
-      },
-      child: AnimatedScale(
-        scale: _down ? 0.92 : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const RadialGradient(
-              center: Alignment(-0.32, -0.44),
-              radius: 0.95,
-              colors: [Color(0xFFFFEBD9), Color(0xFFF4B98A), Color(0xFFC8682F), Color(0xFF7A3A16)],
-              stops: [0, 0.28, 0.66, 1],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFD9813F).withValues(alpha: ThemeController.isDark.value ? 0.45 : 0.28),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final night = ThemeController.isDark.value;
+    const size = 60.0;
+    return Semantics(
+      button: true,
+      selected: widget.active,
+      label: tr('Buddy'),
+      excludeSemantics: true,
+      child: Material(
+        type: MaterialType.transparency,
+        shape: const CircleBorder(),
+        child: InkWell(
+        focusNode: _focus,
+        customBorder: const CircleBorder(),
+        focusColor: const Color(0x55F4C7A1),
+        hoverColor: const Color(0x22FFFFFF),
+        onHighlightChanged: (v) => setState(() => _down = v),
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          widget.onTap();
+        },
+        child: AnimatedBuilder(
+          animation: _breath,
+          builder: (_, child) {
+            final b = reduce || widget.active ? 0.5 : Curves.easeInOut.transform(_breath.value);
+            return Container(
+              width: size + 6,
+              height: size + 6,
+              alignment: Alignment.center,
+              // the ring shows that his chat is open
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: widget.active || _focus.hasFocus
+                      ? (night ? const Color(0xFFF4C7A1) : const Color(0xFFB06030))
+                      : Colors.transparent,
+                  width: _focus.hasFocus && !widget.active ? 3 : 2,
+                ),
               ),
-            ],
-          ),
-          child: const Icon(Icons.add_rounded, color: Color(0xFFF7F7FA), size: 30),
+              child: AnimatedScale(
+                scale: _down ? 0.9 : 1,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutBack,
+                child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BuddyOrb.sphere(size, glow: 0.8 + b * 0.7),
+                  child: child,
+                ),
+              ),
+            );
+          },
+          child: CustomPaint(painter: MarkPainter(color: const Color(0xF2FFF7F0))),
+        ),
         ),
       ),
     );

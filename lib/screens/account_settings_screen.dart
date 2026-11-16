@@ -12,6 +12,7 @@ import '../utils/theme.dart';
 import '../widgets/settings_list.dart';
 import '../widgets/user_avatar.dart';
 import 'auth_screens.dart';
+import '../l10n/l10n.dart';
 
 // "Mein Konto": name, email, password, signing out and deleting the account.
 class AccountSettingsScreen extends StatelessWidget {
@@ -22,7 +23,7 @@ class AccountSettingsScreen extends StatelessWidget {
     return ValueListenableBuilder<Account?>(
       valueListenable: AccountService.current,
       builder: (context, account, _) => Scaffold(
-        appBar: AppBar(title: const Text('Mein Konto')),
+        appBar: AppBar(title: Text(tr('Mein Konto'))),
         body: account == null ? _signedOut(context) : _signedIn(context, account),
       ),
     );
@@ -34,19 +35,19 @@ class AccountSettingsScreen extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.person_outline_rounded, size: 56, color: AppColors.textDim),
             const SizedBox(height: 12),
-            const Text('Nicht angemeldet',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+            Text(tr('Nicht angemeldet'),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text('Melde dich an, um Bank und Depot zu verbinden und deine Daten zu sichern.',
+            Text(tr('Anmelden für Bank, Depot und Sicherung.'),
                 textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim)),
             const SizedBox(height: 20),
             FilledButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
-              child: const Text('Anmelden'),
+              child: Text(tr('Anmelden')),
             ),
             TextButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-              child: const Text('Konto erstellen'),
+              child: Text(tr('Konto erstellen')),
             ),
           ]),
         ),
@@ -69,71 +70,70 @@ class AccountSettingsScreen extends StatelessWidget {
             ]),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Center(
           child: TextButton(
             onPressed: () => _changeAvatar(context),
-            child: const Text('Profilbild ändern'),
+            child: Text(tr('Profilbild ändern')),
           ),
         ),
-        Center(child: Text(account.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+        Center(child: Text(tr(account.name), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600))),
         Center(child: Text(account.email, style: TextStyle(color: AppColors.textDim))),
-        const SectionLabel('Persönliche Daten'),
+        SectionLabel(tr('Persönliche Daten')),
         SettingsGroup([
           SettingsRow(
             icon: Icons.badge_outlined,
-            title: 'Name',
+            title: tr('Name'),
             value: account.name,
-            onTap: () => _edit(context, _NameForm(account.name), 'Name gespeichert'),
+            onTap: () => _edit(context, _NameForm(account.name), tr('Name gespeichert')),
           ),
           SettingsRow(
             icon: Icons.alternate_email_rounded,
-            title: 'E-Mail',
+            title: tr('E-Mail'),
             value: account.email,
-            onTap: () => _edit(context, _EmailForm(account.email), 'E-Mail geändert'),
+            onTap: () => _edit(context, _EmailForm(account.email), tr('E-Mail geändert')),
           ),
         ]),
-        const SectionLabel('Sicherheit'),
+        SectionLabel(tr('Sicherheit')),
         SettingsGroup([
-          const _AppLockRow(),
+          _AppLockRow(),
           SettingsRow(
             icon: Icons.phonelink_lock_rounded,
-            title: 'Zwei-Faktor',
-            subtitle: account.totp ? 'Aktiv · Code aus der Authenticator-App' : 'Optional · schützt die Anmeldung',
+            title: tr('Zwei-Faktor'),
+            subtitle: account.totp ? tr('Aktiv · Authenticator') : tr('Optional'),
             onTap: () => _edit(
               context,
-              account.totp ? const _TotpDisableForm() : const _TotpEnrollForm(),
-              account.totp ? 'Zwei-Faktor ist aus.' : 'Zwei-Faktor ist aktiv. Andere Geräte sind abgemeldet.',
+              account.totp ? _TotpDisableForm() : _TotpEnrollForm(),
+              account.totp ? tr('Zwei-Faktor ist aus.') : tr('Zwei-Faktor ist aktiv. Andere Geräte sind abgemeldet.'),
             ),
           ),
           SettingsRow(
             icon: Icons.devices_rounded,
-            title: 'Angemeldete Geräte',
-            subtitle: 'Einzeln abmelden oder alle',
+            title: tr('Angemeldete Geräte'),
+            subtitle: tr('Einzeln oder alle'),
             onTap: () => _sessions(context),
           ),
           SettingsRow(
             icon: Icons.lock_reset_rounded,
-            title: 'Passwort ändern',
-            subtitle: 'Meldet alle anderen Geräte ab',
-            onTap: () => _edit(context, const _PasswordForm(), 'Passwort geändert. Andere Geräte sind abgemeldet.'),
+            title: tr('Passwort ändern'),
+            subtitle: tr('Andere Geräte raus'),
+            onTap: () => _edit(context, _PasswordForm(), tr('Passwort geändert. Andere Geräte sind abgemeldet.')),
           ),
         ]),
-        const SectionLabel('Konto'),
+        SectionLabel(tr('Konto')),
         SettingsGroup([
-          SettingsRow(icon: Icons.logout_rounded, title: 'Abmelden', onTap: () => logout(context)),
+          SettingsRow(icon: Icons.logout_rounded, title: tr('Abmelden'), onTap: () => logout(context)),
           SettingsRow(
             icon: Icons.person_remove_rounded,
-            title: 'Konto löschen',
-            subtitle: 'Mit allen Bankverbindungen, endgültig',
+            title: tr('Konto löschen'),
+            subtitle: tr('Mit Banken, endgültig'),
             danger: true,
             onTap: () => deleteAccount(context),
           ),
         ]),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Text(
-          'Umsätze in der Cloud sind mit deinem Passwort verschlüsselt, BudgetBuddy kann sie nicht lesen. '
-          'Die App-Sperre schützt nur die Anzeige auf diesem Gerät.',
+          tr('Cloud-Umsätze sind passwortverschlüsselt. Die App-Sperre schützt nur dieses Gerät.'),
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textDim, fontSize: 12),
         ),
@@ -149,14 +149,14 @@ class AccountSettingsScreen extends StatelessWidget {
       builder: (context) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: const Text('Foto wählen'),
+            leading: Icon(Icons.photo_library_outlined),
+            title: Text(tr('Foto wählen')),
             onTap: () => Navigator.pop(context, 'pick'),
           ),
           if (AvatarService.bytes() != null)
             ListTile(
-              leading: const Icon(Icons.delete_outline_rounded),
-              title: const Text('Entfernen'),
+              leading: Icon(Icons.delete_outline_rounded),
+              title: Text(tr('Entfernen')),
               onTap: () => Navigator.pop(context, 'clear'),
             ),
         ]),
@@ -167,7 +167,7 @@ class AccountSettingsScreen extends StatelessWidget {
       if (choice == 'clear') {
         await AvatarService.clear();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profilbild entfernt')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Profilbild entfernt'))));
         }
         return;
       }
@@ -177,7 +177,7 @@ class AccountSettingsScreen extends StatelessWidget {
       await AvatarService.set(file!.bytes!);
       if (context.mounted) {
         HapticFeedback.selectionClick();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profilbild gespeichert')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Profilbild gespeichert'))));
       }
     } catch (e) {
       if (context.mounted) {
@@ -196,7 +196,7 @@ class AccountSettingsScreen extends StatelessWidget {
     );
     if (ok == true && context.mounted) {
       HapticFeedback.mediumImpact();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 2800), content: Text(done)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 2800), content: Text(done)));
     }
   }
 
@@ -206,7 +206,7 @@ class AccountSettingsScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       showDragHandle: true,
-      builder: (_) => const _SessionsSheet(),
+      builder: (_) => _SessionsSheet(),
     );
   }
 
@@ -218,7 +218,7 @@ class AccountSettingsScreen extends StatelessWidget {
         title: Text(title),
         content: Text(text),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr('Abbrechen'))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -232,11 +232,9 @@ class AccountSettingsScreen extends StatelessWidget {
 
   // also on Profil, where people look for it first
   static Future<void> logout(BuildContext context) async {
-    if (!await _confirm(context, 'Abmelden?',
-        'Auf diesem Gerät werden die Finanzdaten gelöscht. '
-            'Wenn die Cloud-Sicherung geklappt hat, holst du sie mit dem nächsten Login zurück, '
-            'sonst sind nur die Daten auf anderen Geräten noch da.',
-        'Abmelden')) {
+    if (!await _confirm(context, tr('Abmelden?'),
+        tr('Finanzdaten auf diesem Gerät weg. Mit Cloud-Sicherung holst du sie beim nächsten Login zurück.'),
+        tr('Abmelden'))) {
       return;
     }
     await AccountService.logout();
@@ -249,14 +247,12 @@ class AccountSettingsScreen extends StatelessWidget {
     final plusNote = plus == null || plus.cancelled
         ? ''
         : plus.fromStore
-            ? '\n\nDein Plus-Abo läuft über ${StorePurchases.storeName} und endet nicht von selbst. '
-                'Kündige es dort in den Abo-Einstellungen.'
+            ? tr('\n\nPlus läuft über {storeName} weiter. Dort kündigen.', {'storeName': StorePurchases.storeName})
             : plus.managed
-                ? '\n\nDein Plus-Abo wird mit dem Konto gekündigt.'
+                ? tr('\n\nPlus wird mit dem Konto gekündigt.')
                 : '';
-    final text = 'Dein Konto, alle Bankverbindungen und die Sicherung in der Cloud '
-        'werden dauerhaft gelöscht, auch die Umsätze auf diesem Gerät.$plusNote';
-    if (!await _confirm(context, 'Konto löschen?', text, 'Weiter')) return;
+    final text = tr('Konto, Bankverbindungen, Cloud-Sicherung und die Umsätze hier werden dauerhaft gelöscht.{plusNote}', {'plusNote': plusNote});
+    if (!await _confirm(context, tr('Konto löschen?'), text, tr('Weiter'))) return;
     if (!context.mounted) return;
     final password = await _askPassword(context);
     if (password == null || password.trim().isEmpty) return;
@@ -265,7 +261,7 @@ class AccountSettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => Center(child: CircularProgressIndicator()),
     );
     try {
       await AccountService.deleteAccount(password);
@@ -275,22 +271,22 @@ class AccountSettingsScreen extends StatelessWidget {
       Navigator.pop(context); // the progress dialog
       final text = '$e';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: const Duration(milliseconds: 3500),
+          duration: Duration(milliseconds: 3500),
           content: Text(RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(text)
-              ? 'Löschen hat nicht geklappt: keine Verbindung zum Server. Bitte versuch es gleich noch einmal.'
+              ? tr('Löschen hat nicht geklappt, keine Verbindung. Gleich noch einmal versuchen.')
               : text)));
     }
   }
 
   static Future<String?> _askPassword(BuildContext context) => showDialog<String>(
         context: context,
-        builder: (context) => const _PasswordConfirmDialog(),
+        builder: (context) => _PasswordConfirmDialog(),
       );
 }
 
 // owns its TextEditingController so it is not disposed while the dialog still animates
 class _PasswordConfirmDialog extends StatefulWidget {
-  const _PasswordConfirmDialog();
+  _PasswordConfirmDialog();
 
   @override
   State<_PasswordConfirmDialog> createState() => _PasswordConfirmDialogState();
@@ -308,20 +304,20 @@ class _PasswordConfirmDialogState extends State<_PasswordConfirmDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Passwort bestätigen'),
+      title: Text(tr('Passwort bestätigen')),
       content: TextField(
         controller: _ctrl,
         obscureText: true,
         autofocus: true,
-        decoration: const InputDecoration(labelText: 'Aktuelles Passwort'),
+        decoration: InputDecoration(labelText: tr('Aktuelles Passwort')),
         onSubmitted: (_) => Navigator.pop(context, _ctrl.text),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('Abbrechen'))),
         TextButton(
           onPressed: () => Navigator.pop(context, _ctrl.text),
           style: TextButton.styleFrom(foregroundColor: AppColors.error),
-          child: const Text('Endgültig löschen'),
+          child: Text(tr('Endgültig löschen')),
         ),
       ],
     );
@@ -336,16 +332,16 @@ class _Sheet extends StatelessWidget {
   final String? error;
   final bool busy;
   final VoidCallback onSave;
-  final String action;
+  final String? action;
 
-  const _Sheet({
+  _Sheet({
     required this.title,
     this.text,
     required this.fields,
     required this.error,
     required this.busy,
     required this.onSave,
-    this.action = 'Speichern',
+    this.action,
   });
 
   @override
@@ -353,7 +349,7 @@ class _Sheet extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(title, style: const TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         if (text != null) ...[
           const SizedBox(height: 4),
           Text(text!, style: TextStyle(color: AppColors.textDim)),
@@ -370,7 +366,7 @@ class _Sheet extends StatelessWidget {
           onPressed: busy ? null : onSave,
           child: busy
               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
-              : Text(action, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              : Text(action ?? tr('Speichern'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
       ]),
     );
@@ -421,8 +417,8 @@ class _NameFormState extends State<_NameForm> with _Saving {
 
   @override
   Widget build(BuildContext context) => _Sheet(
-        title: 'Name ändern',
-        text: 'So spricht Buddy dich an.',
+        title: tr('Name ändern'),
+        text: tr('So nennt dich Buddy.'),
         error: error,
         busy: busy,
         onSave: () => save(() => AccountService.changeName(_name.text)),
@@ -431,7 +427,7 @@ class _NameFormState extends State<_NameForm> with _Saving {
             controller: _name,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: tr('Name')),
             onSubmitted: (_) => save(() => AccountService.changeName(_name.text)),
           ),
         ],
@@ -460,7 +456,7 @@ class _EmailFormState extends State<_EmailForm> with _Saving {
 
   void _submit() {
     if (_password.text.isEmpty) {
-      setState(() => error = 'Bitte bestätige mit deinem Passwort.');
+      setState(() => error = tr('Bitte bestätige mit deinem Passwort.'));
       return;
     }
     save(() => AccountService.changeEmail(_email.text, _password.text));
@@ -468,8 +464,8 @@ class _EmailFormState extends State<_EmailForm> with _Saving {
 
   @override
   Widget build(BuildContext context) => _Sheet(
-        title: 'E-Mail ändern',
-        text: 'Aktuell: ${widget.email}',
+        title: tr('E-Mail ändern'),
+        text: tr('Aktuell: {email}', {'email': widget.email}),
         error: error,
         busy: busy,
         onSave: _submit,
@@ -480,7 +476,7 @@ class _EmailFormState extends State<_EmailForm> with _Saving {
             keyboardType: TextInputType.emailAddress,
             autocorrect: false,
             autofillHints: const [AutofillHints.email],
-            decoration: const InputDecoration(labelText: 'Neue E-Mail'),
+            decoration: InputDecoration(labelText: tr('Neue E-Mail')),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -489,7 +485,7 @@ class _EmailFormState extends State<_EmailForm> with _Saving {
             autofillHints: const [AutofillHints.password],
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(
-              labelText: 'Passwort zur Bestätigung',
+              labelText: tr('Passwort zur Bestätigung'),
               suffixIcon: IconButton(
                 icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded),
                 onPressed: () => setState(() => _hide = !_hide),
@@ -523,9 +519,9 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
 
   void _submit() {
     if (_next.text.length < 8) {
-      setState(() => error = 'Das neue Passwort braucht mindestens 8 Zeichen.');
+      setState(() => error = tr('Das neue Passwort braucht mindestens 8 Zeichen.'));
     } else if (_next.text != _repeat.text) {
-      setState(() => error = 'Die beiden neuen Passwörter stimmen nicht überein.');
+      setState(() => error = tr('Die beiden neuen Passwörter stimmen nicht überein.'));
     } else {
       save(() => AccountService.changePassword(_current.text, _next.text));
     }
@@ -544,17 +540,15 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
           decoration: InputDecoration(labelText: label),
         );
     return _Sheet(
-      title: 'Passwort ändern',
-      text: 'Danach bleibst du hier angemeldet, alle anderen Geräte werden abgemeldet. '
-          'Merke dir das neue Passwort gut: Es verschlüsselt die Cloud-Sicherung. '
-          'Vergisst du es, ist die Kopie nicht mehr lesbar.',
+      title: tr('Passwort ändern'),
+      text: tr('Du bleibst hier angemeldet, andere Geräte nicht. Das Passwort verschlüsselt die Cloud. Ohne es ist die Kopie weg.'),
       error: error,
       busy: busy,
       onSave: _submit,
       fields: [
-        field(_current, 'Aktuelles Passwort', const [AutofillHints.password], autofocus: true),
+        field(_current, tr('Aktuelles Passwort'), const [AutofillHints.password], autofocus: true),
         const SizedBox(height: 10),
-        field(_next, 'Neues Passwort', const [AutofillHints.newPassword]),
+        field(_next, tr('Neues Passwort'), const [AutofillHints.newPassword]),
         if (_next.text.isNotEmpty) ...[
           const SizedBox(height: 8),
           Row(children: [
@@ -570,18 +564,18 @@ class _PasswordFormState extends State<_PasswordForm> with _Saving {
                 ),
               ),
             const SizedBox(width: 12),
-            Text(_next.text.length < 8 ? 'Min. 8 Zeichen' : label,
+            Text(_next.text.length < 8 ? tr('Min. 8 Zeichen') : label,
                 style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
           ]),
         ],
         const SizedBox(height: 10),
-        field(_repeat, 'Neues Passwort wiederholen', const [AutofillHints.newPassword]),
+        field(_repeat, tr('Neues Passwort wiederholen'), const [AutofillHints.newPassword]),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
             onPressed: () => setState(() => _hide = !_hide),
             icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded, size: 18),
-            label: Text(_hide ? 'Passwörter zeigen' : 'Passwörter verbergen'),
+            label: Text(_hide ? tr('Passwörter zeigen') : tr('Passwörter verbergen')),
           ),
         ),
       ],
@@ -597,7 +591,7 @@ class _AppLockRow extends StatefulWidget {
 }
 
 class _AppLockRowState extends State<_AppLockRow> {
-  String _hint = 'Face ID, Fingerabdruck oder Gerätecode';
+  String _hint = tr('Face ID, Fingerabdruck oder Gerätecode');
 
   @override
   void initState() {
@@ -611,12 +605,12 @@ class _AppLockRowState extends State<_AppLockRow> {
     if (value) {
       if (!await AuthService.isAvailable()) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Auf diesem Gerät gibt es keine Biometrie und keinen Gerätecode.')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr('Auf diesem Gerät gibt es keine Biometrie und keinen Gerätecode.'))));
         }
         return;
       }
-      final ok = await AuthService.authenticate('App-Sperre aktivieren');
+      final ok = await AuthService.authenticate(tr('App-Sperre aktivieren'));
       if (!ok) return;
     }
     await Settings.setAppLockEnabled(value);
@@ -626,8 +620,8 @@ class _AppLockRowState extends State<_AppLockRow> {
   @override
   Widget build(BuildContext context) => SettingsRow(
         icon: Icons.lock_rounded,
-        title: 'App-Sperre',
-        subtitle: '$_hint · nur dieses Gerät',
+        title: tr('App-Sperre'),
+        subtitle: tr('{hint} · nur dieses Gerät', {'hint': _hint}),
         onTap: () => _toggle(!Settings.appLockEnabled),
         trailing: IgnorePointer(
           child: Switch(value: Settings.appLockEnabled, onChanged: (_) {}),
@@ -659,7 +653,7 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
 
   Future<void> _start() async {
     if (_password.text.isEmpty) {
-      setState(() => error = 'Bitte bestätige mit deinem Passwort.');
+      setState(() => error = tr('Bitte bestätige mit deinem Passwort.'));
       return;
     }
     setState(() {
@@ -678,7 +672,7 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
 
   Future<void> _confirm() async {
     if (_code.text.trim().length < 6) {
-      setState(() => error = 'Der Code hat 6 Ziffern.');
+      setState(() => error = tr('Der Code hat 6 Ziffern.'));
       return;
     }
     setState(() {
@@ -708,13 +702,11 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
   Widget build(BuildContext context) {
     final secret = _secret;
     return _Sheet(
-      title: 'Zwei-Faktor',
-      action: secret == null ? 'Weiter' : 'Aktivieren',
+      title: tr('Zwei-Faktor'),
+      action: secret == null ? tr('Weiter') : tr('Aktivieren'),
       text: secret == null
-          ? 'Der Code schützt nur die Anmeldung. Umsätze auf dem Gerät und in der Cloud bleiben mit deinem Passwort verschlüsselt. '
-              'Ohne den Code kommst du nicht mehr rein. Ein Zurücksetzen per E-Mail gibt es noch nicht.'
-          : 'Trag den Schlüssel in deine Authenticator-App ein (Konto manuell hinzufügen) und gib den ersten Code ein. '
-              'Andere Geräte werden abgemeldet.',
+          ? tr('Nur die Anmeldung. Umsätze bleiben passwortverschlüsselt. Ohne Code kein Zugang, kein Reset per E-Mail.')
+          : tr('Schlüssel in die Authenticator-App, ersten Code eingeben. Andere Geräte werden abgemeldet.'),
       error: error,
       busy: busy,
       onSave: secret == null ? _start : _confirm,
@@ -727,7 +719,7 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
             autofillHints: const [AutofillHints.password],
             onSubmitted: (_) => _start(),
             decoration: InputDecoration(
-              labelText: 'Passwort zur Bestätigung',
+              labelText: tr('Passwort zur Bestätigung'),
               suffixIcon: IconButton(
                 icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded),
                 onPressed: () => setState(() => _hide = !_hide),
@@ -742,11 +734,11 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: secret));
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Schlüssel kopiert')));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Schlüssel kopiert'))));
                 }
               },
               icon: const Icon(Icons.copy_rounded, size: 18),
-              label: const Text('Schlüssel kopieren'),
+              label: Text(tr('Schlüssel kopieren')),
             ),
           ),
           TextField(
@@ -754,7 +746,7 @@ class _TotpEnrollFormState extends State<_TotpEnrollForm> {
             keyboardType: TextInputType.number,
             autofillHints: const [AutofillHints.oneTimeCode],
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-            decoration: const InputDecoration(labelText: 'Code aus der App'),
+            decoration: InputDecoration(labelText: tr('Code aus der App')),
             onSubmitted: (_) => _confirm(),
           ),
         ],
@@ -784,7 +776,7 @@ class _TotpDisableFormState extends State<_TotpDisableForm> with _Saving {
 
   void _submit() {
     if (_password.text.isEmpty || _code.text.trim().length < 6) {
-      setState(() => error = 'Passwort und den 6-stelligen Code, bitte.');
+      setState(() => error = tr('Passwort und den 6-stelligen Code, bitte.'));
       return;
     }
     save(() => AccountService.disableTotp(_password.text, _code.text));
@@ -792,9 +784,9 @@ class _TotpDisableFormState extends State<_TotpDisableForm> with _Saving {
 
   @override
   Widget build(BuildContext context) => _Sheet(
-        title: 'Zwei-Faktor ausschalten',
-        action: 'Ausschalten',
-        text: 'Danach reicht wieder das Passwort für die Anmeldung.',
+        title: tr('Zwei-Faktor ausschalten'),
+        action: tr('Ausschalten'),
+        text: tr('Danach reicht wieder das Passwort für die Anmeldung.'),
         error: error,
         busy: busy,
         onSave: _submit,
@@ -804,7 +796,7 @@ class _TotpDisableFormState extends State<_TotpDisableForm> with _Saving {
             obscureText: _hide,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: 'Passwort',
+              labelText: tr('Passwort'),
               suffixIcon: IconButton(
                 icon: Icon(_hide ? Icons.visibility_rounded : Icons.visibility_off_rounded),
                 onPressed: () => setState(() => _hide = !_hide),
@@ -816,7 +808,7 @@ class _TotpDisableFormState extends State<_TotpDisableForm> with _Saving {
             controller: _code,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-            decoration: const InputDecoration(labelText: 'Code aus der App'),
+            decoration: InputDecoration(labelText: tr('Code aus der App')),
             onSubmitted: (_) => _submit(),
           ),
         ],
@@ -852,7 +844,7 @@ class _SessionsSheetState extends State<_SessionsSheet> {
 
   String _when(String? iso) {
     final time = DateTime.tryParse(iso ?? '')?.toLocal();
-    if (time == null) return 'Angemeldet';
+    if (time == null) return tr('Angemeldet');
     final day = time.day.toString().padLeft(2, '0');
     final month = time.month.toString().padLeft(2, '0');
     final hour = time.hour.toString().padLeft(2, '0');
@@ -862,7 +854,7 @@ class _SessionsSheetState extends State<_SessionsSheet> {
 
   Future<void> _revoke(DeviceSession session) async {
     if (!await AccountSettingsScreen._confirm(
-        context, 'Gerät abmelden?', 'Die Anmeldung auf „${session.label}“ wird beendet.', 'Abmelden')) {
+        context, tr('Gerät abmelden?'), tr('Die Anmeldung auf „{label}“ wird beendet.', {'label': session.label}), tr('Abmelden'))) {
       return;
     }
     if (!mounted) return;
@@ -885,10 +877,9 @@ class _SessionsSheetState extends State<_SessionsSheet> {
   Future<void> _all() async {
     if (!await AccountSettingsScreen._confirm(
         context,
-        'Alle Geräte abmelden?',
-        'Jede Anmeldung endet, auch auf diesem Gerät. Die Daten hier werden gelöscht; '
-            'die verschlüsselte Sicherung holst du mit dem nächsten Login zurück.',
-        'Alle abmelden')) {
+        tr('Alle Geräte abmelden?'),
+        tr('Jede Anmeldung endet, auch hier. Daten hier weg; die Sicherung kommt mit dem nächsten Login zurück.'),
+        tr('Alle abmelden'))) {
       return;
     }
     if (!mounted) return;
@@ -912,9 +903,9 @@ class _SessionsSheetState extends State<_SessionsSheet> {
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('Angemeldete Geräte', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        Text(tr('Angemeldete Geräte'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text('Eine gestohlene Sitzung bleibt gültig, bis du sie hier beendest oder das Passwort änderst.',
+        Text(tr('Gestohlene Sitzung gilt, bis du sie beendest oder das Passwort änderst.'),
             style: TextStyle(color: AppColors.textDim)),
         const SizedBox(height: 12),
         if (_error != null) Text(_error!, style: TextStyle(color: AppColors.errorText, fontSize: 13)),
@@ -924,17 +915,17 @@ class _SessionsSheetState extends State<_SessionsSheet> {
           for (final session in sessions)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(session.current && session.device.isNotEmpty ? '${session.label} · dieses Gerät' : session.label),
+              title: Text(session.current && session.device.isNotEmpty ? tr('{label} · dieses Gerät', {'label': session.label}) : session.label),
               subtitle: Text(_when(session.createdAt)),
               trailing: _busy
                   ? null
-                  : TextButton(onPressed: () => _revoke(session), child: const Text('Abmelden')),
+                  : TextButton(onPressed: () => _revoke(session), child: Text(tr('Abmelden'))),
             ),
         const SizedBox(height: 8),
         FilledButton(
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
           onPressed: _busy || sessions == null ? null : _all,
-          child: const Text('Alle Geräte abmelden'),
+          child: Text(tr('Alle Geräte abmelden')),
         ),
       ]),
     );

@@ -333,7 +333,7 @@ class Accounts {
     final email = Uri.encodeComponent('${user['email']}');
     return {
       'secret': secret,
-      'uri': 'otpauth://totp/BudgetBuddy:$email?secret=$secret&issuer=BudgetBuddy&algorithm=SHA1&digits=6&period=30',
+      'uri': 'otpauth://totp/Ahead:$email?secret=$secret&issuer=Ahead&algorithm=SHA1&digits=6&period=30',
     };
   }
 

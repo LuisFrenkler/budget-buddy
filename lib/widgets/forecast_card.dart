@@ -7,6 +7,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import 'scenario_sheet.dart';
+import '../l10n/l10n.dart';
 
 // Start screen card: what is still free this month and per day. Tapping it
 // shows how the number comes about, so it can be trusted.
@@ -18,9 +19,9 @@ class ForecastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final f = forecast;
     final (color, label) = switch (f.pace) {
-      ForecastPace.relaxed => (AppColors.positive, 'Ruhiges Tempo'),
-      ForecastPace.tight => (AppColors.warning, 'Enger Spielraum'),
-      ForecastPace.over => (AppColors.error, 'Diesen Monat überzogen'),
+      ForecastPace.relaxed => (AppColors.positive, tr('Ruhiges Tempo')),
+      ForecastPace.tight => (AppColors.warning, tr('Enger Spielraum')),
+      ForecastPace.over => (AppColors.error, tr('Diesen Monat überzogen')),
     };
     final next = f.due.isEmpty ? null : f.due.first;
     return Material(
@@ -37,7 +38,7 @@ class ForecastCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(
-                child: Text('Diesen Monat noch frei',
+                child: Text(tr('Diesen Monat noch frei'),
                     style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis),
               ),
@@ -52,16 +53,15 @@ class ForecastCard extends StatelessWidget {
             // wraps onto a second line on narrow phones instead of overflowing
             Wrap(crossAxisAlignment: WrapCrossAlignment.end, spacing: 10, runSpacing: 2, children: [
               Text(Money.format(f.freeCents),
-                  style: TextStyle(
-                      fontFamily: AppFonts.display,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
+                  style: TextStyle(fontFamily: AppFonts.display, 
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: -0.8,
                       color: f.freeCents < 0 ? AppColors.errorText : AppColors.text)),
               if (f.freeCents > 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
-                  child: Text('etwa ${Money.format(f.perDayCents)} pro Tag',
+                  child: Text(tr('etwa {x} pro Tag', {'x': Money.format(f.perDayCents)}),
                       style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
                 ),
             ]),
@@ -78,16 +78,15 @@ class ForecastCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               next != null
-                  ? 'Noch ${f.daysLeft} ${f.daysLeft == 1 ? 'Tag' : 'Tage'} · als Nächstes ${next.name} '
-                      '${Money.format(next.cents)} am ${Dates.dayMonth(next.date)}'
-                  : 'Noch ${f.daysLeft} ${f.daysLeft == 1 ? 'Tag' : 'Tage'} · alle Fixkosten sind schon abgebucht',
+                  ? tr('Noch {daysLeft} {x} · als Nächstes {name} {x2} am {x3}', {'daysLeft': f.daysLeft, 'x': f.daysLeft == 1 ? tr('Tag') : tr('Tage'), 'name': next.name, 'x2': Money.format(next.cents), 'x3': Dates.dayMonth(next.date)})
+                  : tr('Noch {daysLeft} {x} · alle Fixkosten sind schon abgebucht', {'daysLeft': f.daysLeft, 'x': f.daysLeft == 1 ? tr('Tag') : tr('Tage')}),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             if (f.limitedByBalance) ...[
               const SizedBox(height: 6),
-              Text('An deinen Kontostand angepasst (noch fällige Abbuchungen).',
+              Text(tr('An deinen Kontostand angepasst (noch fällige Abbuchungen).'),
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.3),
                   maxLines: 2),
             ],
@@ -119,31 +118,31 @@ class ForecastCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('So rechnet Buddy', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary
-                    ? 'Einkommen aus diesem Monat. Sobald drei volle Monate da sind, rechnen wir mit dem Schnitt.'
-                    : 'Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.',
+                    ? tr('Einkommen aus diesem Monat. Ab drei vollen Monaten rechnen wir mit dem Schnitt.')
+                    : tr('Aus deinen Umsätzen der letzten Monate, ohne dass du etwas einstellen musst.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.35)),
             const SizedBox(height: 16),
-            line(f.incomePreliminary ? 'Einkommen (dieser Monat)' : 'Übliches Einkommen', f.incomeCents),
-            line('Fixkosten (Miete, Abos …)', f.fixedCents, minus: true),
-            if (f.goalsCents > 0) line('Für deine Sparziele', f.goalsCents, minus: true),
-            line('Bisher ausgegeben', f.spentCents, minus: true),
+            line(f.incomePreliminary ? tr('Einkommen (dieser Monat)') : tr('Übliches Einkommen'), f.incomeCents),
+            line(tr('Fixkosten (Miete, Abos …)'), f.fixedCents, minus: true),
+            if (f.goalsCents > 0) line(tr('Für deine Sparziele'), f.goalsCents, minus: true),
+            if (f.reserveCents > 0) line(tr('Rücklage für Jahreszahlungen'), f.reserveCents, minus: true),
+            line(tr('Bisher ausgegeben'), f.spentCents, minus: true),
             Divider(color: AppColors.border, height: 20),
-            line('Noch frei', f.freeCents, bold: true),
+            line(tr('Noch frei'), f.freeCents, bold: true),
             if (f.limitedByBalance)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                    'Begrenzt durch deinen Kontostand: Auf dem Konto ist gerade weniger, '
-                    'als die Rechnung hergibt (z. B. bevor das Gehalt kommt).',
+                    tr('Begrenzt durch den Kontostand: gerade weniger auf dem Konto, als die Rechnung hergibt (z. B. vor dem Gehalt).'),
                     style: TextStyle(color: AppColors.textDim, fontSize: 12, height: 1.35)),
               ),
             if (f.due.isNotEmpty) ...[
               const SizedBox(height: 18),
-              Text('Noch fällig diesen Monat',
+              Text(tr('Noch fällig diesen Monat'),
                   style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.bold, fontSize: 13)),
               const SizedBox(height: 6),
               for (final d in f.due.take(6))
@@ -156,7 +155,7 @@ class ForecastCard extends StatelessWidget {
                     Text(Money.format(d.cents), style: const TextStyle(fontWeight: FontWeight.w600)),
                   ]),
                 ),
-              Text('Schon eingerechnet in den Fixkosten.', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+              Text(tr('Schon eingerechnet in den Fixkosten.'), style: TextStyle(color: AppColors.textDim, fontSize: 12)),
             ],
             const SizedBox(height: 14),
             Container(
@@ -165,12 +164,10 @@ class ForecastCard extends StatelessWidget {
               child: Text(
                 switch (f.pace) {
                   ForecastPace.relaxed =>
-                    'Bei deinem üblichen Tempo gibst du bis Monatsende etwa ${Money.format(f.paceCents)} aus. Das passt.',
+                    tr('Bei deinem üblichen Tempo gibst du bis Monatsende etwa {x} aus. Das passt.', {'x': Money.format(f.paceCents)}),
                   ForecastPace.tight =>
-                    'Bei deinem üblichen Tempo wären es bis Monatsende etwa ${Money.format(f.paceCents)}, '
-                        'mehr als noch frei ist. Ein paar ruhige Tage reichen schon.',
-                  ForecastPace.over => 'Du liegst diesen Monat über deinem Budget. Buddy hilft dir, wo es sich '
-                      'am leichtesten sparen lässt.',
+                    tr('Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.', {'x': Money.format(f.paceCents)}),
+                  ForecastPace.over => tr('Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.'),
                 },
                 style: const TextStyle(height: 1.4),
               ),
@@ -182,7 +179,7 @@ class ForecastCard extends StatelessWidget {
                 showScenarioSheet(context);
               },
               icon: const Icon(Icons.tune_rounded, size: 18),
-              label: const Text('Was wäre wenn…?'),
+              label: Text(tr('Was wäre wenn…?')),
             ),
             const SizedBox(height: 8),
             FilledButton.icon(
@@ -192,8 +189,8 @@ class ForecastCard extends StatelessWidget {
               },
               icon: const Icon(Icons.add_rounded, size: 20),
               label: Text(f.freeCents > 0
-                  ? 'Ausgabe erfassen · noch ${Money.format(f.perDayCents)}/Tag'
-                  : 'Ausgabe erfassen'),
+                  ? tr('Ausgabe erfassen · noch {x}/Tag', {'x': Money.format(f.perDayCents)})
+                  : tr('Ausgabe erfassen')),
             ),
             if (f.freeCents > 0) ...[
               const SizedBox(height: 8),
@@ -203,7 +200,7 @@ class ForecastCard extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const WealthScreen()));
                 },
                 icon: const Icon(Icons.savings_outlined, size: 18),
-                label: const Text('Teil davon fürs Polster'),
+                label: Text(tr('Teil davon fürs Polster')),
               ),
             ],
           ]),

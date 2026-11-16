@@ -7,6 +7,7 @@ import '../services/settings_service.dart';
 import '../utils/theme.dart';
 import 'account_sheet.dart';
 import 'import_flows.dart';
+import '../l10n/l10n.dart';
 
 enum _Choice { bank, depot, hand, file }
 
@@ -34,16 +35,16 @@ Future<void> showAddAccountChoice(BuildContext context, {bool depot = false, Voi
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (!depot)
             option(_Choice.bank, Icons.account_balance_rounded, AppColors.primary,
-                Settings.bankState.isEmpty ? 'Bankkonto verbinden' : 'Weitere Bank verbinden',
-                'ING, Sparkasse, DKB, N26 und viele mehr'),
+                Settings.bankState.isEmpty ? tr('Bankkonto verbinden') : tr('Weitere Bank verbinden'),
+                tr('ING, Sparkasse, DKB, N26 und viele mehr')),
           option(_Choice.depot, Icons.trending_up_rounded, AppColors.primary,
-              Settings.depotState.isEmpty ? 'Depot verbinden' : 'Weiteres Depot hinzufügen',
-              'Trade Republic, Scalable und andere, über Parqet'),
+              Settings.depotState.isEmpty ? tr('Depot verbinden') : tr('Weiteres Depot hinzufügen'),
+              tr('Trade Republic, Scalable und andere, über Parqet')),
           option(_Choice.hand, depot ? Icons.edit_note_rounded : Icons.edit_rounded, AppColors.textDim,
-              depot ? 'Position von Hand' : 'Konto von Hand',
-              depot ? 'Aktie, ETF oder Krypto selbst eintragen' : 'Bargeld oder ein Konto ohne Verbindung'),
-          option(_Choice.file, Icons.upload_file_rounded, AppColors.textDim, 'Aus Datei importieren',
-              depot ? 'CSV aus Excel oder Trade-Republic-Export' : 'CSV-Export deiner Bank oder aus Excel'),
+              depot ? tr('Position von Hand') : tr('Konto von Hand'),
+              depot ? tr('Aktie, ETF oder Krypto selbst eintragen') : tr('Bargeld oder ein Konto ohne Verbindung')),
+          option(_Choice.file, Icons.upload_file_rounded, AppColors.textDim, tr('Aus Datei importieren'),
+              depot ? tr('CSV aus Excel oder Trade-Republic-Export') : tr('CSV-Export deiner Bank oder aus Excel')),
           const SizedBox(height: 8),
         ]),
       );
@@ -80,25 +81,25 @@ Future<void> _furtherDepot(BuildContext context) async {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Weiteres Depot', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(tr('Weiteres Depot'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text('Dein Depot kommt über Parqet. Dort kannst du mehrere Broker gleichzeitig verbinden.',
+          Text(tr('Dein Depot kommt über Parqet. Dort mehrere Broker auf einmal verbinden.'),
               style: TextStyle(color: AppColors.textDim, height: 1.4)),
           const SizedBox(height: 16),
           FilledButton.icon(
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
             onPressed: () => Navigator.pop(sheet, 'parqet'),
             icon: const Icon(Icons.open_in_new_rounded, size: 18),
-            label: const Text('Broker in Parqet hinzufügen'),
+            label: Text(tr('Broker in Parqet hinzufügen')),
           ),
           const SizedBox(height: 6),
-          Text('Danach in BudgetBuddy auf Aktualisieren tippen, dann erscheint das neue Depot für sich.',
+          Text(tr('Dann in Ahead auf Aktualisieren. Das neue Depot erscheint für sich.'),
               textAlign: TextAlign.center, style: TextStyle(color: AppColors.textDim, fontSize: 12.5)),
           const SizedBox(height: 14),
           OutlinedButton(
             style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             onPressed: () => Navigator.pop(sheet, 'login'),
-            child: const Text('Anderes Parqet-Konto verbinden'),
+            child: Text(tr('Anderes Parqet-Konto verbinden')),
           ),
         ]),
       ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 
-// The app mark: Ahead's copper coin with the "A" glyph, matching the icon
-// and the landing page. [inverse]: a white coin with a copper "A", for
-// copper grounds.
+// The app mark, drawn like the app icon: a geometric "a" (coin ring with the
+// stem on the right) in white on the brand colour. Buddy keeps his own "b"
+// (MarkPainter), so the app and its coach read as a pair.
+// The mark is the coin: Buddy's "b" in copper, the same as on the landing
+// page. [inverse]: a white coin with a copper "b", for copper grounds.
 class BrandMark extends StatelessWidget {
   final double size;
   final bool inverse;

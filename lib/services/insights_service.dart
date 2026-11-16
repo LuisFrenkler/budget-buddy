@@ -5,6 +5,7 @@ import '../utils/theme.dart';
 import '../models/transaction.dart';
 import '../utils/money.dart';
 import 'contracts.dart';
+import '../l10n/l10n.dart';
 
 class InsightsService {
   // Insights for a month from the bookings: fixed costs (rent, subscriptions)
@@ -53,19 +54,19 @@ class InsightsService {
     if (lastExpenses > 0 && thisExpenses > 0) {
       final pct = (thisExpenses - lastExpenses) / lastExpenses * 100;
       if (pct.abs() >= 5) {
-        final dir = pct > 0 ? 'mehr' : 'weniger';
+        final dir = pct > 0 ? tr('mehr') : tr('weniger');
         out.add(soFar
-            ? 'Bis heute gibst du ${pct.abs().toStringAsFixed(0)} % $dir aus als im Vormonat zur gleichen Zeit.'
-            : 'Du hast ${pct.abs().toStringAsFixed(0)} % $dir ausgegeben als im Vormonat.');
+            ? tr('Bis heute gibst du {x} % {dir} aus als im Vormonat zur gleichen Zeit.', {'x': pct.abs().toStringAsFixed(0), 'dir': dir})
+            : tr('Du hast {x} % {dir} ausgegeben als im Vormonat.', {'x': pct.abs().toStringAsFixed(0), 'dir': dir}));
       } else {
-        out.add('Deine Ausgaben sind etwa so hoch wie im Vormonat.');
+        out.add(tr('Deine Ausgaben sind etwa so hoch wie im Vormonat.'));
       }
     }
 
     // biggest spending category this month
     if (thisByCat.isNotEmpty) {
       final top = thisByCat.entries.reduce((a, b) => a.value >= b.value ? a : b);
-      out.add('Größter Posten: ${top.key} (${Money.format(top.value)}).');
+      out.add(tr('Größter Posten: {x} ({y}).', {'x': top.key, 'y': Money.format(top.value)}));
     }
 
     // category with the biggest absolute increase vs last month
@@ -79,7 +80,7 @@ class InsightsService {
       }
     });
     if (incCat != null && incDelta > 0 && (lastByCat[incCat] ?? 0) > 0) {
-      out.add('$incCat ist um ${Money.format(incDelta)} gestiegen.');
+      out.add(tr('{incCat} ist um {x} gestiegen.', {'incCat': incCat, 'x': Money.format(incDelta)}));
     }
 
     return out.take(max).toList();
