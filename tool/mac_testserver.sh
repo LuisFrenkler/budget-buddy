@@ -101,7 +101,7 @@ PIDS="$PIDS $!"
 echo "$PIDS" > "$RUN/pids"
 URL=""
 for _ in $(seq 1 60); do
-  URL="$(grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com' "$RUN/tunnel.log" | head -1 || true)"
+  URL="$(grep -aEo 'https://[a-z0-9-]+\.trycloudflare\.com' "$RUN/tunnel.log" | head -1 || true)"
   [ -n "$URL" ] && break
   sleep 1
 done
