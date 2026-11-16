@@ -25,12 +25,14 @@ Formerly *BudgetBuddy* — same codebase, new brand and positioning.
 
 ## Positioning
 
-Most German money apps show **what you have**. Ahead focuses on **what to do next** — before you book the trip, cancel the subscription, or move in together — with a coach that explains, calculates, and suggests next steps (never regulated investment advice).
+Ahead is for **first own finances in Germany** (~18–27): first salary, first flat, first Abos — not another multibanking or depot app.
 
-**Wedge:** *Ask Buddy before you spend.* Banking and portfolio are data sources for Buddy, not the product centre.
+Most money apps show **what you have**. Buddy answers **what to do next** with *your* numbers (never regulated investment advice). Banking and portfolio stay optional context.
 
-Investor brief (DE): [docs/business_case.md](docs/business_case.md) — problem, market, competition, model, ask.  
-Pitch deck (Guy Kawasaki 10 / WHU MiE, EN): [docs/pitch_deck.md](docs/pitch_deck.md) · [docs/pitch_deck.html](docs/pitch_deck.html) · [docs/Luis_Frenkler_PitchDeck.pdf](docs/Luis_Frenkler_PitchDeck.pdf).
+**Not** ChatGPT without a ledger. **Not** a worse Finanzguru/Finanzfluss — a different job (life-start decisions).
+
+Investor brief (DE): [docs/business_case.md](docs/business_case.md) — includes an honest differentiation audit.  
+Pitch: [docs/pitch_deck.md](docs/pitch_deck.md) · [docs/pitch_deck.html](docs/pitch_deck.html) · [docs/Luis_Frenkler_PitchDeck.pdf](docs/Luis_Frenkler_PitchDeck.pdf).
 
 ## Product
 
