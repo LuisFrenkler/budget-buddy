@@ -49,6 +49,17 @@ if ! grep -Eq '^(GEMINI_API_KEY|ANTHROPIC_API_KEY)=.+' backend/.env; then
   [ "$answer" = "j" ] || exit 1
 fi
 
+# --- freier Port (ein alter Server, etwa aus Cursor, darf nicht im Weg sein) --
+port_busy() { curl -s -m 1 -o /dev/null "http://127.0.0.1:$1/" 2>/dev/null; }
+if port_busy "$PORT"; then
+  echo "Port $PORT ist schon belegt (läuft noch ein alter Server?):"
+  command -v lsof >/dev/null 2>&1 && lsof -nP -iTCP:"$PORT" -sTCP:LISTEN | tail -n +2 | awk '{print "  " $1 " (PID " $2 ")"}'
+  for p in $(seq $((PORT + 1)) $((PORT + 20))); do
+    if ! port_busy "$p"; then PORT="$p"; break; fi
+  done
+  echo "→ nehme Port $PORT"
+fi
+
 # --- Aufräumen beim Beenden -------------------------------------------------
 PIDS=""
 cleanup() {
@@ -100,8 +111,8 @@ fi
 
 # Mac wach halten, solange dieses Skript läuft
 if command -v caffeinate >/dev/null 2>&1; then
-  caffeinate -i -w $$ &
-  PIDS="$PIDS $!"
+  # endet von selbst mit diesem Skript (-w)
+  (caffeinate -i -w $$ >/dev/null 2>&1 &)
 fi
 
 # --- 3. Prüfen und Anleitung -------------------------------------------------
