@@ -2,11 +2,11 @@
 
 Ziel: ein HTTPS-API für TestFlight. Bank bleibt Demo, Buddy mit Gemini Free.
 
-Kosten grob: Hetzner CX22 o. ä. (~4 €/Monat) + Domain falls nötig.
+Kosten grob: Hetzner CX23 oder CAX11 (~6 €/Monat, Stand Nov. 2026) + Domain falls nötig.
 
 ## 1. Server
 
-1. Hetzner Cloud → CX22, Ubuntu 24.04, Location **Falkenstein/Nürnberg**
+1. Hetzner Cloud → CX23 oder CAX11, Ubuntu 24.04, Location **Falkenstein/Nürnberg**
 2. A-Record deiner Domain auf die Server-IP (z. B. `api.deinedomain.de`)
 3. SSH rein, als root:
 
