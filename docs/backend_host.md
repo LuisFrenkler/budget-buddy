@@ -26,7 +26,7 @@ cd /opt/budgetbuddy/backend
 dart pub get
 ```
 
-Privates Repo? Deploy-Key oder per `scp` nur den `backend/`-Ordner hochladen.
+Privates Repo? Deploy-Key oder per `scp` die Ordner `backend/` **und** `lib/legal/` hochladen (gleiche Struktur wie im Repo): der Server liefert Impressum und Datenschutz aus `lib/legal/` aus und startet ohne sie nicht.
 
 ## 3. `.env` (Produktion)
 
