@@ -80,10 +80,12 @@ void main() async {
   unawaited(BankSync.refreshIfStale());
   unawaited(DepotSync.refreshIfStale());
 
-  // the Inter font ships with the app, so its licence belongs on the licences page
+  // fonts ship with the app, so their licences belong on the licences page
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
         ['Inter'], await rootBundle.loadString('assets/fonts/Inter-OFL.txt'));
+    yield LicenseEntryWithLineBreaks(['Bricolage Grotesque'],
+        await rootBundle.loadString('assets/fonts/BricolageGrotesque-OFL.txt'));
   });
 
   // reminders: open the matching page on tap, then bring them up to date

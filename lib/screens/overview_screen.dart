@@ -1029,7 +1029,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+        border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
         children: [
@@ -1185,7 +1185,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.65)),
+          border: Border.all(color: AppColors.hairline),
         ),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1194,11 +1194,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.14),
+                color: AppColors.brand.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.account_balance_rounded,
-                  color: AppColors.primary, size: 22),
+                  color: AppColors.brandText, size: 22),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1220,8 +1220,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
           FilledButton(
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: () {
               HapticFeedback.selectionClick();
