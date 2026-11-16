@@ -3,105 +3,212 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ahead — Pitch Deck · Guy Kawasaki 10 · Luis Frenkler</title>
+<title>Ahead — Pitch Deck · Luis Frenkler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0f12;
-    --surface: #18181f;
-    --line: #2a2a36;
-    --text: #f4f4f7;
-    --dim: #a3a3b5;
-    --brand: #c47a45;
-    --brand-soft: #e0a878;
+    --copper: #B06030;
+    --ember: #8E4620;
+    --peach: #F4C7A1;
+    --sand: #FBEFE4;
+    --paper: #FAF7F4;
+    --ink: #17120E;
+    --soft: #6E655F;
+    --line: #E8E0D8;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --text: "Figtree", ui-sans-serif, system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #111;
-    color: var(--text);
-    font-family: "Segoe UI", system-ui, sans-serif;
+    background: #EDE6DE;
+    color: var(--ink);
+    font: 500 18px/1.45 var(--text);
     -webkit-font-smoothing: antialiased;
   }
-  .deck { max-width: 1120px; margin: 0 auto; padding: 24px; }
+  .deck { max-width: 1280px; margin: 0 auto; padding: 20px; }
   .toolbar {
-    position: sticky; top: 0; z-index: 5;
+    position: sticky; top: 0; z-index: 20;
     display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-    padding: 12px 0 20px; background: #111;
-    color: var(--dim); font-size: 14px;
+    padding: 10px 4px 18px; background: #EDE6DE;
+    color: var(--soft); font-size: 13px;
   }
-  .toolbar strong { color: var(--text); }
+  .toolbar strong { color: var(--ink); font-family: var(--display); font-size: 16px; }
   .toolbar button, .toolbar a.btn {
-    appearance: none; border: 1px solid var(--line); background: var(--surface);
-    color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer;
-    font: inherit; text-decoration: none;
+    appearance: none; border: 1px solid var(--line); background: var(--paper);
+    color: var(--ink); padding: 9px 14px; border-radius: 10px; cursor: pointer;
+    font: 600 13px var(--text); text-decoration: none;
   }
   .slide {
     width: 100%;
+    max-width: 1120px;
     aspect-ratio: 16 / 9;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 44px 52px;
-    margin-bottom: 28px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    border-radius: 18px;
+    margin: 0 auto 28px;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper);
     page-break-after: always;
     break-after: page;
-    position: relative;
-    overflow: hidden;
+    display: block;
   }
-  .slide::before {
-    content: "";
-    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
-    background: var(--brand);
+  .slide.hero {
+    background:
+      radial-gradient(120% 90% at 72% 18%, #F6B98A 0%, #D9813F 26%, #A4542A 52%, #5E2C14 78%, #1F0E07 100%);
+    color: #FFF7F0;
   }
-  .kicker {
-    color: var(--brand-soft); font-size: 15px; font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px;
+  .slide.hero .grain {
+    position: absolute; inset: 0; opacity: .16; mix-blend-mode: overlay; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  h1 { font-size: 56px; line-height: 1.05; letter-spacing: -1.4px; font-weight: 800; }
-  h2 { font-size: 40px; line-height: 1.1; letter-spacing: -0.9px; font-weight: 800; margin-bottom: 20px; }
-  h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .lead { font-size: 28px; line-height: 1.25; color: var(--dim); max-width: 40rem; }
-  .body-lg { font-size: 24px; line-height: 1.35; color: var(--dim); }
-  .body-lg strong, .lead strong { color: var(--text); font-weight: 700; }
-  .foot {
+  .pad {
+    padding: 28px 40px 22px;
+    height: 100%;
+    display: flex; flex-direction: column;
+    position: relative; z-index: 1;
+    min-height: 0;
+  }
+  .toprow {
     display: flex; justify-content: space-between; align-items: center;
-    color: var(--dim); font-size: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+    margin-bottom: 12px; flex: none;
   }
-  .foot b { color: var(--brand-soft); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: 600 20px/1 var(--display); letter-spacing: -.03em;
+  }
+  .coin {
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #FFF7F0;
+    background: radial-gradient(circle at 34% 28%, #FFEBD9 0%, #F4B98A 27%, #C8682F 63%, #7A3A16 100%);
+  }
+  .coin svg { width: 16px; height: 16px; }
+  .kicker {
+    font: 600 12px/1 var(--text); letter-spacing: .12em; text-transform: uppercase;
+    color: var(--copper);
+  }
+  .hero .kicker, .hero .num { color: rgba(255,247,240,.72); }
+  .num { font: 600 12px/1 var(--text); letter-spacing: .08em; color: var(--soft); }
+  h1, h2 {
+    font-family: var(--display); font-weight: 600; letter-spacing: -.045em; line-height: .98;
+    text-wrap: balance;
+  }
+  h1 { font-size: clamp(36px, 4.6vw, 58px); max-width: 11em; }
+  h2 { font-size: clamp(28px, 3.4vw, 42px); max-width: 16em; margin-bottom: 10px; }
+  h1 em, h2 em { font-style: normal; color: var(--peach); }
+  .paper h2 em { color: var(--copper); }
+  .lead {
+    font: 500 clamp(15px, 1.45vw, 18px)/1.4 var(--text);
+    color: rgba(255,247,240,.86); max-width: 30em; margin-top: 12px;
+  }
+  .paper .lead { color: var(--soft); }
+  .foot {
+    margin-top: auto; padding-top: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    font: 500 11px/1 var(--text); color: var(--soft);
+    border-top: 1px solid var(--line); flex: none;
+  }
+  .hero .foot { color: rgba(255,247,240,.65); border-top-color: rgba(255,247,240,.18); }
+  .main { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(180px, 0.85fr);
+    gap: 28px;
+    align-items: center;
+    width: 100%;
+    min-height: 0;
+  }
+  .grid2.tight { gap: 20px; }
+  .grid2.equal { grid-template-columns: 1fr 1fr; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .card {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 12px; padding: 18px 20px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px;
   }
-  .card p { color: var(--dim); font-size: 20px; line-height: 1.35; }
-  .card strong { color: var(--text); }
-  ul.big { margin: 0; padding-left: 1.2rem; color: var(--dim); font-size: 22px; line-height: 1.4; }
-  li { margin: 8px 0; }
-  table { width: 100%; border-collapse: collapse; font-size: 20px; }
-  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--brand-soft); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; }
-  td { color: var(--dim); }
-  td:first-child { color: var(--text); font-weight: 700; }
-  .pill {
-    display: inline-block; padding: 6px 12px; border-radius: 999px;
-    border: 1px solid var(--line); font-size: 16px; color: var(--dim); margin: 0 8px 8px 0;
+  .card.sand { background: var(--sand); border-color: transparent; }
+  .card h3 {
+    font: 600 16px/1.15 var(--display); letter-spacing: -.02em; margin-bottom: 6px;
   }
-  .accent { color: var(--brand-soft); }
+  .card p, .stack p { font: 500 14px/1.35 var(--text); color: var(--soft); }
+  .stat {
+    font: 600 clamp(28px, 3.2vw, 40px)/1 var(--display); letter-spacing: -.04em; color: var(--ink);
+  }
+  .stat span { display: block; margin-top: 6px; font: 500 12px/1.35 var(--text); color: var(--soft); letter-spacing: 0; }
   .quote {
-    border-left: 4px solid var(--brand); padding-left: 16px;
-    color: var(--text); font-size: 26px; font-weight: 700; margin: 16px 0; line-height: 1.25;
+    margin-top: 14px; padding-left: 14px; border-left: 3px solid var(--copper);
+    font: 600 clamp(16px, 1.8vw, 22px)/1.25 var(--display); letter-spacing: -.02em;
+    flex: none;
   }
-  .title-brand { color: var(--brand-soft); }
+  .phone {
+    width: 190px;
+    aspect-ratio: 780 / 1500;
+    max-height: 360px;
+    border-radius: 28px;
+    padding: 7px;
+    background: #0D0B0A;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 24px 48px -18px rgba(40,15,0,.45);
+    justify-self: end;
+  }
+  .hero .phone { box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 32px 64px -24px rgba(20,8,0,.55); }
+  .phone img {
+    display: block; width: 100%; height: 100%; object-fit: cover; object-position: top;
+    border-radius: 22px;
+  }
+  .stage {
+    display: flex; align-items: center; justify-content: flex-end;
+    min-height: 0; height: 100%;
+  }
+  .stage.duo {
+    justify-content: center; gap: 10px; align-items: flex-end;
+  }
+  .stage.duo .phone { width: 150px; max-height: 300px; transform: rotate(-4deg); }
+  .stage.duo .phone.front { transform: rotate(3deg) translateY(-8px); }
+  ul.clean { list-style: none; display: grid; gap: 8px; margin-top: 6px; }
+  ul.clean li {
+    display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start;
+    font: 500 14px/1.35 var(--text); color: var(--soft);
+  }
+  ul.clean li strong { color: var(--ink); font-weight: 600; }
+  .dot {
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--sand); color: var(--ember); font: 700 13px/1 var(--display);
+  }
+  table.plain { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  table.plain th, table.plain td {
+    text-align: left; padding: 12px 0; border-bottom: 1px solid var(--line);
+    font: 500 16px/1.3 var(--text); vertical-align: top;
+  }
+  table.plain th { color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  table.plain td:first-child { font-weight: 600; color: var(--ink); width: 34%; }
+  .price { font: 600 32px/1 var(--display); letter-spacing: -.03em; color: var(--copper); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.22); font: 600 13px/1 var(--text); color: #FFF7F0;
+  }
+  .paper .pill { background: var(--sand); border-color: transparent; color: var(--ember); }
+  .split-copy { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .tiny { font: 500 13px/1.4 var(--text); color: var(--soft); margin-top: 10px; }
+  .hero .tiny { color: rgba(255,247,240,.7); }
+  .reject {
+    background: var(--ink); color: #FFF7F0; border-radius: 16px; padding: 18px;
+  }
+  .reject h3 { font: 600 16px/1.2 var(--display); margin-bottom: 8px; color: var(--peach); }
+  .reject p { font: 500 14px/1.35 var(--text); color: rgba(255,247,240,.86); }
+  .bar {
+    height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px;
+  }
+  .bar i { display: block; height: 100%; background: var(--copper); border-radius: 99px; }
+
   @page { size: landscape; margin: 0; }
   @media print {
-    html, body { background: #0f0f12; }
+    body { background: #fff; }
     .toolbar { display: none !important; }
-    .deck { max-width: none; width: 100%; padding: 0; margin: 0; }
+    .deck { max-width: none; padding: 0; }
     .slide {
-      margin: 0; border: none; border-radius: 0;
+      margin: 0; border-radius: 0;
       width: 100%; height: 100vh; min-height: 100vh;
       aspect-ratio: auto;
       page-break-after: always; break-after: page;
@@ -109,222 +216,316 @@
     }
     .slide:last-child { page-break-after: auto; }
   }
-  @media (max-width: 800px) {
-    .slide { aspect-ratio: auto; min-height: 560px; padding: 28px 22px; }
-    h1 { font-size: 40px; } h2 { font-size: 30px; }
-    .lead, .body-lg, .quote, ul.big, table, .card p { font-size: 18px; }
-    .grid2, .grid3 { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .pad { padding: 28px 24px; }
+    .grid2, .grid3, .grid4 { grid-template-columns: 1fr; }
+    .phone { justify-self: center; width: 200px; }
+    .stage.duo { display: none; }
   }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="b" viewBox="0 0 1024 1024"><path fill="currentColor" d="M317.8 718.0 L455.9 318.0 L568.1 318.0 L706.2 718.0 L622.6 718.0 L516.5 379.2 L508.1 379.2 L400.8 718.0 Z M391.1 635.6 L391.1 581.6 L643.2 581.6 L643.2 635.6 Z"></path></symbol>
+</svg>
+
 <div class="deck">
   <div class="toolbar">
-    <strong>Ahead · Kawasaki 10 slides</strong>
-    <span>10/20/30 · Eckel competition · WHU MiE</span>
+    <strong>Ahead.</strong>
+    <span>Kawasaki 10 · Ahead brand · WHU MiE</span>
     <button type="button" onclick="window.print()">Print / Save as PDF</button>
-    <a class="btn" href="pitch_deck.md">Markdown source</a>
+    <a class="btn" href="Luis_Frenkler_PitchDeck.pdf">Download PDF</a>
   </div>
 
-  <!-- 1 Title -->
-  <section class="slide" id="s1">
-    <div>
-      <div class="kicker">1 · Title</div>
-      <h1><span class="title-brand">Ahead</span></h1>
-      <p class="lead" style="margin-top:16px;color:var(--text)">Your buddy for money and the future.</p>
-      <p class="lead" style="margin-top:20px">
-        The money <strong>decision layer</strong> for young adults in Germany.
-      </p>
-      <p class="body-lg" style="margin-top:28px">
-        <strong>Luis Frenkler</strong> · github.com/LuisFrenkler/budget-buddy
-      </p>
-      <p class="quote">ChatGPT does not know your numbers. Buddy does.</p>
+  <!-- 1 TITLE -->
+  <section class="slide hero" id="s1">
+    <div class="grain"></div>
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">01 / 10 · Title</span>
+      </div>
+      <div class="main">
+      <div class="grid2">
+        <div class="split-copy">
+          <h1>What do I do with my <em>salary?</em></h1>
+          <p class="lead">Buddy works with your numbers and names one next step — with a real euro amount. You decide.</p>
+          <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="pill">Decision layer · DE</span>
+            <span class="pill">Product built</span>
+            <span class="pill">Plus €4.99/mo</span>
+          </div>
+          <p class="tiny" style="margin-top:16px">Luis Frenkler · github.com/LuisFrenkler/budget-buddy</p>
+        </div>
+        <div class="stage">
+          <div class="phone"><img src="../landing/app_chat_en.jpg" alt="Buddy chat recommending a next step"></div>
+        </div>
+      </div>
+      </div>
+      <div class="foot"><span>ChatGPT does not know your numbers. Buddy does.</span><span>Title</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b></span><span>1 / 10</span></div>
   </section>
 
-  <!-- 2 Problem/Opportunity -->
-  <section class="slide" id="s2">
-    <div>
-      <div class="kicker">2 · Problem / Opportunity</div>
-      <h2>They see money.<br>They still guess.</h2>
-      <div class="grid2">
-        <div>
-          <ul class="big">
-            <li>Bank apps: “What do I have?”</li>
-            <li>ChatGPT: no real ledger</li>
-            <li>Trips, moves, first salary: high stakes</li>
-          </ul>
+  <!-- 2 PROBLEM / OPPORTUNITY -->
+  <section class="slide paper" id="s2">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">02 / 10 · Problem / Opportunity</span>
+      </div>
+      <div class="main">
+      <h2>They already <em>see</em> money.<br>They still guess when it matters.</h2>
+      <div class="grid3" style="margin-top:14px">
+        <div class="card">
+          <div class="stat">95%<span>of 16–29s in DE use online banking (Bitkom)</span></div>
         </div>
         <div class="card">
-          <h3>Why now</h3>
-          <p><strong>95%</strong> of 16–29s bank online.</p>
-          <p style="margin-top:10px"><strong>82%</strong> of Gen Z use the bank app — ~<strong>8%</strong> multibanking.</p>
-          <p style="margin-top:10px">Chat is normal. Personal numbers are not.</p>
+          <div class="stat">82%<span>of Gen Z use the bank app to stay in control — ~8% use multibanking (ING/Visa)</span></div>
+        </div>
+        <div class="card sand">
+          <div class="stat" style="color:var(--copper)">Gap<span>Dashboards show balances. Life decisions still run on gut feel or ChatGPT without a ledger.</span></div>
         </div>
       </div>
       <p class="quote">Own the decision moment on top of the bank they already open.</p>
+      </div>
+      <div class="foot"><span>Problem / Opportunity</span><span>Kawasaki 02</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Problem / Opportunity</span><span>2 / 10</span></div>
   </section>
 
-  <!-- 3 Value Proposition -->
-  <section class="slide" id="s3">
-    <div>
-      <div class="kicker">3 · Value Proposition</div>
-      <h2>Ask Buddy before you spend</h2>
-      <p class="lead" style="color:var(--text);margin-bottom:22px">
-        Clear decisions with <span class="accent">their</span> numbers — without becoming spreadsheet people.
-      </p>
-      <div class="grid2">
-        <div class="card">
-          <h3>User value</h3>
-          <p>Affordability answers. Subscription pressure made actionable. Life-stage clarity.</p>
+  <!-- 3 VALUE PROPOSITION -->
+  <section class="slide paper" id="s3">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">03 / 10 · Value Proposition</span>
+      </div>
+      <div class="main">
+      <div class="grid2 tight">
+        <div class="split-copy">
+          <div class="kicker">Value proposition</div>
+          <h2>Ask Buddy <em>before</em> you spend.</h2>
+          <p class="lead">One next step from their real cash flow — not another finance dashboard for young adults in Germany.</p>
+          <ul class="clean" style="margin-top:14px">
+            <li><span class="dot">1</span><span><strong>Affordability, answered.</strong> “Can I take the trip?” with their remaining budget.</span></li>
+            <li><span class="dot">2</span><span><strong>Subscriptions, actionable.</strong> Pressure and price rises become a step, not a chart.</span></li>
+            <li><span class="dot">3</span><span><strong>Life stages, concrete.</strong> First salary, move, flatshare — playbooks, not jargon.</span></li>
+          </ul>
         </div>
-        <div class="card">
-          <h3>Business value</h3>
-          <p>Habit on high-intent asks. Natural Free → Plus. Retention via playbooks, not more dashboards.</p>
+        <div class="stage">
+          <div class="phone"><img src="../landing/app_coach_en.jpg" alt="Ahead coach screen with next step"></div>
         </div>
       </div>
+      </div>
+      <div class="foot"><span>Bank &amp; portfolio are context for Buddy — not the hero.</span><span>Kawasaki 03</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Value Proposition</span><span>3 / 10</span></div>
   </section>
 
-  <!-- 4 Underlying Magic -->
-  <section class="slide" id="s4">
-    <div>
-      <div class="kicker">4 · Underlying Magic</div>
-      <h2>Coach on their finance graph</h2>
-      <ul class="big">
-        <li><strong>Grounded tools</strong> — budget, contracts, goals, what-if</li>
-        <li><strong>Action loop</strong> — next steps + confirmed entries</li>
-        <li><strong>Offline Buddy</strong> — works without cloud consent</li>
-        <li><strong>Trust</strong> — local-first · no IBANs to models</li>
-      </ul>
-      <p class="quote">“Can I afford €800?” → a number and a next step.</p>
+  <!-- 4 UNDERLYING MAGIC -->
+  <section class="slide paper" id="s4">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">04 / 10 · Underlying Magic</span>
+      </div>
+      <div class="main">
+      <div class="grid2 tight">
+        <div class="split-copy">
+          <div class="kicker">Underlying magic</div>
+          <h2>Less finance jargon.<br><em>More next step.</em></h2>
+          <p class="lead">A tool-using coach on their finance graph — not a chatbot glued onto a dashboard.</p>
+        </div>
+        <div class="grid2 equal" style="gap:10px;align-items:stretch">
+          <div class="card sand"><h3>Grounded tools</h3><p>Budget, contracts, goals, what-if — answers from their ledger.</p></div>
+          <div class="card"><h3>Action loop</h3><p>Next-step buttons. Language and receipts become confirmed entries.</p></div>
+          <div class="card"><h3>Offline Buddy</h3><p>On-device answers when cloud or consent is off.</p></div>
+          <div class="card sand"><h3>Trust by design</h3><p>Local-first. AES vault. No IBANs in AI summaries.</p></div>
+        </div>
+      </div>
+      </div>
+      <div class="foot"><span>Demo: “Can I afford €800?” → a number and a next step.</span><span>Kawasaki 04</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Underlying Magic</span><span>4 / 10</span></div>
   </section>
 
-  <!-- 5 Business Model -->
-  <section class="slide" id="s5">
-    <div>
-      <div class="kicker">5 · Business Model</div>
-      <h2>Freemium → Ahead Plus</h2>
-      <p class="body-lg" style="margin-bottom:18px">They pay when Buddy is useful enough to ask often.</p>
-      <table>
-        <thead><tr><th></th><th>Free</th><th>Plus</th></tr></thead>
-        <tbody>
-          <tr><td>Price</td><td>€0</td><td class="accent"><strong>€4.99/mo</strong> or €39.99/yr</td></tr>
-          <tr><td>Trial</td><td>—</td><td>7 days</td></tr>
-          <tr><td>Cloud Buddy</td><td>5 asks / mo</td><td>Unlimited</td></tr>
-          <tr><td>Offline Buddy</td><td>Included</td><td>Included</td></tr>
-        </tbody>
-      </table>
+  <!-- 5 BUSINESS MODEL -->
+  <section class="slide paper" id="s5">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">05 / 10 · Business Model</span>
+      </div>
+      <div class="main">
+      <div class="kicker">Business model</div>
+      <h2>They pay when Buddy is useful enough to <em>ask often.</em></h2>
+      <div class="grid2 equal" style="margin-top:14px;align-items:stretch">
+        <div class="card">
+          <h3>Free</h3>
+          <p class="price" style="color:var(--ink)">€0</p>
+          <p style="margin-top:12px">5 cloud asks / month · limited receipts &amp; goals · full offline Buddy, budgets, subscriptions</p>
+        </div>
+        <div class="card sand">
+          <h3>Ahead Plus</h3>
+          <p class="price">€4.99<span style="font:600 16px/1 var(--text);color:var(--soft)"> / month</span></p>
+          <p style="margin-top:6px;font:600 14px var(--text);color:var(--ember)">or €39.99 / year · 7-day trial</p>
+          <p style="margin-top:12px">Unlimited Buddy · unlimited receipts &amp; goals</p>
+        </div>
+      </div>
+      </div>
+      <div class="foot"><span>Who has the money: young adults → subscription when the habit sticks.</span><span>Kawasaki 05</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Business Model</span><span>5 / 10</span></div>
   </section>
 
   <!-- 6 GTM -->
-  <section class="slide" id="s6">
-    <div>
-      <div class="kicker">6 · Go-to-Market Plan</div>
-      <h2>Repeatable paths — not “go viral”</h2>
-      <p class="body-lg" style="margin-bottom:16px">
-        <strong>ICP:</strong> 18–30 in DE · first salary · already has a bank app
-      </p>
-      <ul class="big">
-        <li>Soft launch + creator codes</li>
-        <li>Clips: one question → one number → CTA</li>
-        <li>Campus &amp; flatshares (splits loop)</li>
-        <li>ASO: Buddy-first screenshots</li>
-        <li>Bank behind waitlist until coach converts</li>
-      </ul>
+  <section class="slide paper" id="s6">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">06 / 10 · Go-to-Market</span>
+      </div>
+      <div class="main">
+      <div class="kicker">Go-to-market plan</div>
+      <h2>Repeatable paths.<br>Not “we’ll go <em>viral.</em>”</h2>
+      <div class="grid2 equal" style="margin-top:10px;align-items:start">
+        <div class="card sand">
+          <h3>ICP</h3>
+          <p style="font:600 22px/1.25 var(--display);color:var(--ink);letter-spacing:-.02em;margin-top:8px">18–30 in Germany</p>
+          <p style="margin-top:10px">First salary or job change. Already opens a bank app. Asks concrete questions — trip, gadgets, flatshare.</p>
+        </div>
+        <ul class="clean">
+          <li><span class="dot">1</span><span><strong>Soft launch</strong> + creator codes</span></li>
+          <li><span class="dot">2</span><span><strong>Clips:</strong> one question → one Buddy number → CTA</span></li>
+          <li><span class="dot">3</span><span><strong>Campus &amp; flatshares</strong> — splits as a loop</span></li>
+          <li><span class="dot">4</span><span><strong>ASO:</strong> Buddy-first screenshots</span></li>
+          <li><span class="dot">5</span><span><strong>Bank</strong> behind waitlist until the coach converts</span></li>
+        </ul>
+      </div>
+      </div>
+      <div class="foot"><span>Distribution follows the wedge — not a bank-count race.</span><span>Kawasaki 06</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Go-to-Market</span><span>6 / 10</span></div>
   </section>
 
-  <!-- 7 Competition Eckel -->
-  <section class="slide" id="s7">
-    <div>
-      <div class="kicker">7 · Competitive Analysis</div>
-      <h2>We reject their assumption</h2>
-      <div class="grid2" style="margin-bottom:14px">
-        <div class="card">
-          <h3>Their trade-offs (rational)</h3>
-          <p><strong>Finanzguru</strong> → banks + contracts</p>
-          <p style="margin-top:8px"><strong>Copilot</strong> → content + wealth</p>
-          <p style="margin-top:8px"><strong>Banks / LLMs</strong> → login / chat. They will add AI.</p>
+  <!-- 7 COMPETITION -->
+  <section class="slide paper" id="s7">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">07 / 10 · Competitive Analysis</span>
+      </div>
+      <div class="main">
+      <div class="kicker">Competitive analysis · Eckel</div>
+      <h2>We don’t “do more.” We reject their <em>assumption.</em></h2>
+      <div class="grid2 equal" style="margin-top:8px;align-items:stretch">
+        <div>
+          <table class="plain">
+            <thead><tr><th>Player</th><th>Rational trade-off</th></tr></thead>
+            <tbody>
+              <tr><td>Finanzguru</td><td>Banks + contracts → aggregation habit</td></tr>
+              <tr><td>Finanzfluss Copilot</td><td>Content + wealth → investor brand</td></tr>
+              <tr><td>Bank apps / LLMs</td><td>Login / chat — they will add AI</td></tr>
+            </tbody>
+          </table>
+          <p class="tiny">Choices are rational. Trajectory: assistants on dashboards.</p>
         </div>
-        <div class="card">
+        <div class="reject">
           <h3>Assumption we reject</h3>
-          <p><em>“See money clearly → decide well.”</em></p>
-          <p style="margin-top:12px"><strong>Our view:</strong> Overview is solved. The scarce product is a decision <span class="accent">in the moment</span>.</p>
+          <p>“If young adults see money clearly enough, good decisions follow.”</p>
+          <p style="margin-top:10px"><strong style="color:#fff">Our view:</strong> Overview is solved by the bank app. The scarce product is a trustworthy decision in the moment.</p>
+          <p style="margin-top:10px;color:var(--peach)">Hard to fix on their path: dashboards are their identity. Our opening: decision layer on top.</p>
         </div>
       </div>
-      <p class="body-lg">
-        Hard to fix on their path: dashboards are their identity. Our opening: decision layer on the bank they already use.
-      </p>
-    </div>
-    <div class="foot"><span><b>Ahead</b> · Competition (Eckel)</span><span>7 / 10</span></div>
-  </section>
-
-  <!-- 8 Team -->
-  <section class="slide" id="s8">
-    <div>
-      <div class="kicker">8 · Management Team</div>
-      <h2>Luis Frenkler</h2>
-      <p class="lead" style="color:var(--text)">
-        Solo founder — Flutter, backend, vault, bank path, Buddy agent, Plus, soft launch.
-      </p>
-      <div class="card" style="margin-top:24px;max-width:38rem">
-        <h3>Honest gap</h3>
-        <p>First adds: GTM / content and legal. WHU accelerates distribution — not a rewrite.</p>
       </div>
+      <div class="foot"><span>Position against trajectory — not today’s logo grid.</span><span>Kawasaki 07</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Team</span><span>8 / 10</span></div>
   </section>
 
-  <!-- 9 Financials -->
-  <section class="slide" id="s9">
-    <div>
-      <div class="kicker">9 · Financial Projections &amp; Key Metrics</div>
-      <h2>Bottoms-up, not vanity</h2>
+  <!-- 8 TEAM -->
+  <section class="slide paper" id="s8">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">08 / 10 · Management Team</span>
+      </div>
+      <div class="main">
+      <div class="grid2 equal">
+        <div class="split-copy">
+          <div class="kicker">Management team</div>
+          <h2>Luis Frenkler</h2>
+          <p class="lead" style="color:var(--ink);font-weight:600">Solo founder. Built Ahead end to end.</p>
+          <p class="lead">Flutter · Dart backend · vault · bank path · Buddy agent · Plus · soft launch.</p>
+        </div>
+        <div class="card sand" style="align-self:center">
+          <h3>Honest gap</h3>
+          <p style="margin-top:8px">First adds: GTM / content and legal. WHU accelerates distribution — not a rewrite.</p>
+          <div class="bar"><i style="width:72%"></i></div>
+          <p class="tiny">Product depth high · distribution next</p>
+        </div>
+      </div>
+      </div>
+      <div class="foot"><span>People invest in people — after the pulse changes.</span><span>Kawasaki 08</span></div>
+    </div>
+  </section>
+
+  <!-- 9 FINANCIALS -->
+  <section class="slide paper" id="s9">
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">09 / 10 · Financials &amp; Metrics</span>
+      </div>
+      <div class="main">
+      <div class="kicker">Financial projections &amp; key metrics</div>
+      <h2>Bottoms-up. No vanity <em>TAM theater.</em></h2>
+      <div class="grid4" style="margin-top:12px">
+        <div class="card"><div class="stat">2.5–4M<span>SAM · money-interested 18–34 in DE</span></div></div>
+        <div class="card"><div class="stat">15–40k<span>SOM · registered in 36 months</span></div></div>
+        <div class="card sand"><div class="stat" style="color:var(--copper)">€4.20<span>Blended ARPU paying · target</span></div></div>
+        <div class="card"><div class="stat">70–85%<span>Gross margin after LLM / bank / store</span></div></div>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="card sand"><h3>Weekly Buddy asks</h3><p>North star on the wedge</p></div>
+        <div class="card sand"><h3>Free → Plus</h3><p>D7 / D30 conversion of askers</p></div>
+        <div class="card sand"><h3>D30 retention</h3><p>Habit, not download spikes</p></div>
+      </div>
+      </div>
+      <div class="foot"><span>Illustrative targets · early stage · not audited forecasts</span><span>Kawasaki 09</span></div>
+    </div>
+  </section>
+
+  <!-- 10 STATUS -->
+  <section class="slide hero" id="s10">
+    <div class="grain"></div>
+    <div class="pad">
+      <div class="toprow">
+        <div class="brand"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
+        <span class="num">10 / 10 · Status &amp; Funds</span>
+      </div>
+      <div class="main">
       <div class="grid2">
-        <div class="card">
-          <h3>Market</h3>
-          <p>SAM ≈ <strong>2.5–4M</strong></p>
-          <p style="margin-top:8px">SOM 36 mo ≈ <strong>15–40k</strong> · 8–15% Plus</p>
-          <p style="margin-top:8px">ARPU ≈ <strong>€4.20</strong> · margin 70–85%</p>
+        <div class="split-copy">
+          <h1>Product built.<br>Next: <em>distribution.</em></h1>
+          <p class="lead">Soft-launch ready. Store ops, commercial PSD2, and external traction are the next miles.</p>
+          <div class="grid3" style="margin-top:16px;gap:8px">
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px">
+              <div style="font:600 13px var(--display);color:var(--peach)">0–3 mo</div>
+              <p style="margin-top:4px;font:500 13px/1.3 var(--text);color:rgba(255,247,240,.88)">Launch · 1k users</p>
+            </div>
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px">
+              <div style="font:600 13px var(--display);color:var(--peach)">3–9 mo</div>
+              <p style="margin-top:4px;font:500 13px/1.3 var(--text);color:rgba(255,247,240,.88)">10k · Plus trials</p>
+            </div>
+            <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:12px">
+              <div style="font:600 13px var(--display);color:var(--peach)">9–18 mo</div>
+              <p style="margin-top:4px;font:500 13px/1.3 var(--text);color:rgba(255,247,240,.88)">25–40k · economics</p>
+            </div>
+          </div>
+          <p class="lead" style="margin-top:14px;color:#fff;font-weight:600">€150–250k · ~40% GTM · ~20% legal · ~20% infra · ~20% wedge</p>
         </div>
-        <div class="card">
-          <h3>Key metrics</h3>
-          <p>Weekly Buddy asks</p>
-          <p style="margin-top:8px">Affordability-ask share</p>
-          <p style="margin-top:8px">Free → Plus · D30 retention</p>
+        <div class="stage">
+          <div class="phone"><img src="../landing/app_welcome_en.jpg" alt="Ahead welcome"></div>
         </div>
       </div>
-      <p class="body-lg" style="margin-top:16px">Illustrative targets — early stage.</p>
-    </div>
-    <div class="foot"><span><b>Ahead</b> · Metrics</span><span>9 / 10</span></div>
-  </section>
-
-  <!-- 10 Status -->
-  <section class="slide" id="s10">
-    <div>
-      <div class="kicker">10 · Current Status &amp; Use of Funds</div>
-      <h2>Product built. Next: distribution.</h2>
-      <div class="grid3">
-        <div class="card"><h3>0–3 mo</h3><p>Launch · 1k users · Buddy NS</p></div>
-        <div class="card"><h3>3–9 mo</h3><p>10k · Plus trials · creators</p></div>
-        <div class="card"><h3>9–18 mo</h3><p>25–40k · unit economics</p></div>
       </div>
-      <p class="body-lg" style="margin-top:18px">
-        <strong class="accent">€150–250k:</strong> ~40% GTM · ~20% legal · ~20% infra · ~20% wedge product
-      </p>
-      <p class="quote">Decisions are the product — not more dashboards.</p>
+      <div class="foot"><span>Decisions are the product — not more dashboards.</span><span>Stay in the game.</span></div>
     </div>
-    <div class="foot"><span><b>Ahead</b> · Status &amp; Funds</span><span>10 / 10</span></div>
   </section>
 </div>
 </body>
