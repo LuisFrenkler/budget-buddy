@@ -11,7 +11,6 @@ import 'backend_service.dart';
 import 'invite_service.dart';
 import 'demo_data.dart';
 import 'cloud_sync.dart';
-import 'demo_data.dart';
 import 'secure_store.dart';
 import 'settings_service.dart';
 import 'split_service.dart';
@@ -230,6 +229,7 @@ class AccountService {
     await CloudSync.forget();
     DemoData.guestSessionActive = false;
     await AccountIsolation.wipeLocalFinance();
+    await _box.delete('refundCheck');
     await _forget();
     if (token == null) return;
     try {

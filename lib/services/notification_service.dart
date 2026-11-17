@@ -254,7 +254,12 @@ class NotificationService {
         _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(room).toList();
     for (final h in fresh) {
       // a hint with a question opens Buddy's chat with it
-      await _show(_idFor(h.id), h.title, h.text, h.question != null ? 'buddy:${h.question}' : 'hint:${h.target.name}');
+      final payload = h.id.startsWith('tax-deadline-')
+          ? 'tax:${h.id.substring(13)}'
+          : h.question != null
+              ? 'buddy:${h.question}'
+              : 'hint:${h.target.name}';
+      await _show(_idFor(h.id), h.title, h.text, payload);
     }
     await _markShown(fresh.map((h) => h.id));
     if (fresh.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in fresh) today.toIso8601String()]);

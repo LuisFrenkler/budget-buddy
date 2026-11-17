@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/buddy_screen.dart';
+import 'screens/tax_screen.dart';
 import 'services/buddy_tasks.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth_gate.dart';
@@ -19,6 +20,7 @@ import 'services/db.dart';
 import 'services/depot_sync.dart';
 import 'services/notification_service.dart';
 import 'services/plus_service.dart';
+import 'services/backend_service.dart';
 import 'services/product_events.dart';
 import 'services/split_service.dart';
 import 'services/store_purchases.dart';
@@ -58,6 +60,7 @@ void main() async {
   // guest mode removed, clear any leftover flag from older installs
   await Settings.setGuest(false);
   PlusService.load();
+  ProductEvents.send = (name, _) => BackendService.event(name);
   await ProductEvents.noteOpen();
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();
@@ -112,6 +115,12 @@ void main() async {
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void _openFromNotification(String payload) {
+  // a tax deadline opens that year's tax page
+  if (payload.startsWith('tax:')) {
+    navigatorKey.currentState
+        ?.push(MaterialPageRoute(builder: (_) => TaxScreen(year: int.tryParse(payload.substring(4)))));
+    return;
+  }
   // Buddy's moments open his chat with the question that fits
   if (payload.startsWith('buddy:')) {
     navigatorKey.currentState?.popUntil((r) => r.isFirst);

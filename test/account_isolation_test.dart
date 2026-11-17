@@ -45,6 +45,11 @@ void main() {
       await Hive.box('settings').put('onboardingDone', true);
       await Hive.box('settings').put('onboardingHidden', true);
       await Hive.box('settings').put('bankDismissed', ['bank_old']);
+      // the tax return belongs to one person, too
+      await Hive.box('settings').put('taxProfile', {'grossMonth': 3000});
+      await Hive.box('settings').put('taxProfile:2022', {'grossMonth': 3000});
+      await Hive.box('settings').put('taxYears', {'2022': {'filed': '2026-11-20'}});
+      await Hive.box('settings').put('elsterAccount', 'ready');
 
       final before = AccountIsolation.epoch;
       await AccountIsolation.wipeLocalFinance();
@@ -62,6 +67,9 @@ void main() {
       expect(Settings.onboardingDone, isFalse);
       expect(Hive.box('settings').get('onboardingHidden'), isNull);
       expect(Hive.box('settings').get('bankDismissed'), isNull);
+      for (final k in ['taxProfile', 'taxProfile:2022', 'taxYears', 'elsterAccount']) {
+        expect(Hive.box('settings').get(k), isNull, reason: k);
+      }
     });
 
     test('claim without depot links drops orphan depot holdings', () async {

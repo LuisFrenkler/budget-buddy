@@ -764,10 +764,14 @@ Kontonummern oder Passwörter.''';
     },
     {
       'name': 'steuer_schaetzung',
-      'description': 'Schätzt die Steuererstattung für ein Jahr (Regeln 2026): Fahrtkosten, Homeoffice, Belege aus den '
-          'Buchungen (Fortbildung, Arbeitsmittel, Gewerkschaft, Umzug, Bewerbung) und den Effekt, wenn nur ein Teil des '
-          'Jahres gearbeitet wurde. Nimmt gespeicherte Angaben; was die Person im Gespräch nennt, gib mit. Fehlt das '
-          'Brutto, frag danach.',
+      'description': 'Schätzt die Steuererstattung für ein Jahr von 2022 bis 2026, jeweils mit den Regeln dieses Jahres: '
+          'Fahrtkosten, Homeoffice, Belege aus den Buchungen (Fortbildung, Arbeitsmittel, Gewerkschaft, Umzug, Bewerbung) '
+          'und den Effekt, wenn nur ein Teil des Jahres gearbeitet wurde. Liefert unter „elster“ die Werte Feld für Feld '
+          'zum Abtippen in ELSTER, unter „offeneJahre“ die Vorjahre, die freiwillig noch abgegeben werden können, und '
+          'unter „abgabeBis“ die Frist (31.12. des vierten Folgejahres, für 2022 also der 31.12.2026). Wer erst vor '
+          'Kurzem angefangen hat zu arbeiten, bekommt für das erste Jahr oft Geld zurück: sprich offene Jahre an. Für ein '
+          'Vorjahr frag nach Brutto und Monaten in diesem Jahr. Nimmt gespeicherte Angaben; was die Person im Gespräch '
+          'nennt, gib mit.',
       'input_schema': {
         'type': 'object',
         'additionalProperties': false,

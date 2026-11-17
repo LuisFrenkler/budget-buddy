@@ -19,6 +19,7 @@ import 'wealth_screen.dart';
 import '../widgets/misc_sort_sheet.dart';
 import '../widgets/scenario_sheet.dart';
 import '../l10n/l10n.dart';
+import 'tax_screen.dart';
 
 class BuddyAction {
   final IconData icon;
@@ -36,6 +37,13 @@ class BuddyActions {
         (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => const ContractsScreen())));
     final taken = {for (final b in s.budgets) b.category};
 
+    if (_has(q, ['steuererklärung', 'steuererklaerung', 'steuer zurück', 'steuern zurück', 'lohnsteuer', 'elster'])) {
+      final year = RegExp(r'20\d\d').firstMatch(q)?.group(0);
+      return [
+        BuddyAction(Icons.savings_outlined, tr('Steuer-Seite öffnen'),
+            (c) => Navigator.push(c, MaterialPageRoute(builder: (_) => TaxScreen(year: int.tryParse(year ?? ''))))),
+      ];
+    }
     if (_has(q, ['vorsorge', 'rentenrechner', 'altersvorsorge', 'rentenlücke', 'rentenluecke'])) {
       return [
         BuddyAction(Icons.savings_rounded, tr('Rentenrechner öffnen'),

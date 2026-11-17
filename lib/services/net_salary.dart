@@ -61,22 +61,42 @@ class NetSalary {
   static const solzFree = 20350.0;
   static const minijob = 603.0, midijobTop = 2000.0;
 
-  // the wage tax of a year after § 32a EStG 2026, rounded down to full euros
-  static int tariff(double zve) {
+  // § 32a EStG per year: basic allowance, end of zone 2, end of zone 3, the
+  // zone 2 and 3 factors, the zone 3 constant and the 42 % / 45 % offsets.
+  // 2022 and 2024 as changed later in the year (Steuerentlastungsgesetz 2022,
+  // Steuerfortentwicklungsgesetz 2024).
+  static const _tariffs = <int, List<double>>{
+    2022: [10347, 14926, 58596, 1088.67, 206.43, 869.32, 9336.45, 17671.20],
+    2023: [10908, 15999, 62809, 979.18, 192.59, 966.53, 9972.98, 18307.73],
+    2024: [11784, 17005, 66760, 954.80, 181.19, 991.21, 10636.31, 18971.06],
+    2025: [12096, 17443, 68480, 932.30, 176.64, 1015.13, 10911.92, 19246.67],
+    2026: [12348, 17799, 69878, 914.51, 173.10, 1034.87, 11135.63, 19470.38],
+  };
+  // the tax one person may owe before the solidarity surcharge starts
+  static const _solzFree = <int, double>{2022: 16956, 2023: 17543, 2024: 18130, 2025: 19950, 2026: solzFree};
+  static const firstYear = 2022, lastYear = 2026;
+  static int _y(int year) => year.clamp(firstYear, lastYear);
+
+  // the employee allowance (Arbeitnehmer-Pauschbetrag) of a year
+  static double allowance(int year) => _y(year) == 2022 ? 1200 : 1230;
+
+  // the wage tax of a year after § 32a EStG, rounded down to full euros
+  static int tariff(double zve, {int year = 2026}) {
+    final t = _tariffs[_y(year)]!;
     final x = zve.floorToDouble();
     double st;
-    if (x <= 12348) {
+    if (x <= t[0]) {
       st = 0;
-    } else if (x <= 17799) {
-      final y = (x - 12348) / 10000;
-      st = (914.51 * y + 1400) * y;
-    } else if (x <= 69878) {
-      final z = (x - 17799) / 10000;
-      st = (173.10 * z + 2397) * z + 1034.87;
+    } else if (x <= t[1]) {
+      final y = (x - t[0]) / 10000;
+      st = (t[3] * y + 1400) * y;
+    } else if (x <= t[2]) {
+      final z = (x - t[1]) / 10000;
+      st = (t[4] * z + 2397) * z + t[5];
     } else if (x <= 277825) {
-      st = 0.42 * x - 11135.63;
+      st = 0.42 * x - t[6];
     } else {
-      st = 0.45 * x - 19470.38;
+      st = 0.45 * x - t[7];
     }
     return st.floor();
   }
@@ -102,7 +122,10 @@ class NetSalary {
     double additional = averageAdditional,
     bool student = false,
     double werbungskosten = 1230,
+    int year = 2026,
   }) {
+    // shortcut: social security caps and rates and the single-parent relief stay 2026 for earlier
+    // years; they shift the result by a few euros a month, upgrade if past-year estimates must be exact
     final saxony = state.toLowerCase().startsWith('sachsen') && !state.toLowerCase().contains('anhalt');
     final capKv = math.min(income, bbgKvPv), capRv = math.min(income, bbgRvAv);
     final childless = children == 0 && (age == null || age >= 23);
@@ -115,14 +138,14 @@ class NetSalary {
     final vspHb = math.min(1900.0, vspAlv + vspKvPv);
     final vsp = math.max(vspR + vspKvPv, vspR + vspHb).ceilToDouble();
 
-    // Werbungskosten (at least 1,230 €), Sonderausgaben 36 €, single parents (II)
+    // Werbungskosten (at least the allowance), Sonderausgaben 36 €, single parents (II)
     final efa = taxClass == 2 ? 4260.0 + 240.0 * math.max(0, children - 1) : 0.0;
-    final zve = math.max(0.0, income - math.max(1230.0, werbungskosten) - 36 - efa - vsp);
+    final zve = math.max(0.0, income - math.max(allowance(year), werbungskosten) - 36 - efa - vsp);
     final split = taxClass == 3 ? 2 : 1;
-    final tax = (tariff(zve / split) * split).toDouble();
+    final tax = (tariff(zve / split, year: year) * split).toDouble();
 
     // solidarity surcharge with its threshold and the softening zone
-    final free = solzFree * split;
+    final free = _solzFree[_y(year)]! * split;
     final soli = tax <= free ? 0.0 : math.min(tax * 0.055, (tax - free) * 0.119);
     final bwBy = RegExp(r'baden|bayern|bw\b|by\b', caseSensitive: false).hasMatch(state);
     final kist = church ? tax * (bwBy ? 0.08 : 0.09) : 0.0;

@@ -1,5 +1,7 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'tax_screen.dart';
+import '../services/tax_estimate.dart';
 import 'smart_entry_sheet.dart';
 import 'package:flutter/services.dart';
 import 'splits_screen.dart';
@@ -56,6 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
   // one scroll per tab: tapping the active tab again jumps to the top
   final _scrolls = List.generate(4, (_) => ScrollController());
 
+  // the refund check before sign-up continues on the tax page, answers kept
+  Future<void> _refundCheckToTax() async {
+    final year = await TaxEstimate.adoptRefundCheck(now: DateTime.now());
+    if (year == null || !mounted) return;
+    Navigator.push(context, MaterialPageRoute(builder: (_) => TaxScreen(year: year)));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AccountScreen.pendingSegment.addListener(_toAccountSection);
     CloudSync.conflict.addListener(_vaultConflict);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refundCheckToTax();
       _pendingJoin();
       _vaultConflict();
       _toAccountSection();

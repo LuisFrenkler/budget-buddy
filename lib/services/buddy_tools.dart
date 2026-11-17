@@ -635,19 +635,36 @@ class BuddyTools {
       taxClass: (input['steuerklasse'] as num?)?.toInt(),
       church: input['kirchensteuer'] as bool?,
     );
-    if (p.grossMonth <= 0) {
+    final open = TaxEstimate.openYears(today);
+    if (year < today.year && !open.contains(year)) {
       return {
-        'fehlt': 'brutto_monat',
-        'hinweis':
-            'Ohne Bruttogehalt keine Schätzung. Frag danach, oder ob die Person eine Abrechnung fotografieren will.',
+        'jahr': year,
+        'zuSpaet': true,
+        'hinweis': year < NetSalary.firstYear
+            ? 'Für $year kennt Ahead die Regeln nicht.'
+            : 'Die freiwillige Abgabe für $year lief am ${_day(TaxEstimate.deadline(year))} ab.',
+        'offeneJahre': open,
+      };
+    }
+    // the saved profile is this year's job; an earlier year needs its own pay
+    final pastWithoutPay = year < today.year && n('brutto_monat') == null && n('brutto_jahr') == null;
+    if (p.grossMonth <= 0 || pastWithoutPay) {
+      return {
+        'fehlt': pastWithoutPay ? 'brutto_monat und monate_gearbeitet für $year' : 'brutto_monat',
+        'hinweis': pastWithoutPay
+            ? 'Frag nach Brutto und Monaten in $year, oder ob die Person die Lohnsteuerbescheinigung $year fotografieren will.'
+            : 'Ohne Bruttogehalt keine Schätzung. Frag danach, oder ob die Person eine Abrechnung fotografieren will.',
       };
     }
     final counted = TaxEstimate.counted(tx, year);
     final receipts = counted.fold<int>(0, (s, c) => s + c.tx.amountCents) / 100;
-    final r = TaxEstimate.compute(p, receipts: receipts);
+    final r = TaxEstimate.compute(p, receipts: receipts, year: year);
     return {
       'jahr': year,
+      if (year < today.year) 'abgabeBis': _day(TaxEstimate.deadline(year)),
+      'offeneJahre': open,
       ...r.toJson(),
+      'elster': TaxEstimate.elster(r, counted),
       'annahmen': {
         'bruttoMonat': p.grossMonth,
         'monateGearbeitet': p.monthsWorked,
@@ -664,11 +681,14 @@ class BuddyTools {
             'betrag': c.tx.amountCents / 100
           }
       ],
-      'regeln2026':
-          'Pendlerpauschale 0,38 € ab dem ersten km, Homeoffice 6 € am Tag bis 210 Tage, '
-              'Arbeitnehmer-Pauschbetrag 1.230 €, Kontoführung 16 € pauschal.',
-      'hinweis':
-          'Schätzung, keine Steuerberatung. Abgabe kostenlos über ELSTER. In der App unter Profil › Steuer.',
+      'regeln': year >= 2026
+          ? 'Pendlerpauschale 0,38 € ab dem ersten km, Homeoffice 6 € am Tag bis 210 Tage, '
+              'Arbeitnehmer-Pauschbetrag 1.230 €, Kontoführung 16 € pauschal.'
+          : 'Pendlerpauschale 0,30 € bis km 20, 0,38 € ab km 21, '
+              '${year <= 2022 ? 'Homeoffice 5 € am Tag bis 120 Tage, Arbeitnehmer-Pauschbetrag 1.200 €' : 'Homeoffice 6 € am Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €'}, '
+              'Kontoführung 16 € pauschal.',
+      'hinweis': 'Schätzung, keine Steuerberatung. Die Person gibt selbst ab, kostenlos über ELSTER; die Felder unter '
+          '„elster“ zeigen, was wo hinkommt. In der App unter Profil › Steuer.',
     };
   }
 

@@ -354,6 +354,50 @@ nicht drängeln.''';
         },
       ], payslipSchema());
 
+  // A Lohnsteuerbescheinigung or a Steuerbescheid -> the year's numbers,
+  // nothing about the person. The app compares them with its estimate.
+  static Map<String, dynamic> taxDocSchema() {
+    Map<String, dynamic> maybe(String type, String description) => {'type': [type, 'null'], 'description': description};
+    const numbers = {
+      'bruttoarbeitslohn': 'Lohnsteuerbescheinigung Zeile 3: Bruttoarbeitslohn in Euro',
+      'lohnsteuer': 'Lohnsteuerbescheinigung Zeile 4: einbehaltene Lohnsteuer in Euro',
+      'soli': 'Lohnsteuerbescheinigung Zeile 5: Solidaritätszuschlag in Euro',
+      'kirchensteuer': 'Lohnsteuerbescheinigung Zeilen 6 und 7 zusammen: Kirchensteuer in Euro',
+      'erstattung': 'Bescheid: Erstattungsbetrag in Euro, positiv',
+      'nachzahlung': 'Bescheid: Nachzahlungsbetrag in Euro, positiv',
+      'werbungskostenAnerkannt': 'Bescheid: anerkannte Werbungskosten aus nichtselbständiger Arbeit in Euro',
+    };
+    return {
+      'type': 'object',
+      'additionalProperties': false,
+      'required': ['art', 'jahr', 'monate', 'bescheidDatum', ...numbers.keys],
+      'properties': {
+        'art': {
+          'type': 'string',
+          'enum': ['lohnsteuerbescheinigung', 'bescheid', 'anderes'],
+          'description': 'Ausdruck der elektronischen Lohnsteuerbescheinigung, Einkommensteuerbescheid oder etwas anderes',
+        },
+        'jahr': maybe('integer', 'Kalenderjahr, für das das Dokument gilt'),
+        'monate': maybe('integer', 'Lohnsteuerbescheinigung Zeile 1: Dauer des Dienstverhältnisses in Monaten'),
+        'bescheidDatum': maybe('string', 'Bescheid: Datum des Bescheids YYYY-MM-DD'),
+        for (final e in numbers.entries) e.key: maybe('number', e.value),
+      },
+    };
+  }
+
+  Future<Map<String, dynamic>> taxDoc(String base64Image, String mediaType) => _structured([
+        {
+          'type': 'image',
+          'source': {'type': 'base64', 'media_type': normalizeMedia(mediaType), 'data': base64Image},
+        },
+        {
+          'type': 'text',
+          'text': 'Ist das eine Lohnsteuerbescheinigung oder ein Einkommensteuerbescheid? Gib nur die Zahlen '
+              'zurück, so wie sie dastehen. Keine Namen, Adressen, Steuer-ID, Steuernummer oder Kontodaten. '
+              'Was nicht eindeutig dasteht, ist null. Ist es keins von beiden, setz art auf anderes.',
+        },
+      ], taxDocSchema());
+
   // What happened, in the user's words or on a photo (receipt, bank
   // screenshot, broker confirmation) -> the entries it means for their
   // accounts and depots, plus one sentence back. Nothing is stored here: the

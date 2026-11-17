@@ -28,6 +28,7 @@ import '../services/demo_data.dart';
 import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/guest_buddy.dart';
+import 'refund_check_screen.dart';
 import '../services/hints_service.dart';
 import '../services/life_stages.dart';
 import '../services/plus_service.dart';
@@ -38,6 +39,7 @@ import '../utils/dates.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
+import '../widgets/agent_feed.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/buddy_text.dart';
 import '../widgets/life_stage_sheet.dart';
@@ -159,11 +161,12 @@ class BuddyScreen extends StatefulWidget {
   static List<BuddyChip> get suggestions => BuddySuggestions.fallback;
 
   // the first questions before sign-up: the moments of a first job
+  // the first questions before sign-up: the tax return first, then the first payslip
   static List<BuddyChip> get guestSuggestions => [
+    (icon: Icons.savings_outlined, text: tr('Bekomme ich Steuern zurück?')),
+    (icon: Icons.description_outlined, text: tr('Was ist die Lohnsteuerbescheinigung und wo finde ich sie?')),
+    (icon: Icons.event_outlined, text: tr('Bis wann kann ich meine Steuererklärung nachholen?')),
     (icon: Icons.receipt_long_rounded, text: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
-    (icon: Icons.savings_outlined, text: tr('Wie viel Notgroschen brauche ich?')),
-    (icon: Icons.work_outline_rounded, text: tr('Lohnt sich die Betriebsrente?')),
-    (icon: Icons.show_chart_rounded, text: tr('Was ist ein ETF-Sparplan?')),
   ];
 
   @override
@@ -190,6 +193,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   final _wizard = BuddyWizard();
   // the "jump to the latest message" button
   bool _away = false;
+  // the agent's finds are the centre; the chat opens once the person writes
+  bool _feed = true;
   // the guest's sign-up card was closed for this session
   bool _ctaClosed = false;
   // Buddy's little hop after something good happened
@@ -843,6 +848,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (!mounted) return;
     final question = text.trim();
     if ((question.isEmpty && _photo == null) || _thinking) return;
+    if (_feed && mounted) setState(() => _feed = false);
     if (VoiceInput.listening.value) VoiceInput.stop();
     BuddyVoice.stop();
     _speakNext = _spokenInput && question == _input.text.trim();
@@ -1266,12 +1272,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
         if (!_guest && _live == true && !BuddyService.hasConsent) _aiOffBanner(),
         Expanded(
           child: Stack(children: [
-            Positioned.fill(child: _messages.isEmpty ? _welcome() : _chat()),
+            Positioned.fill(child: _messages.isEmpty || (!_guest && _feed) ? _welcome() : _chat()),
             Positioned(
               right: 16,
               bottom: 12,
               child: AnimatedScale(
-                scale: _away && _messages.isNotEmpty ? 1 : 0,
+                scale: _away && _messages.isNotEmpty && !(!_guest && _feed) ? 1 : 0,
                 duration: const Duration(milliseconds: 180),
                 child: Material(
                   color: AppColors.surface,
@@ -1321,6 +1327,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ),
         ]),
         actions: [
+          if (_messages.isNotEmpty)
+            IconButton(
+              key: const Key('feed-toggle'),
+              tooltip: _feed ? tr('Zum Gespräch') : tr('Zu den Funden'),
+              onPressed: () => setState(() => _feed = !_feed),
+              icon: Icon(_feed ? Icons.chat_bubble_outline_rounded : Icons.auto_awesome_outlined),
+            ),
           PopupMenuButton<String>(
             tooltip: tr('Mehr'),
             icon: const Icon(Icons.more_horiz_rounded),
@@ -1417,14 +1430,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
     );
   }
 
-  // the guest's opening: one question, one line, nothing else competing
+  // the guest's opening: the first thing Buddy does for you, then the chat
   Widget _guestHero() => Padding(
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 40),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text.rich(
               TextSpan(children: [
-                TextSpan(text: tr('Was mach ich jetzt mit meinem ')),
-                TextSpan(text: tr('Gehalt?'), style: const TextStyle(color: CopperLight.peach)),
+                TextSpan(text: tr('Hol dir dein ')),
+                TextSpan(text: tr('Steuergeld'), style: const TextStyle(color: CopperLight.peach)),
+                TextSpan(text: tr(' zurück.')),
               ]),
               style: const TextStyle(
                 fontFamily: AppFonts.display,
@@ -1437,17 +1451,25 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              tr('Frag Buddy. Ohne Anmeldung.'),
+              tr('Ahead ist dein Agent, der verlorenes Geld findet. Er fängt mit deiner Steuer an: drei Antworten, ohne Anmeldung.'),
               style: const TextStyle(fontSize: 17, height: 1.4, color: Color(0xDBFFF7F0)),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              key: const Key('guest-refund-check'),
+              style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start'))),
+              icon: const Icon(Icons.savings_outlined, size: 18),
+              label: Text(tr('Rückhol-Check starten')),
             ),
           ]),
       );
 
   // three short ways in, as small pills right above the input
   static List<({String label, String question})> get _guestStarts => [
+        (label: tr('Steuern zurück?'), question: tr('Bekomme ich Steuern zurück?')),
+        (label: tr('Frist verpasst?'), question: tr('Bis wann kann ich meine Steuererklärung nachholen?')),
         (label: tr('Erste Gehaltsabrechnung?'), question: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
-        (label: tr('Wie viel Notgroschen?'), question: tr('Wie viel Notgroschen brauche ich?')),
-        (label: tr('Lohnt sich ein ETF?'), question: tr('Was ist ein ETF-Sparplan?')),
       ];
 
   String get _statusLabel {
@@ -1529,52 +1551,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
       children: [
-        Center(child: BuddyOrb(size: 52, mood: _mood)),
-        const SizedBox(height: 18),
+        Center(child: BuddyOrb(size: 44, mood: _mood)),
+        const SizedBox(height: 14),
+        AgentFeed(name: name, onAsk: _send),
         if (brief != null && brief.free != null) ...[
-          Text(
-            name != null ? tr('Hey {name}, noch frei', {'name': name}) : tr('Noch frei'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: AppFonts.display,
-                fontSize: 22,
-                fontWeight: ThemeController.isDark.value ? FontWeight.w300 : FontWeight.w400,
-                letterSpacing: -0.6,
-                height: 1.15,
-                color: AppColors.textDim),
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(brief.free!,
-                style: TextStyle(
-                    fontFamily: AppFonts.display,
-                    fontSize: 56,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -2.2,
-                    height: 1.02,
-                    color: AppColors.glow)),
-          ),
-          const SizedBox(height: 6),
-          Text(tr('etwa {x} pro Tag', {'x': brief.perDay!}),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 14.5, color: AppColors.textDim, height: 1.3)),
-        ] else ...[
-          Text(
-            name != null ? tr('Hey {name}', {'name': name}) : tr('Hey'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontFamily: AppFonts.display,
-                fontSize: 30,
-                fontWeight: ThemeController.isDark.value ? FontWeight.w400 : FontWeight.w500,
-                letterSpacing: -0.8,
-                height: 1.15,
-                color: AppColors.text),
-          ),
-          if (brief != null && !brief.numbers && tip == null) ...[
-            const SizedBox(height: 6),
-            Text(tr('Frag nach deinem Gehalt.'),
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 15.5, color: AppColors.textDim, height: 1.4)),
-          ],
+          const SizedBox(height: 14),
+          Text(tr('Diesen Monat noch frei: {x}, etwa {y} pro Tag', {'x': brief.free!, 'y': brief.perDay!}),
+              key: const Key('month-free'),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.35)),
+        ] else if (brief != null && !brief.numbers && tip == null) ...[
+          const SizedBox(height: 14),
+          Text(tr('Frag nach deinem Gehalt.'),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
         ],
         if (tip != null) ...[
           const SizedBox(height: 22),
@@ -2391,7 +2380,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   decoration: InputDecoration(
                     hintText: VoiceInput.listening.value
                         ? tr('Ich höre zu …')
-                        : tr('Nachricht an Buddy'),
+                        : tr('Sag mir, was ich tun soll'),
                     hintMaxLines: 1,
                     filled: false,
                     isDense: true,

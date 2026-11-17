@@ -136,4 +136,17 @@ void main() {
           isNot(contains('Unbekannt')));
     }
   });
+
+  test('steuer_schaetzung for an earlier year: asks for that pay, then gives the deadline and ELSTER fields', () {
+    final ask = tools.run('steuer_schaetzung', {'jahr': 2022});
+    expect(ask['fehlt'], contains('2022'));
+    final r = tools.run('steuer_schaetzung', {'jahr': 2022, 'brutto_monat': 3000, 'monate_gearbeitet': 4});
+    expect(r['abgabeBis'], '2026-12-31');
+    expect(r['offeneJahre'], [2022, 2023, 2024, 2025]);
+    expect(r['erstattungGeschaetzt'], greaterThan(800));
+    expect((r['elster'] as List).map((f) => f['feld']), contains('Weitere Werbungskosten: Kontoführungsgebühren'));
+    expect(r['regeln'], contains('1.200 €'));
+    final late = tools.run('steuer_schaetzung', {'jahr': 2021, 'brutto_monat': 3000});
+    expect(late['zuSpaet'], isTrue);
+  });
 }

@@ -48,4 +48,44 @@ void main() {
     final c = TaxEstimate.candidates(tx, 2026);
     expect({for (final x in c) x.tx.id: x.kind}, {'a': 'fortbildung', 'b': 'gewerkschaft', 'c': 'umzug'});
   });
+
+  test('2022 rules: 0.30 € up to km 20, 5 € home office for 120 days, 1,200 € allowance', () {
+    // 25 km: 20 × 0.30 + 5 × 0.38 = 7.90 € a day, 220 days = 1,738 €
+    final r = TaxEstimate.compute(const TaxProfile(grossMonth: 3000, km: 25), year: 2022);
+    expect(r.commute, closeTo(1738, 0.01));
+    expect(r.allowance, 1200);
+    expect(r.aboveAllowance, closeTo(1738 + 16 - 1200, 0.01));
+    final home = TaxEstimate.compute(const TaxProfile(grossMonth: 3000, officeDaysPerWeek: 0, homeDaysPerWeek: 5), year: 2022);
+    expect(home.homeOffice, 120 * 5.0);
+    // 2023 to 2025 already 6 € for up to 210 days, commute still split at km 20
+    final y24 = TaxEstimate.compute(const TaxProfile(grossMonth: 3000, km: 25, officeDaysPerWeek: 0, homeDaysPerWeek: 5), year: 2024);
+    expect(y24.homeOffice, 210 * 6.0);
+    expect(TaxEstimate.commutePerDay(25, 2024), closeTo(7.90, 0.001));
+    expect(TaxEstimate.commutePerDay(25, 2026), closeTo(9.50, 0.001));
+  });
+
+  test('a first job from September 2022 still pays back, until 31 Dec 2026', () {
+    final r = TaxEstimate.compute(const TaxProfile(grossMonth: 3000, monthsWorked: 4), year: 2022);
+    expect(r.refund, greaterThan(800));
+    expect(TaxEstimate.deadline(2022), DateTime(2026, 12, 31));
+    expect(TaxEstimate.openYears(DateTime(2026, 11, 17)), [2022, 2023, 2024, 2025]);
+    expect(TaxEstimate.openYears(DateTime(2026, 12, 31)), contains(2022));
+    expect(TaxEstimate.openYears(DateTime(2027, 1, 1)), [2023, 2024, 2025, 2026]);
+  });
+
+  test('ELSTER fields: commute days and km, receipts by kind, account fees', () {
+    final tx = [
+      Transaction(id: 'a', amountCents: 4990, category: 'Bildung', date: DateTime(2022, 10, 2), isIncome: false, note: 'Udemy'),
+      Transaction(id: 'b', amountCents: 1600, category: 'Sonstiges', date: DateTime(2022, 11, 1), isIncome: false, note: 'ver.di Beitrag'),
+    ];
+    final counted = TaxEstimate.candidates(tx, 2022);
+    final r = TaxEstimate.compute(const TaxProfile(grossMonth: 3000, monthsWorked: 4, km: 12), receipts: 65.90, year: 2022);
+    final f = {for (final x in TaxEstimate.elster(r, counted)) x['feld']: x['wert']};
+    expect(f['Erste Tätigkeitsstätte: einfache Entfernung in km'], 12);
+    expect(f['Erste Tätigkeitsstätte: Arbeitstage'], r.officeDays.round());
+    expect(f['Fortbildungskosten'], 49.90);
+    expect(f['Beiträge zu Berufsverbänden'], 16.0);
+    expect(f['Weitere Werbungskosten: Kontoführungsgebühren'], 16.0);
+    expect(f.containsKey('Tagespauschale (Homeoffice): Anzahl der Tage'), isFalse);
+  });
 }

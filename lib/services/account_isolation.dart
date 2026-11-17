@@ -42,6 +42,8 @@ class AccountIsolation {
     'wealthDebts', 'wealthPolicies', 'emergencyExtraCents', 'vorsorge', 'avatarBytes',
     // Buddy: the chat, what he may remember, the life stage, invite bonus, check-ins
     'buddyChat', 'buddyMemory', 'lifeStage', 'lifeStageDone', 'inviteBonus', 'buddyCheckIn', 'notifyLog',
+    // the tax return: answers, picked receipts, filed years and notices, the ELSTER step
+    'taxProfile', 'taxPicks', 'taxYears', 'elsterAccount',
   ];
 
   static bool get hasBankOrDepotLinks =>
@@ -68,7 +70,7 @@ class AccountIsolation {
     for (final k in financeSettingKeys) {
       await _box.delete(k);
     }
-    for (final k in _box.keys.whereType<String>().where((k) => k.startsWith('usage_'))) {
+    for (final k in _box.keys.whereType<String>().where((k) => k.startsWith('usage_') || k.startsWith('taxProfile:')).toList()) {
       await _box.delete(k);
     }
     PlusService.load();

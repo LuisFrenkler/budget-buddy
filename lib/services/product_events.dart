@@ -1,10 +1,10 @@
-// Product counters for the seed dashboard. Local only.
+// Product counters for the seed dashboard.
 //
 // A line is "YYYY-MM-DD name" and nothing else. No email, name, question,
-// answer, amount, IBAN, or account id. [send] stays null until a POST /events
-// exists; until then nothing leaves the phone.
+// answer, amount, IBAN, or account id. The app sets [send] to POST /events,
+// which takes the name only (the server stamps its own day).
 //
-// shortcut: once per install, not per account; move the flag to the server when POST /events exists.
+// shortcut: once per install, not per account; count per account once the funnel needs it.
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
@@ -16,6 +16,26 @@ class ProductEvents {
   static const trialStart = 'trial_start';
   static const paid = 'paid';
   static const bankConnect = 'bank_connect';
+  // the tax funnel: check, filed, assessed, and how close the estimate was
+  static const refundCheck = 'refund_check';
+  // where the check came from: the start screen or inside the app (the MCP tool counts on the server)
+  static const refundCheckStart = 'refund_check_start';
+  static const refundCheckApp = 'refund_check_app';
+  // the same notice against an estimate without bank, receipts or certificate
+  static const controlWithin10 = 'control_within_10';
+  static const controlWithin25 = 'control_within_25';
+  static const controlOff = 'control_off';
+  static const taxFiled = 'tax_filed';
+  static const assessment = 'assessment';
+  static const estimateWithin10 = 'estimate_within_10';
+  static const estimateWithin25 = 'estimate_within_25';
+  static const estimateOff = 'estimate_off';
+  // the agent loop: a find shown, a yes to it, put away, money really back
+  static const findShown = 'find_shown';
+  static const findYesTax = 'find_yes_tax';
+  static const findYesMoney = 'find_yes_money';
+  static const findLater = 'find_later';
+  static const moneyRecovered = 'money_recovered';
 
   static const names = {
     waitlistSignup,
@@ -25,6 +45,22 @@ class ProductEvents {
     trialStart,
     paid,
     bankConnect,
+    refundCheck,
+    refundCheckStart,
+    refundCheckApp,
+    controlWithin10,
+    controlWithin25,
+    controlOff,
+    taxFiled,
+    assessment,
+    estimateWithin10,
+    estimateWithin25,
+    estimateOff,
+    findShown,
+    findYesTax,
+    findYesMoney,
+    findLater,
+    moneyRecovered,
   };
 
   // "1.234,50 €" and "€4.99". The privacy mask "•••••• €" has no digit.

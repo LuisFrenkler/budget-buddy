@@ -58,6 +58,7 @@ import '../lib/legal/legal_texts.dart';
 import 'lib/accounts.dart';
 import 'lib/agent.dart';
 import 'lib/ai.dart';
+import 'lib/mcp.dart';
 import 'lib/bank_provider.dart';
 import 'lib/billing.dart';
 import 'lib/store_billing.dart';
@@ -119,6 +120,8 @@ final _institutionsLimit = RateLimit(30, const Duration(minutes: 1));
 final _waLimit = RateLimit(120, const Duration(minutes: 1));
 final _waLinkLimit = RateLimit(10, const Duration(hours: 1));
 final _waitlistLimit = RateLimit(10, const Duration(hours: 1));
+final _eventsLimit = RateLimit(60, const Duration(hours: 1));
+final _mcpLimit = RateLimit(120, const Duration(hours: 1));
 final _waitlistStatusLimit = RateLimit(60, const Duration(minutes: 1));
 
 // production hardening
@@ -458,7 +461,7 @@ Future<void> _html(HttpRequest req, String body) async {
 
 // receipts arrive as photos; everything else is small
 Future<Map<String, dynamic>> _body(HttpRequest req) async {
-  final limit = {'/ai/receipt', '/ai/payslip', '/ai/entries', '/vault'}.contains(req.uri.path) ? 16 << 20 : 256 << 10;
+  final limit = {'/ai/receipt', '/ai/payslip', '/ai/taxdoc', '/ai/entries', '/vault'}.contains(req.uri.path) ? 16 << 20 : 256 << 10;
   final bytes = BytesBuilder(copy: false);
   await for (final chunk in req) {
     bytes.add(chunk);
@@ -692,6 +695,31 @@ Future<void> _handle(HttpRequest req) async {
     // GET ?device= -> {left}
     case '/ai/guest/left':
       return _json(req, 200, {'left': _ai.enabled ? _guestQuota.left(q['device'] ?? '') : 0});
+    // MCP (ChatGPT, Claude): the refund check as a tool, stateless, no account
+    case '/mcp':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final ip = _clientIp(req);
+      if (_mcpLimit.blocked(ip)) throw AuthError.wait(_mcpLimit.wait(ip));
+      _mcpLimit.hit(ip);
+      final msg = await _body(req);
+      if (msg['method'] == 'tools/call') _productEvent('mcp_check');
+      final answer = Mcp.handle(msg);
+      if (answer == null) {
+        req.response.statusCode = 202;
+        await req.response.close();
+        return;
+      }
+      return _json(req, 200, answer);
+    // POST {name} -> {} : one anonymous funnel step, no account, no amount
+    case '/events':
+      if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
+      final ip = _clientIp(req);
+      if (_eventsLimit.blocked(ip)) throw AuthError.wait(_eventsLimit.wait(ip));
+      _eventsLimit.hit(ip);
+      final name = '${(await _body(req))['name'] ?? ''}';
+      if (!_appEvents.contains(name)) return _json(req, 400, {'error': 'unbekanntes Ereignis'});
+      _productEvent(name);
+      return _json(req, 200, {});
     // POST {email, ref?} -> {code, position, total, friends}
     case '/waitlist/join':
       if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
@@ -742,6 +770,12 @@ Future<void> _handle(HttpRequest req) async {
       final b = await _body(req);
       _countAi(user);
       return _json(req, 200, {'payslip': await _ai.payslip('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}')});
+    case '/ai/taxdoc':
+      _guardAi(req);
+      final user = _aiUser(req);
+      final b = await _body(req);
+      _countAi(user);
+      return _json(req, 200, {'doc': await _ai.taxDoc('${b['image'] ?? ''}', '${b['mediaType'] ?? 'image/jpeg'}')});
     case '/ai/receipt':
       _guardAi(req);
       final user = _aiUser(req);
@@ -1921,8 +1955,16 @@ String _escape(String s) =>
     s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
 // grep "product_event". UTC day. No email, id, or amount.
+// the funnel the app counts; a name and a day, nothing else
+const _appEvents = {
+  'activated', 'd1', 'd7', 'trial_start', 'paid', 'refund_check', 'tax_filed', 'assessment',
+  'estimate_within_10', 'estimate_within_25', 'estimate_off',
+  'refund_check_start', 'refund_check_app', 'control_within_10', 'control_within_25', 'control_off', 'mcp_check',
+  'find_shown', 'find_yes_tax', 'find_yes_money', 'find_later', 'money_recovered',
+};
+
 void _productEvent(String name) {
-  if (name != 'waitlist_signup' && name != 'bank_connect') return;
+  if (name != 'waitlist_signup' && name != 'bank_connect' && !_appEvents.contains(name)) return;
   final d = DateTime.now().toUtc();
   final month = d.month.toString().padLeft(2, '0');
   final day = d.day.toString().padLeft(2, '0');

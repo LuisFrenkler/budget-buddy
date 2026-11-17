@@ -25,6 +25,30 @@ void main() {
     });
   });
 
+  test('every year 2022-2026: the tariff zones meet at their borders', () {
+    // the constants check each other: zone 2 ends where zone 3 starts, zone 3 where 42 % starts
+    const borders = {
+      2022: [14926, 58596],
+      2023: [15999, 62809],
+      2024: [17005, 66760],
+      2025: [17443, 68480],
+      2026: [17799, 69878],
+    };
+    for (final e in borders.entries) {
+      for (final b in e.value) {
+        final below = NetSalary.tariff(b.toDouble(), year: e.key);
+        final above = NetSalary.tariff(b + 1.0, year: e.key);
+        expect(above - below, inInclusiveRange(0, 1), reason: '${e.key} at $b');
+      }
+    }
+    // and the basic allowance rises every year
+    expect(NetSalary.tariff(10347, year: 2022), 0);
+    expect(NetSalary.tariff(10500, year: 2022), greaterThan(0));
+    expect(NetSalary.tariff(12096, year: 2025), 0);
+    expect(NetSalary.allowance(2022), 1200);
+    expect(NetSalary.allowance(2023), 1230);
+  });
+
   test('the 2026 tariff zones', () {
     expect(NetSalary.tariff(12348), 0);
     expect(NetSalary.tariff(12349), 0);

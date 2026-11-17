@@ -78,6 +78,11 @@ class DepotPosition {
 class BackendService {
   static const base = String.fromEnvironment('BACKEND_URL', defaultValue: 'http://localhost:8090');
 
+  // one anonymous funnel step: the name only, no account, no amount
+  static Future<void> event(String name) => http
+      .post(Uri.parse('$base/events'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'name': name}))
+      .timeout(const Duration(seconds: 10));
+
   // what the server offers: {bank, depot, billing, ai}, or null when offline
   static Future<Map<String, dynamic>?> health() async {
     try {

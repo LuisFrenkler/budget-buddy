@@ -399,6 +399,27 @@ class HintsService {
       }
     }
 
+    // the last 60 days before a year can no longer be filed: the money is gone after
+    for (final y in TaxEstimate.openYears(today)) {
+      final left = TaxEstimate.deadline(y).difference(DateTime(today.year, today.month, today.day)).inDays;
+      if (left > 60 || TaxEstimate.filedAt(y) != null) continue;
+      final p = TaxEstimate.profile(year: y);
+      final back = p.grossMonth > 0 ? TaxEstimate.compute(p, year: y).refund : 0.0;
+      final earned = tx.where((t) => t.isEarning && t.category == 'Gehalt' && t.date.year == y).map((t) => t.date.month).toSet();
+      if (back < 50 && (earned.isEmpty || earned.length == 12)) continue;
+      out.add(Hint(
+          'tax-deadline-$y',
+          HintKind.taxReturn,
+          tr('Noch {n} Tage für {y}', {'n': left, 'y': y}),
+          back >= 50
+              ? tr('Bis {d} holst du rund {x} für {y} zurück. Danach ist das Geld weg.',
+                  {'d': Dates.full(TaxEstimate.deadline(y)), 'x': Money.format((back * 100).round()), 'y': y})
+              : tr('Du hast {y} nur {n} Monate verdient. Bis {d} kannst du die Lohnsteuer zurückholen.',
+                  {'y': y, 'n': earned.length, 'd': Dates.full(TaxEstimate.deadline(y))}),
+          HintTarget.buddy,
+          question: tr('Hilf mir, meine Steuererklärung {y} vor der Frist abzugeben.', {'y': y})));
+    }
+
     // February to July: the tax return for last year, when money comes back
     if (today.month >= 2 && today.month <= 7) {
       final last = today.year - 1;
@@ -407,7 +428,7 @@ class HintsService {
       String? body;
       if (profile.grossMonth > 0) {
         final receipts = TaxEstimate.counted(tx, last).fold<int>(0, (s, c) => s + c.tx.amountCents) / 100;
-        final back = TaxEstimate.compute(profile, receipts: receipts).refund;
+        final back = TaxEstimate.compute(profile, receipts: receipts, year: last).refund;
         if (back >= 50) {
           body = tr('Nach deinen Angaben kommen rund {x} zurück. Abgeben geht kostenlos über ELSTER.',
               {'x': Money.format((back * 100).round())});
