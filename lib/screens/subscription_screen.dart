@@ -545,7 +545,7 @@ class _Details extends StatelessWidget {
           Text(tr('Danach gilt wieder'), style: TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           for (final t in [
-            tr('{x} Fragen an Buddy im Monat', {'x': PlusService.freeAiQuestions}),
+            tr('{x} Fragen an Ahead im Monat', {'x': PlusService.freeAiQuestions}),
             tr('{x} Belege im Monat', {'x': PlusService.freeReceiptScans}),
             tr('{freeGoals} Sparziel', {'freeGoals': PlusService.freeGoals}),
           ])

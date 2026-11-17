@@ -502,7 +502,7 @@ class _BuddyButtonState extends State<_BuddyButton> with SingleTickerProviderSta
     return Semantics(
       button: true,
       selected: widget.active,
-      label: tr('Buddy'),
+      label: tr('Ahead'),
       excludeSemantics: true,
       child: Material(
         type: MaterialType.transparency,

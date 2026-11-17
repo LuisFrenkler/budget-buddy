@@ -40,7 +40,7 @@ class LegalTexts {
         const LegalSection(
             'Haftung für Inhalte',
             'Wir erstellen die Inhalte dieser App mit großer Sorgfalt. Für die Richtigkeit, Vollständigkeit '
-                'und Aktualität von Kursdaten, automatisch erkannten Verträgen und Antworten von Buddy können '
+                'und Aktualität von Kursdaten, automatisch erkannten Verträgen und Antworten von Ahead können '
                 'wir jedoch keine Gewähr übernehmen. Sie ersetzen keine Beratung.'),
       ]);
 
@@ -53,7 +53,7 @@ class LegalTexts {
                 'Depot und Sparziele werden auf deinem Gerät gespeichert. Mit einem Nutzerkonto liegt zusätzlich '
                 'eine Kopie bei uns, die schon auf deinem Gerät mit deinem Passwort verschlüsselt wird: Wir können '
                 'sie nicht lesen. Andere Daten verlassen dein Gerät nur, wenn du eine Funktion nutzt, die das '
-                'braucht, etwa die Bankverbindung oder Buddy. '
+                'braucht, etwa die Bankverbindung oder Ahead. '
                 'Wir zeigen keine Werbung, nutzen kein Tracking und verkaufen keine Daten.\n\n'
                 'Stand: ${LegalInfo.updated}'),
         LegalSection('1. Verantwortlicher', _contact),
@@ -92,37 +92,37 @@ class LegalTexts {
                 'jederzeit in der App oder bei Parqet unter Integrationen beenden. Rechtsgrundlage ist '
                 'Art. 6 Abs. 1 lit. b DSGVO.'),
         const LegalSection(
-            '5. Buddy (KI-Assistent) und Belegscan',
-            'Stellst du Buddy eine Frage oder scannst einen Beleg oder eine Gehaltsabrechnung, senden wir deine Frage bzw. das Foto und '
+            '5. Ahead (KI-Assistent) und Belegscan',
+            'Stellst du Ahead eine Frage oder scannst einen Beleg oder eine Gehaltsabrechnung, senden wir deine Frage bzw. das Foto und '
                 'eine zusammengefasste Übersicht deiner Finanzen (Summen, letzte Buchungen, Budgets, Ziele, '
                 'Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status; keine Kontonummern oder Zahlungsdaten) an Anthropic, PBC '
                 '(San Francisco, USA), die das KI-Modell Claude betreibt. Anthropic verarbeitet die Daten in '
                 'unserem Auftrag, um die Antwort zu erzeugen, und verwendet sie laut Vertrag nicht zum Training. '
                 'Die Übermittlung in die USA stützt sich auf das EU-US Data Privacy Framework bzw. '
                 'Standardvertragsklauseln (Art. 45, 46 DSGVO). Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. '
-                'Einfache Fragen beantwortet Buddy direkt auf deinem Gerät, ohne Übertragung. '
+                'Einfache Fragen beantwortet Ahead direkt auf deinem Gerät, ohne Übertragung. '
                 'Ist statt Claude das KI-Modell Gemini von Google eingerichtet, gehen dieselben Daten an Google; '
-                'im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung seiner Dienste verwenden. Buddy '
+                'im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung seiner Dienste verwenden. Ahead '
                 'nennt vor deiner ersten Frage, welcher Anbieter antwortet. '
-                'Was du Buddy ausdrücklich zu merken erlaubst (zum Beispiel deine Lebenslage oder ein Sparziel), '
+                'Was du Ahead ausdrücklich zu merken erlaubst (zum Beispiel deine Lebenslage oder ein Sparziel), '
                 'speichern wir als Teil deiner Daten und senden es mit der Übersicht mit. Du siehst und löschst '
-                'es jederzeit unter „Was Buddy weiß“. Gesundheit, Glaube, Politik und Zugangsdaten merkt sich '
-                'Buddy nicht. Damit Buddy an frühere Gespräche anknüpfen kann, behält die App auf deinem Gerät '
+                'es jederzeit unter „Was Ahead weiß“. Gesundheit, Glaube, Politik und Zugangsdaten merkt sich '
+                'Ahead nicht. Damit Ahead an frühere Gespräche anknüpfen kann, behält die App auf deinem Gerät '
                 '60 Tage lang je Frage eine kurze Zeile mit dem nächsten Schritt und sendet die letzten davon mit; '
-                'auch sie löschst du unter „Was Buddy weiß“. Von geprüften Gehaltsabrechnungen behält die App '
+                'auch sie löschst du unter „Was Ahead weiß“. Von geprüften Gehaltsabrechnungen behält die App '
                 'nur die Zahlen (ohne Foto) der letzten zwölf auf deinem Gerät, um die nächste damit zu vergleichen; '
                 'auch sie löschst du dort mit „Alles vergessen“.\n\n'
-                'Buddy rechnet mit Werkzeugen, die auf deinem Gerät laufen. An den KI-Anbieter gehen dann nur '
+                'Ahead rechnet mit Werkzeugen, die auf deinem Gerät laufen. An den KI-Anbieter gehen dann nur '
                 'die Ergebnisse, die er für deine Frage braucht (zum Beispiel deine Ausgaben eines Monats nach '
                 'Kategorie), nicht alle Buchungen. Bewertest du eine Antwort mit Daumen hoch oder runter, '
-                'speichern wir deine Frage, Buddys Antwort und deinen Grund ohne deinen Namen, um Buddy zu '
+                'speichern wir deine Frage, die Antwort von Ahead und deinen Grund ohne deinen Namen, um Ahead zu '
                 'verbessern (Art. 6 Abs. 1 lit. f DSGVO). Gespräche nutzen wir nicht zum Training von KI-Modellen.\n\n'
-                'Ohne Konto kannst du Buddy allgemeine Fragen stellen. Dann geht nur deine Frage samt dem '
+                'Ohne Konto kannst du Ahead allgemeine Fragen stellen. Dann geht nur deine Frage samt dem '
                 'bisherigen Chat an den KI-Anbieter, keine Finanzdaten. Für die Begrenzung auf wenige Fragen pro '
                 'Tag nutzen wir eine zufällige Gerätekennung und deine IP-Adresse; beides speichern wir nur für '
                 'den laufenden Tag im Arbeitsspeicher. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO '
                 '(berechtigtes Interesse am Schutz vor Missbrauch). Der Chat selbst liegt nur auf deinem Gerät.\n\n'
-                'Sprichst du mit Buddy, statt zu tippen, wandelt die Spracherkennung deines Geräts oder Browsers '
+                'Sprichst du mit Ahead, statt zu tippen, wandelt die Spracherkennung deines Geräts oder Browsers '
                 'die Sprache in Text um; je nach System geschieht das beim Hersteller (zum Beispiel Apple oder Google). '
                 'Wir bekommen nur den Text, den du danach abschickst.'),
         const LegalSection(
@@ -186,11 +186,11 @@ class LegalTexts {
                 'grobe Orientierung zur Altersvorsorge (Rentenlücke) im Blick zu behalten. Ahead ist keine '
                 'Bank, führt keine Zahlungen aus und bietet keine Anlage-, Steuer-, Renten- oder Rechtsberatung. '
                 'Vorsorge-Zahlen sind Schätzungen; maßgeblich sind Auskünfte der Deutschen Rentenversicherung '
-                'und deiner Vertragspartner. Antworten von Buddy werden von einer KI erzeugt und können Fehler '
+                'und deiner Vertragspartner. Antworten von Ahead werden von einer KI erzeugt und können Fehler '
                 'enthalten; triff wichtige Entscheidungen bitte nicht allein auf ihrer Grundlage.'),
         const LegalSection(
             '3. Konto',
-            'Buddy kannst du ohne Konto mit allgemeinen Fragen ausprobieren. Für alles andere brauchst du '
+            'Ahead kannst du ohne Konto mit allgemeinen Fragen ausprobieren. Für alles andere brauchst du '
                 'ein Konto. Halte dein Passwort geheim und sag uns Bescheid, '
                 'wenn du einen Missbrauch vermutest. Du kannst dein Konto jederzeit in der App löschen.'),
         LegalSection(
@@ -205,7 +205,7 @@ class LegalTexts {
                 'Preisänderungen teilen wir dir rechtzeitig vorher mit; sie gelten erst ab der nächsten Laufzeit.'),
         const LegalSection(
             '5. Verfügbarkeit',
-            'Wir bemühen uns um einen störungsfreien Betrieb. Bankverbindung, Kursdaten und Buddy hängen auch von '
+            'Wir bemühen uns um einen störungsfreien Betrieb. Bankverbindung, Kursdaten und Ahead hängen auch von '
                 'Diensten Dritter ab und können vorübergehend nicht verfügbar sein.'),
         const LegalSection(
             '6. Haftung',
@@ -280,8 +280,8 @@ class LegalTexts {
         'Kurse können verzögert, unvollständig oder fehlerhaft sein und werden ohne Gewähr angezeigt. '
             'Maßgeblich sind die Angaben deiner Bank bzw. deines Brokers.'),
     LegalSection(
-        'Buddy ist eine KI',
-        'Buddy rechnet mit deinen Daten und formuliert Antworten mit Hilfe eines KI-Modells. Das ist '
+        'Ahead ist eine KI',
+        'Ahead rechnet mit deinen Daten und formuliert Antworten mit Hilfe eines KI-Modells. Das ist '
             'praktisch, aber nicht unfehlbar. Prüfe Zahlen, bevor du wichtige Entscheidungen triffst. Für '
             'Steuer- oder Rechtsfragen wende dich an eine Fachperson.'),
     LegalSection(

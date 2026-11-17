@@ -82,7 +82,7 @@ class DataMap {
       ),
       DataFlow(
         id: 'copy',
-        what: tr('Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Buddy sich merken darf'),
+        what: tr('Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Ahead sich merken darf'),
         place: DataPlace.ourServer,
         where: tr('Unser Server, vorher auf deinem Gerät verschlüsselt (AES-256) mit einem Schlüssel aus deinem Passwort'),
         who: tr('Nur du. Wir sehen nur verschlüsselten Text und können ihn nicht öffnen.'),
@@ -123,7 +123,7 @@ class DataMap {
         who: google
             ? tr('Google, um zu antworten. Im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung nutzen.')
             : tr('Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.'),
-        end: tr('Schalter „Buddy mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Buddy dann auf dem Gerät.'),
+        end: tr('Schalter „Ahead mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Ahead dann auf dem Gerät.'),
         section: '5',
         facts: google ? const ['Gemini', 'Google'] : const ['Anthropic', 'Training'],
         active: s.signedIn && s.aiConsent,
@@ -131,14 +131,14 @@ class DataMap {
       DataFlow(
         id: 'memory',
         what: s.memories > 0
-            ? tr('{n} Dinge, die Buddy sich merken darf', {'n': s.memories})
-            : tr('Was Buddy sich merken darf'),
+            ? tr('{n} Dinge, die Ahead sich merken darf', {'n': s.memories})
+            : tr('Was Ahead sich merken darf'),
         place: DataPlace.device,
-        where: tr('Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Buddy-Frage mit.'),
+        where: tr('Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Ahead-Frage mit.'),
         who: tr('Du, und der KI-Anbieter für die Antwort'),
-        end: tr('Profil › Was Buddy weiß'),
+        end: tr('Profil › Was Ahead weiß'),
         section: '5',
-        facts: const ['Was Buddy weiß'],
+        facts: const ['Was Ahead weiß'],
         active: s.memories > 0,
       ),
       DataFlow(
@@ -147,7 +147,7 @@ class DataMap {
         place: DataPlace.device,
         where: tr('Nur auf diesem Gerät, Notizen 60 Tage lang'),
         who: tr('Nur du. Die letzten Notizen gehen als Kontext mit an den KI-Anbieter.'),
-        end: tr('Profil › Was Buddy weiß › Alles vergessen'),
+        end: tr('Profil › Was Ahead weiß › Alles vergessen'),
         section: '5',
         facts: const ['60 Tage', 'Gehaltsabrechnung'],
         active: true,
@@ -158,7 +158,7 @@ class DataMap {
         what: tr('Frage, Antwort und Grund, wenn du eine Antwort bewertest'),
         place: DataPlace.ourServer,
         where: tr('Unser Server, ohne deinen Namen'),
-        who: tr('Wir, um Buddy zu verbessern. Nicht zum Training von KI-Modellen.'),
+        who: tr('Wir, um Ahead zu verbessern. Nicht zum Training von KI-Modellen.'),
         end: tr('Schreib uns, dann löschen wir es'),
         section: '5',
         facts: const ['Daumen'],
@@ -199,7 +199,7 @@ class DataMap {
       ),
       DataFlow(
         id: 'voice',
-        what: tr('Deine Sprache, wenn du mit Buddy sprichst'),
+        what: tr('Deine Sprache, wenn du mit Ahead sprichst'),
         place: DataPlace.provider,
         where: tr('Die Spracherkennung deines Geräts, je nach System beim Hersteller (Apple oder Google)'),
         who: tr('Der Hersteller wandelt sie in Text um, wir bekommen nur den Text'),

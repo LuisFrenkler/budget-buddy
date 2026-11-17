@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               SectionLabel(tr('Privatsphäre & KI')),
               SettingsGroup([
-                _switch(Icons.cloud_outlined, tr('Buddy mit KI'),
+                _switch(Icons.cloud_outlined, tr('Ahead mit KI'),
                     tr('Nur mit Zustimmung'), BuddyService.hasConsent, (v) async {
                   await BuddyService.live();
                   await BuddyService.setConsent(v);
@@ -257,7 +257,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }),
                 SettingsRow(
                   icon: Icons.bookmark_outline_rounded,
-                  title: tr('Was Buddy weiß'),
+                  title: tr('Was Ahead weiß'),
                   subtitle: tr('Von dir bestätigt'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen())),
                 ),
@@ -274,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SettingsRow(
                   icon: Icons.card_giftcard_rounded,
                   title: tr('Freunde einladen'),
-                  subtitle: tr('Mehr Buddy-Fragen'),
+                  subtitle: tr('Mehr Ahead-Fragen'),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InviteScreen())),
                 ),
                 SettingsRow(

@@ -94,6 +94,9 @@ class _AgentFeedState extends State<AgentFeed> {
     } else if (open > 0) {
       label = tr('Ahead hat für dich gefunden');
       amount = tr('mind. {x}', {'x': Money.format(open)});
+    } else if (AheadAgent.upToCents(_finds) > 0) {
+      label = tr('Ahead hat für dich gefunden');
+      amount = tr('bis zu {x}', {'x': Money.format(AheadAgent.upToCents(_finds))});
     } else {
       label = tr('Ahead hält für dich Ausschau');
       amount = null;
@@ -167,6 +170,17 @@ class _AgentFeedState extends State<AgentFeed> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(f.title, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, height: 1.25)),
+                  if (f.kind == FindKind.money && (f.cents ?? 0) > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text(
+                        f.yearly
+                            ? tr('{x} im Jahr', {'x': Money.format(f.cents!)})
+                            : tr('{x} zurückholen', {'x': Money.format(f.cents!)}),
+                        key: Key('amount-${f.id}'),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.glow),
+                      ),
+                    ),
                   if (f.text.isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Text(f.text, style: TextStyle(fontSize: 13.5, color: AppColors.textDim, height: 1.35)),

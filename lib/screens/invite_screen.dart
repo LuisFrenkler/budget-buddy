@@ -54,7 +54,7 @@ class _InviteScreenState extends State<InviteScreen> {
                   style: const TextStyle(fontFamily: AppFonts.display, fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: -0.6, height: 1.15)),
               const SizedBox(height: 8),
               Text(
-                tr('Bis zu drei Personen. Jede bringt {n} Buddy-Fragen mehr im Monat.',
+                tr('Bis zu drei Personen. Jede bringt {n} Ahead-Fragen mehr im Monat.',
                     {'n': i?.bonusPerFriend ?? 5}),
                 style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15.5),
               ),

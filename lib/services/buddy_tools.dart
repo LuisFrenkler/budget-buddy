@@ -248,7 +248,7 @@ class BuddyTools {
         final c = PayslipHistory.chart();
         if (c == null) {
           return {
-            'fehler': tr('Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.')
+            'fehler': tr('Noch keine gespeicherten Abrechnungen. Schick Ahead ein Foto davon.')
           };
         }
         charts.add(c);

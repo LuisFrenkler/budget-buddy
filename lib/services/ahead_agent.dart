@@ -19,13 +19,17 @@ class AgentFind {
   final String id;
   final FindKind kind;
   final String title, text, action;
-  // the least the person gets back, when Ahead can say it
+  // the least the person gets back, when Ahead can say it; per year when [yearly]
   final int? cents;
+  final bool yearly;
+  // tax: the most it can bring, when the least is not sure yet
+  final int? upTo;
   // tax: the year whose page opens; a tax find without year opens the check
   final int? year;
   // otherwise: what Ahead is asked to do after the yes
   final String? question;
-  const AgentFind(this.id, this.kind, this.title, this.text, this.action, {this.cents, this.year, this.question});
+  const AgentFind(this.id, this.kind, this.title, this.text, this.action,
+      {this.cents, this.yearly = false, this.upTo, this.year, this.question});
 }
 
 class AheadAgent {
@@ -34,7 +38,6 @@ class AheadAgent {
     HintKind.stillCharging,
     HintKind.priceUp,
     HintKind.doubleCharge,
-    HintKind.trialEnds,
     HintKind.subTip,
     HintKind.bankFees,
     HintKind.dunning,
@@ -91,22 +94,8 @@ class AheadAgent {
       final r = TaxEstimate.range(p, receipts: receipts, year: y);
       if (r.high < 50) continue;
       final left = TaxEstimate.deadline(y).difference(day).inDays;
-      final id = 'tax-$y';
-      if (later[id]?.isAfter(today) == true && left > 30) continue;
-      final low = (r.low.clamp(0, double.infinity) * 100).round();
-      tax.add(AgentFind(
-        id,
-        FindKind.tax,
-        low > 0
-            ? tr('Steuer {y}: mindestens {x} zurück', {'y': y, 'x': Money.format(low)})
-            : tr('Steuer {y}: bis zu {x} zurück', {'y': y, 'x': Money.format((r.high * 100).round())}),
-        left <= 60
-            ? tr('Noch {n} Tage, danach ist das Geld weg. Ich führe dich Schritt für Schritt durch.', {'n': left})
-            : tr('Abgabe bis {d}. Ich führe dich Schritt für Schritt durch.', {'d': Dates.full(TaxEstimate.deadline(y))}),
-        tr('Ja, los'),
-        cents: low,
-        year: y,
-      ));
+      if (later['tax-$y']?.isAfter(today) == true && left > 30) continue;
+      tax.add(_taxFind(y, r.low, r.high, day));
     }
 
     // nothing about taxes yet: the first job is to look
@@ -118,11 +107,50 @@ class AheadAgent {
     for (final h in hints) {
       if (!moneyKinds.contains(h.kind) || later[h.id]?.isAfter(today) == true) continue;
       money.add(AgentFind(h.id, FindKind.money, h.title, h.text, tr('Erledigen'),
-          question: h.question ?? tr('Kümmer dich darum: {x}', {'x': h.title})));
+          cents: h.cents, yearly: h.yearly, question: h.question ?? tr('Kümmer dich darum: {x}', {'x': h.title})));
     }
 
     tax.sort((a, b) => (b.cents ?? 0).compareTo(a.cents ?? 0));
+    money.sort((a, b) => (b.cents ?? 0).compareTo(a.cents ?? 0));
     return [...tax, ...money, ...waiting, ...done];
+  }
+
+  static AgentFind _taxFind(int y, double lowEuro, double highEuro, DateTime day) {
+    final left = TaxEstimate.deadline(y).difference(day).inDays;
+    final low = (lowEuro.clamp(0, double.infinity) * 100).round();
+    return AgentFind(
+      'tax-$y',
+      FindKind.tax,
+      low > 0
+          ? tr('Steuer {y}: mindestens {x} zurück', {'y': y, 'x': Money.format(low)})
+          : tr('Steuer {y}: bis zu {x} zurück', {'y': y, 'x': Money.format((highEuro * 100).round())}),
+      left <= 60
+          ? tr('Noch {n} Tage, danach ist das Geld weg. Ich führe dich Schritt für Schritt durch.', {'n': left})
+          : tr('Abgabe bis {d}. Ich führe dich Schritt für Schritt durch.', {'d': Dates.full(TaxEstimate.deadline(y))}),
+      tr('Ja, los'),
+      cents: low,
+      upTo: (highEuro * 100).round(),
+      year: y,
+    );
+  }
+
+  // before sign-up: the finds from the refund check, so the guest sees the agent's work too
+  static List<AgentFind> guestFinds({DateTime? now}) {
+    final today = now ?? DateTime.now();
+    final c = _box?.get('refundCheck');
+    if (c is! Map) return const [];
+    final years = TaxEstimate.quickCheck(
+      startYear: (c['startYear'] as num).toInt(),
+      startMonth: (c['startMonth'] as num).toInt(),
+      grossMonth: (c['grossMonth'] as num).toDouble(),
+      km: (c['km'] as num?)?.toDouble() ?? 0,
+      today: today,
+    );
+    final day = DateTime(today.year, today.month, today.day);
+    return [
+      for (final q in years)
+        if (q.deadline != null && q.high >= 50) _taxFind(q.year, q.low, q.high, day)
+    ]..sort((a, b) => (b.cents ?? 0).compareTo(a.cents ?? 0));
   }
 
   // money that really arrived or stopped going out: tax refunds from the notice
@@ -164,7 +192,13 @@ class AheadAgent {
     return cents;
   }
 
-  // the least still waiting in open finds
-  static int openCents(List<AgentFind> finds) =>
-      finds.where((f) => f.kind == FindKind.tax).fold(0, (s, f) => s + (f.cents ?? 0));
+  // the most the open finds can bring: for the headline while the least is still zero
+  static int upToCents(List<AgentFind> finds) => finds
+      .where((f) => f.kind == FindKind.tax || f.kind == FindKind.money)
+      .fold(0, (s, f) => s + (f.upTo ?? f.cents ?? 0));
+
+  // the least still waiting in open finds: tax back, money to reclaim, a year of a cost that can stop
+  static int openCents(List<AgentFind> finds) => finds
+      .where((f) => f.kind == FindKind.tax || f.kind == FindKind.money)
+      .fold(0, (s, f) => s + (f.cents ?? 0));
 }

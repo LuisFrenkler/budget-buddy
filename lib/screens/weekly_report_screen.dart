@@ -58,7 +58,7 @@ class WeeklyReportScreen extends StatelessWidget {
                   Icon(Icons.insights_rounded, size: 48, color: AppColors.primaryText),
                   const SizedBox(height: 16),
                   Text(
-                      tr('Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.'),
+                      tr('Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Ahead sie aus.'),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textDim, height: 1.4)),
                   const SizedBox(height: 20),
@@ -153,7 +153,7 @@ class _Report extends StatelessWidget {
           Row(children: [
             BuddyOrb(size: 30),
             SizedBox(width: 10),
-            Text(tr('Buddy sagt'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            Text(tr('Ahead sagt'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ]),
           const SizedBox(height: 10),
           Text(r.summary, style: const TextStyle(fontSize: 15, height: 1.4, fontWeight: FontWeight.w600)),
@@ -164,7 +164,7 @@ class _Report extends StatelessWidget {
             onPressed: () => BuddyScreen.open(
                 context, tr('Wie kann ich nächste Woche weniger ausgeben als diese?')),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(tr('Mit Buddy weiterreden')),
+            label: Text(tr('Mit Ahead weiterreden')),
           ),
         ]),
       ),
@@ -242,7 +242,7 @@ class _Report extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         duration: const Duration(milliseconds: 2800),
                         content: Text(ok
-                            ? tr('Buddy erinnert dich jeden Sonntag um 18 Uhr')
+                            ? tr('Ahead erinnert dich jeden Sonntag um 18 Uhr')
                             : NotificationService.problem)));
                   }
                 },

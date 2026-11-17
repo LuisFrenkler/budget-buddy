@@ -41,7 +41,7 @@ extension NotifyTopicLabel on NotifyTopic {
         NotifyTopic.contracts => tr('Verträge & Abbuchungen'),
         NotifyTopic.weekly => 'Wochenbericht',
         NotifyTopic.account => 'Abo & Bankverbindung',
-        NotifyTopic.buddy => 'Buddy-Momente',
+        NotifyTopic.buddy => 'Ahead-Momente',
       };
 
   String get description => switch (this) {
@@ -174,7 +174,7 @@ class NotificationService {
   // a short confirmation right after turning it on
   static Future<void> hello() => _show(
         1,
-        tr('Buddy meldet sich ab jetzt'),
+        tr('Ahead meldet sich ab jetzt'),
         tr('Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.'),
         'home',
       );
@@ -182,7 +182,7 @@ class NotificationService {
   static NotificationDetails get _details => NotificationDetails(
     android: AndroidNotificationDetails(
       'buddy',
-      'Buddy',
+      'Ahead',
       channelDescription: tr('Hinweise, Erinnerungen und Wochenbericht'),
       importance: Importance.high,
       priority: Priority.high,
@@ -367,7 +367,7 @@ class NotificationService {
     for (final t in tasks) {
       final when = at(t.due, 9);
       if (when.isAfter(now)) {
-        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, tr('Erinnerung von Buddy'), t.text, NotifyTopic.buddy,
+        out.add(Reminder(_idFor('task-${t.text}-${t.due}'), when, tr('Erinnerung von Ahead'), t.text, NotifyTopic.buddy,
             'buddy:Hilf mir bei diesem Schritt: ${t.text}'));
       }
     }
@@ -383,7 +383,7 @@ class NotificationService {
               _idFor('overdraft-$d'),
               when,
               tr('Heute rutscht dein Konto ins Minus'),
-              tr('Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.'),
+              tr('Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Ahead zeigt dir, wie du ohne Dispo durchkommst.'),
               NotifyTopic.spending,
               'buddy:${tr('Mein Konto rutscht heute ins Minus. Was kann ich jetzt noch tun?')}'));
         }
@@ -392,7 +392,7 @@ class NotificationService {
 
     final weekly = WeeklyReportService.nextReady(now);
     out.add(Reminder(_idFor('weekly-$weekly'), weekly, tr('Dein Wochenbericht ist da'),
-        tr('Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.'), NotifyTopic.weekly, 'weekly'));
+        tr('Ahead hat deine Woche ausgewertet: was gut lief und wo noch was geht.'), NotifyTopic.weekly, 'weekly'));
 
     for (final c in Contracts.detect(tx, now: now)) {
       if (c.monthlyCents < 5000) continue;

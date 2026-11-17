@@ -148,10 +148,10 @@ class BuddyAppGuide {
             : tr('**Profil › Mein Konto › Konto löschen.** Das löscht das Konto endgültig.\n\n'
                 'Nächster Schritt: Mein Konto öffnen und unten Konto löschen tippen.');
       case 'ai':
-        return tr('**Profil › Privatsphäre & KI**, Schalter **Buddy mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\n'
+        return tr('**Profil › Privatsphäre & KI**, Schalter **Ahead mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\n'
             'Nächster Schritt: Schalter umlegen.');
       case 'about':
-        return tr('**Ahead** ist diese App, **Buddy** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\n'
+        return tr('**Ahead** ist diese App, **Ahead** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\n'
             'Nächster Schritt: Frag, was diesen Monat noch frei ist.');
       case 'signOut':
         if (a == null) {

@@ -50,7 +50,7 @@ void main() {
 
   testWidgets('Buddy is a tab, and asking from elsewhere lands in it', (tester) async {
     await pumpShell(tester);
-    expect(find.text('Buddy'), findsWidgets); // the tab label
+    expect(find.text('Ahead'), findsWidgets); // the tab label
     // adding by hand moved to the Konto tab: Buddy adds from the chat
     expect(find.bySemanticsLabel(RegExp('^Schnell erfassen')), findsNothing);
     expect(HomeScreen.addMenu, isNotNull);
@@ -94,7 +94,7 @@ void main() {
     await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 300)));
     await tester.pump(const Duration(seconds: 1));
     // the answer: who speaks, read out when it arrives
-    final buddy = find.bySemanticsLabel(RegExp(r'^Buddy\nIch rechne'));
+    final buddy = find.bySemanticsLabel(RegExp(r'^Ahead\nIch rechne'));
     expect(buddy, findsOneWidget);
     expect(tester.getSemantics(buddy).getSemanticsData().flagsCollection.isLiveRegion, isTrue);
     // the question above it: scroll back up to it

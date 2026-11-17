@@ -224,6 +224,6 @@ class WeeklyReportService {
     if (usual > 0 && spent < usual) {
       return tr('Du lagst {x} unter deinem Schnitt. Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.', {'x': Money.format(usual - spent)});
     }
-    return tr('Setz dir für deine größte Kategorie ein Wochenlimit. Buddy sagt dir Bescheid, bevor es knapp wird.');
+    return tr('Setz dir für deine größte Kategorie ein Wochenlimit. Ahead sagt dir Bescheid, bevor es knapp wird.');
   }
 }

@@ -42,6 +42,8 @@ void main() {
     expect(kinds, containsAll([HintKind.priceUp]));
     final rise = hints.firstWhere((h) => h.kind == HintKind.priceUp);
     expect(rise.title, 'Netflix ist teurer geworden');
+    // the agent's card shows what the rise costs over a year
+    expect((rise.cents, rise.yearly), (1200, true));
   });
 
   test('unusual expense, trial end, bank expiry, goal due', () {

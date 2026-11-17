@@ -95,9 +95,9 @@ void main() {
   test('other product questions get a path, money questions do not', () {
     expect(BuddyAppGuide.answerOrNull('Wo finde ich Plus'), contains('Ahead Plus'));
     expect(BuddyAppGuide.answerOrNull('Wo finde ich Datenschutz?'), contains('Datenschutzerklärung'));
-    expect(BuddyAppGuide.answerOrNull('Wie schalte ich KI an/aus?'), contains('Buddy mit KI'));
+    expect(BuddyAppGuide.answerOrNull('Wie schalte ich KI an/aus?'), contains('Ahead mit KI'));
     expect(BuddyAppGuide.answerOrNull('Was ist Ahead?'), contains('**Ahead**'));
-    expect(BuddyAppGuide.answerOrNull('Was ist Buddy?'), contains('**Buddy**'));
+    expect(BuddyAppGuide.answerOrNull('Was ist Buddy?'), contains('**Ahead**'));
     expect(BuddyAppGuide.answerOrNull('Wie melde ich mich ab?'), contains('abgemeldet'));
     expect(BuddyAppGuide.answerOrNull('Wo ist der Notgroschen?'), contains('Vermögen & Absicherung'));
     expect(BuddyAppGuide.answerOrNull('Wo finde ich Verträge?'), contains('Verträge & Abos'));

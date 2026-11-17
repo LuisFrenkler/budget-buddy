@@ -636,7 +636,7 @@ class _SplitGroupScreenState extends State<SplitGroupScreen> {
             actions: [
               // Buddy for the group: who owes whom and a message for the group chat
               IconButton(
-                tooltip: tr('Buddy für die Gruppe'),
+                tooltip: tr('Ahead für die Gruppe'),
                 onPressed: () => showGroupBuddy(context, g, onAsk: (q) => BuddyScreen.open(context, q)),
                 icon: const BuddyOrb(size: 26),
               ),

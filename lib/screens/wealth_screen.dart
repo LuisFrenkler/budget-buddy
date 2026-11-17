@@ -104,7 +104,7 @@ class _WealthScreenState extends State<WealthScreen> {
           ),
           const SizedBox(height: 22),
           _section(tr('Versicherungen')),
-          Text(tr('Nur Inventar, keine Vermittlung. Damit du und Buddy Fixkosten siehst.'),
+          Text(tr('Nur Inventar, keine Vermittlung. Damit du und Ahead Fixkosten siehst.'),
               style: TextStyle(
                   color: AppColors.textDim, fontSize: 13, height: 1.35)),
           const SizedBox(height: 10),
@@ -141,7 +141,7 @@ class _WealthScreenState extends State<WealthScreen> {
                     ? tr('Wie baue ich einen Notgroschen auf?')
                     : tr('Wie stehe ich bei Absicherung und Schulden da?')),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(tr('Mit Buddy besprechen')),
+            label: Text(tr('Mit Ahead besprechen')),
           ),
         ],
       ),
@@ -269,7 +269,7 @@ class _WealthScreenState extends State<WealthScreen> {
         decoration: BoxDecoration(
             color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
         child: Text(
-          tr('Sind Fixkosten oder Ausgaben erkennbar, schlägt Buddy einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.'),
+          tr('Sind Fixkosten oder Ausgaben erkennbar, schlägt Ahead einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.'),
           style: TextStyle(color: AppColors.textDim, height: 1.35),
         ),
       );

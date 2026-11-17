@@ -69,8 +69,12 @@ class Hint {
   final bool urgent;
   // what to ask Buddy when the hint is tapped (a notification opens his chat)
   final String? question;
+  // money at stake, for the agent's card: per year when [yearly], else once
+  final int? cents;
+  final bool yearly;
 
-  const Hint(this.id, this.kind, this.title, this.text, this.target, {this.urgent = false, this.question});
+  const Hint(this.id, this.kind, this.title, this.text, this.target,
+      {this.urgent = false, this.question, this.cents, this.yearly = false});
 
   // how much this hint matters right now: what is at stake and how soon it
   // has to be done. The app shows the highest first, Buddy opens with it.
@@ -253,8 +257,8 @@ class HintsService {
           tr('Eine Woche später: {x}', {'x': e.title}),
           switch (e.kind) {
             'cancel' => tr('Ist die Kündigung bestätigt? Ohne Bestätigung lieber nachhaken.'),
-            'budget' => tr('Buddy schaut mit dir, ob das Budget passt oder angepasst werden sollte.'),
-            _ => tr('Buddy schaut mit dir, ob du im Plan bist.'),
+            'budget' => tr('Ahead schaut mit dir, ob das Budget passt oder angepasst werden sollte.'),
+            _ => tr('Ahead schaut mit dir, ob du im Plan bist.'),
           },
           HintTarget.buddy,
           question: switch (e.kind) {
@@ -288,7 +292,7 @@ class HintsService {
           'installments-$month',
           HintKind.installments,
           tr('{n} Ratenzahlungen: {x} im Monat', {'n': rates.length, 'x': Money.format(sum)}),
-          tr('Jede einzeln ist klein, zusammen sind es {x} im Jahr. Buddy zeigt dir, welche zuerst weg sollte.',
+          tr('Jede einzeln ist klein, zusammen sind es {x} im Jahr. Ahead zeigt dir, welche zuerst weg sollte.',
               {'x': Money.format(sum * 12)}),
           HintTarget.buddy,
           question: tr('Ich zahle {x} im Monat für Ratenkäufe. Wie werde ich die am schnellsten los?', {'x': Money.format(sum)})));
@@ -392,7 +396,7 @@ class HintsService {
           'November', 'Dezember'];
         final m = tr(names[last.month - 1]), n = tr(names[today.month - 1]);
         out.add(Hint('month-${last.year}-${last.month}', HintKind.monthReview, tr('Dein Monatsabschluss'),
-            tr('{m} ist vorbei. Zwei Minuten mit Buddy: was lief gut und was ist der Plan für {n}?', {'m': m, 'n': n}),
+            tr('{m} ist vorbei. Zwei Minuten mit Ahead: was lief gut und was ist der Plan für {n}?', {'m': m, 'n': n}),
             HintTarget.buddy,
             question: tr('Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?',
                 {'m': m, 'n': n})));
@@ -489,7 +493,7 @@ class HintsService {
     // the forecast says the month will not work out
     if (freeCents != null && freeCents < 0 && today.day <= 25) {
       out.add(Hint('low-$month-${today.day ~/ 7}', HintKind.lowMonth, tr('Der Monat wird knapp'),
-          tr('Nach den festen Kosten fehlen bis Monatsende etwa {x}. Buddy hat einen Plan.', {'x': Money.format(-freeCents)}),
+          tr('Nach den festen Kosten fehlen bis Monatsende etwa {x}. Ahead hat einen Plan.', {'x': Money.format(-freeCents)}),
           HintTarget.buddy,
           urgent: true, question: tr('Mein Monat wird knapp. Was kann ich jetzt tun?')));
     }
@@ -505,7 +509,8 @@ class HintsService {
             tr('{x} bucht trotz Kündigung ab', {'x': c.name}),
             tr('Am {x} gekündigt, am {y} trotzdem {z}. Zurückfordern. Lastschrift 8 Wochen bei der Bank zurückgeben.', {'x': Dates.dayMonth(sent), 'y': Dates.dayMonth(c.last.date), 'z': Money.format(c.monthlyCents)}),
             HintTarget.contracts,
-            urgent: true));
+            urgent: true,
+            cents: c.monthlyCents));
       }
       // a price rise in the last six weeks
       if (c.priceChange > 0 && _daysBetween(c.last.date, today) <= 42) {
@@ -515,7 +520,9 @@ class HintsService {
             tr('{x} ist teurer geworden', {'x': c.name}),
             tr('+{x} im Monat, jetzt {y}. Aufs Jahr sind das {z} mehr.', {'x': Money.format(c.priceChange), 'y': Money.format(c.monthlyCents), 'z': Money.format(c.priceChange * 12)}),
             HintTarget.contracts,
-            urgent: true));
+            urgent: true,
+            cents: c.priceChange * 12,
+            yearly: true));
       }
       // a large fixed payment in the next three days
       final until = _daysBetween(today, c.nextDate);
@@ -593,7 +600,8 @@ class HintsService {
                   {'x': Money.format(d.cents), 'y': Dates.dayMonth(d.first.date), 'z': Dates.dayMonth(d.second.date)}),
           HintTarget.buddy,
           question: tr('{x} hat zweimal {y} abgebucht. Was mache ich, wenn das ein Fehler war?',
-              {'x': d.merchant, 'y': Money.format(d.cents)})));
+              {'x': d.merchant, 'y': Money.format(d.cents)}),
+          cents: d.cents));
     }
 
     // bank fees that add up over a year (shown once a month)
@@ -606,9 +614,11 @@ class HintsService {
           tr('Bankgebühren: rund {x} im Jahr', {'x': Money.format(perYear)}),
           fees.any((f) => f.kind == 'dispo')
               ? tr('Dabei sind Dispozinsen. Die sind meist der teuerste Kredit, den es gibt.')
-              : tr('Viele Banken haben ein kostenloses Girokonto. Buddy rechnet mit dir nach.'),
+              : tr('Viele Banken haben ein kostenloses Girokonto. Ahead rechnet mit dir nach.'),
           HintTarget.buddy,
-          question: tr('Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?', {'x': Money.format(perYear)})));
+          question: tr('Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?', {'x': Money.format(perYear)}),
+          cents: perYear,
+          yearly: true));
     }
 
     // the free trial ends soon and nothing is cancelled

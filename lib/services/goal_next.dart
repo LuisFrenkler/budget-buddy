@@ -34,7 +34,7 @@ class GoalNext {
           tr('{x} ist geschafft. Wie schnell schaffe ich jetzt {y}, wenn ich die Rate dorthin lege?',
               {'x': reached.name, 'y': next.name}));
     }
-    return GoalNext(tr('Was kommt als Nächstes? Buddy plant es mit dir.'),
+    return GoalNext(tr('Was kommt als Nächstes? Ahead plant es mit dir.'),
         tr('{x} ist geschafft. Was wäre ein gutes nächstes Sparziel für mich?', {'x': reached.name}));
   }
 }

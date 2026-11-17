@@ -86,7 +86,7 @@ class BuddyProposal {
         return (tr('{n} Buchungen sind jetzt in {y}.', {'n': hit.length, 'y': category}), undo);
       case ProposalKind.reminder:
         final id = await BuddyTasks.add('${data['text']}', due: data['datum'] as DateTime?);
-        return (tr('Notiert. Buddy erinnert dich.'), {if (id != null) 'taskId': id});
+        return (tr('Notiert. Ahead erinnert dich.'), {if (id != null) 'taskId': id});
       case ProposalKind.save:
         final goal = GoalsService.all().where((g) => g.id == data['goalId']).firstOrNull;
         if (goal == null) throw tr('Das Sparziel gibt es nicht mehr.');

@@ -418,7 +418,7 @@ class _NameFormState extends State<_NameForm> with _Saving {
   @override
   Widget build(BuildContext context) => _Sheet(
         title: tr('Name ändern'),
-        text: tr('So nennt dich Buddy.'),
+        text: tr('So nennt dich Ahead.'),
         error: error,
         busy: busy,
         onSave: () => save(() => AccountService.changeName(_name.text)),

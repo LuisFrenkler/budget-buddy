@@ -100,7 +100,7 @@ class GoalsScreen extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => BuddyScreen.open(context, tr('Wie lege ich ein Sparziel an?')),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(tr('Mit Buddy planen')),
+            label: Text(tr('Mit Ahead planen')),
           ),
         ],
       );
@@ -432,7 +432,7 @@ void celebrateGoal(BuildContext context, Goal goal) {
                 Navigator.pop(context);
                 BuddyScreen.open(context, next.question);
               },
-              child: Text(tr('Mit Buddy weiterplanen')),
+              child: Text(tr('Mit Ahead weiterplanen')),
             ),
           ]),
         ),
@@ -794,7 +794,7 @@ class _AutoSaveSheetState extends State<_AutoSaveSheet> {
             child: TextButton.icon(
               onPressed: () => setState(() => _monthly.text = _suggested),
               icon: const Icon(Icons.tips_and_updates_outlined, size: 16),
-              label: Text(tr('Buddy schlägt {suggested} € vor', {'suggested': _suggested})),
+              label: Text(tr('Ahead schlägt {suggested} € vor', {'suggested': _suggested})),
             ),
           )
         else if ((Money.parseToCents(_monthly.text) ?? 0) > 0 &&

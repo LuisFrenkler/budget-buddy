@@ -9,16 +9,16 @@ const en = <String, String>{
   'Notiert.': 'Noted.',
   'Was das Gerät verlässt': 'What leaves the device',
   'Bank, Kopie, KI, Kurse': 'Bank, copy, AI, prices',
-  'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nBuddy holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Buddy zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.':
-      'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nBuddy only fetches the data he needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Buddy to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
-  'Frag Buddy. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.':
-      'Ask Buddy. No sign-up, no bank. He explains every term and tells you the next step.',
+  'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nAhead holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Ahead zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.':
+      'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nAhead only fetches the data he needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Ahead to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
+  'Frag Ahead. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.':
+      'Ask Ahead. No sign-up, no bank. He explains every term and tells you the next step.',
   'Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ':
       'Your gym hasn\'t seen you since March. It still charges ',
   ' ab.': ' anyway.',
   'Offline: Grundlagen ohne KI': 'Offline: basics without AI',
-  'Buddy kann sich irren, keine Anlageberatung':
-      'Buddy can make mistakes, no investment advice',
+  'Ahead kann sich irren, keine Anlageberatung':
+      'Ahead can make mistakes, no investment advice',
   'Schnell erfassen. Lange drücken für mehr.':
       'Quick add. Long press for more.',
   '**Im Vergleich zur letzten Abrechnung:**':
@@ -218,7 +218,7 @@ const en = <String, String>{
   'Ins Depot': 'Into portfolio',
   'Kategorie': 'Category',
   'Eintrag': 'Entry',
-  'Buddy konnte das gerade nicht lesen.': 'Buddy couldn\'t read that just now.',
+  'Ahead konnte das gerade nicht lesen.': 'Ahead couldn\'t read that just now.',
   'Nichts geändert': 'Nothing changed',
   '1 Buchung sortiert': '1 booking sorted',
   '{n} Buchungen sortiert': '{n} bookings sorted',
@@ -322,7 +322,7 @@ const en = <String, String>{
       'Cancellation copied. Send it by email or through the cancellation form.',
   'Neue Buchungen von {x} landen in {y}.': 'New bookings from {x} go to {y}.',
   '{n} Buchungen sind jetzt in {y}.': '{n} bookings are now in {y}.',
-  'Notiert. Buddy erinnert dich.': 'Noted. Buddy will remind you.',
+  'Notiert. Ahead erinnert dich.': 'Noted. Ahead will remind you.',
   'Das Sparziel gibt es nicht mehr.':
       'That savings goal doesn\'t exist any more.',
   '{x} ist schon voll.': '{x} is already full.',
@@ -342,14 +342,14 @@ const en = <String, String>{
   '{x} jetzt, danach fehlen noch {y}': '{x} now, then {y} to go',
   'ohne Datum': 'no date',
   'Erinnerung': 'Reminder',
-  'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.':
-      'Buddy didn\'t finish answering. Please try again.',
+  'Ahead hat nicht zu Ende geantwortet. Bitte gleich noch einmal.':
+      'Ahead didn\'t finish answering. Please try again.',
   'Belege scannen geht mit einem kostenlosen Konto.':
       'Scanning receipts works with a free account.',
-  'Belege scannen braucht „Buddy mit KI“ in den Einstellungen.':
-      'Scanning receipts needs "Buddy with AI" in settings.',
-  'Buddy ist gerade nicht erreichbar ({status}).':
-      'Buddy can\'t be reached right now ({status}).',
+  'Belege scannen braucht „Ahead mit KI“ in den Einstellungen.':
+      'Scanning receipts needs "Ahead with AI" in settings.',
+  'Ahead ist gerade nicht erreichbar ({status}).':
+      'Ahead can\'t be reached right now ({status}).',
   'Richte meine Vorsorge ein': 'Set up my retirement plan',
   'Zeig mein Nettovermögen': 'Show my net worth',
   'Was schuldet mir die WG?': 'What does my flatshare owe me?',
@@ -371,8 +371,8 @@ const en = <String, String>{
       '{x} left in the budget for {y}, with {days} days to go.',
   'Wie komme ich mit meinem Budget für {x} bis zum Monatsende hin?':
       'How do I make my budget for {x} last until the end of the month?',
-  '{misc} Umsätze stecken in Sonstiges. Buddy hilft beim Einordnen.':
-      '{misc} transactions are in Other. Buddy helps sort them.',
+  '{misc} Umsätze stecken in Sonstiges. Ahead hilft beim Einordnen.':
+      '{misc} transactions are in Other. Ahead helps sort them.',
   '{x} ist teurer geworden.': '{x} got more expensive.',
   'Sollte ich {x} kündigen oder behalten?': 'Should I cancel {x} or keep it?',
   'Noch {x} frei bis Monatsende, eher knapp.':
@@ -562,8 +562,8 @@ const en = <String, String>{
       'From now on the {x} a month go to {y}.',
   '{x} ist geschafft. Wie schnell schaffe ich jetzt {y}, wenn ich die Rate dorthin lege?':
       '{x} is done. How fast can I reach {y} if I move the monthly amount there?',
-  'Was kommt als Nächstes? Buddy plant es mit dir.':
-      'What\'s next? Buddy plans it with you.',
+  'Was kommt als Nächstes? Ahead plant es mit dir.':
+      'What\'s next? Ahead plans it with you.',
   '{x} ist geschafft. Was wäre ein gutes nächstes Sparziel für mich?':
       '{x} is done. What would be a good next savings goal for me?',
   'Ziel erreicht.': 'Goal reached.',
@@ -584,9 +584,9 @@ const en = <String, String>{
       '{x} a month is tight, almost your whole surplus.',
   '{x}/Monat wären nötig. Datum verschieben oder Ziel senken.':
       '{x}/month would be needed. Move the date or lower the goal.',
-  'Buddy ist gerade nicht erreichbar.': 'Buddy can\'t be reached right now.',
-  'Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Buddy mit deinen echten Zahlen.':
-      'For that I need the AI right now, and without an account it\'s used up for today or not reachable.\n\nWhat I can do well offline:\n- **First job**: payslip, company pension, emergency fund, savings rate\n- **Moving** and **moving in together**\n- Explaining terms like ETF, tax class or emergency fund\n\nNext step: With a free account Buddy works with your real numbers.',
+  'Ahead ist gerade nicht erreichbar.': 'Ahead can\'t be reached right now.',
+  'Dafür brauche ich gerade die KI, und die ist ohne Konto für heute aufgebraucht oder nicht erreichbar.\n\nWas ich offline gut kann:\n- **Erster Job**: Gehaltsabrechnung, Betriebsrente, Notgroschen, Sparrate\n- **Umzug** und **Zusammenziehen**\n- Begriffe wie ETF, Steuerklasse oder Notgroschen erklären\n\nNächster Schritt: Mit einem kostenlosen Konto rechnet Ahead mit deinen echten Zahlen.':
+      'For that I need the AI right now, and without an account it\'s used up for today or not reachable.\n\nWhat I can do well offline:\n- **First job**: payslip, company pension, emergency fund, savings rate\n- **Moving** and **moving in together**\n- Explaining terms like ETF, tax class or emergency fund\n\nNext step: With a free account Ahead works with your real numbers.',
   '**{x}**: {y}\n\nNächster Schritt: Mit einem kostenlosen Konto rechne ich das mit deinen eigenen Zahlen durch.':
       '**{x}**: {y}\n\nNext step: With a free account I\'ll work this out with your own numbers.',
   'heute': 'today',
@@ -595,10 +595,10 @@ const en = <String, String>{
   'Eine Woche später: {x}': 'One week later: {x}',
   'Ist die Kündigung bestätigt? Ohne Bestätigung lieber nachhaken.':
       'Has the cancellation been confirmed? Without a confirmation, better follow up.',
-  'Buddy schaut mit dir, ob das Budget passt oder angepasst werden sollte.':
-      'Buddy checks with you whether the budget fits or should change.',
-  'Buddy schaut mit dir, ob du im Plan bist.':
-      'Buddy checks with you whether you\'re on track.',
+  'Ahead schaut mit dir, ob das Budget passt oder angepasst werden sollte.':
+      'Ahead checks with you whether the budget fits or should change.',
+  'Ahead schaut mit dir, ob du im Plan bist.':
+      'Ahead checks with you whether you\'re on track.',
   'Vor einer Woche habe ich gekündigt: {x}. Was mache ich, wenn keine Bestätigung kommt?':
       'A week ago I cancelled: {x}. What do I do if no confirmation comes?',
   'Wie läuft mein Budget seit einer Woche: {x}?':
@@ -611,8 +611,8 @@ const en = <String, String>{
   '{x} kommt bald mit {y}. Wie lege ich für solche Jahreszahlungen am besten zurück?':
       '{x} is coming soon with {y}. How do I best save up for payments like this?',
   '{n} Ratenzahlungen: {x} im Monat': '{n} instalment plans: {x} a month',
-  'Jede einzeln ist klein, zusammen sind es {x} im Jahr. Buddy zeigt dir, welche zuerst weg sollte.':
-      'Each one is small, together they\'re {x} a year. Buddy shows you which to clear first.',
+  'Jede einzeln ist klein, zusammen sind es {x} im Jahr. Ahead zeigt dir, welche zuerst weg sollte.':
+      'Each one is small, together they\'re {x} a year. Ahead shows you which to clear first.',
   'Ich zahle {x} im Monat für Ratenkäufe. Wie werde ich die am schnellsten los?':
       'I pay {x} a month for buy-now-pay-later. How do I get rid of them fastest?',
   'Konto rutscht vor dem Gehalt ins Minus':
@@ -652,8 +652,8 @@ const en = <String, String>{
   'Wie komme ich mit {x} bis Monatsende hin?':
       'How do I make {x} last until the end of the month?',
   'Dein Monatsabschluss': 'Your month in review',
-  '{m} ist vorbei. Zwei Minuten mit Buddy: was lief gut und was ist der Plan für {n}?':
-      '{m} is over. Two minutes with Buddy: what went well and what\'s the plan for {n}?',
+  '{m} ist vorbei. Zwei Minuten mit Ahead: was lief gut und was ist der Plan für {n}?':
+      '{m} is over. Two minutes with Ahead: what went well and what\'s the plan for {n}?',
   'Lass uns {m} abschließen: Was lief gut, was nicht, und was ist der Plan für {n}?':
       'Let\'s close {m}: what went well, what didn\'t, and what\'s the plan for {n}?',
   'Nach deinen Angaben kommen rund {x} zurück. Abgeben geht kostenlos über ELSTER.':
@@ -679,8 +679,8 @@ const en = <String, String>{
   'Mein Gehalt ist da. Wie viel sollte ich davon zur Seite legen?':
       'My salary is in. How much of it should I put aside?',
   'Der Monat wird knapp': 'This month is getting tight',
-  'Nach den festen Kosten fehlen bis Monatsende etwa {x}. Buddy hat einen Plan.':
-      'After fixed costs you\'re about {x} short until the end of the month. Buddy has a plan.',
+  'Nach den festen Kosten fehlen bis Monatsende etwa {x}. Ahead hat einen Plan.':
+      'After fixed costs you\'re about {x} short until the end of the month. Ahead has a plan.',
   'Mein Monat wird knapp. Was kann ich jetzt tun?':
       'My month is getting tight. What can I do now?',
   '{x} bucht trotz Kündigung ab': '{x} is still charging despite cancellation',
@@ -709,8 +709,8 @@ const en = <String, String>{
   'Bankgebühren: rund {x} im Jahr': 'Bank fees: around {x} a year',
   'Dabei sind Dispozinsen. Die sind meist der teuerste Kredit, den es gibt.':
       'That includes overdraft interest. It\'s usually the most expensive credit there is.',
-  'Viele Banken haben ein kostenloses Girokonto. Buddy rechnet mit dir nach.':
-      'Many banks offer a free current account. Buddy does the maths with you.',
+  'Viele Banken haben ein kostenloses Girokonto. Ahead rechnet mit dir nach.':
+      'Many banks offer a free current account. Ahead does the maths with you.',
   'Ich zahle rund {x} Bankgebühren im Jahr. Wie bekomme ich das runter?':
       'I pay around {x} in bank fees a year. How do I get that down?',
   'Danach {x} {y}. Wenn du nicht weitermachen willst, kündige vorher.':
@@ -744,8 +744,8 @@ const en = <String, String>{
       'Your spending is about the same as last month.',
   'Größter Posten: {x} ({y}).': 'Biggest item: {x} ({y}).',
   '{incCat} ist um {x} gestiegen.': '{incCat} went up by {x}.',
-  'Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead: {link}':
-      'What do I do with my salary? Buddy names one next step. Ahead: {link}',
+  'Was mach ich mit dem Gehalt? Ahead nennt einen nächsten Schritt. Ahead: {link}':
+      'What do I do with my salary? Ahead names one next step. Ahead: {link}',
   'Erster Job': 'First job',
   'Gehalt, Betriebsrente, Notgroschen, Sparrate':
       'Salary, company pension, emergency fund, savings rate',
@@ -970,18 +970,18 @@ const en = <String, String>{
   'Mitteilungen sind ausgeschaltet. Du kannst sie in den Einstellungen {x} für Ahead erlauben.':
       'Notifications are turned off. You can allow them for Ahead in the settings {x}.',
   'deines Geräts': 'of your device',
-  'Buddy meldet sich ab jetzt': 'Buddy will check in from now on',
+  'Ahead meldet sich ab jetzt': 'Ahead will check in from now on',
   'Nur wenn es wichtig ist. Du kannst das jederzeit im Profil ändern.':
       'Only when it matters. You can change this any time in your profile.',
   'Hinweise, Erinnerungen und Wochenbericht':
       'Alerts, reminders and weekly report',
   'Dein Wochenbericht ist da': 'Your weekly report is here',
-  'Erinnerung von Buddy': 'Reminder from Buddy',
+  'Erinnerung von Ahead': 'Reminder from Ahead',
   'Heute rutscht dein Konto ins Minus': 'Your account dips below zero today',
-  'Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Buddy zeigt dir, wie du ohne Dispo durchkommst.':
-      'After today\'s debits your balance probably won\'t cover it. Buddy shows you how to get through without the overdraft.',
-  'Buddy hat deine Woche ausgewertet: was gut lief und wo noch was geht.':
-      'Buddy has reviewed your week: what went well and where there\'s room.',
+  'Nach den Abbuchungen bis heute reicht der Kontostand voraussichtlich nicht. Ahead zeigt dir, wie du ohne Dispo durchkommst.':
+      'After today\'s debits your balance probably won\'t cover it. Ahead shows you how to get through without the overdraft.',
+  'Ahead hat deine Woche ausgewertet: was gut lief und wo noch was geht.':
+      'Ahead has reviewed your week: what went well and where there\'s room.',
   'Dein Gratis-Test endet in 2 Tagen': 'Your free trial ends in 2 days',
   'Ab {x} kostet Plus {y}. Wenn du nicht weitermachen willst, kündige vorher.':
       'From {x} Plus costs {y}. If you don\'t want to continue, cancel before then.',
@@ -1100,8 +1100,8 @@ const en = <String, String>{
       '{x} small purchases at {y}, {z} in total. Half as often would be {a} a year.',
   'Du lagst {x} unter deinem Schnitt. Leg den Betrag gleich auf ein Sparziel, dann ist er sicher.':
       'You were {x} below your average. Move that amount to a savings goal right away, then it\'s safe.',
-  'Setz dir für deine größte Kategorie ein Wochenlimit. Buddy sagt dir Bescheid, bevor es knapp wird.':
-      'Set a weekly limit for your biggest category. Buddy will tell you before it gets tight.',
+  'Setz dir für deine größte Kategorie ein Wochenlimit. Ahead sagt dir Bescheid, bevor es knapp wird.':
+      'Set a weekly limit for your biggest category. Ahead will tell you before it gets tight.',
   'Umsätze, Budgets, Sparziele, Verträge, Depot, Einstellungen':
       'Transactions, budgets, savings goals, contracts, portfolio, settings',
   'Nur auf diesem Gerät, im geschützten Speicher der App':
@@ -1116,8 +1116,8 @@ const en = <String, String>{
       'Us, to run your account. Nobody but you knows the password.',
   'Profil › Mein Konto › Konto löschen':
       'Profile › My account › Delete account',
-  'Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Buddy sich merken darf':
-      'Copy of your transactions, budgets, goals, splits, portfolio positions and what Buddy may remember',
+  'Kopie deiner Umsätze, Budgets, Ziele, Splits, Depot-Positionen und was Ahead sich merken darf':
+      'Copy of your transactions, budgets, goals, splits, portfolio positions and what Ahead may remember',
   'Unser Server, vorher auf deinem Gerät verschlüsselt (AES-256) mit einem Schlüssel aus deinem Passwort':
       'Our server, encrypted on your device first (AES-256) with a key from your password',
   'Nur du. Wir sehen nur verschlüsselten Text und können ihn nicht öffnen.':
@@ -1147,28 +1147,28 @@ const en = <String, String>{
       'Google, to answer. On the free Gemini plan Google may use it to improve its services.',
   'Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.':
       'Anthropic, only to answer. By contract not for training.',
-  'Schalter „Buddy mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Buddy dann auf dem Gerät.':
-      'The "Buddy with AI" switch under Profile › Privacy & AI. Buddy then answers simple questions on the device.',
-  '{n} Dinge, die Buddy sich merken darf': '{n} things Buddy may remember',
-  'Was Buddy sich merken darf': 'What Buddy may remember',
-  'Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Buddy-Frage mit.':
-      'On the device and in your encrypted copy. Sent along with every Buddy question.',
+  'Schalter „Ahead mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Ahead dann auf dem Gerät.':
+      'The "Ahead with AI" switch under Profile › Privacy & AI. Ahead then answers simple questions on the device.',
+  '{n} Dinge, die Ahead sich merken darf': '{n} things Ahead may remember',
+  'Was Ahead sich merken darf': 'What Ahead may remember',
+  'Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Ahead-Frage mit.':
+      'On the device and in your encrypted copy. Sent along with every Ahead question.',
   'Du, und der KI-Anbieter für die Antwort':
       'You, and the AI provider for the answer',
-  'Profil › Was Buddy weiß': 'Profile › What Buddy knows',
+  'Profil › Was Ahead weiß': 'Profile › What Ahead knows',
   'Kurze Notizen zu deinen letzten Fragen und Werte geprüfter Gehaltsabrechnungen (ohne Foto)':
       'Short notes on your recent questions and the numbers of checked payslips (no photo)',
   'Nur auf diesem Gerät, Notizen 60 Tage lang':
       'Only on this device, notes for 60 days',
   'Nur du. Die letzten Notizen gehen als Kontext mit an den KI-Anbieter.':
       'Only you. The latest notes go to the AI provider as context.',
-  'Profil › Was Buddy weiß › Alles vergessen':
-      'Profile › What Buddy knows › Forget everything',
+  'Profil › Was Ahead weiß › Alles vergessen':
+      'Profile › What Ahead knows › Forget everything',
   'Frage, Antwort und Grund, wenn du eine Antwort bewertest':
       'Question, answer and reason when you rate an answer',
   'Unser Server, ohne deinen Namen': 'Our server, without your name',
-  'Wir, um Buddy zu verbessern. Nicht zum Training von KI-Modellen.':
-      'Us, to improve Buddy. Not for training AI models.',
+  'Wir, um Ahead zu verbessern. Nicht zum Training von KI-Modellen.':
+      'Us, to improve Ahead. Not for training AI models.',
   'Schreib uns, dann löschen wir es': 'Write to us and we delete it',
   'Zahlungsdaten für Plus': 'Payment details for Plus',
   'Apple (App Store), Google Play oder Stripe (Irland), je nachdem wo du kaufst':
@@ -1191,8 +1191,8 @@ const en = <String, String>{
   'Meta stellt die Nachricht zu': 'Meta delivers the message',
   'Profil › Mitteilungen, oder „Stop“ in WhatsApp':
       'Profile › Notifications, or "Stop" in WhatsApp',
-  'Deine Sprache, wenn du mit Buddy sprichst':
-      'Your voice, when you talk to Buddy',
+  'Deine Sprache, wenn du mit Ahead sprichst':
+      'Your voice, when you talk to Ahead',
   'Die Spracherkennung deines Geräts, je nach System beim Hersteller (Apple oder Google)':
       'Your device\'s speech recognition, depending on the system at the maker (Apple or Google)',
   'Der Hersteller wandelt sie in Text um, wir bekommen nur den Text':
@@ -1216,8 +1216,8 @@ const en = <String, String>{
   'Schreib uns an {email}': 'Write to us at {email}',
   'Über Ahead': 'About Ahead',
   'Version {appVersion}': 'Version {appVersion}',
-  'Dein Buddy für Geld und Zukunft. Die Cloud-Kopie ist passwortverschlüsselt.':
-      'Your buddy for money and the future. The cloud copy is encrypted with your password.',
+  'Dein Agent, der verlorenes Geld findet. Die Cloud-Kopie ist passwortverschlüsselt.':
+      'Your agent that finds lost money. The cloud copy is encrypted with your password.',
   'Vor der Veröffentlichung noch: {x}. Nur in Test-Versionen sichtbar.':
       'Before release still: {x}. Only visible in test builds.',
   'Anbieter-Angaben': 'Provider details',
@@ -1255,8 +1255,8 @@ const en = <String, String>{
   'Sonstiges · {misc} {x}': 'Other · {misc} {x}',
   'Buchung': 'booking',
   'Buchungen': 'bookings',
-  'Tippe eine Buchung oder frag Buddy „Sonstiges aufräumen“.':
-      'Tap a booking or ask Buddy "Tidy up Other".',
+  'Tippe eine Buchung oder frag Ahead „Sonstiges aufräumen“.':
+      'Tap a booking or ask Ahead "Tidy up Other".',
   'Suchen': 'Search',
   'Keine Treffer': 'No results',
   'Andere Suche oder Filter zurücksetzen.':
@@ -1333,7 +1333,7 @@ const en = <String, String>{
   'Endgültig löschen': 'Delete permanently',
   'Speichern': 'Save',
   'Name ändern': 'Change name',
-  'So spricht Buddy dich an.': 'This is what Buddy calls you.',
+  'So spricht Ahead dich an.': 'This is what Ahead calls you.',
   'Bitte bestätige mit deinem Passwort.': 'Please confirm with your password.',
   'E-Mail ändern': 'Change email',
   'Aktuell: {email}': 'Current: {email}',
@@ -1476,9 +1476,9 @@ const en = <String, String>{
   'Schön, dass du da bist.': 'Great to have you here.',
   'Wie starten wir? Am schnellsten mit mir im Chat. Die Bank kannst du später verbinden.':
       'How do we start? Fastest is with me in chat. You can connect the bank later.',
-  'Mit Buddy loslegen': 'Get started with Buddy',
-  'Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.':
-      'Tell Buddy what\'s coming up. Add numbers if you like, or snap a receipt.',
+  'Mit Ahead loslegen': 'Get started with Ahead',
+  'Erzähl Ahead, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.':
+      'Tell Ahead what\'s coming up. Add numbers if you like, or snap a receipt.',
   'Empfohlen': 'Recommended',
   'Bankkonto verbinden': 'Connect bank account',
   'Login nur bei deiner Bank, nur Lesezugriff. Kontostand und Umsätze kommen automatisch.':
@@ -1500,33 +1500,33 @@ const en = <String, String>{
   'Prognose auf Start': 'Forecast on Home',
   'Splits öffnen': 'Open splits',
   'Budget für {target} anlegen': 'Create budget for {target}',
-  'Was Buddy getan hat': 'What Buddy did',
-  'Buddy macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.':
-      'Buddy only does what you confirm. This lists what he created or changed. Almost all of it can be undone.',
-  'Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Buddy, steht es hier.':
-      'Nothing yet. When you take a budget, goal or reminder from Buddy, it shows up here.',
+  'Was Ahead getan hat': 'What Ahead did',
+  'Ahead macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.':
+      'Ahead only does what you confirm. This lists what he created or changed. Almost all of it can be undone.',
+  'Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Ahead, steht es hier.':
+      'Nothing yet. When you take a budget, goal or reminder from Ahead, it shows up here.',
   'Zurückgenommen': 'Taken back',
   'Alles vergessen?': 'Forget everything?',
-  'Buddy vergisst alles Gemerkte. Buchungen und Ziele bleiben.':
-      'Buddy forgets everything he stored. Bookings and goals stay.',
+  'Ahead vergisst alles Gemerkte. Buchungen und Ziele bleiben.':
+      'Ahead forgets everything he stored. Bookings and goals stay.',
   'Alles vergessen': 'Forget everything',
-  'Was Buddy weiß': 'What Buddy knows',
+  'Was Ahead weiß': 'What Ahead knows',
   'Ich merke mir nur, was du bestätigst, dann muss ich nicht neu fragen. Alles hier kannst du löschen.':
       'I only remember what you confirm, so I do not have to ask again. You can delete everything here.',
   'Lebenslage': 'Life stage',
   '{done} von {all} Schritten erledigt': '{done} of {all} steps done',
   'Gemerkt': 'Remembered',
-  'Noch nichts. Sag Buddy z. B. „Merk dir: im Oktober fängt mein erster Job an“.':
-      'Nothing yet. Tell Buddy, for example: remember that my first job starts in October.',
+  'Noch nichts. Sag Ahead z. B. „Merk dir: im Oktober fängt mein erster Job an“.':
+      'Nothing yet. Tell Ahead, for example: remember that my first job starts in October.',
   'Gemerkt am {date}': 'Remembered on {date}',
   'Worüber ihr gesprochen habt': 'What you talked about',
-  'Damit Buddy später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.':
-      'So Buddy can pick up later. Only the question and the next step, kept 60 days.',
-  'Ist „Buddy mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.':
-      'If Buddy with AI is on, these points go to the AI with your finance summary, only when you ask.',
-  'Buddy mit KI nutzen?': 'Use Buddy with AI?',
-  'Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}':
-      'Buddy only fetches the data he needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Buddy to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
+  'Damit Ahead später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.':
+      'So Ahead can pick up later. Only the question and the next step, kept 60 days.',
+  'Ist „Ahead mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.':
+      'If Ahead with AI is on, these points go to the AI with your finance summary, only when you ask.',
+  'Ahead mit KI nutzen?': 'Use Ahead with AI?',
+  'Ahead holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Ahead zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}':
+      'Ahead only fetches the data he needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Ahead to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
   'Google (Gemini)': 'Google (Gemini)',
   'Anthropic': 'Anthropic',
   'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.':
@@ -1541,7 +1541,7 @@ const en = <String, String>{
   'Lohnt sich die Betriebsrente?': 'Is the company pension worth it?',
   'Alles klar, ab jetzt antworte ich auf Deutsch.':
       'Got it, from now on I\'ll answer in English.',
-  'Wie schalte ich Buddy mit KI aus?': 'How do I turn off Buddy with AI?',
+  'Wie schalte ich Ahead mit KI aus?': 'How do I turn off Ahead with AI?',
   'Wie lösche ich mein Konto?': 'How do I delete my account?',
   'Kurz von mir: **{title}**. {text}':
       'Quick note from me: **{title}**. {text}',
@@ -1568,8 +1568,8 @@ const en = <String, String>{
   'Abrechnung prüfen': 'Check payslip',
   'Du hast schon ein aktives Sparziel. Plus = beliebig viele Ziele.':
       'You already have an active savings goal. Plus = as many goals as you like.',
-  '{done}. Buddy merkt sich die Regel für künftige Buchungen.':
-      '{done}. Buddy remembers the rule for future bookings.',
+  '{done}. Ahead merkt sich die Regel für künftige Buchungen.':
+      '{done}. Ahead remembers the rule for future bookings.',
   'Rentenrechner gespeichert': 'Pension calculator saved',
   'Sparziel angelegt': 'Savings goal created',
   'Ging nicht. {x}': 'Didn\'t work. {x}',
@@ -1578,20 +1578,19 @@ const en = <String, String>{
       'Shall I remember this? Then I don\'t have to ask every time.',
   'Das merke ich mir lieber nicht. Gesundheit, Glaube, Politik und Zugangsdaten bleiben bei dir.':
       'I\'d rather not remember that. Health, faith, politics and login details stay with you.',
-  'Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.':
-      'Free questions used up. With Plus Buddy answers as often as you like. Without Plus Buddy keeps answering offline from your data.',
+  'Gratis-Fragen aufgebraucht. Mit Plus antwortet Ahead, so oft du willst. Ohne Plus antwortet Ahead weiter offline aus deinen Daten.':
+      'Free questions used up. With Plus Ahead answers as often as you like. Without Plus Ahead keeps answering offline from your data.',
   'Noch 1 Gratis-Frage diesen Monat': '1 free question left this month',
-  'Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.':
-      'Buddy can\'t be reached right now. Check your connection and ask again in a moment.',
+  'Ahead ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.':
+      'Ahead can\'t be reached right now. Check your connection and ask again in a moment.',
   'Kopieren': 'Copy',
   'Kopiert': 'Copied',
   'Als Karte teilen': 'Share as card',
   'Beträge kannst du vorher ausblenden': 'You can hide amounts first',
-  'Frag Buddy': 'Ask Buddy',
-  '{q} Buddy von Ahead hat mir das in Sekunden ausgerechnet.':
-      '{q} Buddy from Ahead worked this out for me in seconds.',
+  'Frag Ahead': 'Ask Ahead',
+  '{q} Ahead hat mir das in Sekunden ausgerechnet.':
+      '{q} Ahead worked this out for me in seconds.',
   'Zur neuesten Nachricht': 'To the latest message',
-  'Buddy': 'Buddy',
   'schreibt …': 'typing …',
   'Mehr': 'More',
   'Neuer Chat': 'New chat',
@@ -1599,7 +1598,7 @@ const en = <String, String>{
   'Starten': 'Start',
   'Was mach ich jetzt mit meinem ': 'What do I do now with my ',
   'Gehalt?': 'salary?',
-  'Frag Buddy. Ohne Anmeldung.': 'Ask Buddy. No sign-up.',
+  'Frag Ahead. Ohne Anmeldung.': 'Ask Ahead. No sign-up.',
   'Erste Gehaltsabrechnung?': 'First payslip?',
   'Wie viel Notgroschen?': 'How big an emergency fund?',
   'Lohnt sich ein ETF?': 'Is an ETF worth it?',
@@ -1639,40 +1638,40 @@ const en = <String, String>{
   'Als Nächstes': 'Up next',
   'Loslegen': 'Get started',
   'Alles erledigt. Stark.': 'All done. Strong.',
-  'Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Mit Konto rechnet Buddy mit deinen echten Zahlen.':
-      'Without an account only your questions go to the AI, no financial data. With an account Buddy works with your real numbers.',
-  'Offline-Modus: Buddy rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.':
-      'Offline mode: Buddy calculates on your device. AI answers need internet and "AI on".',
-  'Buddy bereitet vor, du entscheidest. Nichts wird gespeichert, bevor du es bestätigst.':
-      'Buddy prepares, you decide. Nothing is saved before you confirm it.',
-  'KI ist aus. Buddy antwortet offline aus deinen Daten.':
-      'AI is off. Buddy answers offline from your data.',
+  'Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Mit Konto rechnet Ahead mit deinen echten Zahlen.':
+      'Without an account only your questions go to the AI, no financial data. With an account Ahead works with your real numbers.',
+  'Offline-Modus: Ahead rechnet auf deinem Gerät. KI-Antworten brauchen Internet und „KI an“.':
+      'Offline mode: Ahead calculates on your device. AI answers need internet and "AI on".',
+  'Ahead bereitet vor, du entscheidest. Nichts wird gespeichert, bevor du es bestätigst.':
+      'Ahead prepares, you decide. Nothing is saved before you confirm it.',
+  'KI ist aus. Ahead antwortet offline aus deinen Daten.':
+      'AI is off. Ahead answers offline from your data.',
   'Einschalten': 'Turn on',
   'Du': 'You',
   'Kopieren und mehr': 'Copy and more',
-  'Buddy meldet sich': 'Buddy checks in',
-  'Buddy denkt nach': 'Buddy is thinking',
+  'Ahead meldet sich': 'Ahead checks in',
+  'Ahead denkt nach': 'Ahead is thinking',
   'schaut in {x} …': 'looking at {x} …',
   'Prüft {x}…': 'Checking {x}…',
-  'KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen':
-      'AI not available right now · answer from Buddy\'s basic knowledge',
+  'KI gerade nicht verfügbar · Antwort aus dem Grundwissen von Ahead':
+      'AI not available right now · answer from Ahead\'s basic knowledge',
   'KI gerade ausgelastet · Antwort offline aus deinen Daten':
       'AI busy right now · answer offline from your data',
-  'Ohne KI · aus Buddys Grundwissen':
-      'Without AI · from Buddy\'s basic knowledge',
+  'Ohne KI · aus dem Grundwissen von Ahead':
+      'Without AI · from Ahead\'s basic knowledge',
   'Ohne KI berechnet aus deinen Daten': 'Calculated from your data without AI',
-  'Buddy hat eine Zahl nachgeprüft': 'Buddy double-checked a number',
+  'Ahead hat eine Zahl nachgeprüft': 'Ahead double-checked a number',
   'Stopp': 'Stop',
   'Vorlesen': 'Read aloud',
   'Danke!': 'Thanks!',
-  'Danke, das hilft Buddy.': 'Thanks, that helps Buddy.',
+  'Danke, das hilft Ahead.': 'Thanks, that helps Ahead.',
   'Gute Antwort': 'Good answer',
   'Schlechte Antwort': 'Bad answer',
   'Was war nicht gut?': 'What wasn\'t good?',
   'Was hättest du erwartet? (optional)':
       'What would you have expected? (optional)',
-  'Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.':
-      'The question and the answer go to Ahead so Buddy can improve. Nothing else.',
+  'Frage und Antwort gehen an Ahead, damit Ahead besser wird. Sonst nichts.':
+      'The question and the answer go to Ahead so Ahead can improve. Nothing else.',
   'Senden': 'Send',
   'Passiert erst, wenn du bestätigst': 'Only happens once you confirm',
   'Erledigt: {x}': 'Done: {x}',
@@ -1683,7 +1682,7 @@ const en = <String, String>{
   'Übernehmen': 'Apply',
   'Weiß ich schon': 'I know that already',
   'Nicht gemerkt': 'Not remembered',
-  'Soll Buddy sich das merken?': 'Should Buddy remember this?',
+  'Soll Ahead sich das merken?': 'Should Ahead remember this?',
   'Nein': 'No',
   'Merken': 'Remember',
   'Ansehen': 'View',
@@ -1695,13 +1694,13 @@ const en = <String, String>{
   'Foto entfernen': 'Remove photo',
   'Foto senden': 'Send photo',
   'Ich höre zu …': 'Listening …',
-  'Frag Buddy etwas …': 'Ask Buddy something …',
-  'Frag Buddy oder erzähl was …': 'Ask Buddy or tell him something …',
+  'Frag Ahead etwas …': 'Ask Ahead something …',
+  'Frag Ahead oder erzähl was …': 'Ask Ahead or tell him something …',
   'Zuhören beenden': 'Stop listening',
   'Sprechen': 'Speak',
   '{syncError} Erneut versuchen': '{syncError} Try again',
   'Kann sich irren, keine Anlageberatung': 'Can be wrong, no investment advice',
-  'Buddy hat einen Tipp': 'Buddy has a tip',
+  'Ahead hat einen Tipp': 'Ahead has a tip',
   '„{x}“': '"{x}"',
   'Budget hinzufügen': 'Add budget',
   'Noch keine Budgets': 'No budgets yet',
@@ -1736,8 +1735,8 @@ const en = <String, String>{
   'Monatsbudget': 'Monthly budget',
   'Gilt ab sofort und in den nächsten Monaten.':
       'Applies from now on and in the coming months.',
-  'Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.':
-      'One monthly limit per category. Buddy warns you before it gets tight.',
+  'Ein Monats-Limit pro Kategorie. Ahead sagt Bescheid, bevor es knapp wird.':
+      'One monthly limit per category. Ahead warns you before it gets tight.',
   'Diesen Monat hat jede Kategorie ein Limit. Tippe eins zum Anpassen.':
       'Every category already has a limit this month. Tap one to change it.',
   '€ im Monat': '€ a month',
@@ -1857,13 +1856,13 @@ const en = <String, String>{
   'Klarna.': 'Klarna.',
   'Beleg jetzt scannen': 'Scan a receipt now',
   'Sparziele öffnen': 'Open savings goals',
-  'Buddy öffnen': 'Open Buddy',
+  'Ahead öffnen': 'Open Ahead',
   'Willkommen bei Plus': 'Welcome to Plus',
   'Gratis-Test bis {x}. Bis dahin 0 €, jederzeit kündbar.':
       'Free trial until {x}. 0 € until then, cancel any time.',
   'Plus ist aktiv. Du kannst jederzeit unter Profil › Mein Abo kündigen.':
       'Plus is active. You can cancel any time under Profile › My subscription.',
-  'Buddy beantwortet jetzt jede Frage': 'Buddy now answers every question',
+  'Ahead beantwortet jetzt jede Frage': 'Ahead now answers every question',
   'Belege scannen ohne Limit': 'Scan receipts without limits',
   'So viele Sparziele, wie du willst': 'As many savings goals as you like',
   'Das war der Grund. Probier es gleich aus.':
@@ -1876,15 +1875,15 @@ const en = <String, String>{
   'Die App ist privacy-first gebaut. Umsätze, Budgets, Ziele und Depot liegen zuerst auf deinem Gerät. Mit einem Konto gibt es zusätzlich eine Kopie, die dein Gerät vor dem Hochladen verschlüsselt, wir können sie nicht lesen. Keine Werbung, kein Tracking, kein Verkauf von Daten.':
       'The app is built privacy-first. Transactions, budgets, goals and portfolio live on your device first. With an account there\'s also a copy that your device encrypts before uploading, we can\'t read it. No ads, no tracking, no selling of data.',
   'Für Investoren': 'For investors',
-  'Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Buddy bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Buddy holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.':
-      'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Buddy prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Buddy only fetches the data he needs for a question, and only with consent.',
+  'Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Ahead bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Ahead holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.':
+      'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Ahead prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Ahead only fetches the data he needs for a question, and only with consent.',
   'Karriere & Weiterbildung': 'Careers & learning',
   'Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze, woran du arbeiten willst, reichen.':
       'We build the app ourselves and are open to working students, internships and people who take product, Flutter or the backend seriously. A few sentences on what you\'d like to work on are enough.',
   'Mitarbeit anfragen': 'Ask about working with us',
   'Transparenz': 'Transparency',
-  'Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. Auf dem Gerät schützt zusätzlich die App-Sperre.\n\nDie Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App sehen deine Zugangsdaten.\n\nBuddy mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit sie dort möglich ist.':
-      'We only store passwords as bcrypt hashes. Optionally you can turn on an authenticator app as a second factor under My account → Security; signed-in devices can be revoked one by one or all at once. On the device, the app lock adds protection.\n\nThe bank connection runs through Enable Banking. You confirm access at your bank (strong customer authentication). Neither we nor the app see your login details.\n\nBuddy with AI only sends a summary without account numbers after you agree. Without consent the answer stays on the device, as far as possible there.',
+  'Passwörter speichern wir nur als bcrypt-Hash. Optional kannst du unter Mein Konto → Sicherheit eine Authenticator-App als zweiten Faktor einschalten; angemeldete Geräte lassen sich einzeln oder alle widerrufen. Auf dem Gerät schützt zusätzlich die App-Sperre.\n\nDie Bankverbindung läuft über Enable Banking. Du bestätigst den Zugriff bei deiner Bank (starke Kundenauthentifizierung). Weder wir noch die App sehen deine Zugangsdaten.\n\nAhead mit KI sendet nur nach deiner Zustimmung eine Zusammenfassung ohne Kontonummern. Ohne Zustimmung bleibt die Antwort auf dem Gerät, soweit sie dort möglich ist.':
+      'We only store passwords as bcrypt hashes. Optionally you can turn on an authenticator app as a second factor under My account → Security; signed-in devices can be revoked one by one or all at once. On the device, the app lock adds protection.\n\nThe bank connection runs through Enable Banking. You confirm access at your bank (strong customer authentication). Neither we nor the app see your login details.\n\nAhead with AI only sends a summary without account numbers after you agree. Without consent the answer stays on the device, as far as possible there.',
   'Vor Store-Release noch ausfüllen: {x}. Nur in Test-Versionen sichtbar.':
       'Still to fill in before store release: {x}. Only visible in test builds.',
   'Hilfe & Lizenzen': 'Help & licences',
@@ -1983,11 +1982,11 @@ const en = <String, String>{
   'Aktualisieren hat nicht geklappt. {x}': 'Refreshing didn\'t work. {x}',
   'Deine Umsätze sind da. Auf dem Start siehst du, was diesen Monat noch frei ist.':
       'Your transactions are in. On Home you can see what\'s still free this month.',
-  '{added} {x} übernommen. Auf dem Start rechnet Buddy, was diesen Monat noch frei ist.':
-      '{added} {x} imported. On Home Buddy works out what\'s still free this month.',
+  '{added} {x} übernommen. Auf dem Start rechnet Ahead, was diesen Monat noch frei ist.':
+      '{added} {x} imported. On Home Ahead works out what\'s still free this month.',
   'Umsatz': 'transaction',
-  '\n\nAbos und Miete erkennt Buddy unter Verträge.':
-      '\n\nBuddy spots subscriptions and rent under Contracts.',
+  '\n\nAbos und Miete erkennt Ahead unter Verträge.':
+      '\n\nAhead spots subscriptions and rent under Contracts.',
   'Hier bleiben': 'Stay here',
   'Verträge': 'Contracts',
   'Zum Start': 'To Home',
@@ -2026,8 +2025,8 @@ const en = <String, String>{
   'Sobald eine Zahlung drei Monate in Folge gleich hoch ist, erscheint sie hier. Mit verbundenem Bankkonto geht das automatisch.':
       'As soon as a payment is the same three months in a row, it shows up here. With a connected bank account this happens automatically.',
   '[Dein Name]': '[Your name]',
-  'Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.':
-      'Noted. Over the next weeks Buddy checks whether {name} really stops.',
+  'Vermerkt. Ahead prüft in den nächsten Wochen, ob {name} wirklich aufhört.':
+      'Noted. Over the next weeks Ahead checks whether {name} really stops.',
   'Kündigung kopiert. Füg sie beim Anbieter ein.':
       'Cancellation copied. Paste it at the provider.',
   '„{name}“ wird nicht mehr als Vertrag gezählt':
@@ -2035,8 +2034,8 @@ const en = <String, String>{
   '{x} im Monat · {x2} im Jahr': '{x} a month · {x2} a year',
   'Alle Zahlungen': 'All payments',
   'Alle {payments} Zahlungen': 'All {payments} payments',
-  'Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Buddy dir Bescheid.':
-      'Cancelled on {x}. If another debit comes after that, Buddy will let you know.',
+  'Gekündigt am {x}. Kommt danach noch eine Abbuchung, sagt Ahead dir Bescheid.':
+      'Cancelled on {x}. If another debit comes after that, Ahead will let you know.',
   'Kündigung zurücknehmen': 'Undo cancellation',
   '{name} kündigen': 'Cancel {name}',
   'Dein Kündigungsschreiben': 'Your cancellation letter',
@@ -2047,16 +2046,16 @@ const en = <String, String>{
   'Ich habe sie abgeschickt': 'I\'ve sent it',
   'Kein Vertrag? Nicht mehr mitzählen': 'Not a contract? Stop counting it',
   'Abo-Check': 'Subscription check',
-  'Buddy hat {n} {x} gefunden: {y} im Jahr.':
-      'Buddy found {n} {x}: {y} a year.',
+  'Ahead hat {n} {x} gefunden: {y} im Jahr.':
+      'Ahead found {n} {x}: {y} a year.',
   'Abo': 'subscription',
   'Abos und Verträge': 'subscriptions and contracts',
   '- **{x}**: {y} im Monat': '- **{x}**: {y} a month',
   '- und {n} weitere': '- and {n} more',
   'Nächster Schritt: Einmal durchgehen, was du wirklich nutzt.':
       'Next step: Go through once and see what you really use.',
-  'Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?':
-      'Buddy from Ahead found {n} subscriptions and contracts on my account. How many do you have?',
+  'Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?':
+      'Ahead found {n} subscriptions and contracts on my account. How many do you have?',
   'Wo deine Daten liegen': 'Where your data is',
   'Pro Datenart: wo sie liegen, wer sie sieht und wie du sie stoppst. Was an ist, steht oben.':
       'For each kind of data: where it lives, who can see it, and how you stop it. What is on is listed above.',
@@ -2112,7 +2111,7 @@ const en = <String, String>{
       'Create a goal. Transfer to your savings account at the bank, after sync it counts here. Without a savings account you enter the amount by hand.',
   'Erstes Ziel anlegen': 'Create first goal',
   'Wie lege ich ein Sparziel an?': 'How do I create a savings goal?',
-  'Mit Buddy planen': 'Plan with Buddy',
+  'Mit Ahead planen': 'Plan with Ahead',
   '{x} von {y}': '{x} of {y}',
   'liegt auf {name}': 'sits in {name}',
   'bis {x}': 'by {x}',
@@ -2147,7 +2146,7 @@ const en = <String, String>{
   'Ziel erreicht': 'Goal reached',
   '{x} für {name} sind zusammen.': '{x} for {name} is together.',
   'Feiern': 'Celebrate',
-  'Mit Buddy weiterplanen': 'Keep planning with Buddy',
+  'Mit Ahead weiterplanen': 'Keep planning with Ahead',
   'Weiterbildung': 'Further education',
   'Geschenke': 'Gifts',
   'Neues Sparziel': 'New savings goal',
@@ -2167,7 +2166,7 @@ const en = <String, String>{
       'The app keeps count, nothing is transferred.',
   'Jeden Monat': 'Every month',
   '€ am Monatsanfang': '€ at the start of the month',
-  'Buddy schlägt {suggested} € vor': 'Buddy suggests € {suggested}',
+  'Ahead schlägt {suggested} € vor': 'Ahead suggests € {suggested}',
   'Zählt ab dem {x}.': 'Counts from {x}.',
   'Ausgaben aufrunden': 'Round up spending',
   'Ein Kaffee für 3,20 € bringt 0,80 € fürs Ziel.{x}{x2}':
@@ -2226,8 +2225,8 @@ const en = <String, String>{
   'Link kopiert': 'Link copied',
   'Freunde einladen': 'Invite friends',
   'Zu dritt ist Geld weniger nervig.': 'Money is less annoying with friends.',
-  'Bis zu drei Personen. Jede bringt {n} Buddy-Fragen mehr im Monat.':
-      'Up to three people. Each one adds {n} Buddy questions a month.',
+  'Bis zu drei Personen. Jede bringt {n} Ahead-Fragen mehr im Monat.':
+      'Up to three people. Each one adds {n} Ahead questions a month.',
   'Dabei': 'Joined',
   'Frei': 'Free',
   'Schon {n} Fragen extra im Monat.': 'Already {n} extra questions a month.',
@@ -2242,15 +2241,15 @@ const en = <String, String>{
   'WhatsApp': 'WhatsApp',
   'Gerade nicht erreichbar.': 'Not reachable right now.',
   'Mitteilungen': 'Notifications',
-  'Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.':
-      'Buddy only speaks up when it matters: at most once a day, three times a week. No spam, no ads.',
+  'Ahead meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.':
+      'Ahead only speaks up when it matters: at most once a day, three times a week. No spam, no ads.',
   'Mitteilungen erlauben': 'Allow notifications',
   'Hier gerade nicht möglich': 'Not possible here right now',
   'Dein Browser blockiert Mitteilungen. Änder das in den Website-Einstellungen (Schloss neben der Adresse). Hinweise in der App bleiben.':
       'Your browser blocks notifications. Change that in the site settings (the lock next to the address). In-app notices stay.',
   'Erlaube Mitteilungen für Ahead in den Geräteeinstellungen. Hinweise in der App bleiben.':
       'Allow notifications for Ahead in the device settings. Notices in the app stay.',
-  'Worüber Buddy Bescheid sagt': 'What Buddy tells you about',
+  'Worüber Ahead Bescheid sagt': 'What Ahead tells you about',
   'Im Browser nur, solange Ahead offen ist. Geplante Erinnerungen (Wochenbericht, Bank-Freigabe) gibt es in der App.':
       'In the browser, only while Ahead is open. Scheduled reminders (weekly report, bank access) are in the app.',
   'Erinnerungen plant dein Gerät. Dafür gehen keine Daten an einen Server.':
@@ -2286,7 +2285,7 @@ const en = <String, String>{
   'Wie komme ich diesen Monat noch hin?': 'How do I get through this month?',
   'Frag mich, was du dir diesen Monat leisten kannst.':
       'Ask me what you can afford this month.',
-  'Buddy sagt': 'Buddy says',
+  'Ahead sagt': 'Ahead says',
   'Polster einrichten': 'Set up a cushion',
   'Polster steht': 'Cushion is in place',
   'Noch {x} bis zum Polster': '{x} to go to your cushion',
@@ -2336,7 +2335,7 @@ const en = <String, String>{
   'Jetzt verbinden': 'Connect now',
   'Oder Ausgabe manuell erfassen': 'Or add an expense manually',
   'Beispieldaten ansehen': 'View sample data',
-  'Buddy ohne Limit': 'Buddy without limits',
+  'Ahead ohne Limit': 'Ahead without limits',
   'Frag so oft du willst': 'Ask as often as you like',
   'Belege ohne Limit': 'Receipts without limits',
   'Fotografieren statt abtippen': 'Snap instead of typing',
@@ -2349,8 +2348,8 @@ const en = <String, String>{
   'Kein Abo gefunden, das wiederhergestellt werden kann':
       'No subscription found that can be restored',
   'Plus ist aktiv': 'Plus is active',
-  'Buddy, Belege und Sparziele laufen ohne Limit.':
-      'Buddy, receipts and savings goals run without limits.',
+  'Ahead, Belege und Sparziele laufen ohne Limit.':
+      'Ahead, receipts and savings goals run without limits.',
   'Mein Abo verwalten': 'Manage my subscription',
   'Ahead Plus': 'Ahead Plus',
   '7 Tage gratis testen · danach jederzeit kündbar':
@@ -2393,14 +2392,14 @@ const en = <String, String>{
   'Aus Buchungen erkannt': 'Spotted from bookings',
   'Mit Freunden teilen': 'Share with friends',
   'Privatsphäre & KI': 'Privacy & AI',
-  'Buddy mit KI': 'Buddy with AI',
+  'Ahead mit KI': 'Ahead with AI',
   'Nur mit deiner Zustimmung': 'Only with your consent',
   'Nur was du bestätigt hast, jederzeit löschbar':
       'Only what you confirmed, delete any time',
   'Wer was lesen kann, und was gerade an ist':
       'Who can read what, and what\'s on right now',
-  'Mehr Buddy-Fragen für jede Person, die mitmacht':
-      'More Buddy questions for every person who joins',
+  'Mehr Ahead-Fragen für jede Person, die mitmacht':
+      'More Ahead questions for every person who joins',
   'Feedback zur Testversion': 'Feedback on the test version',
   'Was hakt, was fehlt, was gefällt':
       'What\'s stuck, what\'s missing, what you like',
@@ -2460,8 +2459,8 @@ const en = <String, String>{
       'Bank, portfolio and account copy were triggered.',
   'Bank und Depot wurden angestoßen. Die Kontokopie braucht ein Konto.':
       'Bank and portfolio were triggered. The account copy needs an account.',
-  'Kurz durchklicken, Feedback wenn etwas hakt:\n\n1. Konto anlegen, erneut anmelden\n2. Bank verbinden (oder Demo), Sync ziehen\n3. Buddy fragen, Sonstiges aufräumen (Start)\n4. 1 Sparziel gratis · Autopilot braucht Plus\n5. Wochenbericht öffnen, „Mit Buddy weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein. Echte Freigaben kommen mit der öffentlichen Version.':
-      'Click through and send feedback if something sticks:\n\n1. Create an account and sign in again\n2. Connect a bank (or demo) and pull to sync\n3. Ask Buddy, tidy Miscellaneous (Home)\n4. 1 free savings goal · Autopilot needs Plus\n5. Open the weekly report, then Keep talking with Buddy\n6. Test a shared expense with a code\n\nThe bank can still be a demo. Real access comes with the public version.',
+  'Kurz durchklicken, Feedback wenn etwas hakt:\n\n1. Konto anlegen, erneut anmelden\n2. Bank verbinden (oder Demo), Sync ziehen\n3. Ahead fragen, Sonstiges aufräumen (Start)\n4. 1 Sparziel gratis · Autopilot braucht Plus\n5. Wochenbericht öffnen, „Mit Ahead weiterreden“\n6. Geteilte Ausgabe mit Code testen\n\nBank kann noch Demo sein. Echte Freigaben kommen mit der öffentlichen Version.':
+      'Click through and send feedback if something sticks:\n\n1. Create an account and sign in again\n2. Connect a bank (or demo) and pull to sync\n3. Ask Ahead, tidy Miscellaneous (Home)\n4. 1 free savings goal · Autopilot needs Plus\n5. Open the weekly report, then Keep talking with Ahead\n6. Test a shared expense with a code\n\nThe bank can still be a demo. Real access comes with the public version.',
   'Feedback senden': 'Send feedback',
   'Erweitert': 'Advanced',
   'Einklappen': 'Collapse',
@@ -2539,11 +2538,11 @@ const en = <String, String>{
   'Gehalt 2.850 am 1.10.': 'Salary 2,850 on 1 Oct',
   'Kino 24 Freitag': 'Cinema 24 Friday',
   'Konto für Beleg-Scan': 'Account for receipt scan',
-  'Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.':
-      'Buddy reads receipts online, which needs a free account. Typing still works without one.',
-  'Buddy liest deinen Beleg …': 'Buddy is reading your receipt …',
-  'Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.':
-      'Buddy couldn\'t read the receipt just now. Check your connection and try again.',
+  'Belege liest Ahead online, dafür ein kostenloses Konto. Tippen geht auch ohne.':
+      'Ahead reads receipts online, which needs a free account. Typing still works without one.',
+  'Ahead liest deinen Beleg …': 'Ahead is reading your receipt …',
+  'Den Beleg konnte Ahead gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.':
+      'Ahead couldn\'t read the receipt just now. Check your connection and try again.',
   '{x} · {y} gespeichert': '{x} · {y} saved',
   'Damit „noch frei“ stimmt: Kontostand einmal eintragen.':
       'For "still free" to be right: enter your balance once.',
@@ -2607,7 +2606,7 @@ const en = <String, String>{
       'The others only see this once you are back online. Remove it on this device only?',
   'Nur hier entfernen': 'Remove here only',
   '„{x}“ entfernt': '"{x}" removed',
-  'Buddy für die Gruppe': 'Buddy for the group',
+  'Ahead für die Gruppe': 'Ahead for the group',
   'Einladen': 'Invite',
   'Person hinzufügen': 'Add person',
   'Namen ändern': 'Change names',
@@ -2786,7 +2785,7 @@ const en = <String, String>{
   'Plus bleibt bis {x} aktiv, danach wird nichts mehr abgebucht.':
       'Plus stays active until {x}, nothing more is charged after that.',
   'Danach gilt wieder': 'After that, back to',
-  '{x} Fragen an Buddy im Monat': '{x} questions to Buddy a month',
+  '{x} Fragen an Ahead im Monat': '{x} questions to Ahead a month',
   '{x} Belege im Monat': '{x} receipts a month',
   '{freeGoals} Sparziel': '{freeGoals} savings goal',
   'Lieber jährlich: nur {yearlyPerMonth} im Monat':
@@ -2794,8 +2793,8 @@ const en = <String, String>{
   'Plus behalten': 'Keep Plus',
   'Jetzt kündigen': 'Cancel now',
   'Gekündigt. Plus läuft noch bis {x}.': 'Cancelled. Plus runs until {x}.',
-  'Buddy sammelt übers Jahr, was du absetzen kannst, und schätzt die Erstattung. Schätzung, keine Steuerberatung.':
-      'Over the year Buddy collects what you can deduct and estimates the refund. An estimate, not tax advice.',
+  'Ahead sammelt übers Jahr, was du absetzen kannst, und schätzt die Erstattung. Schätzung, keine Steuerberatung.':
+      'Over the year Ahead collects what you can deduct and estimates the refund. An estimate, not tax advice.',
   'Dein Jahr': 'Your year',
   'Brutto pro Monat': 'Gross per month',
   'Monate gearbeitet in {y}': 'Months worked in {y}',
@@ -2808,15 +2807,15 @@ const en = <String, String>{
       'Nothing yet. Books, courses, work tools, the union, job applications and a move for the job show up here once they are booked.',
   'Geh mit mir meine Steuererklärung {y} durch: Was kommt zurück und was fehlt noch?':
       'Go through my {y} tax return with me: what comes back and what\'s still missing?',
-  'Mit Buddy durchgehen': 'Go through it with Buddy',
+  'Mit Ahead durchgehen': 'Go through it with Ahead',
   'Regeln {y}: Pendlerpauschale 0,38 €/km ab dem 1. km, Homeoffice 6 €/Tag bis 210 Tage, Arbeitnehmer-Pauschbetrag 1.230 €. Abgeben kostenlos über ELSTER.':
       'Rules {y}: commuting allowance 0.38 €/km from km 1, home office 6 €/day up to 210 days, employee lump sum 1,230 €. File for free via ELSTER.',
   'Fortbildung': 'Training',
   'Arbeitsmittel': 'Work equipment',
   'Gewerkschaft': 'Union',
   'Bewerbung': 'Application',
-  'Trag dein Brutto ein, dann rechnet Buddy die Erstattung aus.':
-      'Enter your gross pay and Buddy works out the refund.',
+  'Trag dein Brutto ein, dann rechnet Ahead die Erstattung aus.':
+      'Enter your gross pay and Ahead works out the refund.',
   'Kommt voraussichtlich zurück': 'Expected back',
   'Voraussichtlich keine Erstattung': 'Probably no refund',
   'Fahrten zur Arbeit': 'Commuting',
@@ -2864,12 +2863,12 @@ const en = <String, String>{
       'I got {x} from {y}. What\'s the best thing to do with it?',
   'Ich habe am {d} {x} bei {y} ausgegeben. Wie passt das in meinen Monat, und kann ich mir das öfter leisten?':
       'On {d} I spent {x} at {y}. How does that fit my month, and can I afford it more often?',
-  'Buddy fragen, was ich damit mache': 'Ask Buddy what to do with it',
+  'Ahead fragen, was ich damit mache': 'Ask Ahead what to do with it',
   'Kann ich mir das leisten?': 'Can I afford this?',
-  'So rechnet Buddy': 'How Buddy calculates',
+  'So rechnet Ahead': 'How Ahead calculates',
   'Orientierung, keine Beratung': 'Guidance, not advice',
-  'Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.':
-      'Buddy estimates the monthly gap. Your DRV statement is what counts. No tax, inflation or product tip.',
+  'Ahead schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.':
+      'Ahead estimates the monthly gap. Your DRV statement is what counts. No tax, inflation or product tip.',
   'Dein Plan': 'Your plan',
   'Gewünschtes Netto im Alter / Monat':
       'Desired net income in retirement / month',
@@ -2887,7 +2886,7 @@ const en = <String, String>{
       'Is my retirement planning enough like this?',
   'Wie schließe ich eine Rentenlücke von {x} im Monat?':
       'How do I close a pension gap of {x} a month?',
-  'Mit Buddy besprechen': 'Discuss with Buddy',
+  'Mit Ahead besprechen': 'Discuss with Ahead',
   'Rentenlücke noch offen': 'Pension gap still open',
   'Trag unten deine gesetzliche Rente ein, am besten aus der DRV-Auskunft. Sonst grob aus dem Netto schätzen.':
       'Enter your state pension below, ideally from the DRV statement. Otherwise estimate it roughly from your net pay.',
@@ -2906,8 +2905,8 @@ const en = <String, String>{
   'Alter heute': 'Age today',
   'Rente ab': 'Retire at',
   'Netto-Gehalt / Monat': 'Net salary / month',
-  'Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.':
-      'Buddy assumes about {x}% as the state pension (mid-career). Replace it later with the DRV statement.',
+  'Ahead setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.':
+      'Ahead assumes about {x}% as the state pension (mid-career). Replace it later with the DRV statement.',
   'Schätzen': 'Estimate',
   'Vom Alltag zum Polster': 'From everyday money to a cushion',
   'Hier siehst du, was hinter dem Start-Vermögen steckt und was noch fehlt.':
@@ -2926,8 +2925,8 @@ const en = <String, String>{
       'Overdraft, credit card or instalment loan. Only the amount you still owe.',
   'Schuld hinzufügen': 'Add debt',
   'Versicherungen': 'Insurance',
-  'Nur Inventar, keine Vermittlung. Damit du und Buddy Fixkosten siehst.':
-      'Inventory only, no brokerage. So you and Buddy see fixed costs.',
+  'Nur Inventar, keine Vermittlung. Damit du und Ahead Fixkosten siehst.':
+      'Inventory only, no brokerage. So you and Ahead see fixed costs.',
   'Noch keine Versicherungen': 'No insurance yet',
   'Nur dein Inventar, z. B. Haftpflicht, Hausrat, BU. Keine Vermittlung.':
       'Just your inventory, e.g. liability, contents, disability. No brokerage.',
@@ -2947,8 +2946,8 @@ const en = <String, String>{
   'Gleiche Berechnung wie auf Start (Konto + Depot − Schulden).':
       'Same calculation as on Home (account + portfolio − debts).',
   'Jetzt hinzufügen': 'Add now',
-  'Sind Fixkosten oder Ausgaben erkennbar, schlägt Buddy einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.':
-      'Once fixed costs or spending show up, Buddy suggests an emergency fund (about 3× monthly spending). Savings accounts count, the current account does not.',
+  'Sind Fixkosten oder Ausgaben erkennbar, schlägt Ahead einen Notgroschen vor (etwa 3× Monatsausgaben). Spar-Konten zählen, das Giro nicht.':
+      'Once fixed costs or spending show up, Ahead suggests an emergency fund (about 3× monthly spending). Savings accounts count, the current account does not.',
   'Noch {x}': '{x} to go',
   'Anpassen': 'Adjust',
   'Ziel {x} · auf Sparkonto {x2}': 'Goal {x} · in savings account {x2}',
@@ -2966,8 +2965,8 @@ const en = <String, String>{
   'Meine Woche mit Ahead: {headline}': 'My week with Ahead: {headline}',
   'Meine Woche: {pct} % {x} als sonst · Ahead':
       'My week: {pct} % {x} than usual · Ahead',
-  'Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Buddy sie aus.':
-      'No day-to-day spending this week yet. Once there is some, Buddy adds it up.',
+  'Diese Woche noch keine Alltagsausgaben. Sobald welche da sind, wertet Ahead sie aus.':
+      'No day-to-day spending this week yet. Once there is some, Ahead adds it up.',
   'Ausgabe erfassen': 'Add expense',
   'Alltagsausgaben · ohne Miete & Abos':
       'Everyday spending · without rent & subscriptions',
@@ -2975,7 +2974,7 @@ const en = <String, String>{
   '{x}{x2} % zum Schnitt': '{x}{x2} % vs. average',
   'Wie kann ich nächste Woche weniger ausgeben als diese?':
       'How can I spend less next week than this week?',
-  'Mit Buddy weiterreden': 'Keep talking with Buddy',
+  'Mit Ahead weiterreden': 'Keep talking with Ahead',
   'teuerster Tag': 'most expensive day',
   'Tag ohne Ausgaben': 'day without spending',
   'Tage ohne Ausgaben': 'days without spending',
@@ -2986,8 +2985,8 @@ const en = <String, String>{
   'wie immer': 'as always',
   '{count}× diese Woche': '{count}× this week',
   'Nächster Bericht: Sonntag, 18 Uhr': 'Next report: Sunday, 6 pm',
-  'Buddy erinnert dich jeden Sonntag um 18 Uhr':
-      'Buddy reminds you every Sunday at 6 pm',
+  'Ahead erinnert dich jeden Sonntag um 18 Uhr':
+      'Ahead reminds you every Sunday at 6 pm',
   'Jeden Sonntag erinnern': 'Remind me every Sunday',
   'Gib dem Konto einen Namen, z. B. Tagesgeld':
       'Give the account a name, e.g. Savings',
@@ -3063,11 +3062,11 @@ const en = <String, String>{
       'At your usual pace you\'ll spend about {x} until the end of the month. That fits.',
   'Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.':
       'At your pace, about {x} by month end, more than is still free. A few quiet days are enough.',
-  'Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.':
-      'Over budget this month. Buddy shows where saving is easiest.',
+  'Diesen Monat über dem Budget. Ahead zeigt, wo sparen am leichtesten ist.':
+      'Over budget this month. Ahead shows where saving is easiest.',
   'Ausgabe erfassen · noch {x}/Tag': 'Add expense · {x}/day left',
   'Teil davon fürs Polster': 'Part of it for the cushion',
-  'Buddy KI': 'Buddy AI',
+  'Ahead KI': 'Ahead AI',
   '{x} von {x2} Fragen': '{x} of {x2} questions',
   'Beleg-Scans': 'Receipt scans',
   '{x} von {x2} Scans': '{x} of {x2} scans',
@@ -3097,8 +3096,8 @@ const en = <String, String>{
   'Polster & Absicherung': 'Cushion & protection',
   'Notgroschen, Schulden, Versicherungen': 'Emergency fund, debts, insurance',
   'ich': 'me',
-  'Kurzer Stand für „{name}“ von Buddy:':
-      'Quick update for "{name}" from Buddy:',
+  'Kurzer Stand für „{name}“ von Ahead:':
+      'Quick update for "{name}" from Ahead:',
   'Zusammen ausgegeben: {x}': 'Spent together: {x}',
   'Alle sind quitt. Nichts zu tun.': 'Everyone is even. Nothing to do.',
   'So sind wir mit {n} {x} quitt:': 'This is how we get even with {n} {x}:',
@@ -3107,7 +3106,7 @@ const en = <String, String>{
   'Live mitrechnen in Ahead: {link}': 'Follow along live in Ahead: {link}',
   'Live mitrechnen in Ahead, Gruppencode {code}':
       'Follow along live in Ahead, group code {code}',
-  'Buddy für {name}': 'Buddy for {name}',
+  'Ahead für {name}': 'Ahead for {name}',
   'Nur aus den Ausgaben dieser Gruppe': 'Only from this group\'s expenses',
   'Du bist quitt.': 'You\'re even.',
   'Du bekommst noch {x}.': 'You still get {x}.',
@@ -3117,7 +3116,7 @@ const en = <String, String>{
   'Stand an die Gruppe schicken': 'Send the balance to the group',
   'Wie teilen wir die Kosten in „{name}“ am fairsten auf?':
       'How do we split the costs in "{name}" most fairly?',
-  'Buddy fragen, was fair ist': 'Ask Buddy what\'s fair',
+  'Ahead fragen, was fair ist': 'Ask Ahead what\'s fair',
   'Nur die Beträge dieser Gruppe und der Gruppencode, nichts aus deinen eigenen Finanzen.':
       'Only the amounts in this group and the group code, nothing from your own finances.',
   'In welches Konto?': 'Into which account?',
@@ -3170,7 +3169,7 @@ const en = <String, String>{
   '{bookings} Buchungen im Blick': '{bookings} bookings tracked',
   'Mein': 'My',
   'Und dein Monat?': 'And your month?',
-  'Finanzen mit Buddy · Ahead': 'Finances with Buddy · Ahead',
+  'Finanzen mit Ahead': 'Finances with Ahead',
   'Bild ging nicht, Text ist kopiert':
       'The image didn\'t work, the text is copied',
   'Deine Story': 'Your story',
@@ -3190,8 +3189,8 @@ const en = <String, String>{
   'Sparziele diesen Monat': 'Savings goals this month',
   'Volle Rate ({x})': 'Full amount ({x})',
   '− {x} (noch {y})': '− {x} ({y} left)',
-  'Dein Buddy für Geld und Zukunft': 'Your buddy for money and the future',
-  'ahead · Frag Buddy': 'ahead · Ask Buddy',
+  'Dein Agent, der verlorenes Geld findet': 'Your agent that finds lost money',
+  'ahead · Frag Ahead': 'ahead · Ask Ahead',
   'Beträge ausblenden': 'Hide amounts',
   'Zeigt ••• statt Euro-Beträgen': 'Shows ••• instead of euro amounts',
   'Wird geteilt…': 'Sharing…',
@@ -3238,7 +3237,7 @@ const en = <String, String>{
   'Hey': 'Hey',
   'Frag nach deinem Gehalt.': 'Ask about your salary.',
   'Was steht an?': 'What\'s up?',
-  'Nachricht an Buddy': 'Message Buddy',
+  'Nachricht an Ahead': 'Message Ahead',
   'Vom Einkommen übrig': 'Left from income',
   'Name und Sicherheit': 'Name and security',
   'Für Bank und Sync': 'For bank and sync',
@@ -3250,7 +3249,7 @@ const en = <String, String>{
   'Nur mit Zustimmung': 'Only with consent',
   'Von dir bestätigt': 'Confirmed by you',
   'Übersicht': 'Overview',
-  'Mehr Buddy-Fragen': 'More Buddy questions',
+  'Mehr Ahead-Fragen': 'More Ahead questions',
   'Was hakt oder fehlt': 'What\'s broken or missing',
   'Zum Ausprobieren': 'To try out',
   'Bank und Sicherung nur für dich.': 'Bank and backup only for you.',
@@ -3299,7 +3298,7 @@ const en = <String, String>{
       'Insurance check (general, not advice):\n{x}\n\n{y}\n\nNext step: Add under Wealth or remove duplicates.',
   'Zinssatz / Jahr': 'Interest / year',
   'Für alle Konten.': 'For all accounts.',
-  'Buchung tippen oder Buddy fragen.': 'Tap a booking or ask Buddy.',
+  'Buchung tippen oder Ahead fragen.': 'Tap a booking or ask Ahead.',
   'Andere Suche oder Filter weg.': 'Try another search or clear the filters.',
   'Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.':
       'Bank connected. Pull to refresh or add by hand.',
@@ -3322,7 +3321,7 @@ const en = <String, String>{
       '\n\nPlus is cancelled with the account.',
   'Konto, Bankverbindungen, Cloud-Sicherung und die Umsätze hier werden dauerhaft gelöscht.{plusNote}':
       'Account, bank connections, cloud backup and the transactions here are deleted for good.{plusNote}',
-  'So nennt dich Buddy.': 'What Buddy calls you.',
+  'So nennt dich Ahead.': 'What Ahead calls you.',
   'Du bleibst hier angemeldet, andere Geräte nicht. Das Passwort verschlüsselt die Cloud. Ohne es ist die Kopie weg.':
       'You stay signed in here, other devices do not. The password encrypts the cloud. Without it the copy is gone.',
   'Nur die Anmeldung. Umsätze bleiben passwortverschlüsselt. Ohne Code kein Zugang, kein Reset per E-Mail.':
@@ -3337,12 +3336,12 @@ const en = <String, String>{
       'What comes in, what leaves regularly, and what is left for goals or retirement. No account, no payouts, no advice.',
   'Auf dem Gerät: Umsätze, Budgets, Ziele, Depot. Mit Konto eine verschlüsselte Kopie, für uns unlesbar. Keine Werbung, kein Tracking, kein Datenverkauf.':
       'On the device: transactions, budgets, goals, portfolio. With an account, an encrypted copy we cannot read. No ads, no tracking, no selling of data.',
-  'Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Buddy bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.':
-      'Finanzguru: a household app, AI on the side. Ahead is the coach, numbers from the app, for moments like a first job. Buddy prepares, you decide. Portfolio and retirement with no brokerage. Data only with consent, only what the question needs.',
+  'Finanzguru: Haushalts-App, KI als Zusatz. Ahead ist der Coach, Zahlen aus der App, etwa zum ersten Job. Ahead bereitet vor, du entscheidest. Depot und Vorsorge ohne Vermittlung. Daten nur mit Zustimmung, nur was die Frage braucht.':
+      'Finanzguru: a household app, AI on the side. Ahead is the coach, numbers from the app, for moments like a first job. Ahead prepares, you decide. Portfolio and retirement with no brokerage. Data only with consent, only what the question needs.',
   'Wir bauen selbst. Gesucht: Werkstudenten, Praktika, Produkt, Flutter, Backend. Ein paar Sätze reichen.':
       'We build it ourselves. We are looking for working students, internships, and people in product, Flutter or backend. A few sentences are enough.',
-  'Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.':
-      'Passwords are stored only as a bcrypt hash. Second factor and devices are under My account. App lock on the device.\n\nBank via Enable Banking, sign-in at the bank. We never see login details.\n\nBuddy with AI only after your consent, without account numbers. Otherwise the answer stays on the device.',
+  'Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nAhead mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.':
+      'Passwords are stored only as a bcrypt hash. Second factor and devices are under My account. App lock on the device.\n\nBank via Enable Banking, sign-in at the bank. We never see login details.\n\nAhead with AI only after your consent, without account numbers. Otherwise the answer stays on the device.',
   'Keine Beratung, Kurse, KI': 'No advice, prices, AI',
   'Support, Open Source': 'Support, open source',
   'Kontostand und Umsätze, automatisch.':
@@ -3379,8 +3378,8 @@ const en = <String, String>{
       'Demo: sample bank and portfolio, no real data',
   'Umsätze da. Auf dem Start siehst du, was noch frei ist.':
       'Transactions are in. On Home you can see what is still free.',
-  '{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.':
-      '{added} {x} in. On Home Buddy works out what is still free.',
+  '{added} {x} da. Ahead rechnet auf dem Start, was noch frei ist.':
+      '{added} {x} in. On Home Ahead works out what is still free.',
   '\n\nAbos und Miete unter Verträge.':
       '\n\nSubscriptions and rent are under Contracts.',
   'Freigabe weg. Übernommene Umsätze verschwinden.':
@@ -3396,8 +3395,8 @@ const en = <String, String>{
       '{raised} went up, e.g. {name} (+{x}).',
   'Drei gleiche Monate in Folge. Mit Bank automatisch.':
       'Three equal months in a row. Automatic with a bank.',
-  'Gekündigt am {x}. Weitere Abbuchung meldet Buddy.':
-      'Cancelled on {x}. Buddy flags a later charge.',
+  'Gekündigt am {x}. Weitere Abbuchung meldet Ahead.':
+      'Cancelled on {x}. Ahead flags a later charge.',
   'Viele haben „Verträge hier kündigen“. Text dort einfügen.':
       'Many have "Cancel contracts here". Paste the text there.',
   'Nächster Schritt: Prüfen, was du nutzt.':
@@ -3447,8 +3446,8 @@ const en = <String, String>{
   'Aufrunden und Monatsbetrag': 'Round-ups and a monthly amount',
   'Keine Werbung, kein Datenverkauf': 'No ads, no selling of data',
   'Kein Abo zum Wiederherstellen': 'No subscription to restore',
-  'Buddy, Belege und Ziele ohne Limit.':
-      'Buddy, receipts and goals, with no limit.',
+  'Ahead, Belege und Ziele ohne Limit.':
+      'Ahead, receipts and goals, with no limit.',
   '7 Tage gratis, danach kündbar': '7 days free, cancel any time after',
   'Gratis: Konto, Depot, Budgets, Prognose, Verträge, Notgroschen, Hinweise, Gruppen, Monatsrückblick.':
       'Free: account, portfolio, budgets, forecast, contracts, emergency fund, alerts, groups, monthly review.',
@@ -3496,8 +3495,8 @@ const en = <String, String>{
   'Altersvorsorge ist noch nicht eingerichtet.':
       'Retirement planning isn\'t set up yet.',
   '{x} läuft schon länger': '{x} has been running a while',
-  'Noch keine gespeicherten Abrechnungen. Schick Buddy ein Foto davon.':
-      'No saved payslips yet. Send Buddy a photo of one.',
+  'Noch keine gespeicherten Abrechnungen. Schick Ahead ein Foto davon.':
+      'No saved payslips yet. Send Ahead a photo of one.',
   'Brutto, Netto, Abzüge': 'Gross, net, deductions',
   'Abzüge': 'Deductions',
   '{x}: Brutto {y}, Netto {z}, Abzüge {a}':
@@ -3641,10 +3640,10 @@ const en = <String, String>{
       '**You\'re not signed in.** There\'s no account here to delete.\n\nNext step: Profile › Create account, or Sign in, if the account still exists somewhere else.',
   '**Profil › Mein Konto › Konto löschen.** Das löscht das Konto endgültig.\n\nNächster Schritt: Mein Konto öffnen und unten Konto löschen tippen.':
       '**Profile › My account › Delete account.** That deletes the account for good.\n\nNext step: Open My account and tap Delete account at the bottom.',
-  '**Profil › Privatsphäre & KI**, Schalter **Buddy mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\nNächster Schritt: Schalter umlegen.':
-      '**Profile › Privacy & AI**, switch **Buddy with AI**. On, questions go to the AI; off, simple questions stay on the device.\n\nNext step: Flip the switch.',
-  '**Ahead** ist diese App, **Buddy** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\nNächster Schritt: Frag, was diesen Monat noch frei ist.':
-      '**Ahead** is this app, **Buddy** the coach inside it. He works with your numbers and names the next step. Nothing is saved until you tap Apply.\n\nNext step: Ask what\'s still free this month.',
+  '**Profil › Privatsphäre & KI**, Schalter **Ahead mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\nNächster Schritt: Schalter umlegen.':
+      '**Profile › Privacy & AI**, switch **Ahead with AI**. On, questions go to the AI; off, simple questions stay on the device.\n\nNext step: Flip the switch.',
+  '**Ahead** ist diese App, **Ahead** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\nNächster Schritt: Frag, was diesen Monat noch frei ist.':
+      '**Ahead** is this app, **Ahead** the coach inside it. He works with your numbers and names the next step. Nothing is saved until you tap Apply.\n\nNext step: Ask what\'s still free this month.',
   '**Du bist schon abgemeldet.**\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden.':
       '**You\'re already signed out.**\n\nNext step: Profile › Create account, or Sign in.',
   '**Profil › Mein Konto › Abmelden.** Auch unter Profil › Erweitert.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
@@ -3688,8 +3687,8 @@ const en = <String, String>{
   'Feedback zu Ahead': 'Feedback for Ahead',
   'Was gut läuft:\nWas hakt:\n': 'What works:\nWhat is stuck:\n',
   'Was Ahead nicht ist': 'What Ahead is not',
-  'Keine Bank und keine Beratung. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.':
-      'Not a bank, and not advice. Buddy uses your numbers and names a next step. The decision stays with you.',
+  'Keine Bank und keine Beratung. Ahead rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.':
+      'Not a bank, and not advice. Ahead uses your numbers and names a next step. The decision stays with you.',
   'Wir bauen Ahead selbst. Für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze reichen.':
       'We build Ahead ourselves. For working students, internships, and people who take product, Flutter or the backend seriously. A few sentences are enough.',
   'Zum Erstellen brauchst du Vorname, E-Mail, mindestens 8 Zeichen und die Bedingungen.':
@@ -3716,10 +3715,10 @@ const en = <String, String>{
   'Läuft noch. Abgeben ab 1. Januar {y}.': 'Still running. File from 1 January {y}.',
   'Abgabe bis {d}, noch {n} Tage. Danach ist das Geld weg.': 'File by {d}, {n} days left. After that the money is gone.',
   'Abgabe bis {d}.': 'File by {d}.',
-  'Buddy liest deine Lohnsteuerbescheinigung …': 'Buddy is reading your wage tax certificate …',
+  'Ahead liest deine Lohnsteuerbescheinigung …': 'Ahead is reading your wage tax certificate …',
   'Das sieht nicht nach einer Lohnsteuerbescheinigung aus.': 'That does not look like a wage tax certificate.',
   'Die Bescheinigung ist für {y}. Dieses Jahr kann nicht mehr abgegeben werden.': 'The certificate is for {y}. That year can no longer be filed.',
-  'Buddy liest deinen Steuerbescheid …': 'Buddy is reading your tax notice …',
+  'Ahead liest deinen Steuerbescheid …': 'Ahead is reading your tax notice …',
   'Das sieht nicht nach einem Einkommensteuerbescheid aus.': 'That does not look like an income tax notice.',
   'Senden …': 'Send …',
   'Lohnsteuerbescheinigung erfasst, neu fotografieren': 'Wage tax certificate captured, take a new photo',
@@ -3743,7 +3742,7 @@ const en = <String, String>{
   'Habe ich beantragt': 'I have applied',
   'Ich habe ein Konto': 'I have an account',
   'In ELSTER: Einkommensteuererklärung {y}, Anlage N': 'In ELSTER: income tax return {y}, Anlage N',
-  'Trag dein Brutto ein oder fotografiere die Lohnsteuerbescheinigung, dann rechnet Buddy die Erstattung aus.': 'Enter your gross pay or photograph the wage tax certificate, then Buddy works out the refund.',
+  'Trag dein Brutto ein oder fotografiere die Lohnsteuerbescheinigung, dann rechnet Ahead die Erstattung aus.': 'Enter your gross pay or photograph the wage tax certificate, then Ahead works out the refund.',
   'Laut Bescheid zurück': 'Back according to the notice',
   'Laut Bescheid': 'According to the notice',
   'Geschätzt waren {x}.': 'The estimate was {x}.',
@@ -3817,4 +3816,8 @@ const en = <String, String>{
   'Ich prüfe Steuer, Verträge und Fristen von selbst und melde mich, sobald ich etwas finde.': 'I check taxes, contracts and deadlines on my own and get in touch as soon as I find something.',
   'Eine Sache wartet auf dein Ja.': 'One thing is waiting for your yes.',
   '{n} Sachen warten auf dein Ja.': '{n} things are waiting for your yes.',
+  '{x} zurückholen': '{x} to reclaim',
+  'Konto anlegen, ich mache weiter': 'Create an account, I\'ll carry on',
+  'Neu prüfen': 'Check again',
+  'bis zu {x}': 'up to {x}',
 };

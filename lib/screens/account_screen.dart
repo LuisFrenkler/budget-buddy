@@ -392,7 +392,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 6, bottom: 2),
                             child: Text(
-                              tr('Buchung tippen oder Buddy fragen.'),
+                              tr('Buchung tippen oder Ahead fragen.'),
                               style: TextStyle(
                                   color: AppColors.textDim,
                                   fontSize: 12.5,

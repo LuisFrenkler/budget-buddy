@@ -486,7 +486,7 @@ class _BudgetSheetState extends State<_BudgetSheet> {
         Text(
             _editing
                 ? tr('Gilt ab sofort und in den nächsten Monaten.')
-                : tr('Ein Monats-Limit pro Kategorie. Buddy sagt Bescheid, bevor es knapp wird.'),
+                : tr('Ein Monats-Limit pro Kategorie. Ahead sagt Bescheid, bevor es knapp wird.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
         const SizedBox(height: 16),
         if (!_editing) ...[

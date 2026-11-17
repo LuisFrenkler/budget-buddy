@@ -415,6 +415,6 @@ class TransactionScreen extends StatelessWidget {
           BuddyScreen.ask.value = q;
         },
         icon: const BuddyOrb(size: 20),
-        label: Text(tx.isIncome ? tr('Buddy fragen, was ich damit mache') : tr('Kann ich mir das leisten?')),
+        label: Text(tx.isIncome ? tr('Ahead fragen, was ich damit mache') : tr('Kann ich mir das leisten?')),
       );
 }

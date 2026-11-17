@@ -1051,7 +1051,7 @@ String _welcomeCta(String reason) {
   if (r.contains('sparziel') || r.contains('autopilot') || r.contains('ziel')) {
     return tr('Sparziele öffnen');
   }
-  return tr('Buddy öffnen');
+  return tr('Ahead öffnen');
 }
 
 // Shown once after the start: what is unlocked and when the first payment is.
@@ -1113,7 +1113,7 @@ class _WelcomeState extends State<_Welcome> with SingleTickerProviderStateMixin 
                   ),
                   const SizedBox(height: 28),
                   for (final (icon, text) in [
-                    (Icons.chat_bubble_outline_rounded, tr('Buddy beantwortet jetzt jede Frage')),
+                    (Icons.chat_bubble_outline_rounded, tr('Ahead beantwortet jetzt jede Frage')),
                     (Icons.document_scanner_rounded, tr('Belege scannen ohne Limit')),
                     (Icons.flag_rounded, tr('So viele Sparziele, wie du willst')),
                   ])

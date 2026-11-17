@@ -16,7 +16,7 @@ class FreeTierUsage extends StatelessWidget {
         : 0;
     final rows = [
       (
-        tr('Buddy KI'),
+        tr('Ahead KI'),
         tr('{x} von {x2} Fragen', {
           'x': PlusService.left(PlusFeature.aiQuestion),
           'x2': PlusService.freeAiQuestions

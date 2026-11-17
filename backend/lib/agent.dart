@@ -193,7 +193,7 @@ class BuddyAgent {
     if (name.isNotEmpty) lines.add('Die Person heißt $name.');
     final memory = (context['erinnerungen'] as List?)?.map((e) => '$e').where((e) => e.isNotEmpty).take(30).toList();
     if (memory != null && memory.isNotEmpty) {
-      lines.add('Was Buddy sich merken durfte:\n${memory.map((m) => '- $m').join('\n')}');
+      lines.add('Was Ahead sich merken durfte:\n${memory.map((m) => '- $m').join('\n')}');
     }
     final stage = context['lebenslage'];
     if (stage != null) lines.add('Lebenslage: ${jsonEncode(stage)}');
@@ -273,7 +273,7 @@ class BuddyAgent {
         throw AiError(Ai.apiErrorText(res.statusCode, body));
       }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
-        if (clock.elapsed > _deadline) throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+        if (clock.elapsed > _deadline) throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
         final i = event['index'] as int? ?? 0;
@@ -315,14 +315,14 @@ class BuddyAgent {
             final out = event['usage']?['output_tokens'];
             if (out is num) usage['output'] = out.toInt();
             final reason = event['delta']?['stop_reason'];
-            if (reason == 'refusal') throw const AiError('Dazu kann Buddy leider nichts sagen.');
+            if (reason == 'refusal') throw const AiError('Dazu kann Ahead leider nichts sagen.');
             if (reason is String) stop = reason;
           case 'error':
             throw AiError('${event['error']?['message'] ?? 'Fehler der KI'}');
         }
       }
     } on TimeoutException {
-      throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+      throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
     } finally {
       client.close();
     }
@@ -449,7 +449,7 @@ class BuddyAgent {
       final text = done.content.where((b) => b['type'] == 'text').map((b) => b['text']).join();
       if (text.isNotEmpty) yield AgentText(text);
       if (text.isEmpty && done.toolCalls.isEmpty) {
-        throw const AiError('Dazu kann Buddy gerade nichts sagen. Frag gern anders.');
+        throw const AiError('Dazu kann Ahead gerade nichts sagen. Frag gern anders.');
       }
       yield done;
     } finally {
@@ -500,9 +500,9 @@ Passwort: Profil › Mein Konto › Sicherheit › Passwort ändern. Zurücksetz
 Name: nur der Vorname aus dem Kontext („Die Person heißt“). E-Mail nie raten, sie steht nicht im Kontext. Pfad: Profil › Mein Konto. Nicht angemeldet: das sagen, dann Profil › Konto erstellen oder Anmelden.
 Plus: Karte Ahead Plus im Profil (Mein Abo, wenn es läuft). Datenschutz-Erklärung: Profil › Ahead › Unternehmen & Vertrauen › Datenschutzerklärung.
 Export: Profil › Erweitert › Import, Export & Backup › Als CSV exportieren. Konto löschen: Profil › Mein Konto › Konto löschen.
-KI an/aus: Schalter „Buddy mit KI“ unter Profil › Privatsphäre & KI. Abmelden: Profil › Mein Konto › Abmelden, auch Profil › Erweitert.
+KI an/aus: Schalter „Ahead mit KI“ unter Profil › Privatsphäre & KI. Abmelden: Profil › Mein Konto › Abmelden, auch Profil › Erweitert.
 Notgroschen: Profil › Erweitert › Vermögen & Absicherung. Verträge: Profil › Planen › Verträge & Abos. Geteilt: Profil › Planen › Geteilte Ausgaben.
-Ahead ist die App, Buddy der Coach darin. Englisch: dieselben Wege mit den englischen Menünamen (Profile › My account › Security › Change password).
+Ahead ist die App und der Agent darin. Englisch: dieselben Wege mit den englischen Menünamen (Profile › My account › Security › Change password).
 
 Buchungen erklären: Was eine Abbuchung ist → „buchung_erklaeren“.
 
@@ -530,7 +530,7 @@ als eine Woche offen, frag in einem Satz danach, nicht in jeder Antwort.
 
 Merken: Erzählt sie in der letzten Nachricht etwas Dauerhaftes, das künftig hilft
 (Lebenslage, Ziel, Gehaltstermin, Vorliebe beim Sparen) und noch nicht unter
-„Was Buddy sich merken durfte“ steht, schreib vor der weiter-Zeile genau:
+„Was Ahead sich merken durfte“ steht, schreib vor der weiter-Zeile genau:
 [merken: kurzer Satz in der dritten Person, höchstens zwölf Wörter]
 Höchstens einmal pro Antwort. Nie Gesundheit, Religion, Politik, Beziehung,
 Kontonummern oder Passwörter.''';

@@ -202,7 +202,7 @@ class BuddyEntries {
             }))
         .timeout(const Duration(seconds: 70));
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map;
-    if (res.statusCode != 200) throw body['error'] ?? tr('Buddy konnte das gerade nicht lesen.');
+    if (res.statusCode != 200) throw body['error'] ?? tr('Ahead konnte das gerade nicht lesen.');
     return (
       reply: '${body['reply'] ?? ''}',
       entries: [

@@ -23,7 +23,7 @@ class GroupBuddy {
     String whoCap(int i) => i == g.me ? tr('Ich') : g.members[i];
     final total = g.expenses.fold<int>(0, (s, e) => s + e.cents);
     final lines = <String>[
-      tr('Kurzer Stand für „{name}“ von Buddy:', {'name': g.name}),
+      tr('Kurzer Stand für „{name}“ von Ahead:', {'name': g.name}),
       if (total > 0) tr('Zusammen ausgegeben: {x}', {'x': Money.raw(total)}),
       '',
       if (transfers.isEmpty)
@@ -70,7 +70,7 @@ Future<void> showGroupBuddy(BuildContext context, SplitGroup g, {required void F
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(tr('Buddy für {name}', {'name': g.name}),
+                  Text(tr('Ahead für {name}', {'name': g.name}),
                       style: const TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                   Text(tr('Nur aus den Ausgaben dieser Gruppe'),
                       style: TextStyle(color: AppColors.textDim, fontSize: 13)),
@@ -140,7 +140,7 @@ Future<void> showGroupBuddy(BuildContext context, SplitGroup g, {required void F
                 onAsk(tr('Wie teilen wir die Kosten in „{name}“ am fairsten auf?', {'name': g.name}));
               },
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: Text(tr('Buddy fragen, was fair ist')),
+              label: Text(tr('Ahead fragen, was fair ist')),
             ),
             const SizedBox(height: 12),
             Text(

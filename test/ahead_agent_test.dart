@@ -19,6 +19,18 @@ void main() {
   });
   setUp(() async => Hive.box('settings').clear());
 
+  test('before sign-up the refund check becomes the agent finds, oldest deadline first by amount', () async {
+    expect(AheadAgent.guestFinds(now: today), isEmpty);
+    await Hive.box('settings').put('refundCheck', {'startYear': 2022, 'startMonth': 9, 'grossMonth': 3000.0, 'km': 0.0});
+    final finds = AheadAgent.guestFinds(now: today);
+    // 2022: four months worked, the wage tax ran for twelve; the running year is not a find
+    expect(finds.first.year, 2022);
+    expect(finds.first.cents, greaterThan(0));
+    expect(finds.first.text, contains('44'));
+    expect(finds.any((f) => f.year == 2026), isFalse);
+    expect(AheadAgent.upToCents(finds), greaterThanOrEqualTo(AheadAgent.openCents(finds)));
+  });
+
   test('no tax answers yet: the first job is to check', () {
     final finds = AheadAgent.run(tx: const [], now: today);
     expect(finds.single.id, 'tax-check');
@@ -84,11 +96,16 @@ void main() {
   });
 
   test('money hints become finds, other hints stay out, Später hides for a week', () async {
-    const price = Hint('price-x', HintKind.priceUp, 'Netflix ist teurer geworden', '+2 € im Monat', HintTarget.contracts);
+    const price = Hint('price-x', HintKind.priceUp, 'Netflix ist teurer geworden', '+2 € im Monat', HintTarget.contracts,
+        cents: 2400, yearly: true);
     const budget = Hint('budget-x', HintKind.budgetOver, 'Essen: Budget überschritten', '', HintTarget.buddy);
     var finds = AheadAgent.run(tx: const [], hints: const [price, budget], now: today);
     expect(finds.where((f) => f.kind == FindKind.money).map((f) => f.id), ['price-x']);
-    expect(finds.firstWhere((f) => f.id == 'price-x').question, contains('Netflix'));
+    final rise = finds.firstWhere((f) => f.id == 'price-x');
+    expect(rise.question, contains('Netflix'));
+    expect((rise.cents, rise.yearly), (2400, true));
+    // the money finds count into what is waiting, next to the first tax check (no amount yet)
+    expect(AheadAgent.openCents(finds), 2400);
 
     await AheadAgent.snooze('price-x', now: today);
     finds = AheadAgent.run(tx: const [], hints: const [price], now: today);

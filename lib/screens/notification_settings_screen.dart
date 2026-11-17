@@ -119,7 +119,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         builder: (context, on, _) => ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           children: [
-            Text(tr('Buddy meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.'),
+            Text(tr('Ahead meldet sich nur, wenn es zählt: höchstens einmal am Tag, dreimal pro Woche. Kein Spam, keine Werbung.'),
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 16),
             SettingsGroup([
@@ -143,7 +143,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4),
                 ),
               ),
-            SectionLabel(tr('Worüber Buddy Bescheid sagt')),
+            SectionLabel(tr('Worüber Ahead Bescheid sagt')),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: on ? 1 : 0.45,

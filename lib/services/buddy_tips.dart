@@ -52,7 +52,7 @@ class BuddyTips {
     final misc = CategoryCoach.miscCount();
     if (misc >= 5) {
       return BuddyTip(
-          tr('{misc} Umsätze stecken in Sonstiges. Buddy hilft beim Einordnen.', {'misc': misc}),
+          tr('{misc} Umsätze stecken in Sonstiges. Ahead hilft beim Einordnen.', {'misc': misc}),
           tr('Sonstiges aufräumen'));
     }
     // 3. a contract got more expensive

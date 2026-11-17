@@ -546,7 +546,7 @@ class BuddyService {
         }
         if (done == null)
           throw tr(
-              'Buddy hat nicht zu Ende geantwortet. Bitte gleich noch einmal.');
+              'Ahead hat nicht zu Ende geantwortet. Bitte gleich noch einmal.');
         final calls = [
           for (final c in (done['tools'] as List? ?? const []))
             (c as Map).cast<String, dynamic>()
@@ -641,7 +641,7 @@ class BuddyService {
     }
     if (!await live()) throw 'Belege scannen braucht die KI auf dem Server.';
     if (!hasConsent)
-      throw tr('Belege scannen braucht „Buddy mit KI“ in den Einstellungen.');
+      throw tr('Belege scannen braucht „Ahead mit KI“ in den Einstellungen.');
     final res = await http
         .post(Uri.parse('${BackendService.base}/ai/receipt'),
             headers: {
@@ -679,7 +679,7 @@ class BuddyService {
       return '${(jsonDecode(body) as Map)['error']}';
     } catch (_) {
       return tr(
-          'Buddy ist gerade nicht erreichbar ({status}).', {'status': status});
+          'Ahead ist gerade nicht erreichbar ({status}).', {'status': status});
     }
   }
 }

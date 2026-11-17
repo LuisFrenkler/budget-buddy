@@ -32,7 +32,7 @@ class InviteInfo {
       );
 
   String shareText() =>
-      tr('Was mach ich mit dem Gehalt? Buddy nennt einen nächsten Schritt. Ahead: {link}', {'link': link});
+      tr('Was mach ich mit dem Gehalt? Ahead nennt einen nächsten Schritt. Ahead: {link}', {'link': link});
 }
 
 class InviteService {

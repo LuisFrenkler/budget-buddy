@@ -167,7 +167,7 @@ class NetSalary {
     final notes = <String>[];
     final saxony = state.toLowerCase().startsWith('sachsen') && !state.toLowerCase().contains('anhalt');
     if (taxClass < 1 || taxClass > 4) {
-      notes.add('Steuerklasse $taxClass rechnet Buddy nicht genau; gerechnet wie Klasse I.');
+      notes.add('Steuerklasse $taxClass rechnet Ahead nicht genau; gerechnet wie Klasse I.');
       taxClass = 1;
     }
     if (grossMonth <= minijob) {

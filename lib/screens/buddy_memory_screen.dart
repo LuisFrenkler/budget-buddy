@@ -21,7 +21,7 @@ class BuddyMemoryScreen extends StatelessWidget {
       context: context,
       builder: (c) => AlertDialog(
         title: Text(tr('Alles vergessen?')),
-        content: Text(tr('Buddy vergisst alles Gemerkte. Buchungen und Ziele bleiben.')),
+        content: Text(tr('Ahead vergisst alles Gemerkte. Buchungen und Ziele bleiben.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(c, false), child: Text(tr('Abbrechen'))),
           TextButton(onPressed: () => Navigator.pop(c, true), child: Text(tr('Alles vergessen'))),
@@ -46,7 +46,7 @@ class BuddyMemoryScreen extends StatelessWidget {
         final stage = LifeStages.current;
         final payChart = PayslipHistory.chart();
         return Scaffold(
-          appBar: AppBar(title: Text(tr('Was Buddy weiß'))),
+          appBar: AppBar(title: Text(tr('Was Ahead weiß'))),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
             children: [
@@ -85,7 +85,7 @@ class BuddyMemoryScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
                   child: Text(
-                    tr('Noch nichts. Sag Buddy z. B. „Merk dir: im Oktober fängt mein erster Job an“.'),
+                    tr('Noch nichts. Sag Ahead z. B. „Merk dir: im Oktober fängt mein erster Job an“.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.45),
                   ),
                 )
@@ -123,7 +123,7 @@ class BuddyMemoryScreen extends StatelessWidget {
                 Text(tr('Worüber ihr gesprochen habt'),
                     style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(tr('Damit Buddy später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.'),
+                Text(tr('Damit Ahead später anknüpfen kann. Nur Frage und nächster Schritt, 60 Tage.'),
                     style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.4)),
                 const SizedBox(height: 8),
                 for (final t in talks.take(6))
@@ -147,7 +147,7 @@ class BuddyMemoryScreen extends StatelessWidget {
                 ),
               const SizedBox(height: 16),
               Text(
-                tr('Ist „Buddy mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.'),
+                tr('Ist „Ahead mit KI“ an, gehen diese Punkte mit deiner Finanz-Zusammenfassung an die KI, nur wenn du fragst.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.45),
               ),
             ],

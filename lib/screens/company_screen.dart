@@ -51,7 +51,7 @@ class CompanyScreen extends StatelessWidget {
           ),
           _block(
             tr('Was Ahead nicht ist'),
-            tr('Keine Bank und keine Beratung. Buddy rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.'),
+            tr('Keine Bank und keine Beratung. Ahead rechnet mit deinen Zahlen und nennt einen nächsten Schritt. Die Entscheidung bleibt bei dir.'),
             dim,
           ),
           _block(
@@ -70,7 +70,7 @@ class CompanyScreen extends StatelessWidget {
           ]),
           _block(
             tr('Transparenz'),
-            tr('Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nBuddy mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.'),
+            tr('Passwörter nur als bcrypt-Hash. Zweiter Faktor und Geräte unter Mein Konto. App-Sperre auf dem Gerät.\n\nBank über Enable Banking, Login bei der Bank. Zugangsdaten sehen wir nicht.\n\nAhead mit KI nur nach Zustimmung, ohne Kontonummern. Sonst bleibt die Antwort auf dem Gerät.'),
             dim,
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[

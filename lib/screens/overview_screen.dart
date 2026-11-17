@@ -481,7 +481,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 Row(children: [
                   const BrandMark(size: 22, inverse: true),
                   const SizedBox(width: 8),
-                  Text(tr('Buddy sagt'),
+                  Text(tr('Ahead sagt'),
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
                 ]),
                 const SizedBox(height: 10),
@@ -892,7 +892,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final bankLinked = Settings.bankState.isNotEmpty;
     return Row(children: [
-      chip(Icons.chat_bubble_outline_rounded, tr('Buddy'), () => BuddyScreen.open(context),
+      chip(Icons.chat_bubble_outline_rounded, tr('Ahead'), () => BuddyScreen.open(context),
           color: AppColors.primary),
       const SizedBox(width: 10),
       chip(Icons.edit_note_rounded, tr('Erfassen'), () => showSmartEntry(context),

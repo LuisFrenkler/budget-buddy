@@ -42,7 +42,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Center(
-            child: Text(tr('Dein Buddy für Geld und Zukunft. Die Cloud-Kopie ist passwortverschlüsselt.'),
+            child: Text(tr('Dein Agent, der verlorenes Geld findet. Die Cloud-Kopie ist passwortverschlüsselt.'),
                 style: TextStyle(color: AppColors.textDim, fontSize: 14)),
           ),
           if (!kReleaseMode && !LegalInfo.complete) ...[

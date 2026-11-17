@@ -78,7 +78,7 @@ class RecapStory extends StatelessWidget {
                   const Spacer(),
                   Text(tr('Und dein Monat?'),
                       style: TextStyle(fontSize: 15, color: Colors.white.withValues(alpha: 0.85))),
-                  Text(tr('Finanzen mit Buddy · Ahead'),
+                  Text(tr('Finanzen mit Ahead'),
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 ]),
               ),

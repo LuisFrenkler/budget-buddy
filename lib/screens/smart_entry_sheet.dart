@@ -113,7 +113,7 @@ class _SmartEntryState extends State<_SmartEntry> {
         builder: (ctx) => AlertDialog(
           title: Text(tr('Konto für Beleg-Scan')),
           content: Text(
-              tr('Belege liest Buddy online, dafür ein kostenloses Konto. Tippen geht auch ohne.')),
+              tr('Belege liest Ahead online, dafür ein kostenloses Konto. Tippen geht auch ohne.')),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(tr('Später'))),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(tr('Konto erstellen'))),
@@ -136,7 +136,7 @@ class _SmartEntryState extends State<_SmartEntry> {
     final ext = (file!.extension ?? 'jpg').toLowerCase();
     final mime = switch (ext) { 'png' => 'image/png', 'webp' => 'image/webp', 'gif' => 'image/gif', _ => 'image/jpeg' };
     setState(() {
-      _busy = tr('Buddy liest deinen Beleg …');
+      _busy = tr('Ahead liest deinen Beleg …');
       _error = null;
     });
     try {
@@ -153,7 +153,7 @@ class _SmartEntryState extends State<_SmartEntry> {
       final s = '$e';
       if (mounted) {
         setState(() => _error = RegExp(r'Exception|Error|Failed|Socket|Timeout').hasMatch(s)
-            ? tr('Den Beleg konnte Buddy gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.')
+            ? tr('Den Beleg konnte Ahead gerade nicht lesen. Prüf die Verbindung und versuch es noch einmal.')
             : s);
       }
     } finally {
@@ -316,7 +316,7 @@ class _SmartEntryState extends State<_SmartEntry> {
             Text(
                 '${tr(b.category)} · ${Dates.relativeDay(b.date)}'
                 '${remembered ? ' · Merkt sich $title' : ''}'
-                '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Buddy prüft …' : _withoutAi ? ' · Ohne KI erkannt' : ''}',
+                '${_fromReceipt ? ' · vom Beleg' : _refining ? ' · Ahead prüft …' : _withoutAi ? ' · Ohne KI erkannt' : ''}',
                 style: TextStyle(color: AppColors.textDim, fontSize: 13)),
           ]),
         ),

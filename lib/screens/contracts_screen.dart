@@ -270,7 +270,7 @@ class _ContractSheetState extends State<_ContractSheet> {
     if (!mounted) return;
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: const Duration(milliseconds: 3500),
-        content: Text(tr('Vermerkt. Buddy prüft in den nächsten Wochen, ob {name} wirklich aufhört.', {'name': widget.contract.name}))));
+        content: Text(tr('Vermerkt. Ahead prüft in den nächsten Wochen, ob {name} wirklich aufhört.', {'name': widget.contract.name}))));
   }
 
   Future<void> _mail() async {
@@ -355,7 +355,7 @@ class _ContractSheetState extends State<_ContractSheet> {
               decoration: BoxDecoration(
                   color: AppColors.warning.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
               child: Text(
-                  tr('Gekündigt am {x}. Weitere Abbuchung meldet Buddy.', {'x': Dates.full(sent)}),
+                  tr('Gekündigt am {x}. Weitere Abbuchung meldet Ahead.', {'x': Dates.full(sent)}),
                   style: const TextStyle(height: 1.4)),
             ),
             TextButton(
@@ -446,7 +446,7 @@ void _share(BuildContext context, List<Contract> contracts, int monthly) {
     context,
     ShareCardData(
       kicker: tr('Abo-Check'),
-      headline: tr('Buddy hat {n} {x} gefunden: {y} im Jahr.',
+      headline: tr('Ahead hat {n} {x} gefunden: {y} im Jahr.',
           {'n': n, 'x': n == 1 ? tr('Abo') : tr('Abos und Verträge'), 'y': Money.raw(monthly * 12)}),
       body: [
         for (final c in top.take(4)) tr('- **{x}**: {y} im Monat', {'x': c.name, 'y': Money.raw(c.monthlyCents)}),
@@ -454,7 +454,7 @@ void _share(BuildContext context, List<Contract> contracts, int monthly) {
         '',
         tr('Nächster Schritt: Prüfen, was du nutzt.'),
       ].join('\n'),
-      text: tr('Buddy von Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?', {'n': n}),
+      text: tr('Ahead hat {n} Abos und Verträge auf meinem Konto gefunden. Wie viele hast du?', {'n': n}),
     ),
   );
 }

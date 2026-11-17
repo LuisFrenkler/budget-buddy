@@ -1208,7 +1208,7 @@ void _countAi(Map<String, dynamic> user) {
   final id = user['id'] as String;
   final used = _aiUsage[id];
   final count = used != null && used.day == day ? used.count : 0;
-  if (count >= _aiDailyLimit) throw const AuthError(429, 'Tageslimit für Buddy erreicht. Morgen geht es weiter.');
+  if (count >= _aiDailyLimit) throw const AuthError(429, 'Tageslimit für Ahead erreicht. Morgen geht es weiter.');
   _aiUsage[id] = (day: day, count: count + 1);
 }
 
@@ -1296,7 +1296,7 @@ class _CostGuard {
   void check(String user) {
     _roll();
     if ((_spent[user] ?? 0) >= limit) {
-      throw const AuthError(429, 'Buddy hat für heute genug gerechnet. Morgen geht es weiter.');
+      throw const AuthError(429, 'Ahead hat für heute genug gerechnet. Morgen geht es weiter.');
     }
   }
 
@@ -1421,7 +1421,7 @@ Future<void> _streamEvents(HttpRequest req, Stream<Map<String, dynamic>> events,
     send({'done': true});
   } catch (e) {
     stderr.writeln('${req.uri.path}: $e');
-    send({'error': e is AiError ? e.message : 'Buddy ist gerade nicht erreichbar. Bitte gleich noch einmal.'});
+    send({'error': e is AiError ? e.message : 'Ahead ist gerade nicht erreichbar. Bitte gleich noch einmal.'});
   }
   await res.close();
 }

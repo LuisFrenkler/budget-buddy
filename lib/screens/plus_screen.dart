@@ -111,7 +111,7 @@ class _PlusScreenState extends State<PlusScreen> {
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.6)),
             const SizedBox(height: 10),
-            Text(tr('Buddy, Belege und Ziele ohne Limit.'),
+            Text(tr('Ahead, Belege und Ziele ohne Limit.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: AppColors.textDim, fontSize: 15, height: 1.4)),
@@ -164,7 +164,7 @@ class _PlusScreenState extends State<PlusScreen> {
                         letterSpacing: -0.8,
                         height: 1.15)),
                 const SizedBox(height: 6),
-                Text(tr('Buddy ohne Limit'),
+                Text(tr('Ahead ohne Limit'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: AppColors.glow,
@@ -289,7 +289,7 @@ class _PlusScreenState extends State<PlusScreen> {
         );
     final rows = [
       (
-        tr('Buddy'),
+        tr('Ahead'),
         tr('{x}/Monat', {'x': PlusService.limit(PlusFeature.aiQuestion)})
       ),
       (

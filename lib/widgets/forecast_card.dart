@@ -118,7 +118,7 @@ class ForecastCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
+            Text(tr('So rechnet Ahead'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(
                 f.incomePreliminary
@@ -167,7 +167,7 @@ class ForecastCard extends StatelessWidget {
                     tr('Bei deinem üblichen Tempo gibst du bis Monatsende etwa {x} aus. Das passt.', {'x': Money.format(f.paceCents)}),
                   ForecastPace.tight =>
                     tr('Bei deinem Tempo bis Monatsende etwa {x}, mehr als noch frei ist. Ein paar ruhige Tage reichen.', {'x': Money.format(f.paceCents)}),
-                  ForecastPace.over => tr('Diesen Monat über dem Budget. Buddy zeigt, wo sparen am leichtesten ist.'),
+                  ForecastPace.over => tr('Diesen Monat über dem Budget. Ahead zeigt, wo sparen am leichtesten ist.'),
                 },
                 style: const TextStyle(height: 1.4),
               ),

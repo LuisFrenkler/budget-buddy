@@ -99,7 +99,7 @@ class GuestBuddy {
         try {
           msg = '${(jsonDecode(body) as Map)['error']}';
         } catch (_) {
-          msg = tr('Buddy ist gerade nicht erreichbar.');
+          msg = tr('Ahead ist gerade nicht erreichbar.');
         }
         throw msg;
       }

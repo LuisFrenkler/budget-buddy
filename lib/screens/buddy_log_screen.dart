@@ -28,7 +28,7 @@ class BuddyLogScreen extends StatelessWidget {
       builder: (context, _, __) {
         final entries = BuddyLog.all();
         return Scaffold(
-          appBar: AppBar(title: Text(tr('Was Buddy getan hat'))),
+          appBar: AppBar(title: Text(tr('Was Ahead getan hat'))),
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
             children: [
@@ -37,7 +37,7 @@ class BuddyLogScreen extends StatelessWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Text(
-                    tr('Buddy macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.'),
+                    tr('Ahead macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.'),
                     style: TextStyle(color: AppColors.textDim, height: 1.45),
                   ),
                 ),
@@ -47,7 +47,7 @@ class BuddyLogScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-                  child: Text(tr('Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Buddy, steht es hier.'),
+                  child: Text(tr('Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Ahead, steht es hier.'),
                       style: TextStyle(color: AppColors.textDim, height: 1.45)),
                 )
               else

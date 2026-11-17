@@ -1114,7 +1114,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
         content: Text(
           (added == 0
                   ? tr('Umsätze da. Auf dem Start siehst du, was noch frei ist.')
-                  : tr('{added} {x} da. Buddy rechnet auf dem Start, was noch frei ist.', {'added': added, 'x': added == 1 ? tr('Umsatz') : tr('Umsätze')})) +
+                  : tr('{added} {x} da. Ahead rechnet auf dem Start, was noch frei ist.', {'added': added, 'x': added == 1 ? tr('Umsatz') : tr('Umsätze')})) +
               (smarter > 0
                   ? '\n\n${BankSync.syncedLine(added: 0, smarter: smarter)}.'
                   : '') +

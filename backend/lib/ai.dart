@@ -63,7 +63,7 @@ class Ai {
 
   // who Buddy is, the same in the app and in the guest chat
   static const _persona = '''
-Du bist Buddy, Finanzcoach in Ahead. Deutsch, du. Englisch: „you“, „Next step:“.
+Du bist Ahead, ein persönlicher Agent, der verlorenes Geld findet und Aufgaben mit der Person erledigt. Deutsch, du. Englisch: „you“, „Next step:“.
 
 Erster Satz: die Zahl **fett** oder die Ampel, plus das Urteil. Danach höchstens ein Satz.
 Zusammen max. 40 Wörter. Eine Liste nur, wenn sie verlangt wurde, ohne Einleitung.
@@ -94,7 +94,7 @@ Antworte auf Basis dieser Daten und rechne nach, bevor du Zahlen nennst. Leere L
 heißen: nichts eingetragen. vorsorge.eingerichtet false heißt: nicht eingerichtet.
 prognose.vorhanden false heißt: zu wenig Verlauf. Sag das kurz, statt zu raten.
 
-erinnerungen sind Dinge, die die Person Buddy erlaubt hat sich zu merken (Lebenslage,
+erinnerungen sind Dinge, die die Person Ahead erlaubt hat sich zu merken (Lebenslage,
 Ziele, Vorlieben). Nutze sie, wenn sie zur Frage passen, ohne sie aufzuzählen.
 lebenslage zeigt, in welcher Phase die Person steckt (zum Beispiel Erster Job) und welche
 Schritte schon erledigt sind. Beziehe Antworten darauf, wenn es passt.
@@ -109,7 +109,7 @@ Der Chat hat Verlauf: Nachfragen („und davon?“, „warum?“) beziehen sich 
 Antwort. Wiederhole nicht die ganze Analyse, sondern knüpfe kurz an. Die Finanzdaten stehen
 in der aktuellen Nutzernachricht.
 
-Buddy kann Vorsorge, Sparziele und Depot-Positionen einrichten, indem er nach Alter, Betrag
+Ahead kann Vorsorge, Sparziele und Depot-Positionen einrichten, indem er nach Alter, Betrag
 oder Stückzahl fragt. Geschrieben wird erst, wenn die Person die Karte mit Übernehmen
 bestätigt. Weise auf „Vorsorge einrichten“, „Sparziel Urlaub 800“ oder „Füge Apple hinzu“
 hin. Frag die Felder nicht selbst ab und behaupte nie, es sei schon gespeichert.
@@ -134,7 +134,7 @@ Budget, Umzug, Zusammenziehen, Verträge und Abos, Grundlagen zu ETF und Kosten.
 geplanten Altersvorsorgedepot (Start nach aktuellem Plan am 1.1.2027) sagst du dazu, dass
 sich Details noch ändern können.
 
-Wenn eine echte Antwort von ihren eigenen Zahlen abhängt, sag in einem Satz, dass Buddy mit
+Wenn eine echte Antwort von ihren eigenen Zahlen abhängt, sag in einem Satz, dass Ahead mit
 einem kostenlosen Konto genau mit ihren Zahlen rechnen kann. Höchstens einmal im Chat,
 nicht drängeln.''';
 
@@ -213,7 +213,7 @@ nicht drängeln.''';
       }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
         if (clock.elapsed > _streamDeadline) {
-          throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+          throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
         }
         if (!line.startsWith('data: ')) continue;
         final event = jsonDecode(line.substring(6)) as Map<String, dynamic>;
@@ -223,14 +223,14 @@ nicht drängeln.''';
             if (delta['type'] == 'text_delta') yield delta['text'] as String;
           case 'message_delta':
             if (event['delta']?['stop_reason'] == 'refusal') {
-              throw const AiError('Dazu kann Buddy leider nichts sagen.');
+              throw const AiError('Dazu kann Ahead leider nichts sagen.');
             }
           case 'error':
             throw AiError('${event['error']?['message'] ?? 'Fehler der KI'}');
         }
       }
     } on TimeoutException {
-      throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+      throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
     } finally {
       client.close();
     }
@@ -451,7 +451,7 @@ nicht drängeln.''';
   }) async {
     if (!enabled) throw const AiError('KI ist auf dem Server nicht eingerichtet.');
     final accountList = [for (final a in accounts) '- ${a['id']}: ${a['name']} (${a['kind']})'].join('\n');
-    final prompt = 'Heute ist ${_today()}. Du bist Buddy in einer deutschen Finanz-App. Der Nutzer erzählt, '
+    final prompt = 'Heute ist ${_today()}. Du bist Ahead, der Agent einer deutschen Finanz-App. Der Nutzer erzählt, '
         'was passiert ist, oder schickt ein Foto. Mach daraus Einträge für seine Konten und Depots.\n\n'
         'Seine Konten:\n$accountList\n'
         'Seine Depots: ${depots.isEmpty ? 'noch keins' : depots.join(', ')}\n'
@@ -563,10 +563,10 @@ nicht drängeln.''';
   // the text of a Gemini answer; a blocked answer says so
   static String geminiText(Map<String, dynamic> body) {
     final candidates = (body['candidates'] as List?) ?? const [];
-    if (candidates.isEmpty) throw const AiError('Dazu kann Buddy leider nichts sagen.');
+    if (candidates.isEmpty) throw const AiError('Dazu kann Ahead leider nichts sagen.');
     final c = candidates.first as Map;
     if (c['finishReason'] == 'SAFETY' || c['finishReason'] == 'PROHIBITED_CONTENT') {
-      throw const AiError('Dazu kann Buddy leider nichts sagen.');
+      throw const AiError('Dazu kann Ahead leider nichts sagen.');
     }
     return [for (final p in ((c['content'] as Map?)?['parts'] as List?) ?? const []) (p as Map)['text'] ?? ''].join();
   }
@@ -614,14 +614,14 @@ nicht drängeln.''';
       }
       await for (final line in res.stream.transform(utf8.decoder).transform(const LineSplitter())) {
         if (clock.elapsed > _streamDeadline) {
-          throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+          throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
         }
         if (!line.startsWith('data: ')) continue;
         final piece = geminiText(jsonDecode(line.substring(6)) as Map<String, dynamic>);
         if (piece.isNotEmpty) yield piece;
       }
     } on TimeoutException {
-      throw const AiError('Buddy braucht zu lange. Bitte gleich noch einmal.');
+      throw const AiError('Ahead braucht zu lange. Bitte gleich noch einmal.');
     } finally {
       client.close();
     }

@@ -509,8 +509,8 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 _ChoiceCard(
                   icon: Icons.chat_bubble_outline_rounded,
-                  title: tr('Mit Buddy loslegen'),
-                  text: tr('Erzähl Buddy, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.'),
+                  title: tr('Mit Ahead loslegen'),
+                  text: tr('Erzähl Ahead, was ansteht. Zahlen trägst du ein, wenn du magst, oder knipst einen Beleg.'),
                   badge: tr('Empfohlen'),
                   onTap: _busy ? null : () => _finish(),
                 ),

@@ -125,7 +125,7 @@ class _TaxScreenState extends State<TaxScreen> {
   }
 
   Future<void> _certificate() async {
-    final d = await _photo(tr('Buddy liest deine Lohnsteuerbescheinigung …'));
+    final d = await _photo(tr('Ahead liest deine Lohnsteuerbescheinigung …'));
     if (d == null || !mounted) return;
     if (!d.isCertificate) {
       setState(() => _error = tr('Das sieht nicht nach einer Lohnsteuerbescheinigung aus.'));
@@ -142,7 +142,7 @@ class _TaxScreenState extends State<TaxScreen> {
   }
 
   Future<void> _assessment() async {
-    final d = await _photo(tr('Buddy liest deinen Steuerbescheid …'));
+    final d = await _photo(tr('Ahead liest deinen Steuerbescheid …'));
     if (d == null || !mounted) return;
     if (!d.isAssessment) {
       setState(() => _error = tr('Das sieht nicht nach einem Einkommensteuerbescheid aus.'));
@@ -360,7 +360,7 @@ class _TaxScreenState extends State<TaxScreen> {
                       : tr('Lohnt sich eine Steuererklärung für mich?'));
             },
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(tr('Mit Buddy durchgehen')),
+            label: Text(tr('Mit Ahead durchgehen')),
           ),
           const SizedBox(height: 12),
           Text(_rules(), style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 12)),
@@ -577,7 +577,7 @@ class _TaxScreenState extends State<TaxScreen> {
   Widget _empty() => Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(22)),
-        child: Text(tr('Trag dein Brutto ein oder fotografiere die Lohnsteuerbescheinigung, dann rechnet Buddy die Erstattung aus.'),
+        child: Text(tr('Trag dein Brutto ein oder fotografiere die Lohnsteuerbescheinigung, dann rechnet Ahead die Erstattung aus.'),
             style: TextStyle(color: AppColors.textDim, height: 1.4)),
       );
 

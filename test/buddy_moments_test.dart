@@ -111,7 +111,7 @@ void main() {
       ],
       now: now,
     );
-    final task = plan.where((r) => r.title == 'Erinnerung von Buddy').toList();
+    final task = plan.where((r) => r.title == 'Erinnerung von Ahead').toList();
     expect(task.length, 1);
     expect(task.single.when, DateTime(2026, 11, 20, 9));
     expect(task.single.payload, 'buddy:Hilf mir bei diesem Schritt: Personalabteilung fragen');

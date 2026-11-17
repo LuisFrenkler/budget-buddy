@@ -9,7 +9,7 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: PlusScreen()));
 
     expect(find.text('Ahead Plus'), findsOneWidget);
-    expect(find.text('Buddy ohne Limit'), findsOneWidget);
+    expect(find.text('Ahead ohne Limit'), findsOneWidget);
     expect(find.text('${PlusService.freeAiQuestions}/Monat'), findsOneWidget);
     expect(find.text('${PlusService.freeReceiptScans}/Monat'), findsOneWidget);
     expect(find.text('${PlusService.freeGoals}'), findsOneWidget);

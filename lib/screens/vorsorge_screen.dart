@@ -69,7 +69,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         title: Text(tr('Vorsorge')),
         actions: [
           IconButton(
-            tooltip: tr('So rechnet Buddy'),
+            tooltip: tr('So rechnet Ahead'),
             onPressed: _assumptions,
             icon: const Icon(Icons.info_outline_rounded),
           ),
@@ -82,7 +82,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
               style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(
-            tr('Buddy schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.'),
+            tr('Ahead schätzt die monatliche Lücke. Es zählt deine DRV-Auskunft. Ohne Steuern, Inflation und Produktempfehlung.'),
             style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 13.5),
           ),
           const SizedBox(height: 18),
@@ -135,7 +135,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
                 BuddyScreen.open(context, q);
               },
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: Text(tr('Mit Buddy besprechen')),
+              label: Text(tr('Mit Ahead besprechen')),
             ),
         ],
       ),
@@ -207,7 +207,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
           child: TextButton(
             style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
             onPressed: _assumptions,
-            child: Text(tr('So rechnet Buddy')),
+            child: Text(tr('So rechnet Ahead')),
           ),
         ),
       ]),
@@ -223,7 +223,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('So rechnet Buddy'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
+            Text(tr('So rechnet Ahead'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             Text(
               tr('• Kapital (Depot, Sparziele ohne Notgroschen) teilt sich auf {drawYears} Jahre ohne Rendite auf.\n\n• „Extra sparen“ rechnet mit ~{x} % Realrendite bis zur Rente (Faustformel, kein Versprechen).\n\n• Gesetzliche Rente: etwa {x2} % deines Nettos, nur ein Platzhalter. Ersetze ihn mit der DRV-Auskunft.\n\n• Keine Steuern, Sozialabgaben oder Inflation. Keine Anlage- oder Rentenberatung.', {'drawYears': Vorsorge.drawYears, 'x': (Vorsorge.realReturn * 100).round(), 'x2': (Vorsorge.estimateShare * 100).round()}),
@@ -299,7 +299,7 @@ class _VorsorgeScreenState extends State<VorsorgeScreen> {
         title: Text(tr('Netto-Gehalt / Monat')),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
-            tr('Buddy setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.', {'x': (Vorsorge.estimateShare * 100).round()}),
+            tr('Ahead setzt grob {x} % als gesetzliche Rente an (Mitte der Karriere). Später durch die DRV-Auskunft ersetzen.', {'x': (Vorsorge.estimateShare * 100).round()}),
             style: TextStyle(color: AppColors.textDim, fontSize: 13, height: 1.35),
           ),
           const SizedBox(height: 12),

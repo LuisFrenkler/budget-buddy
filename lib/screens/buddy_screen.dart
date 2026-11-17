@@ -40,6 +40,7 @@ import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
 import '../widgets/agent_feed.dart';
+import '../services/ahead_agent.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/buddy_text.dart';
 import '../widgets/life_stage_sheet.dart';
@@ -122,10 +123,10 @@ class BuddyScreen extends StatefulWidget {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const BuddyOrb(size: 48),
             const SizedBox(height: 16),
-            Text(tr('Buddy mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
+            Text(tr('Ahead mit KI nutzen?'), style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Text(
-              tr('Buddy holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Buddy zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
+              tr('Ahead holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Ahead zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}', {'x': BuddyService.provider == 'google' ? tr('Google (Gemini)') : tr('Anthropic'), 'x2': BuddyService.provider == 'google' ? tr('Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.') : tr('Anthropic nutzt die Daten nicht zum Training.')}),
               style: TextStyle(color: AppColors.textDim, height: 1.45),
             ),
             Align(
@@ -328,7 +329,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // "Was kannst du alles?": answered on the device, no question used up
   void _privacy(String question) {
     final answer = _Message(false, DataMap.answer(DataScreen.current()));
-    answer.followUps = [tr('Wie schalte ich Buddy mit KI aus?'), tr('Wie lösche ich mein Konto?')];
+    answer.followUps = [tr('Wie schalte ich Ahead mit KI aus?'), tr('Wie lösche ich mein Konto?')];
     _input.clear();
     setState(() {
       _messages.add(_Message(true, question));
@@ -688,7 +689,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       _celebrate();
       _tickLifeStage(e);
       if (e.type == 'recategorize' || e.type == 'recategorize_all') {
-        _snack(tr('{done}. Buddy merkt sich die Regel für künftige Buchungen.', {'done': done}));
+        _snack(tr('{done}. Ahead merkt sich die Regel für künftige Buchungen.', {'done': done}));
       } else if (e.type == 'vorsorge' && done == 'Gespeichert') {
         _snack(tr('Rentenrechner gespeichert'),
             open: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VorsorgeScreen())));
@@ -889,7 +890,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       await showPlus(
           context,
           reason:
-              tr('Gratis-Fragen aufgebraucht. Mit Plus antwortet Buddy, so oft du willst. Ohne Plus antwortet Buddy weiter offline aus deinen Daten.'));
+              tr('Gratis-Fragen aufgebraucht. Mit Plus antwortet Ahead, so oft du willst. Ohne Plus antwortet Ahead weiter offline aus deinen Daten.'));
       // declined Plus → still answer offline (like consent decline)
       if (!PlusService.active.value) live = false;
     }
@@ -1047,7 +1048,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         setState(() {
           answer
             ..text = friendlyError(e,
-                fallback: tr('Buddy ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'))
+                fallback: tr('Ahead ist gerade nicht erreichbar. Prüf die Verbindung und frag gleich noch einmal.'))
             ..error = true
             ..streaming = false;
           _thinking = false;
@@ -1189,15 +1190,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   void _shareAnswer(_Message m) {
     final i = _messages.indexOf(m);
-    final question = i > 0 && _messages[i - 1].fromUser ? _messages[i - 1].text : tr('Frag Buddy');
+    final question = i > 0 && _messages[i - 1].fromUser ? _messages[i - 1].text : tr('Frag Ahead');
     final body = BuddyMarkers.parse(m.text).text;
     showShareCard(
       context,
       ShareCardData(
-        kicker: tr('Frag Buddy'),
+        kicker: tr('Frag Ahead'),
         headline: question.length > 90 ? '${question.substring(0, 89)}…' : question,
         body: body.length > 420 ? '${body.substring(0, 419)}…' : body,
-        text: tr('{q} Buddy von Ahead hat mir das in Sekunden ausgerechnet.', {'q': question}),
+        text: tr('{q} Ahead hat mir das in Sekunden ausgerechnet.', {'q': question}),
       ),
     );
   }
@@ -1307,7 +1308,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           const SizedBox(width: 10),
           Flexible(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(tr('Buddy'),
+              Text(tr('Ahead'),
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: -0.4, height: 1.15)),
               // connection only; "schreibt" and tool lines live in the thread
               InkWell(
@@ -1357,8 +1358,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
             itemBuilder: (_) => [
               PopupMenuItem(value: 'stage', child: _menuRow(Icons.flag_outlined, tr('Lebenslage'))),
               PopupMenuItem(value: 'story', child: _menuRow(Icons.auto_stories_outlined, tr('Monats-Story teilen'))),
-              PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Buddy weiß'))),
-              PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Buddy getan hat'))),
+              PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Ahead weiß'))),
+              PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Ahead getan hat'))),
               if (_messages.isNotEmpty)
                 PopupMenuItem(value: 'new', child: _menuRow(Icons.add_comment_outlined, tr('Neuer Chat'))),
               if (_live == true)
@@ -1455,15 +1456,58 @@ class _BuddyScreenState extends State<BuddyScreen> {
               style: const TextStyle(fontSize: 17, height: 1.4, color: Color(0xDBFFF7F0)),
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              key: const Key('guest-refund-check'),
-              style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start'))),
-              icon: const Icon(Icons.savings_outlined, size: 18),
-              label: Text(tr('Rückhol-Check starten')),
-            ),
+            ..._guestFinds(),
           ]),
       );
+
+  // after the check: what the agent found, and signing up to let it carry on
+  List<Widget> _guestFinds() {
+    final finds = AheadAgent.guestFinds();
+    void check() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start')))
+        .then((_) => mounted ? setState(() {}) : null);
+    if (finds.isEmpty) {
+      return [
+        FilledButton.icon(
+          key: const Key('guest-refund-check'),
+          style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
+          onPressed: check,
+          icon: const Icon(Icons.savings_outlined, size: 18),
+          label: Text(tr('Rückhol-Check starten')),
+        ),
+      ];
+    }
+    final open = AheadAgent.openCents(finds);
+    final upTo = AheadAgent.upToCents(finds);
+    const dim = Color(0xDBFFF7F0);
+    return [
+      Text(tr('Ahead hat für dich gefunden'), style: const TextStyle(fontSize: 15, color: dim)),
+      if (open > 0 || upTo > 0)
+        Text(open > 0 ? tr('mind. {x}', {'x': Money.format(open)}) : tr('bis zu {x}', {'x': Money.format(upTo)}),
+            key: const Key('guest-found'),
+            style: const TextStyle(
+                fontFamily: AppFonts.display, fontSize: 40, fontWeight: FontWeight.w600, letterSpacing: -1.5, color: CopperLight.peach)),
+      const SizedBox(height: 8),
+      for (final f in finds.take(4))
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text('· ${f.title}', style: const TextStyle(fontSize: 15, height: 1.3, color: Color(0xFFFFF7F0))),
+        ),
+      const SizedBox(height: 14),
+      FilledButton.icon(
+        key: const Key('guest-carry-on'),
+        style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+        icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+        label: Text(tr('Konto anlegen, ich mache weiter')),
+      ),
+      TextButton(
+        key: const Key('guest-recheck'),
+        onPressed: check,
+        style: TextButton.styleFrom(foregroundColor: dim),
+        child: Text(tr('Neu prüfen')),
+      ),
+    ];
+  }
 
   // three short ways in, as small pills right above the input
   static List<({String label, String question})> get _guestStarts => [
@@ -1663,7 +1707,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
         child: Row(children: [
           Expanded(
             child: Text(
-              tr('KI ist aus. Buddy antwortet offline aus deinen Daten.'),
+              tr('KI ist aus. Ahead antwortet offline aus deinen Daten.'),
               style: TextStyle(color: AppColors.textDim, fontSize: 12.5, height: 1.35),
             ),
           ),
@@ -1767,13 +1811,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Row(children: [
                   Icon(Icons.notifications_none_rounded, size: 14, color: AppColors.brand),
                   const SizedBox(width: 4),
-                  Text(tr('Buddy meldet sich'),
+                  Text(tr('Ahead meldet sich'),
                       style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brandText)),
                 ]),
               ),
             Semantics(
               container: true,
-              label: tr('Buddy'),
+              label: tr('Ahead'),
               // the finished answer is read out without moving focus
               liveRegion: last && !m.streaming,
               onLongPressHint: tr('Kopieren und mehr'),
@@ -1815,9 +1859,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Text(
                     m.degraded
                         ? (_guest
-                            ? tr('KI gerade nicht verfügbar · Antwort aus Buddys Grundwissen')
+                            ? tr('KI gerade nicht verfügbar · Antwort aus dem Grundwissen von Ahead')
                             : tr('KI gerade ausgelastet · Antwort offline aus deinen Daten'))
-                        : (_guest ? tr('Ohne KI · aus Buddys Grundwissen') : tr('Ohne KI berechnet aus deinen Daten')),
+                        : (_guest ? tr('Ohne KI · aus dem Grundwissen von Ahead') : tr('Ohne KI berechnet aus deinen Daten')),
                     style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ),
             if (m.corrected && !m.streaming && !m.error)
@@ -1827,7 +1871,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   Icon(Icons.verified_outlined, size: 13, color: AppColors.textDim),
                   const SizedBox(width: 4),
                   Flexible(
-                      child: Text(tr('Buddy hat eine Zahl nachgeprüft'),
+                      child: Text(tr('Ahead hat eine Zahl nachgeprüft'),
                           style: TextStyle(fontSize: 11, color: AppColors.textDim))),
                 ]),
               ),
@@ -1951,7 +1995,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // thumbs under a live answer; down asks why, so it can become a test case
   List<Widget> _rating(_Message m) => [
           if (m.liked != null)
-            Text(m.liked! ? tr('Danke!') : tr('Danke, das hilft Buddy.'),
+            Text(m.liked! ? tr('Danke!') : tr('Danke, das hilft Ahead.'),
                 style: TextStyle(fontSize: 12, color: AppColors.textDim))
           else ...[
             IconButton(
@@ -2007,7 +2051,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
               maxLength: 300,
               decoration: InputDecoration(hintText: tr('Was hättest du erwartet? (optional)')),
             ),
-            Text(tr('Frage und Antwort gehen an Ahead, damit Buddy besser wird. Sonst nichts.'),
+            Text(tr('Frage und Antwort gehen an Ahead, damit Ahead besser wird. Sonst nichts.'),
                 style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 14),
             SizedBox(
@@ -2233,7 +2277,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                           ? tr('Weiß ich schon')
                           : state == 'no'
                               ? tr('Nicht gemerkt')
-                              : tr('Soll Buddy sich das merken?'),
+                              : tr('Soll Ahead sich das merken?'),
                   style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600)),
               const SizedBox(height: 2),
               Text(m.remember!, style: const TextStyle(fontWeight: FontWeight.w600, height: 1.35)),
@@ -2696,7 +2740,7 @@ class _BuddyCardState extends State<BuddyCard> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(tip != null ? tr('Buddy hat einen Tipp') : tr('Frag Buddy'),
+                    Text(tip != null ? tr('Ahead hat einen Tipp') : tr('Frag Ahead'),
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
                     const SizedBox(height: 3),
                     if (tip != null)
