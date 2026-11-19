@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ahead.css">
+<link rel="stylesheet" href="ahead.css?v=4">
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -28,19 +28,9 @@
     <a class="brand" href="index.html" aria-label="Ahead"><span class="coin"><svg><use href="#b"/></svg></span><span class="wm">Ahead.</span></a>
     <nav class="nav-links" aria-label="Seiten" data-en-aria-label="Pages">
       <a class="ghost-btn" href="konzept.html" aria-current="page" data-en="Concept">Konzept</a>
-      <a class="ghost-btn" href="preis.html" data-en="Price">Preis</a>
-      <a class="ghost-btn" href="sicherheit.html" data-en="Security">Sicherheit</a>
     </nav>
     <div class="top-actions">
       <button class="ghost-btn" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
-      <details class="menu">
-        <summary class="ghost-btn" data-en="Menu">Menü</summary>
-        <nav class="menu-panel" aria-label="Seiten" data-en-aria-label="Pages">
-      <a href="konzept.html" aria-current="page" data-en="Concept">Konzept</a>
-      <a href="preis.html" data-en="Price">Preis</a>
-      <a href="sicherheit.html" data-en="Security">Sicherheit</a>
-        </nav>
-      </details>
       <a class="cta-btn" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
     </div>
   </div>
@@ -126,11 +116,13 @@
   <div class="w">
     <span>© 2026 Ahead</span>
     <span data-en="Ahead can make mistakes. No investment, tax or legal advice.">Ahead kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
+    <a href="preis.html" data-en="Price">Preis</a>
+    <a href="sicherheit.html" data-en="Security">Sicherheit</a>
     <a href="datenschutz.html" data-legal data-en="Privacy">Datenschutz</a>
     <a href="impressum.html" data-legal data-en="Legal notice">Impressum</a>
   </div>
 </footer>
 
-<script src="ahead.js" onerror="document.documentElement.classList.remove('js')"></script>
+<script src="ahead.js?v=4" onerror="document.documentElement.classList.remove('js')"></script>
 </body>
 </html>

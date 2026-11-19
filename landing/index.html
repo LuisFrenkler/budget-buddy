@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ahead.css">
+<link rel="stylesheet" href="ahead.css?v=4">
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -31,19 +31,9 @@
     <a class="brand" href="#" aria-label="Ahead"><span class="coin"><svg><use href="#b"/></svg></span><span class="wm">Ahead.</span></a>
     <nav class="nav-links" aria-label="Seiten" data-en-aria-label="Pages">
       <a class="ghost-btn" href="konzept.html" data-en="Concept">Konzept</a>
-      <a class="ghost-btn" href="preis.html" data-en="Price">Preis</a>
-      <a class="ghost-btn" href="sicherheit.html" data-en="Security">Sicherheit</a>
     </nav>
     <div class="top-actions">
       <button class="ghost-btn" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
-      <details class="menu">
-        <summary class="ghost-btn" data-en="Menu">Menü</summary>
-        <nav class="menu-panel" aria-label="Seiten" data-en-aria-label="Pages">
-      <a href="konzept.html" data-en="Concept">Konzept</a>
-      <a href="preis.html" data-en="Price">Preis</a>
-      <a href="sicherheit.html" data-en="Security">Sicherheit</a>
-        </nav>
-      </details>
       <a class="cta-btn" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
     </div>
   </div>
@@ -59,14 +49,14 @@
         <a class="btn white" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
         <a class="btn ghost" href="#platz" data-en="Join the waitlist">Auf die Warteliste</a>
       </div>
-      <p class="cta-note hi hi-3" data-en="No sign-up, no access to your bank.">Ohne Anmeldung, ohne Zugang zu deiner Bank.</p>
+      <p class="cta-note hi hi-3" data-en="No sign-up.">Ohne Anmeldung.</p>
     </div>
     <div class="stage" data-stage>
       <div class="phone-tilt" data-phone>
         <div class="phone">
-          <img src="app_feed.jpg" data-en-src="app_feed_en.jpg"
-               data-en-alt="Ahead's feed: where you stand in three numbers and what it found, with amount and deadline."
-               alt="Der Feed von Ahead: dein Stand in drei Zahlen und was er gefunden hat, mit Betrag und Frist."
+          <img src="app_chat.jpg?v=1" data-en-src="app_chat_en.jpg?v=1"
+               data-en-alt="Ahead in a conversation: it speaks up on its own, names a next step and offers to help with it."
+               alt="Ahead im Gespräch: Er meldet sich von selbst, nennt einen nächsten Schritt und bietet an, dabei zu helfen."
                width="780" height="1688">
         </div>
       </div>
@@ -75,84 +65,24 @@
 </section>
 
 <main>
-  <section class="chapter" id="stand">
+  <section class="chapter" id="drei">
     <div class="w">
-      <div class="proof">
-        <div class="copy rise">
-          <h2 class="say" data-en="Where do <em>I stand?</em>">Wo <em>stehe ich?</em></h2>
-          <p class="sub" data-en="What is free this month, what goes out every month no matter what, and what you own in total. From your own numbers, at a glance.">Was diesen Monat frei ist, was jeden Monat fest rausgeht und was du insgesamt hast. Aus deinen eigenen Zahlen, auf einen Blick.</p>
+      <div class="three rise">
+        <div class="q3">
+          <h2 data-en="Where do <em>I stand?</em>">Wo <em>stehe ich?</em></h2>
+          <p data-en="Three numbers from your own bookings.">Drei Zahlen aus deinen eigenen Umsätzen.</p>
         </div>
-        <div class="case rise" data-d="1">
-          <p class="case-tag" data-en="Example · where you stand">Beispiel · dein Stand</p>
-          <dl>
-            <div><dt data-en="Free this month">Frei diesen Monat</dt><dd data-en="€412">412 €</dd></div>
-            <div><dt data-en="Fixed costs a month">Fixkosten im Monat</dt><dd data-en="€1,180">1.180 €</dd></div>
-            <div><dt data-en="Wealth, account + portfolio">Vermögen, Konto + Depot</dt><dd data-en="€4,300">4.300 €</dd></div>
-          </dl>
+        <div class="q3">
+          <h2 data-en="Where do I <em>lose money?</em>">Wo <em>verliere ich Geld?</em></h2>
+          <p data-en="Every find comes with an amount.">Jeder Fund kommt mit Betrag.</p>
+        </div>
+        <div class="q3">
+          <h2 data-en="What is my <em>next step?</em>">Was ist mein <em>nächster Schritt?</em></h2>
+          <p data-en="One step. Ahead does it with you.">Ein Schritt. Ahead erledigt ihn mit dir.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="chapter" id="rechnung">
-    <div class="w">
-      <div class="proof">
-        <div class="copy rise">
-          <h2 class="say" data-en="Where do I <em>lose money?</em>">Wo <em>verliere ich Geld?</em></h2>
-          <p class="sub" data-en="An example, not a promise. The tax figure is an estimate; the real number is in your tax notice.">Ein Beispiel, keine Zusage. Die Steuer ist eine Schätzung, die echte Zahl steht im Steuerbescheid.</p>
-        </div>
-        <div class="case rise" data-d="1">
-          <p class="case-tag" data-en="Example · three finds">Beispiel · drei Funde</p>
-          <dl>
-            <div><dt data-en="Tax 2022, job started in September">Steuer 2022, Job ab September</dt><dd data-en="at least €1,260">mind. 1.260 €</dd></div>
-            <div><dt data-en="Gym, unused since March">Fitnessstudio, seit März ungenutzt</dt><dd data-en="€358.80 a year">358,80 € im Jahr</dd></div>
-            <div><dt data-en="Streaming, price went up">Streaming, Preis erhöht</dt><dd data-en="€24 a year">24 € im Jahr</dd></div>
-          </dl>
-          <p class="case-sum"><span data-en="at least">mindestens</span> <b data-en="€1,260">1.260 €</b> <span data-en="back">zurück</span></p>
-          <p class="case-due" data-en="plus €382.80 a year you can save">dazu 382,80 € im Jahr, die du sparen kannst</p>
-          <a class="btn ink" href="../" data-app data-en="Check with your numbers ↗">Mit deinen Zahlen prüfen ↗</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="chapter" id="beispiele">
-    <div class="w">
-      <div class="proof">
-        <div class="copy rise">
-          <h2 class="say" data-en="What is my <em>next step?</em>">Was ist mein <em>nächster Schritt?</em></h2>
-          <p class="sub" data-en="Ahead names one step, concrete enough for today, and does it with you.">Ahead nennt einen Schritt, konkret genug für heute, und erledigt ihn mit dir.</p>
-        </div>
-        <div class="talk rise" data-d="1" data-talk></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="chapter" id="so">
-    <div class="w">
-      <div class="rise">
-        <h2 class="say" data-en="How Ahead <em>works for you.</em>">So arbeitet Ahead <em>für dich.</em></h2>
-        <ol class="steps">
-          <li data-en="<span><b>Find.</b> Open tax years, forgotten subscriptions, price increases, double charges. Three answers or a bank statement are enough.</span>"><span><b>Finden.</b> Offene Steuerjahre, vergessene Abos, Preiserhöhungen, doppelte Abbuchungen. Drei Antworten oder ein Kontoauszug reichen.</span></li>
-          <li data-en="<span><b>Ask.</b> Every find comes with an amount. You say “Yes, go” or “Later”.</span>"><span><b>Fragen.</b> Jeder Fund kommt mit Betrag. Du sagst „Ja, los“ oder „Später“.</span></li>
-          <li data-en="<span><b>Get it done.</b> Ahead guides you through the tax return or writes the cancellation, then checks that the money really arrived.</span>"><span><b>Erledigen.</b> Ahead führt dich durch die Steuer oder schreibt die Kündigung und prüft danach, ob das Geld wirklich ankam.</span></li>
-        </ol>
-        <a class="btn ink" href="konzept.html" data-en="Read the concept →">Das Konzept lesen →</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="chapter" id="nicht">
-    <div class="w">
-      <div class="rise">
-        <h2 class="say small" data-en="What Ahead doesn’t do:">Was Ahead nicht macht:</h2>
-        <div class="nots">
-          <div data-en="Move money">Geld bewegen</div>
-          <div data-en="Sell you funds">Dir Fonds verkaufen</div>
-          <div data-en="Act without your yes">Ohne dein Ja handeln</div>
-        </div>
-        <p class="punch" data-en="It finds. You decide.">Er findet. Du entscheidest.</p>
-      </div>
+      <p class="punch rise" data-en="It finds. You decide.">Er findet. Du entscheidest.</p>
+      <a class="btn ink rise" href="konzept.html" data-en="Read the concept →">Das Konzept lesen →</a>
     </div>
   </section>
 
@@ -210,11 +140,13 @@
   <div class="w">
     <span>© 2026 Ahead</span>
     <span data-en="Ahead can make mistakes. No investment, tax or legal advice.">Ahead kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
+    <a href="preis.html" data-en="Price">Preis</a>
+    <a href="sicherheit.html" data-en="Security">Sicherheit</a>
     <a href="datenschutz.html" data-legal data-en="Privacy">Datenschutz</a>
     <a href="impressum.html" data-legal data-en="Legal notice">Impressum</a>
   </div>
 </footer>
 
-<script src="ahead.js" onerror="document.documentElement.classList.remove('js')"></script>
+<script src="ahead.js?v=4" onerror="document.documentElement.classList.remove('js')"></script>
 </body>
 </html>

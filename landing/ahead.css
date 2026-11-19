@@ -304,3 +304,23 @@ footer a{text-decoration:underline;text-underline-offset:3px;padding:10px 0}
   .js .rise .say,.js .rise h2{filter:none;transition:none}
   html{scroll-behavior:auto}
 }
+
+/* the home page's three questions: a headline and one line each */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px)}
+.q3 h2{font:600 clamp(26px,2.6vw,34px)/1.08 var(--display);letter-spacing:-.035em}
+.q3 h2 em{display:block;font-style:normal;color:var(--copper)}
+.q3 p{margin-top:12px;font-size:17px;line-height:1.45;color:var(--soft)}
+#drei .punch{margin-top:clamp(40px,6vw,72px)}
+#drei .btn{margin-top:24px}
+@media (max-width:900px){.three{grid-template-columns:1fr;gap:28px}}
+
+/* desktop hero: text and phone sit right under the bar, not at the bottom of a full screen */
+@media (min-width:901px){
+  .hero{min-height:0}
+  .hero-grid{align-items:center;padding-top:calc(104px + env(safe-area-inset-top));padding-bottom:0}
+  .hero-copy{padding-bottom:56px}
+  .stage{align-self:end;padding-bottom:0}
+}
+/* one page link in the bar: it stays visible on phones, no menu needed */
+.nav-links{display:flex!important}
+

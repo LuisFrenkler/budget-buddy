@@ -27,6 +27,7 @@ import 'package:budget_buddy/screens/auth_screens.dart';
 import 'package:budget_buddy/screens/invite_screen.dart';
 import 'package:budget_buddy/services/account_service.dart';
 import 'package:budget_buddy/services/buddy_history.dart';
+import 'package:budget_buddy/services/buddy_service.dart';
 import 'package:budget_buddy/services/buddy_memory.dart';
 import 'package:budget_buddy/services/demo_data.dart';
 import 'package:budget_buddy/services/invite_service.dart';
@@ -85,7 +86,7 @@ Future<void> _pump(WidgetTester tester, Widget home, {bool dark = true}) async {
 Future<void> _ask(WidgetTester tester, String q) async {
   await tester.enterText(find.byType(TextField), q);
   await tester.pump();
-  await tester.tap(find.bySemanticsLabel(tr('Senden')));
+  await tester.tap(find.byTooltip(tr('Senden')));
   for (var i = 0; i < 80; i++) {
     await tester.pump(const Duration(milliseconds: 50));
   }
@@ -418,5 +419,39 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
     await tester.pump(const Duration(milliseconds: 600));
     await _shot(tester, 'landing_agent_feed');
+  });
+
+  // the phone in the landing page's hero: Ahead at work, a question answered from the person's numbers
+  // and the next step it offers. A prepared conversation in the real chat screen.
+  testWidgets('landing agent chat', (tester) async {
+    final de = _lang == 'de';
+    await tester.runAsync(() async {
+      await DemoData.load();
+      await Hive.box('settings').put('account', {'id': 'u1', 'name': 'Lena', 'email': 'lena@example.com'});
+      await LifeStages.choose(LifeStages.firstJob);
+      final t = DateTime.now().subtract(const Duration(minutes: 2));
+      await BuddyHistory.save([
+        SavedMessage(true, de ? 'Wo verliere ich gerade Geld?' : 'Where am I losing money right now?', t),
+        SavedMessage(
+            false,
+            de
+                ? '**Vier Verträge kosten dich 1.414,56 € im Jahr.** Das Fitnessstudio nutzt du seit März nicht mehr.\n\n'
+                    '- Fitnessstudio: 34,90 €\n- Deutschlandticket: 58,00 €\n- Netflix: 13,99 €\n- Spotify: 10,99 €\n\n'
+                    'Nächster Schritt: Fitnessstudio kündigen. Das Schreiben habe ich vorbereitet.'
+                : '**Four contracts cost you €1,414.56 a year.** You have not used the gym since March.\n\n'
+                    '- Gym: €34.90\n- Deutschlandticket: €58.00\n- Netflix: €13.99\n- Spotify: €10.99\n\n'
+                    'Next step: Cancel the gym. I have prepared the letter.',
+            t),
+      ]);
+    });
+    AccountService.current.value = Account.fromJson({'id': 'u1', 'name': 'Lena', 'email': 'lena@example.com'});
+    await _pump(tester, const BuddyScreen(tab: true));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump(const Duration(milliseconds: 600));
+    // from the start to the conversation
+    await tester.tap(find.byKey(const Key('feed-toggle')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await _shot(tester, 'landing_agent_chat');
+    await tester.runAsync(() => BuddyHistory.clear());
   });
 }
