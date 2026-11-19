@@ -1,0 +1,9 @@
+# context is the repo root: send only the server and the legal texts, never secrets
+*
+!backend
+!lib/legal
+backend/.data
+backend/.dart_tool
+backend/.env
+backend/test
+**/*.pem

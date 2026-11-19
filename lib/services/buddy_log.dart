@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 
 import '../l10n/l10n.dart';
 import '../models/budget.dart';
+import 'buddy_proposals.dart';
 import 'buddy_tasks.dart';
 import 'category_rules.dart';
 import 'db.dart';
@@ -15,7 +16,7 @@ import 'goal_move.dart';
 
 class BuddyLogEntry {
   final String id;
-  final String kind; // budget, goal, category, reminder, cancel
+  final String kind; // a ProposalKind name: budget, goal, category, reminder, cancel …
   final String title;
   final String said;
   final DateTime at;
@@ -74,11 +75,14 @@ class BuddyLog {
     switch (e.kind) {
       case 'budget':
         final start = DateTime.parse('${u['start']}');
-        await DB.deleteBudget(Budget(
+        // a changed budget goes back to its old limit, a new one goes away
+        final before = u['vorherCents'] as int?;
+        final budget = Budget(
             category: '${u['kategorie']}',
-            limitCents: 0,
+            limitCents: before ?? 0,
             startDate: start,
-            endDate: DateTime(start.year, start.month + 1, 0)));
+            endDate: DateTime(start.year, start.month + 1, 0));
+        before == null ? await DB.deleteBudget(budget) : await DB.addBudget(budget);
       case 'goal':
         await GoalsService.delete('${u['goalId']}');
       case 'category':
@@ -96,6 +100,8 @@ class BuddyLog {
       case 'save':
         final goal = GoalsService.all().where((g) => g.id == u['goalId']).firstOrNull;
         if (goal != null) await GoalMove.apply(goal: goal, cents: u['cents'] as int, take: true);
+      default:
+        await BuddyProposal.undo(e.kind, u);
     }
     final box = _box!;
     await box.put(_key, [

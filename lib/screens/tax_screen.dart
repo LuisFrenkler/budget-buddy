@@ -21,6 +21,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/share_card.dart';
+import 'auth_screens.dart';
 import 'buddy_screen.dart';
 import 'refund_check_screen.dart';
 import 'smart_entry_sheet.dart';
@@ -45,6 +46,10 @@ class _TaxScreenState extends State<TaxScreen> {
   String? _busy, _error;
 
   bool get _past => _year < _today.year;
+
+  // what the person said about the ELSTER account: nothing, the day it was requested, 'ready' or 'paper'
+  String get _elster => Hive.isBoxOpen('settings') ? '${Hive.box('settings').get('elsterAccount') ?? ''}' : '';
+  bool get _elsterDone => _elster == 'ready' || _elster == 'paper';
 
   static String _num(double v) => v == v.roundToDouble() ? '${v.round()}' : v.toStringAsFixed(2).replaceAll('.', ',');
 
@@ -204,6 +209,8 @@ class _TaxScreenState extends State<TaxScreen> {
     final band = ready ? TaxEstimate.range(_p, receipts: receipts, year: _year) : null;
     final filed = TaxEstimate.filedAt(_year);
     final assessed = TaxEstimate.assessment(_year);
+    // opened straight after the refund check: everything on the device works, reading photos needs the server
+    final guest = AccountService.current.value == null;
     return Scaffold(
       appBar: AppBar(title: Text(tr('Steuer {y}', {'y': _year}))),
       body: ListView(
@@ -213,6 +220,8 @@ class _TaxScreenState extends State<TaxScreen> {
           const SizedBox(height: 12),
           if (_past) _deadline(),
           if (_past) ...[const SizedBox(height: 10), _steps(ready)],
+          // the activation letter takes up to two weeks: ask for the account before the numbers
+          if (_past && filed == null && !_elsterDone) ...[const SizedBox(height: 12), _elsterAccount()],
           if (_busy != null) ...[
             const SizedBox(height: 12),
             Row(children: [
@@ -234,14 +243,17 @@ class _TaxScreenState extends State<TaxScreen> {
             _result(r, band!),
           const SizedBox(height: 22),
           _label(tr('Dein Jahr')),
-          OutlinedButton.icon(
-            key: const Key('tax-certificate'),
-            onPressed: _busy != null ? null : _certificate,
-            icon: const Icon(Icons.document_scanner_outlined, size: 18),
-            label: Text(_p.fromCertificate
-                ? tr('Lohnsteuerbescheinigung erfasst, neu fotografieren')
-                : tr('Lohnsteuerbescheinigung fotografieren')),
-          ),
+          if (guest)
+            _needsAccount(tr('Mit Konto liest Ahead deine Lohnsteuerbescheinigung vom Foto.'))
+          else
+            OutlinedButton.icon(
+              key: const Key('tax-certificate'),
+              onPressed: _busy != null ? null : _certificate,
+              icon: const Icon(Icons.document_scanner_outlined, size: 18),
+              label: Text(_p.fromCertificate
+                  ? tr('Lohnsteuerbescheinigung erfasst, neu fotografieren')
+                  : tr('Lohnsteuerbescheinigung fotografieren')),
+            ),
           TextButton(
             onPressed: () => _letter(tr('Anfrage an deinen Arbeitgeber'),
                 TaxLetters.employerRequest(year: _year, name: AccountService.current.value?.firstName ?? '')),
@@ -316,8 +328,7 @@ class _TaxScreenState extends State<TaxScreen> {
           if (_past && r != null) ...[
             const SizedBox(height: 22),
             _label(tr('So gibst du ab')),
-            _elsterAccount(),
-            const SizedBox(height: 14),
+            if (_elsterDone) ...[_elsterAccount(), const SizedBox(height: 14)],
             _fields(r, counted),
             const SizedBox(height: 14),
             if (filed == null) ...[
@@ -341,27 +352,32 @@ class _TaxScreenState extends State<TaxScreen> {
               Text(tr('Abgegeben am {d}. Der Bescheid kommt meist nach sechs bis zwölf Wochen.', {'d': Dates.full(filed)}),
                   style: TextStyle(color: AppColors.textDim, height: 1.4)),
               const SizedBox(height: 8),
-              FilledButton.icon(
-                key: const Key('tax-assessment'),
-                onPressed: _busy != null ? null : _assessment,
-                icon: const Icon(Icons.mark_email_read_outlined, size: 18),
-                label: Text(tr('Bescheid ist da: fotografieren')),
-              ),
+              if (guest)
+                _needsAccount(tr('Mit Konto liest Ahead deinen Bescheid vom Foto und prüft ihn.'))
+              else
+                FilledButton.icon(
+                  key: const Key('tax-assessment'),
+                  onPressed: _busy != null ? null : _assessment,
+                  icon: const Icon(Icons.mark_email_read_outlined, size: 18),
+                  label: Text(tr('Bescheid ist da: fotografieren')),
+                ),
             ],
           ],
           const SizedBox(height: 18),
-          OutlinedButton.icon(
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              BuddyScreen.open(
-                  context,
-                  ready
-                      ? tr('Geh mit mir meine Steuererklärung {y} durch: Was kommt zurück und was fehlt noch?', {'y': _year})
-                      : tr('Lohnt sich eine Steuererklärung für mich?'));
-            },
-            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: Text(tr('Mit Ahead durchgehen')),
-          ),
+          // the chat that takes the question lives behind the account
+          if (!guest)
+            OutlinedButton.icon(
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                BuddyScreen.open(
+                    context,
+                    ready
+                        ? tr('Geh mit mir meine Steuererklärung {y} durch: Was kommt zurück und was fehlt noch?', {'y': _year})
+                        : tr('Lohnt sich eine Steuererklärung für mich?'));
+              },
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              label: Text(tr('Mit Ahead durchgehen')),
+            ),
           const SizedBox(height: 12),
           Text(_rules(), style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 12)),
         ],
@@ -369,13 +385,21 @@ class _TaxScreenState extends State<TaxScreen> {
     );
   }
 
+  // reading a photo runs on the server: without an account, one line and the way to get one
+  Widget _needsAccount(String text) => Row(children: [
+        Expanded(child: Text(text, style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5))),
+        TextButton(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
+          child: Text(tr('Konto anlegen')),
+        ),
+      ]);
+
   // the four steps of a late return, so the next one is always clear
   Widget _steps(bool ready) {
-    final elster = Hive.isBoxOpen('settings') && Hive.box('settings').get('elsterAccount') != null;
     final filed = TaxEstimate.filedAt(_year) != null;
     final steps = [
+      (tr('ELSTER-Konto'), _elster.isNotEmpty || filed),
       (tr('Zahlen'), ready),
-      (tr('ELSTER-Konto'), elster || filed),
       (tr('Werte eintragen'), filed),
       (tr('Abgegeben'), filed),
     ];
@@ -479,40 +503,40 @@ class _TaxScreenState extends State<TaxScreen> {
   // the ELSTER account: the step most people get stuck on, with the real wait
   Widget _elsterAccount() {
     final box = Hive.isBoxOpen('settings') ? Hive.box('settings') : null;
-    final status = '${box?.get('elsterAccount') ?? ''}';
-    final requested = DateTime.tryParse(status);
+    final requested = DateTime.tryParse(_elster);
     final days = TaxEstimate.deadline(_year).difference(_today).inDays;
     Future<void> set(String v) async {
       await box?.put('elsterAccount', v);
       setState(() {});
     }
 
-    if (status == 'ready') {
+    if (_elster == 'ready') {
       return Text(tr('ELSTER-Konto ist da. Melde dich auf elster.de an und trag die Werte unten ein.'),
           style: TextStyle(color: AppColors.textDim, height: 1.4));
     }
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(tr('ELSTER-Konto'), style: const TextStyle(fontWeight: FontWeight.w800)),
-        const SizedBox(height: 6),
-        Text(
-          requested == null
-              ? tr('Kostenlos auf elster.de. Mit dem Online-Ausweis geht es sofort, sonst kommt ein Aktivierungsbrief per Post, meist innerhalb von zwei Wochen.')
-              : tr('Beantragt am {d}. Der Brief sollte bis {e} da sein.',
-                  {'d': Dates.full(requested), 'e': Dates.full(requested.add(const Duration(days: 14)))}),
-          style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5),
-        ),
-        if (days <= 21) ...[
-          const SizedBox(height: 6),
-          Text(
-            tr('Knapp bis zur Frist: Du kannst die Erklärung auch auf Papier abgeben. Es zählt der Eingang beim Finanzamt.'),
-            style: TextStyle(color: AppColors.warningText, height: 1.4, fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-        ],
-        const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 4, children: [
+    if (_elster == 'paper') {
+      return Text(tr('Du gibst auf Papier ab. Übertrag die Werte unten in die Formulare und unterschreib den Hauptvordruck.'),
+          style: TextStyle(color: AppColors.textDim, height: 1.4));
+    }
+    Widget card(String title, String text, List<Widget> actions) => Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text(text, style: TextStyle(color: AppColors.textDim, height: 1.4, fontSize: 13.5)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 4, children: actions),
+          ]),
+        );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      card(
+        requested == null ? tr('Hast du schon ein ELSTER-Konto?') : tr('ELSTER-Konto'),
+        requested == null
+            ? tr('Kostenlos auf elster.de. Mit dem Online-Ausweis geht es sofort, sonst kommt ein Aktivierungsbrief per Post, meist innerhalb von zwei Wochen.')
+            : tr('Beantragt am {d}. Der Brief sollte bis {e} da sein.',
+                {'d': Dates.full(requested), 'e': Dates.full(requested.add(const Duration(days: 14)))}),
+        [
           if (requested == null) ...[
             OutlinedButton(
               onPressed: () => launchUrl(Uri.parse('https://www.elster.de'), mode: LaunchMode.externalApplication),
@@ -527,9 +551,26 @@ class _TaxScreenState extends State<TaxScreen> {
                 child: Text(tr('Habe ich beantragt'))),
           ],
           TextButton(onPressed: () => set('ready'), child: Text(tr('Ich habe ein Konto'))),
-        ]),
-      ]),
-    );
+        ],
+      ),
+      // too close for the letter to arrive: paper is a way of its own, with the same weight
+      if (days <= 21) ...[
+        const SizedBox(height: 10),
+        card(
+          tr('Oder auf Papier abgeben'),
+          tr('Knapp bis zur Frist: Du kannst die Erklärung auch auf Papier abgeben. Es zählt der Eingang beim Finanzamt.'),
+          [
+            OutlinedButton(
+              onPressed: () =>
+                  launchUrl(Uri.parse('https://www.formulare-bfinv.de'), mode: LaunchMode.externalApplication),
+              child: Text(tr('Formulare öffnen')),
+            ),
+            TextButton(
+                key: const Key('tax-paper'), onPressed: () => set('paper'), child: Text(tr('Ich gebe auf Papier ab'))),
+          ],
+        ),
+      ],
+    ]);
   }
 
   // every ELSTER field with its value, one tap to copy

@@ -275,6 +275,21 @@ void main() {
     expect(BuddyAgent.tools.last['cache_control'], isNotNull);
   });
 
+  test('the agent can take the person to every place and says so in the prompt', () {
+    final open = BuddyAgent.tools.firstWhere((t) => t['name'] == 'oeffnen');
+    final schema = open['input_schema'] as Map;
+    expect(schema['required'], ['ort']);
+    expect((schema['properties'] as Map)['ort']['enum'], BuddyAgent.places);
+    expect(BuddyAgent.places.toSet().length, BuddyAgent.places.length);
+    expect(BuddyAgent.places, containsAll(['ueberblick', 'vertraege', 'depot', 'steuer', 'profil']));
+    expect(BuddyAgent.system, contains('öffne ihn mit „oeffnen“'));
+    // deleting a booking is a card now, moving money stays out
+    expect(BuddyAgent.system, contains('Geld bewegen, überweisen oder kaufen geht nicht'));
+    // Gemini gets the same list
+    final gemini = (BuddyAgent.geminiTools.single['function_declarations'] as List).firstWhere((t) => t['name'] == 'oeffnen');
+    expect(gemini['parameters']['properties']['ort']['enum'], BuddyAgent.places);
+  });
+
   test('the persona leads with the figure and refuses advice and unconfirmed writes', () {
     final p = Ai.persona;
     expect(p, contains('Zahl **fett** oder die Ampel'));

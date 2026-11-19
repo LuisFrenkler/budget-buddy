@@ -2,7 +2,9 @@
 //
 // A line is "YYYY-MM-DD name" and nothing else. No email, name, question,
 // answer, amount, IBAN, or account id. The app sets [send] to POST /events,
-// which takes the name only (the server stamps its own day).
+// which takes the name only (the server stamps its own day). A find can add
+// its kind from the fixed list in [kinds] ("YYYY-MM-DD name kind"), never
+// which contract or how much.
 //
 // shortcut: once per install, not per account; count per account once the funnel needs it.
 import 'package:flutter/foundation.dart';
@@ -36,8 +38,17 @@ class ProductEvents {
   static const findYesMoney = 'find_yes_money';
   static const findLater = 'find_later';
   static const moneyRecovered = 'money_recovered';
+  // the offer shown with its price, and the tap that says "I would pay this"
+  static const guaranteeSeen = 'guarantee_seen';
+  static const guaranteeReserve = 'guarantee_reserve';
+
+  // bank bookings read before sign-up (the second way into the money check)
+  static const moneyCheck = 'money_check';
 
   static const names = {
+    moneyCheck,
+    guaranteeSeen,
+    guaranteeReserve,
     waitlistSignup,
     activated,
     d1,
@@ -63,6 +74,31 @@ class ProductEvents {
     moneyRecovered,
   };
 
+  // id prefix of a find -> its kind; the ids are made in AheadAgent and HintsService and stay on the device
+  static const _kindByPrefix = {
+    'tax-': 'tax',
+    'overdraft-': 'overdraft',
+    'still-': 'stillCharging',
+    'price-': 'priceUp',
+    'double-': 'doubleCharge',
+    'abo-tip-': 'subTip',
+    'fees-': 'bankFees',
+    'dunning-': 'dunning',
+    'returned-': 'returnedDebit',
+    'contracts': 'contracts',
+  };
+
+  /// The kinds a find event may carry; the server has the same list.
+  static final kinds = _kindByPrefix.values.toSet();
+
+  /// The kind of the tax or money find with this id, null when unknown.
+  static String? kindOf(String findId) {
+    for (final e in _kindByPrefix.entries) {
+      if (findId.startsWith(e.key)) return e.value;
+    }
+    return null;
+  }
+
   // "1.234,50 €" and "€4.99". The privacy mask "•••••• €" has no digit.
   static final _money = RegExp(r'€\s*\d[\d.,]*|\d[\d.,]*\s*€');
 
@@ -80,6 +116,9 @@ class ProductEvents {
   /// Set this to POST. Null means do nothing remote.
   static Future<void> Function(String name, String day)? send;
 
+  /// Set this to POST the name with its kind. Null falls back to [send], which counts the name only.
+  static Future<void> Function(String name, String kind)? sendKind;
+
   static final _mem = <String, String>{};
 
   @visibleForTesting
@@ -87,23 +126,30 @@ class ProductEvents {
     log.clear();
     _mem.clear();
     send = null;
+    sendKind = null;
   }
 
-  static Future<void> track(String name, {DateTime? now}) async {
+  /// Once per install per name, or per name and [kind] when a find says what it is.
+  static Future<void> track(String name, {String? kind, DateTime? now}) async {
     if (!names.contains(name)) return;
-    if (_flag(name) != null) return;
+    if (!kinds.contains(kind)) kind = null;
+    final flag = kind == null ? name : '$name:$kind';
+    if (_flag(flag) != null) return;
     final day = _day(now ?? DateTime.now());
-    await _setFlag(name, day);
+    await _setFlag(flag, day);
     if (name == activated) await _setFlag('anchor', day);
-    final line = '$day $name';
+    final line = kind == null ? '$day $name' : '$day $name $kind';
     log.add(line);
     if (log.length > 50) log.removeAt(0);
     debugPrint('product_event $line');
     await _remember(line);
-    final remote = send;
-    if (remote == null) return;
+    final remote = send, withKind = sendKind;
     try {
-      await remote(name, day);
+      if (kind != null && withKind != null) {
+        await withKind(name, kind);
+      } else {
+        await remote?.call(name, day);
+      }
     } catch (_) {}
   }
 

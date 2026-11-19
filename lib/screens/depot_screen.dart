@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:math' as math;
 import '../widgets/sync_pill.dart';
 import '../widgets/add_account_choice.dart';
+import '../widgets/agent_bar.dart';
 import '../models/holding.dart';
 import '../services/db.dart';
 import '../services/depot_sync.dart';
@@ -14,6 +15,7 @@ import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../widgets/interactive_chart.dart';
 import '../widgets/instrument_avatar.dart';
+import '../widgets/pressable.dart';
 import '../services/history.dart';
 import 'add_holding_screen.dart';
 import 'connections_screen.dart';
@@ -78,62 +80,74 @@ class _DepotScreenState extends State<DepotScreen> {
         final invested = DB.portfolioInvested();
         final gain = DB.portfolioGain();
 
+        // no bar of its own: the shell's row on top says where you are
         return Scaffold(
-          appBar: AppBar(
-            title: Text(tr('Depot')),
-            // lines up with "Konto" on the account tab (20 px page margin)
-            titleSpacing: 20,
-            actions: [
-              // like the bank on Konto: how fresh the prices are, a tap fetches them
-              if (holdings.isNotEmpty)
-                Center(
-                  child: SyncPill(
-                    // just the time: next to "+ Depot" a broker name would crowd the bar
-                    label: '',
-                    last: _pricesAt(holdings),
-                    onSync: _refreshPrices,
-                  ),
-                ),
-              // a real depot first, a position by hand second
-              Padding(
-                padding: const EdgeInsets.only(left: 6, right: 12),
-                child: TextButton.icon(
-                  onPressed: () => showAddAccountChoice(context,
-                      depot: true, byHand: () => _add()),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(tr('Depot')),
-                ),
-              ),
-            ],
-          ),
-          body: holdings.isEmpty
-              ? _emptyState()
-              : RefreshIndicator(
-                  // pull down to refresh the live prices
-                  color: AppColors.primary,
-                  onRefresh: _refreshPrices,
-                  child: ListView(
-                    controller: widget.scroll,
+          body: SafeArea(
+            bottom: false,
+            child: holdings.isEmpty
+                ? Padding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    children: [
-                      ..._header(value, invested, gain),
-                      const SizedBox(height: 28),
-                      if (holdings.length > 1) ...[
-                        _allocationCard(holdings, value),
+                    child: Column(children: [
+                      AgentBar(
+                          line: tr('Frag mich zu deinem Depot.'), question: tr('Wie fange ich mit einem Depot an?')),
+                      _actions(holdings),
+                      Expanded(child: _emptyState()),
+                    ]),
+                  )
+                : RefreshIndicator(
+                    // pull down to refresh the live prices
+                    color: AppColors.primary,
+                    onRefresh: _refreshPrices,
+                    child: ListView(
+                      controller: widget.scroll,
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                      children: [
+                        _agentBar(value, invested),
+                        _actions(holdings),
+                        const SizedBox(height: 8),
+                        ..._header(value, invested, gain),
                         const SizedBox(height: 28),
+                        if (holdings.length > 1) ...[
+                          _allocationCard(holdings, value),
+                          const SizedBox(height: 28),
+                        ],
+                        ..._positions(holdings),
                       ],
-                      Text(tr('Positionen'),
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      ..._positions(holdings),
-                      // room for the floating navigation bar
-                      const SizedBox(height: 110),
-                    ],
+                    ),
                   ),
-                ),
+          ),
         );
       },
+    );
+  }
+
+  // one quiet row under Ahead: how fresh the prices are on the left, adding on the right
+  Widget _actions(List<Holding> holdings) => Row(children: [
+        // like the bank on Konto: a tap fetches the prices
+        if (holdings.isNotEmpty)
+          SyncPill(label: '', last: _pricesAt(holdings), onSync: _refreshPrices),
+        const Spacer(),
+        // a real depot first, a position by hand second
+        TextButton.icon(
+          onPressed: () => showAddAccountChoice(context, depot: true, byHand: () => _add()),
+          style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: Text(tr('Depot')),
+        ),
+      ]);
+
+  // Ahead on Depot: the change the chart header shows, in one line; hidden
+  // amounts or no change leave the plain offer
+  Widget _agentBar(int value, int invested) {
+    final hasHistory = _history.length >= 2;
+    final change = value - (hasHistory ? _history.first : invested);
+    if (change == 0 || Money.masked) {
+      return AgentBar(line: tr('Frag mich zu deinem Depot.'), question: tr('Was fällt dir an meinem Depot auf?'));
+    }
+    final period = hasHistory ? RangeSelector.periods[_range]! : tr('seit Kauf');
+    return AgentBar(
+      line: tr('Dein Depot: **{x}** {period}.', {'x': Money.signed(change), 'period': period}),
+      question: tr('Wie hat sich mein Depot {period} entwickelt, und woran lag es?', {'period': period}),
     );
   }
 
@@ -152,7 +166,7 @@ class _DepotScreenState extends State<DepotScreen> {
         _sectionHeader(
           sections[i].label,
           sections[i].groups.fold<int>(0, (s, g) => s + _groupCents(g.items)),
-          top: i == 0 ? 8 : 22,
+          top: i == 0 ? 0 : 22,
         ),
         for (final g in sections[i].groups) ...[
           if (showDepotBrokers(sections[i].groups))
@@ -195,38 +209,30 @@ class _DepotScreenState extends State<DepotScreen> {
   Widget _emptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.trending_up, size: 64, color: AppColors.textDim),
-            const SizedBox(height: 16),
             Text(tr('Noch kein Depot'),
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontFamily: AppFonts.display, fontSize: 22, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Text(
                 tr('Depot verbinden, dann kommen Positionen und Kurse.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textDim, height: 1.4)),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(minimumSize: const Size(240, 50)),
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ConnectionsScreen(start: 'depot'))),
-              icon: const Icon(Icons.link_rounded, size: 18),
-              label: Text(tr('Depot verbinden')),
+            Pressable(
+              builder: (states) => FilledButton.icon(
+                statesController: states,
+                style: FilledButton.styleFrom(minimumSize: const Size(240, 50)),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ConnectionsScreen(start: 'depot'))),
+                icon: const Icon(Icons.link_rounded, size: 18),
+                label: Text(tr('Depot verbinden')),
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-                tr('Oder die erste Position selbst. Kurs wird vorausgefüllt.'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: AppColors.textDim, fontSize: 13, height: 1.4)),
-            TextButton(
-                onPressed: () => _add(),
-                child: Text(tr('Erste Position eintragen'))),
           ],
         ),
       ),
@@ -265,26 +271,32 @@ class _DepotScreenState extends State<DepotScreen> {
             _history[i]),
     ];
     final hasHistory = points.length >= 2;
+    // no price history (new position, prices not reachable): the same calm line as an account that did not move,
+    // so Konto and Depot open with the same picture: the number, the line, the ranges
+    final line = hasHistory
+        ? points
+        : [
+            ChartPoint(DateTime(today.year, today.month, today.day - (_days - 1)), value),
+            ChartPoint(DateTime(today.year, today.month, today.day), value),
+          ];
     return [
       ChartHeader(
         label: tr('Depotwert'),
         cents: value,
         // change over the range, or overall when no history is available
         startCents: hasHistory ? points.first.cents : invested,
-        period: hasHistory ? RangeSelector.periods[_range]! : 'gesamt',
+        period: hasHistory ? RangeSelector.periods[_range]! : tr('gesamt'),
         scrubbing: _scrub,
         startDate: hasHistory ? points.first.date : null,
       ),
-      SizedBox(height: 6),
-      _priceStand(),
-      SizedBox(height: 12),
+      SizedBox(height: 16),
       if (_historyLoading && !hasHistory)
         SizedBox(
             height: 160,
             child: Center(
                 child: CircularProgressIndicator(color: AppColors.primary)))
       else
-        InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
+        InteractiveChart(points: line, onScrub: (p) => _scrub.value = p),
       SizedBox(height: 12),
       RangeSelector(
         labels: _ranges.keys.toList(),
@@ -294,6 +306,9 @@ class _DepotScreenState extends State<DepotScreen> {
           _loadHistory();
         },
       ),
+      SizedBox(height: 10),
+      // how fresh the prices are: under the chart, where the Konto has nothing either
+      _priceStand(),
       SizedBox(height: 16),
       // overall performance since buying
       Container(
@@ -383,26 +398,30 @@ class _DepotScreenState extends State<DepotScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: Duration(milliseconds: 700),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, t, __) => CustomPaint(
-                      size: const Size(size, size),
-                      painter: _DonutPainter(
-                          entries, totalValue, sel, t, AppColors.surface),
-                    ),
+                  CustomPaint(
+                    size: const Size(size, size),
+                    painter: _DonutPainter(
+                        entries, totalValue, sel, AppColors.surface),
                   ),
-                  Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(sel == null ? tr('Gesamt') : '${pct[sel]} %',
-                        style:
-                            TextStyle(fontSize: 11, color: AppColors.textDim)),
-                    Text(
-                        Money.format(
-                            sel == null ? totalValue : entries[sel].value),
-                        style: TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w700)),
-                  ]),
+                  // the total is the big number above: the middle speaks only for a chosen slice
+                  FadeSwap(
+                    alignment: Alignment.center,
+                    child: sel == null
+                        ? const SizedBox.shrink()
+                        : Column(
+                            key: ValueKey(sel),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                                Text('${pct[sel]} %',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.textDim)),
+                                Text(Money.format(entries[sel].value),
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700)),
+                              ]),
+                  ),
                 ],
               ),
             ),
@@ -626,14 +645,12 @@ class _DepotScreenState extends State<DepotScreen> {
 }
 
 // donut chart painter; the selected slice pops out, the others fade.
-// [t] animates the sweep from 0 to 1 when the chart appears.
 class _DonutPainter extends CustomPainter {
   final List<MapEntry<String, int>> entries;
   final int total;
   final int? selected;
-  final double t;
   final Color hole;
-  _DonutPainter(this.entries, this.total, this.selected, this.t, this.hole);
+  _DonutPainter(this.entries, this.total, this.selected, this.hole);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -643,7 +660,7 @@ class _DonutPainter extends CustomPainter {
     double angle = -math.pi / 2;
 
     for (int i = 0; i < entries.length; i++) {
-      final sweep = (entries[i].value / total) * 2 * math.pi * t;
+      final sweep = (entries[i].value / total) * 2 * math.pi;
       final color = AppColors.chart[i % AppColors.chart.length];
       paint.color = selected == null || selected == i
           ? color
@@ -660,7 +677,6 @@ class _DonutPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
       old.selected != selected ||
-      old.t != t ||
       old.entries != entries ||
       old.hole != hole;
 }

@@ -61,6 +61,7 @@ void main() async {
   await Settings.setGuest(false);
   PlusService.load();
   ProductEvents.send = (name, _) => BackendService.event(name);
+  ProductEvents.sendKind = (name, kind) => BackendService.event(name, kind: kind);
   await ProductEvents.noteOpen();
   // App Store / Google Play: purchases, renewals and ones left from a crash
   StorePurchases.init();

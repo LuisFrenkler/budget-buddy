@@ -2,6 +2,8 @@
 // "Wo kann ich sparen?" ends in a budget, not just in a paragraph.
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../services/app_nav.dart';
+import '../services/buddy_app_guide.dart';
 import '../services/category_coach.dart';
 import '../services/finance_snapshot.dart';
 import '../services/goals_service.dart';
@@ -30,6 +32,10 @@ class BuddyAction {
 
 class BuddyActions {
   static bool _has(String q, List<String> words) => words.any(q.contains);
+
+  // takes the person to a place of AppNav.places, e.g. under a "Wo finde ich …?" answer
+  static BuddyAction open(String place) => BuddyAction(Icons.arrow_forward_rounded,
+      tr('{x} öffnen', {'x': BuddyAppGuide.label(place)}), (_) => AppNav.open(place));
 
   static List<BuddyAction> forQuestion(String question, FinanceSnapshot s) {
     final q = question.toLowerCase();

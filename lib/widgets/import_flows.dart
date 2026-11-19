@@ -78,6 +78,15 @@ Future<String?> _pickText(List<String> extensions) async {
   return text.contains('�') ? latin1.decode(bytes) : text;
 }
 
+// the bookings of a bank export, read but not saved: the money check before sign-up
+Future<List<Transaction>?> pickBankBookings() async {
+  final content = await _pickText(['csv', 'txt']);
+  if (content == null) return null;
+  return BankCsvImporter.looksLikeBank(content)
+      ? BankCsvImporter.parse(content).transactions
+      : CsvImporter.parse(content).transactions;
+}
+
 // the bookings of a file onto one account; the account keeps today's
 // balance, the file only fills in what happened before
 Future<void> importBookings(BuildContext context, {MoneyAccount? into}) async {

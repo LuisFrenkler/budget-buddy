@@ -1,3 +1,6 @@
+import 'profile_screen.dart';
+import '../widgets/user_avatar.dart';
+import '../services/account_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -6,7 +9,6 @@ import '../models/money_account.dart';
 import '../services/money_accounts.dart';
 import '../widgets/sync_pill.dart';
 import '../models/transaction.dart';
-import '../services/account_service.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/ledger_busy.dart';
@@ -17,21 +19,17 @@ import '../services/price_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
+import '../widgets/agent_bar.dart';
 import '../widgets/brand.dart';
-import '../widgets/user_avatar.dart';
 import '../widgets/interactive_chart.dart';
-import '../widgets/segmented.dart';
-import '../widgets/tx_row.dart';
+import '../widgets/pressable.dart';
 import 'buddy_screen.dart';
-import 'budget_screen.dart';
 import 'smart_entry_sheet.dart';
 import '../services/goals_service.dart';
 import 'connections_screen.dart';
-import 'contracts_screen.dart';
 import 'splits_screen.dart';
 import '../widgets/transfer_sheet.dart';
 import '../services/split_service.dart';
-import '../services/contracts.dart';
 import '../widgets/getting_started.dart';
 import '../services/onboarding_service.dart';
 import '../services/forecast_service.dart';
@@ -41,21 +39,17 @@ import '../services/weekly_report.dart';
 import '../services/buddy_tips.dart';
 import '../services/buddy_service.dart';
 import '../services/buddy_suggestions.dart';
-import '../services/category_coach.dart';
 import '../services/wealth.dart';
 import '../widgets/forecast_card.dart';
-import '../widgets/misc_sort_sheet.dart';
 import 'weekly_report_screen.dart';
-import 'profile_screen.dart';
-import 'goals_screen.dart';
 import 'wealth_screen.dart';
 import '../widgets/weekly_story.dart';
 import '../services/plus_service.dart';
 import '../l10n/l10n.dart';
 import '../services/hints_service.dart';
 
-// The start screen: one calm money story, Buddy tip, Polster, deeper topics
-// live under "Für dich" and in Profil.
+// Überblick: what you own. The wealth curve, the accounts, the depot and the
+// cushion. What to do next is the start's job, not this page's.
 class OverviewScreen extends StatefulWidget {
   // switch to another tab (1 = Konto, 2 = Depot), optionally to a section
   final void Function(int tab, {int? segment}) onOpen;
@@ -77,17 +71,13 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
   // depot value per day for the current range (loaded asynchronously)
   List<int>? _depot;
-  // eight-day depot series for the honest week-over-week pulse on Start
-  List<int>? _depotWeek;
   int get _days => _ranges[_range]!;
 
   @override
   void initState() {
     super.initState();
     _loadDepot();
-    _loadDepotWeek();
     Hive.box('holdings').listenable().addListener(_loadDepot);
-    Hive.box('holdings').listenable().addListener(_loadDepotWeek);
     BankSync.smileTick.addListener(_onSmile);
     WidgetsBinding.instance.addPostFrameCallback((_) => _onSmile());
   }
@@ -96,7 +86,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
   void dispose() {
     BankSync.smileTick.removeListener(_onSmile);
     Hive.box('holdings').listenable().removeListener(_loadDepot);
-    Hive.box('holdings').listenable().removeListener(_loadDepotWeek);
     super.dispose();
   }
 
@@ -118,11 +107,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
       content:
           Text(BankSync.syncedLine(added: smile.added, smarter: smile.smarter)),
     ));
-  }
-
-  Future<void> _loadDepotWeek() async {
-    final series = await PriceService.portfolioHistory(days: 8);
-    if (mounted) setState(() => _depotWeek = series.isEmpty ? null : series);
   }
 
   // the oldest of the fetched numbers behind the total: the bank's bookings
@@ -246,7 +230,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               child: ListView(
                 controller: widget.scroll,
                 physics: AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(20, 8, 20, 120),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 40),
                 children: [
                   _topBar(),
                   SizedBox(height: 24),
@@ -260,7 +244,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     _quickActions(),
                   ] else ...[
                     if (DemoData.active) _demoBanner(),
-                    // Buddy first: what to do now, before any chart
+                    // Ahead first, before any chart
                     _buddyBrief(tx, cash),
                     const SizedBox(height: 24),
                     if (!OnboardingService.hidden &&
@@ -279,14 +263,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     _accountsCard(tx, cash, depotNow),
                     const SizedBox(height: 16),
                     _quickActions(),
-                    if (OnboardingService.balanceKnown) ...[
-                      ..._forecast(tx, cash),
-                      // tip + Polster only once money is trusted
-                      ..._bridge(tx, cash, depotNow),
-                    ],
-                    ..._recent(tx),
-                    ..._weeklyStory(tx),
-                    ..._forYou(tx),
+                    if (OnboardingService.balanceKnown) ..._forecast(tx, cash),
+                    ..._more(tx),
                   ],
                 ],
               ),
@@ -299,35 +277,28 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   Widget _balancePrompt(int cash) {
-    return Material(
-      color: AppColors.primary.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
+    return Pressable(
+      builder: (states) => Material(
+        color: AppColors.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(22),
-        onTap: () => showBalanceSheet(context),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(children: [
-            Icon(Icons.account_balance_wallet_rounded,
-                color: AppColors.primary, size: 30),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(tr('Wie viel hast du gerade?'),
-                        style: TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 16)),
-                    const SizedBox(height: 2),
-                    Text(tr('Einmal eintragen, dann stimmt es.'),
-                        style: TextStyle(
-                            color: AppColors.textDim,
-                            fontSize: 13,
-                            height: 1.35)),
-                  ]),
-            ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.primary),
-          ]),
+        child: InkWell(
+          statesController: states,
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => showBalanceSheet(context),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(children: [
+              Icon(Icons.account_balance_wallet_rounded,
+                  color: AppColors.primary, size: 30),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(tr('Wie viel hast du gerade?'),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+            ]),
+          ),
         ),
       ),
     );
@@ -348,8 +319,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(tr('Du siehst Beispieldaten'),
-                  style:
-                      TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
             ),
             TextButton(onPressed: _removeDemo, child: Text(tr('Entfernen'))),
           ]),
@@ -404,7 +374,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 Expanded(
                   child: Text(
                     tr('Für „noch frei“ brauchst du eine Einnahme.'),
-                    style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 14),
+                    style: TextStyle(color: AppColors.textDim, height: 1.35, fontSize: 13),
                   ),
                 ),
                 Icon(Icons.add_rounded, color: AppColors.primaryText),
@@ -467,294 +437,58 @@ class _OverviewScreenState extends State<OverviewScreen> {
       headline = tr('Frag mich, was du dir diesen Monat leisten kannst.');
       question = tr('Kann ich mir 800 € Urlaub leisten?');
     }
-    // Buddy speaks from copper light, like on the landing page
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: CopperLight(
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: () => BuddyScreen.open(context, tip?.question ?? question),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  const BrandMark(size: 22, inverse: true),
-                  const SizedBox(width: 8),
-                  Text(tr('Ahead sagt'),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xCCFFFFFF))),
-                ]),
-                const SizedBox(height: 10),
-                RichMarkdown(headline, glossary: false, fontSize: 18, color: Colors.white),
-                if (tip != null) ...[
-                  const SizedBox(height: 6),
-                  Text(tip.text, style: const TextStyle(color: Color(0xD9FFF7F0), fontSize: 14, height: 1.4)),
-                ],
-                const SizedBox(height: 14),
-                // looks like the chat's input: the way in is to ask
-                Container(
-                  height: 44,
-                  padding: const EdgeInsets.fromLTRB(14, 0, 4, 0),
-                  decoration: BoxDecoration(
-                    color: const Color(0x29FFFFFF),
-                    border: Border.all(color: const Color(0x38FFFFFF)),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Row(children: [
-                    Expanded(
-                      child: Text(tip?.question ?? question,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Color(0xE6FFFFFF), fontSize: 14)),
-                    ),
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF17120E), size: 19),
-                    ),
-                  ]),
-                ),
-              ]),
-            ),
-          ),
-        ),
-      ),
-    );
+    return AgentBar(card: true, line: headline, detail: tip?.text, question: tip?.question ?? question);
   }
 
-  // Buddy tip + wealth/vorsorge bridge under the habit number
-  List<Widget> _bridge(List<Transaction> tx, int cash, int depotNow) {
-    final emergency = Wealth.emergency(tx);
-    final out = <Widget>[const SizedBox(height: 16)];
-
-    // one calm Polster row, not a second mini-dashboard of 3 chips
-    out.add(_bridgeChip(
-      Icons.savings_outlined,
-      tr('Notgroschen'),
-      emergency.targetCents <= 0
-          ? tr('Polster einrichten')
-          : emergency.ready
-              ? tr('Polster steht')
-              : tr('Noch {x} bis zum Polster', {'x': Money.format(emergency.missingCents)}),
-      () => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => const WealthScreen())),
-    ));
-    return out;
-  }
-
-  Widget _bridgeChip(
-      IconData icon, String title, String value, VoidCallback onTap,
-      {String? footnote}) {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
+  // what only this page has besides the curve: the cushion and the week in review
+  List<Widget> _more(List<Transaction> tx) {
+    final rows = <Widget>[];
+    // the cushion only once the money is trusted
+    if (OnboardingService.balanceKnown) {
+      final emergency = Wealth.emergency(tx);
+      rows.add(_row(
+        Icons.savings_outlined,
+        tr('Notgroschen'),
+        emergency.targetCents <= 0
+            ? tr('Polster einrichten')
+            : emergency.ready
+                ? tr('Polster steht')
+                : tr('Noch {x} bis zum Polster', {'x': Money.format(emergency.missingCents)}),
+        () {
           HapticFeedback.selectionClick();
-          onTap();
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const WealthScreen()));
         },
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
-          child: Row(children: [
-            Icon(icon, size: 22, color: AppColors.primaryText),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textDim,
-                            fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text(value,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            height: 1.2)),
-                    if (footnote != null) ...[
-                      const SizedBox(height: 2),
-                      Text(footnote,
-                          style: TextStyle(
-                              fontSize: 11.5, color: AppColors.textDim)),
-                    ],
-                  ]),
-            ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.textDim),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  // one gradient card + single CTA into the shareable 9:16 story
-  List<Widget> _weeklyStory(List<Transaction> tx) {
+      ));
+    }
     final report = WeeklyReportService.build(tx);
-    if (report == null) return const [];
-    final fresh = !WeeklyReportScreen.seen(report);
+    if (report != null) {
+      rows.add(_row(
+        Icons.auto_stories_rounded,
+        tr('Wochen-Story · KW {week}', {'week': report.week}),
+        report.headline,
+        () async {
+          await presentWeeklyStory(context, report);
+          if (mounted) setState(() {});
+        },
+        // the dot says "new", so the title does not have to
+        badge: !WeeklyReportScreen.seen(report),
+      ));
+    }
+    if (rows.isEmpty) return const [];
     return [
-      const SizedBox(height: 28),
-      Container(
-        padding: const EdgeInsets.all(1.25),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          color: AppColors.border,
-        ),
-        child: Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20.75),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(children: [
-                    if (fresh)
-                      Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                            color: AppColors.primary, shape: BoxShape.circle),
-                      ),
-                    Expanded(
-                      child: Text(
-                        fresh
-                            ? tr('Deine Wochen-Story ist da')
-                            : tr('Wochen-Story · KW {week}', {'week': report.week}),
-                        style: const TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ]),
-                  const SizedBox(height: 4),
-                  Text(report.headline,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          color: AppColors.textDim,
-                          fontSize: 14,
-                          height: 1.35)),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: () async {
-                      await presentWeeklyStory(context, report);
-                      if (mounted) setState(() {});
-                    },
-                    icon: const Icon(Icons.auto_stories_rounded, size: 18),
-                    label: Text(tr('Ansehen'),
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                ]),
-          ),
-        ),
-      ),
-    ];
-  }
-
-  // only signal tiles, no second dashboard
-  List<Widget> _forYou(List<Transaction> tx) {
-    final tiles = <Widget>[];
-
-    final misc = CategoryCoach.miscCount();
-    if (misc > 0) {
-      tiles.add(_forYouTile(
-        Icons.category_rounded,
-        tr('Buchungen einordnen'),
-        tr('{misc} in Sonstiges · Händler antippen', {'misc': misc}),
-        () => showMiscSortSheet(context),
-      ));
-    }
-
-    if (GoalsService.all().where((g) => !g.reached).isEmpty) {
-      tiles.add(_forYouTile(
-        Icons.flag_rounded,
-        tr('Sparziel anlegen'),
-        PlusService.active.value
-            ? tr('Worauf sparst du?')
-            : tr('1 Ziel gratis · Autopilot später mit Plus'),
-        () => addGoal(context),
-      ));
-    }
-
-    final contracts = Contracts.detect(tx);
-    final raised = contracts.where((c) => c.priceChange > 0).length;
-    if (raised > 0) {
-      tiles.add(_forYouTile(
-        Icons.receipt_long_rounded,
-        tr('Abos teurer geworden'),
-        tr('{raised} {x} mit Preisanstieg', {'raised': raised, 'x': raised == 1 ? tr('Vertrag') : tr('Verträge')}),
-        () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const ContractsScreen())),
-        subtitleColor: AppColors.warningText,
-      ));
-    }
-
-    if (Hive.isBoxOpen('splits') && SplitService.all().isNotEmpty) {
-      final total = SplitService.myTotal();
-      if (total != 0) {
-        tiles.add(_forYouTile(
-          Icons.call_split_rounded,
-          tr('Geteilte Ausgaben'),
-          total > 0
-              ? tr('Du bekommst {x}', {'x': Money.format(total)})
-              : tr('Du schuldest {x}', {'x': Money.format(-total)}),
-          () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const SplitsScreen())),
-          subtitleColor:
-              total > 0 ? AppColors.positiveText : AppColors.errorText,
-        ));
-      }
-    }
-
-    final today = DateTime.now();
-    final budgets = DB.getBudgets().where((b) => b.covers(today)).toList();
-    if (budgets.isEmpty) {
-      final suggestions = BudgetSuggest.top();
-      if (suggestions.isNotEmpty) {
-        tiles.add(_forYouTile(
-          Icons.pie_chart_rounded,
-          tr('Budgets vorschlagen'),
-          tr('Aus deinen Ausgaben · {suggestions} Kategorien', {'suggestions': suggestions.length}),
-          () => showBudgetSuggestSheet(context, suggestions),
-        ));
-      }
-    } else {
-      final tight = budgets
-          .where((b) => b.isOver || b.remainingCents <= b.limitCents * 0.2)
-          .length;
-      if (tight > 0) {
-        tiles.add(_forYouTile(
-          Icons.pie_chart_rounded,
-          tr('Budgets knapp'),
-          tr('{tight} {x} knapp oder drüber', {'tight': tight, 'x': L10n.isDe ? (tight == 1 ? tr('Kategorie') : tr('Kategorien')) : (tight == 1 ? tr('Kategorie') : tr('Kategorien')).toLowerCase()}),
-          () => widget.onOpen(1, segment: 1),
-          subtitleColor: AppColors.warningText,
-        ));
-      }
-    }
-
-    if (tiles.isEmpty) return const [];
-    final shown = tiles.take(3).toList();
-    return [
-      const SizedBox(height: 28),
-      Text(tr('Für dich'),
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 8),
+      const SizedBox(height: 16),
       Material(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: AppColors.hairline)),
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            for (var i = 0; i < shown.length; i++) ...[
-              if (i > 0) Divider(height: 1, color: AppColors.border),
-              shown[i],
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) Divider(height: 1, indent: 72, color: AppColors.border),
+              rows[i],
             ],
           ],
         ),
@@ -762,35 +496,34 @@ class _OverviewScreenState extends State<OverviewScreen> {
     ];
   }
 
-  Widget _forYouTile(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap, {
-    bool badge = false,
-    Color? subtitleColor,
-  }) {
+  // same shape as an account row: icon, title, one quiet line
+  Widget _row(IconData icon, String title, String subtitle, VoidCallback onTap,
+      {bool badge = false}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.all(16),
         child: Row(children: [
-          Icon(icon, size: 22, color: AppColors.primaryText),
-          const SizedBox(width: 12),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15)),
+                      fontWeight: FontWeight.w600, fontSize: 16)),
               const SizedBox(height: 2),
               Text(subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 13,
-                      color: subtitleColor ?? AppColors.textDim,
-                      height: 1.3)),
+                  style: TextStyle(fontSize: 13, color: AppColors.textDim)),
             ]),
           ),
           if (badge) ...[
@@ -808,14 +541,15 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  // wordmark on the left, profile avatar on the right
+  // a place of the menu: its name, the privacy switch and the profile
   Widget _topBar() {
-    final name = AccountService.current.value?.name;
     return Row(
       children: [
-        const BrandMark(size: 30),
-        const SizedBox(width: 10),
-        const Wordmark(size: 20),
+        Text(tr('Überblick'),
+            style: const TextStyle(
+                fontFamily: AppFonts.display,
+                fontSize: 22,
+                fontWeight: FontWeight.w600)),
         const Spacer(),
         // privacy mode: hide all balances with one tap
         ValueListenableBuilder<bool>(
@@ -833,20 +567,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 color: AppColors.textDim),
           ),
         ),
-        const SizedBox(width: 4),
+        // the profile sits top right on every place
         Semantics(
           button: true,
           label: tr('Profil'),
           excludeSemantics: true,
-          child: Material(
-            color: Colors.transparent,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen())),
+          child: InkWell(
+            key: const Key('profile-avatar'),
+            customBorder: const CircleBorder(),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
               child: UserAvatar(
-                  name: name, size: 40, fontSize: 16, brandGradient: false),
+                  name: AccountService.current.value?.firstName ?? '', size: 32, fontSize: 14, brandGradient: false),
             ),
           ),
         ),
@@ -854,36 +587,40 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  // one-tap actions under the hero (Revolut / Cash App style)
+  // one-tap actions under the accounts
   Widget _quickActions() {
     Widget chip(IconData icon, String label, VoidCallback onTap,
         {Color? color}) {
       final c = color ?? AppColors.primary;
       return Expanded(
-        child: Material(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
+        child: Pressable(
+          builder: (states) => Material(
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onTap();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Column(children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                      color: c.withValues(alpha: 0.14), shape: BoxShape.circle),
-                  child: Icon(icon, color: c, size: 20),
-                ),
-                const SizedBox(height: 8),
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 12.5, fontWeight: FontWeight.w700)),
-              ]),
+            child: InkWell(
+              statesController: states,
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Column(children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                        color: c.withValues(alpha: 0.14),
+                        shape: BoxShape.circle),
+                    child: Icon(icon, color: c, size: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600)),
+                ]),
+              ),
             ),
           ),
         ),
@@ -892,9 +629,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
 
     final bankLinked = Settings.bankState.isNotEmpty;
     return Row(children: [
-      chip(Icons.chat_bubble_outline_rounded, tr('Ahead'), () => BuddyScreen.open(context),
-          color: AppColors.primary),
-      const SizedBox(width: 10),
       chip(Icons.edit_note_rounded, tr('Erfassen'), () => showSmartEntry(context),
           color: AppColors.primary),
       const SizedBox(width: 10),
@@ -956,47 +690,16 @@ class _OverviewScreenState extends State<OverviewScreen> {
         ),
         SyncPill(last: _fetchedAt(), onSync: _refresh),
       ]),
-      Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: GestureDetector(
-          onTap: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const WealthScreen())),
-          child: Text(
-              debts > 0
-                  ? tr('Konto + Depot − {x} Schulden', {'x': Money.format(debts)})
-                  : tr('Konto + Depot'),
-              style: TextStyle(
-                  color: AppColors.textDim,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600)),
-        ),
-      ),
-      if (Wealth.moment(tx: tx, now: now) ??
-              Wealth.weekOverWeekPulse(
-                tx,
-                cashCents: cash,
-                depotCents: depotNow,
-                depotThenCents: _depotWeek != null && _depotWeek!.length >= 2
-                    ? _depotWeek!.first
-                    : null,
-                opening: MoneyAccounts.openingTotal,
-                now: now,
-              )
-          case final pulse?)
+      if (debts > 0)
         Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Row(children: [
-            Icon(Icons.trending_up_rounded,
-                size: 16, color: AppColors.positiveText),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(pulse,
-                  style: TextStyle(
-                      color: AppColors.positiveText,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
-            ),
-          ]),
+          padding: const EdgeInsets.only(top: 6),
+          child: GestureDetector(
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const WealthScreen())),
+            child: Text(
+                tr('Konto + Depot − {x} Schulden', {'x': Money.format(debts)}),
+                style: TextStyle(color: AppColors.textDim, fontSize: 13)),
+          ),
         ),
       const SizedBox(height: 16),
       InteractiveChart(points: points, onScrub: (p) => _scrub.value = p),
@@ -1157,29 +860,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
     );
   }
 
-  List<Widget> _recent(List<Transaction> tx) {
-    if (tx.isEmpty) return const [];
-    return [
-      const SizedBox(height: 28),
-      SectionTitle(tr('Letzte Umsätze'),
-          action: tr('Alle'), onAction: () => widget.onOpen(1, segment: 0)),
-      for (final t in tx.take(4)) TxRow(t),
-    ];
-  }
-
   // empty Start: one primary job, get real money in
   Widget _welcome() {
-    final name = AccountService.current.value?.firstName;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(name == null || name.isEmpty ? tr('Dein Überblick') : tr('Hallo {name}', {'name': name}),
-          style: const TextStyle(fontFamily: AppFonts.display, 
-              fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: -0.6)),
-      const SizedBox(height: 8),
-      Text(
-        tr('Bank oder erste Ausgabe.'),
-        style: TextStyle(color: AppColors.textDim, height: 1.45, fontSize: 15),
-      ),
-      const SizedBox(height: 20),
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -1207,36 +890,35 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   children: [
                     Text(tr('Bank verbinden'),
                         style: TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 16)),
+                            fontWeight: FontWeight.w600, fontSize: 16)),
                     Text(tr('Login nur bei deiner Bank'),
                         style: TextStyle(
                             color: AppColors.textDim,
-                            fontSize: 12.5,
+                            fontSize: 13,
                             height: 1.35)),
                   ]),
             ),
           ]),
           const SizedBox(height: 14),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
+          Pressable(
+            builder: (states) => FilledButton(
+              statesController: states,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ConnectionsScreen()));
+              },
+              child: Text(tr('Jetzt verbinden'),
+                  style: TextStyle(fontWeight: FontWeight.w700)),
             ),
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ConnectionsScreen()));
-            },
-            child: Text(tr('Jetzt verbinden'),
-                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
           const SizedBox(height: 6),
-          TextButton(
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              showSmartEntry(context);
-            },
-            child: Text(tr('Oder manuell erfassen')),
-          ),
+          // by hand: "Erfassen" in the row below
           TextButton(
             onPressed: () async {
               HapticFeedback.selectionClick();

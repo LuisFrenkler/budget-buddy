@@ -50,7 +50,7 @@ void main() {
 
   testWidgets('Buddy is a tab, and asking from elsewhere lands in it', (tester) async {
     await pumpShell(tester);
-    expect(find.text('Ahead'), findsWidgets); // the tab label
+    expect(find.byKey(const Key('seg-ahead')), findsOneWidget); // Ahead's place in the switch on top
     // adding by hand moved to the Konto tab: Buddy adds from the chat
     expect(find.bySemanticsLabel(RegExp('^Schnell erfassen')), findsNothing);
     expect(HomeScreen.addMenu, isNotNull);

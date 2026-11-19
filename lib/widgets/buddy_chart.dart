@@ -2,10 +2,20 @@
 // spending), categories (where the money went), a savings plan (the way
 // to a target, month by month) and payslips (gross, net, deductions).
 // Plain bars, the app's colours, no library.
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import '../screens/account_screen.dart';
 import '../services/buddy_proposals.dart';
+import '../services/db.dart';
+import '../services/history.dart';
+import '../services/ledger_busy.dart';
+import '../services/money_accounts.dart';
+import '../services/onboarding_service.dart';
+import '../services/price_service.dart';
 import '../utils/money.dart';
+import '../utils/motion.dart';
 import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 
@@ -50,11 +60,7 @@ class BuddyChartCard extends StatelessWidget {
       child: Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.hairline),
-      ),
+      decoration: _box,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(chart.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
         const SizedBox(height: 12),
@@ -68,6 +74,12 @@ class BuddyChartCard extends StatelessWidget {
       ),
     );
   }
+
+  static BoxDecoration get _box => BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.hairline),
+      );
 
   static Color get _copper => ThemeController.isDark.value ? const Color(0xFFF4B98A) : AppColors.brand;
 
@@ -218,4 +230,120 @@ class BuddyChartCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label, style: TextStyle(fontSize: 11.5, color: AppColors.textDim)),
       ]);
+}
+
+// where a question was asked: its answer starts with that place's chart
+enum AskPlace { overview, account, depot }
+
+// a place as one line and one number
+class PlaceChart {
+  // read out instead of the drawing
+  final String label;
+  final String number;
+  final List<int> cents;
+  const PlaceChart(this.label, this.number, this.cents);
+
+  // null when the place has nothing to draw, or amounts are hidden
+  static Future<PlaceChart?> of(AskPlace place) async {
+    if (Money.masked) return null;
+    if (place == AskPlace.depot) {
+      final cents = await PriceService.portfolioHistory(days: 30);
+      if (_flat(cents)) return null;
+      final change = Money.signed(DB.portfolioValue() - cents.first);
+      return PlaceChart('${tr('Depot')} $change ${tr('in 30 Tagen')}', change, cents);
+    }
+    if (!OnboardingService.balanceKnown) return null;
+    final all = DB.getTx();
+    // Konto draws the chosen account, Überblick all of them together
+    final chosen = place == AskPlace.account ? MoneyAccounts.byId(AccountScreen.selected.value) : null;
+    final one = chosen != null || !MoneyAccounts.several;
+    final account = chosen ?? MoneyAccounts.main;
+    final tx = one ? MoneyAccounts.bookingsOf(account.id, all) : all;
+    final opening = one ? MoneyAccounts.openingOf(account) : MoneyAccounts.openingTotal;
+    final live = DB.balanceOf(tx) + opening;
+    final balance = MoneyAccounts.several && one ? live : LedgerBusy.cashOr(live);
+    final now = DateTime.now();
+    final cents = [
+      for (final p in History.dailyBalance(tx, from: DateTime(now.year, now.month, now.day - 91), opening: opening))
+        p.cents
+    ];
+    if (_flat(cents)) return null;
+    return PlaceChart('${tr('Kontostand')} ${Money.format(balance)}', Money.format(balance), cents);
+  }
+
+  static bool _flat(List<int> v) => v.length < 2 || v.every((c) => c == v.first);
+}
+
+class PlaceChartCard extends StatelessWidget {
+  final PlaceChart chart;
+  // arrives with a streamed answer: a fade, no drawing that delays reading
+  final bool fade;
+  const PlaceChartCard(this.chart, {super.key, this.fade = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final up = chart.cents.last >= chart.cents.first;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: fade ? Motion.base : Duration.zero,
+      curve: Motion.color,
+      builder: (_, t, child) => Opacity(opacity: t, child: child),
+      child: Semantics(
+        container: true,
+        image: true,
+        label: chart.label,
+        excludeSemantics: true,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BuddyChartCard._box,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(chart.number, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 64,
+              width: double.infinity,
+              child: CustomPaint(painter: _LinePainter(chart.cents, up ? BuddyChartCard._copper : AppColors.error)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _LinePainter extends CustomPainter {
+  final List<int> cents;
+  final Color color;
+  const _LinePainter(this.cents, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var lo = cents.reduce(math.min).toDouble(), hi = cents.reduce(math.max).toDouble();
+    // at least 4 % of the value as range, like the screens' own charts
+    final span = math.max(hi.abs(), lo.abs()) * 0.04;
+    if (hi - lo < span) {
+      final mid = (hi + lo) / 2;
+      hi = mid + span / 2;
+      lo = mid - span / 2;
+    }
+    const pad = 2.0;
+    final h = size.height - pad * 2, dx = size.width / (cents.length - 1);
+    final line = Path();
+    for (var i = 0; i < cents.length; i++) {
+      final y = pad + h - (cents[i] - lo) / (hi - lo) * h;
+      i == 0 ? line.moveTo(0, y) : line.lineTo(i * dx, y);
+    }
+    canvas.drawPath(
+        line,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.2
+          ..strokeJoin = StrokeJoin.round
+          ..strokeCap = StrokeCap.round
+          ..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_LinePainter old) => old.cents != cents || old.color != color;
 }

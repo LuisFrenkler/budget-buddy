@@ -90,6 +90,10 @@ class Contracts {
 
   static int monthlyTotal(List<Contract> contracts) => contracts.fold(0, (sum, c) => sum + c.monthlyCents);
 
+  // the contracts an agent can cancel or get cheaper: everything but the rent.
+  // The find card, the offline answer and the agent's tool all count these, so the numbers match.
+  static List<Contract> cancellable(List<Contract> contracts) => contracts.where((c) => c.category != 'Wohnen').toList();
+
   // lately one payment per month: the last three gaps are about a month,
   // one of them may be two (a debit the bank skipped or merged)
   static bool _monthly(List<Transaction> p) {

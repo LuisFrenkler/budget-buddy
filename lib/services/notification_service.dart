@@ -20,6 +20,7 @@ import '../models/goal.dart';
 import '../models/transaction.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
+import 'ahead_agent.dart';
 import 'buddy_service.dart';
 import 'buddy_tasks.dart';
 import 'cancellation_service.dart';
@@ -230,6 +231,28 @@ class NotificationService {
         now: now,
       ).where((h) => _topicOf(h.kind) != null).toList();
 
+  // what goes out now (pure, so it can be tested): hints not sent before whose topic is on,
+  // the most urgent first. A hint the agent lays out as a find speaks only while that find
+  // waits (not put off with "Später", not done) and opens the agent with the find's question
+  static List<({Hint hint, String payload})> fresh(List<Hint> hints, List<AgentFind> finds,
+      {required Set<String> seen, required int room, DateTime? now}) {
+    final later = AheadAgent.snoozed;
+    final today = now ?? DateTime.now();
+    final out = <({Hint hint, String payload})>[];
+    for (final h in hints) {
+      final t = _topicOf(h.kind);
+      if (t == null || !topic(t) || seen.contains(h.id)) continue;
+      final find = finds.where((f) => f.id == h.id).firstOrNull;
+      if (AheadAgent.takes(h.kind) && find == null) continue;
+      // a tax deadline opens that year's page; its find put off counts here too
+      final year = h.id.startsWith('tax-deadline-') ? h.id.substring(13) : null;
+      if (year != null && later['tax-$year']?.isAfter(today) == true && !finds.any((f) => f.id == 'tax-$year')) continue;
+      final ask = find?.question ?? h.question;
+      out.add((hint: h, payload: year != null ? 'tax:$year' : ask != null ? 'buddy:$ask' : 'hint:${h.target.name}'));
+    }
+    return out.take(room).toList();
+  }
+
   static int _idFor(String key) => key.hashCode & 0x3fffffff;
 
   static Timer? _debounce;
@@ -247,22 +270,15 @@ class NotificationService {
 
     // 1. urgent hints, each only once. A finance buddy that spams loses
     // trust: at most one a day and three a week, the most urgent first
-    final seen = _shown;
     final log = _sentLog(today);
-    final room = quietRoom(log, today);
-    final fresh =
-        _urgentHints(today).where((h) => !seen.contains(h.id) && topic(_topicOf(h.kind)!)).take(room).toList();
-    for (final h in fresh) {
-      // a hint with a question opens Buddy's chat with it
-      final payload = h.id.startsWith('tax-deadline-')
-          ? 'tax:${h.id.substring(13)}'
-          : h.question != null
-              ? 'buddy:${h.question}'
-              : 'hint:${h.target.name}';
-      await _show(_idFor(h.id), h.title, h.text, payload);
+    final hints = _urgentHints(today);
+    final out = fresh(hints, AheadAgent.run(tx: DB.getTx(), hints: hints, now: today),
+        seen: _shown, room: quietRoom(log, today), now: today);
+    for (final n in out) {
+      await _show(_idFor(n.hint.id), n.hint.title, n.hint.text, n.payload);
     }
-    await _markShown(fresh.map((h) => h.id));
-    if (fresh.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in fresh) today.toIso8601String()]);
+    await _markShown(out.map((n) => n.hint.id));
+    if (out.isNotEmpty) await _box.put('notifyLog', [...log, for (final _ in out) today.toIso8601String()]);
 
     // 2. the browser cannot schedule: show this week's report once when it is ready
     if (kIsWeb) {

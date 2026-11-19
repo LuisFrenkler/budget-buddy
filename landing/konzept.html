@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-en="Concept · Ahead">Konzept · Ahead</title>
+<meta name="description" content="Wie Ahead arbeitet: drei Fragen zu deinem Geld und ein Agent, der von selbst sucht, vor jeder Aktion fragt und den nächsten Schritt mit dir erledigt.">
+<meta property="og:title" content="Ahead · Das Konzept">
+<meta property="og:description" content="Ein Agent, kein weiterer Chat. Drei Fragen zu deinem Geld und der nächste Schritt.">
+<meta property="og:image" content="og.png">
+<!-- the colour along the top edge of the opening; JS switches it to paper once the nav bar is solid -->
+<meta name="theme-color" content="#C87639">
+<!-- where the web app runs; "../" on GitHub Pages (landing/ sits inside the app), publish.sh sets https://app.DOMAIN/ -->
+<meta name="ahead-app" content="../">
+<link rel="icon" href="appicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ahead.css">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="b" viewBox="0 0 1024 1024"><path fill="currentColor" d="M317.8 718.0 L455.9 318.0 L568.1 318.0 L706.2 718.0 L622.6 718.0 L516.5 379.2 L508.1 379.2 L400.8 718.0 Z M391.1 635.6 L391.1 581.6 L643.2 581.6 L643.2 635.6 Z"></path></symbol>
+</svg>
+<header class="top" data-top>
+  <div class="w">
+    <a class="brand" href="index.html" aria-label="Ahead"><span class="coin"><svg><use href="#b"/></svg></span><span class="wm">Ahead.</span></a>
+    <nav class="nav-links" aria-label="Seiten" data-en-aria-label="Pages">
+      <a class="ghost-btn" href="konzept.html" aria-current="page" data-en="Concept">Konzept</a>
+      <a class="ghost-btn" href="preis.html" data-en="Price">Preis</a>
+      <a class="ghost-btn" href="sicherheit.html" data-en="Security">Sicherheit</a>
+    </nav>
+    <div class="top-actions">
+      <button class="ghost-btn" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
+      <details class="menu">
+        <summary class="ghost-btn" data-en="Menu">Menü</summary>
+        <nav class="menu-panel" aria-label="Seiten" data-en-aria-label="Pages">
+      <a href="konzept.html" aria-current="page" data-en="Concept">Konzept</a>
+      <a href="preis.html" data-en="Price">Preis</a>
+      <a href="sicherheit.html" data-en="Security">Sicherheit</a>
+        </nav>
+      </details>
+      <a class="cta-btn" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" data-hero>
+  <div class="grain"></div>
+  <div class="w open-in">
+    <p class="label" data-en="Ahead · The concept">Ahead · Das Konzept</p>
+    <h1 class="two blur-in" data-en="An agent, <em>not another chat.</em>">Ein Agent, <em>kein weiterer Chat.</em></h1>
+    <p class="lead hi" data-en="Ahead answers three questions about your money and takes care of the next step with you.">Ahead beantwortet dir drei Fragen zu deinem Geld und kümmert sich mit dir um den nächsten Schritt.</p>
+    <p class="cue label" aria-hidden="true" data-en="Scroll ↓">Scrollen ↓</p>
+  </div>
+</section>
+
+<main>
+  <section class="chapter" id="problem">
+    <div class="w">
+      <p class="label" data-en="The problem">Das Problem</p>
+      <div class="rise">
+        <h2 class="say two" data-en="Everything costs more. <em>And nobody has the overview.</em>">Alles wird teurer. <em>Und niemand hat den Überblick.</em></h2>
+        <p class="sub" data-en="The overdraft is close, and retirement feels far away. Your account, your contracts and your taxes sit in different places.">Der Dispo ist schnell erreicht, und die Rente fühlt sich weit weg an. Konto, Verträge und Steuer liegen an verschiedenen Orten.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" id="stand">
+    <div class="w">
+      <p class="label" data-en="Where do I stand?">Wo stehe ich?</p>
+      <div class="rise">
+        <h2 class="say two" data-en="Three numbers. <em>Where you stand, at a glance.</em>">Drei Zahlen. <em>Dein Stand auf einen Blick.</em></h2>
+        <p class="sub" data-en="What is free this month, what goes out every month no matter what, and what you own in total. Ahead works it out from your own numbers.">Was diesen Monat frei ist, was jeden Monat fest rausgeht und was du insgesamt hast. Ahead rechnet das aus deinen eigenen Zahlen.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" id="rechnung">
+    <div class="w">
+      <p class="label" data-en="Where do I lose money?">Wo verliere ich Geld?</p>
+      <div class="rise">
+        <h2 class="say two" data-en="Every find <em>comes with an amount.</em>">Jeder Fund <em>kommt mit Betrag.</em></h2>
+        <p class="sub" data-en="Ahead searches open tax years, forgotten subscriptions, price increases and double charges. Tax amounts are estimates, the real number is in your tax notice.">Ahead durchsucht offene Steuerjahre, vergessene Abos, Preiserhöhungen und doppelte Abbuchungen. Steuerbeträge sind Schätzungen, die echte Zahl steht im Steuerbescheid.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" id="beispiele">
+    <div class="w">
+      <p class="label" data-en="What is my next step?">Was ist mein nächster Schritt?</p>
+      <div class="rise">
+        <h2 class="say two" data-en="One step. <em>Concrete enough for today.</em>">Ein Schritt. <em>Konkret genug für heute.</em></h2>
+        <p class="sub" data-en="Ahead names a single step and does it with you. For example avoiding the overdraft, building an emergency fund or asking about the company pension.">Ahead nennt einen einzigen Schritt und erledigt ihn mit dir. Zum Beispiel den Dispo vermeiden, einen Notgroschen aufbauen oder nach der Betriebsrente fragen.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" id="agent">
+    <div class="w">
+      <p class="label" data-en="The agent">Der Agent</p>
+      <div class="rise">
+        <h2 class="say two" data-en="It looks on its own. <em>And asks before every action.</em>">Er sucht von selbst. <em>Und fragt vor jeder Aktion.</em></h2>
+        <p class="sub" data-en="Afterwards Ahead checks that the money arrived. You can ask it anything, and it takes you to the right place in the app.">Danach prüft Ahead, ob das Geld angekommen ist. Du kannst ihn alles fragen, und er bringt dich an die passende Stelle in der App.</p>
+      </div>
+    </div>
+  </section>
+  <section class="chapter" id="nicht">
+    <div class="w">
+      <p class="label" data-en="What Ahead doesn’t do">Was Ahead nicht macht</p>
+      <div class="rise">
+        <h2 class="say two" data-en="It finds. <em>You decide.</em>">Er findet. <em>Du entscheidest.</em></h2>
+        <p class="sub" data-en="Ahead moves no money, sells you no funds and never acts without your yes. Ahead takes no commissions.">Ahead bewegt kein Geld, verkauft dir keine Fonds und handelt nie ohne dein Ja. Provisionen nimmt Ahead nicht.</p>
+      </div>
+    </div>
+  </section>
+  <div class="finale">
+    <div class="grain"></div>
+    <div class="w rise">
+      <h2 class="two" data-en="Get the overview. <em>Today, no sign-up.</em>">Verschaff dir den Überblick. <em>Heute, ohne Anmeldung.</em></h2>
+      <div class="cta-row">
+        <a class="btn white" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="w">
+    <span>© 2026 Ahead</span>
+    <span data-en="Ahead can make mistakes. No investment, tax or legal advice.">Ahead kann sich irren. Keine Anlage-, Steuer- oder Rechtsberatung.</span>
+    <a href="datenschutz.html" data-legal data-en="Privacy">Datenschutz</a>
+    <a href="impressum.html" data-legal data-en="Legal notice">Impressum</a>
+  </div>
+</footer>
+
+<script src="ahead.js" onerror="document.documentElement.classList.remove('js')"></script>
+</body>
+</html>

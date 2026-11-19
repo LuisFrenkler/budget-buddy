@@ -311,6 +311,8 @@ class BuddyService {
     final gen = ++_askGen;
     final guide = history.isEmpty ? null : BuddyAppGuide.answerOrNull(history.last.text);
     if (guide != null || !live) {
+      // "Öffne meine Verträge" without the model: the guide says it, the shell does it
+      if (guide != null) BuddyAppGuide.open(history.last.text);
       // app help and offline answers are ready at once; hand them out in
       // small pieces so they read like the live one
       final text = guide ??
@@ -405,6 +407,8 @@ class BuddyService {
 
   // the cards and charts the last answer's tools produced, taken once by the chat
   static BuddyTools? _lastTools;
+  // the running answer already brings a chart of its own
+  static bool get chartPending => _lastTools?.charts.isNotEmpty ?? false;
   static ({
     List<BuddyProposal> proposals,
     List<BuddyChart> charts,

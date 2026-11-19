@@ -281,6 +281,7 @@ void main() {
   });
 
   test('every proposal kind has an apply path', () {
-    expect(ProposalKind.values.length, 6);
+    // the six new ones are applied and undone in agent_reach_test.dart
+    expect(ProposalKind.values.length, 12);
   });
 }

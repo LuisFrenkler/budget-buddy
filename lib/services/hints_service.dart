@@ -305,16 +305,16 @@ class HintsService {
         out.add(Hint(
             'overdraft-${risk.payday.year}-${risk.payday.month}-${risk.payday.day}',
             HintKind.overdraft,
-            tr('Konto rutscht vor dem Gehalt ins Minus'),
-            tr('Bis zum Gehalt am {d} fehlen voraussichtlich {x}.{due} Jetzt umplanen ist billiger als Dispozinsen.', {
+            // the number in the title, as an estimate: the card and the push say it at a glance
+            tr('Bis zum Gehalt fehlen etwa {x}', {'x': Money.format(risk.shortCents)}),
+            tr('Dein Gehalt kommt am {d}.{due}', {
               'd': Dates.dayMonth(risk.payday),
-              'x': Money.format(risk.shortCents),
               'due': risk.dueNames.isEmpty ? '' : tr(' Vorher wird noch {x} abgebucht.', {'x': risk.dueNames.join(', ')}),
             }),
             HintTarget.buddy,
             urgent: true,
-            question: tr('Mein Konto rutscht vor dem Gehalt ins Minus. Wie komme ich ohne Dispo bis zum {d}?',
-                {'d': Dates.dayMonth(risk.payday)})));
+            question: tr('Mein Konto rutscht vor dem Gehalt ins Minus: Bis zum {d} fehlen etwa {x}. Mach mir einen Plan ohne Dispo.',
+                {'d': Dates.dayMonth(risk.payday), 'x': Money.format(risk.shortCents)})));
       }
     }
 
@@ -336,7 +336,7 @@ class HintsService {
           urgent: d.collector,
           question: d.collector
               ? tr('Ich habe Geld an ein Inkassobüro ({x}) gezahlt. Was muss ich jetzt prüfen?', {'x': who})
-              : tr('Ich habe eine Mahngebühr von {x} bezahlt. Wie verhindere ich das in Zukunft?', {'x': who})));
+              : tr('Ich habe eine Mahngebühr an {x} gezahlt. Prüf, ob dort noch etwas offen ist, und erinnere mich ans Zahlen.', {'x': who})));
     }
 
     // money that comes every month is late this time
@@ -355,6 +355,11 @@ class HintsService {
 
     // a direct debit came back: the bill is still open
     for (final r in Oddities.returnedDebits(tx, now: today)) {
+      // paid again since: the bill is settled
+      final key = Merchant.key(r.merchant);
+      if (tx.any((t) => !t.isIncome && t.amountCents == r.cents && t.date.isAfter(r.back.date) && Merchant.key(t.note ?? '') == key)) {
+        continue;
+      }
       out.add(Hint(
           'returned-${r.back.id}',
           HintKind.returnedDebit,
@@ -362,7 +367,7 @@ class HintsService {
           tr('{x} sind zurück, die Rechnung bleibt offen. Oft folgt eine Mahnung mit Gebühr.',
               {'x': Money.format(r.cents)}),
           HintTarget.buddy,
-          question: tr('Eine Lastschrift von {x} über {y} ist zurückgegangen. Was muss ich jetzt tun?',
+          question: tr('Eine Lastschrift von {x} über {y} ist zurückgegangen. Erinnere mich ans Überweisen und sag mir, worauf ich achten muss.',
               {'x': r.merchant, 'y': Money.format(r.cents)})));
     }
 

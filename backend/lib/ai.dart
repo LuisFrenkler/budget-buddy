@@ -174,13 +174,12 @@ nicht drängeln.''';
       if (!guest && role == 'user' && (i == lastUser || (i == 0 && lastUser == 0))) {
         text = 'Meine Finanzen (Stand heute):\n$snapshot\n\nMeine Frage: $text';
       }
-      // the app language; the prompt itself stays German so it caches
-      if (lang == 'en' && role == 'user' && i == lastUser) {
-        text = '$text\n\n(Antworte auf Englisch, auch wenn frühere Nachrichten deutsch sind. '
-            'Schreib „Next step:“ statt „Nächster Schritt:“.)';
-      } else if (lang == 'de' && role == 'user' && i == lastUser && history.any((h) => '${h['text']}'.contains('Next step:'))) {
-        // switched back from English: the earlier answers would pull the model along
-        text = '$text\n\n(Antworte auf Deutsch, auch wenn frühere Nachrichten englisch sind.)';
+      // like ChatGPT: the language of the question wins, the app language decides only when it is unclear;
+      // the prompt itself stays German so it caches
+      if (role == 'user' && i == lastUser) {
+        text = '$text\n\n(Antworte in der Sprache dieser Nachricht, auch wenn frühere Nachrichten anders sind; '
+            'ist sie nicht eindeutig, auf ${lang == 'en' ? 'Englisch' : 'Deutsch'}. '
+            'Auf Englisch schreibst du „Next step:“ statt „Nächster Schritt:“.)';
       }
       messages.add({'role': role, 'content': text});
     }

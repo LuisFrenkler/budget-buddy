@@ -71,7 +71,7 @@ void main() {
     expect(BuddyAppGuide.matches('Wie lösche ich mein Konto?'), isTrue);
     expect(BuddyAppGuide.matches('How do I delete my account?'), isTrue);
     final exp = BuddyAppGuide.answerOrNull('Wo finde ich den Datenexport?')!;
-    expect(exp, contains('Profil › Erweitert › Import, Export & Backup › Als CSV exportieren'));
+    expect(exp, contains('Profil › Schutz und Daten › Import, Export & Backup › Als CSV exportieren'));
     expect(exp, contains('Nächster Schritt:'));
     final gone = BuddyAppGuide.answerOrNull('Wie lösche ich mein Konto?')!;
     expect(gone, contains('nicht angemeldet'));
@@ -83,7 +83,7 @@ void main() {
     L10n.lang.value = 'en';
     AccountService.current.value = null;
     final expEn = BuddyAppGuide.answerOrNull('How do I export my data?')!;
-    expect(expEn, contains('Profile › Advanced › Import, export & backup › Export as CSV'));
+    expect(expEn, contains('Profile › Protection and data › Import, export & backup › Export as CSV'));
     expect(expEn, contains('Next step:'));
     final delEn = BuddyAppGuide.answerOrNull('How do I delete my account?')!;
     expect(delEn, contains("You're not signed in"));
@@ -99,8 +99,8 @@ void main() {
     expect(BuddyAppGuide.answerOrNull('Was ist Ahead?'), contains('**Ahead**'));
     expect(BuddyAppGuide.answerOrNull('Was ist Buddy?'), contains('**Ahead**'));
     expect(BuddyAppGuide.answerOrNull('Wie melde ich mich ab?'), contains('abgemeldet'));
-    expect(BuddyAppGuide.answerOrNull('Wo ist der Notgroschen?'), contains('Vermögen & Absicherung'));
-    expect(BuddyAppGuide.answerOrNull('Wo finde ich Verträge?'), contains('Verträge & Abos'));
+    expect(BuddyAppGuide.answerOrNull('Wo ist der Notgroschen?'), contains('Überblick › Vermögen'));
+    expect(BuddyAppGuide.answerOrNull('Wo finde ich Verträge?'), contains('Öffne meine Verträge'));
     expect(BuddyAppGuide.answerOrNull('Wo ist Geteilt?'), contains('Geteilte Ausgaben'));
     for (final q in [
       'Wie viel Notgroschen brauche ich?',

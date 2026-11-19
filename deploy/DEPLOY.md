@@ -4,9 +4,9 @@ Ergebnis: drei Adressen mit HTTPS auf einem kleinen Server in Deutschland.
 
 | Adresse | Was |
 |---|---|
-| `https://DOMAIN` | Landingpage mit Warteliste und „Frag Buddy“ |
+| `https://DOMAIN` | Landingpage mit Rückhol-Check, „Frag Ahead“ und Warteliste |
 | `https://app.DOMAIN` | die Web-App |
-| `https://api.DOMAIN` | der Ahead-Server (Buddy, Konten, Warteliste, Bank) |
+| `https://api.DOMAIN` | der Ahead-Server (KI, Konten, Warteliste, Bank) |
 
 Kosten: Server ca. 4–5 € im Monat, Domain ca. 5–15 € im Jahr, KI nach Verbrauch.
 
@@ -58,8 +58,9 @@ und startet alles. Für jedes Update denselben Befehl noch einmal.
 
 - `https://api.DOMAIN/health` zeigt `"ai":true` und `"guest":true`
 - Landingpage: E-Mail eintragen → echter Platz auf der Warteliste
-- „Frag Buddy“ auf der Landingpage antwortet mit KI (3 Fragen pro Tag ohne Konto)
-- App: Konto anlegen, Buddy fragen
+- „Frag Ahead“ auf der Landingpage antwortet mit KI (3 Fragen pro Tag ohne Konto)
+- Landingpage: „Rückhol-Check starten“ öffnet die App direkt im Check
+- App: Konto anlegen, Ahead fragen
 
 ## Bank, Zahlungen, App Stores
 

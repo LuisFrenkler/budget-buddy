@@ -120,12 +120,17 @@ void main() {
   // last: the widget clock leaves file writes behind for later tests
   testWidgets('refund check screen: three answers, a range per open year, no sign-up needed', (tester) async {
     await tester.pumpWidget(MaterialApp(home: RefundCheckScreen(now: today)));
-    expect(tester.widget<FilledButton>(find.byKey(const Key('refund-check'))).onPressed, isNull);
+    // one question per page: the start of work, the gross pay, the way to work
+    await tester.tap(find.byKey(const Key('refund-step-next')));
+    await tester.pump();
+    expect(tester.widget<FilledButton>(find.byKey(const Key('refund-step-next'))).onPressed, isNull);
     await tester.enterText(find.byKey(const Key('refund-gross')), '3000');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('refund-step-next')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('refund-check')));
     await tester.pumpAndSettle();
-    expect(find.text('2025'), findsNWidgets(2)); // the start year picker and its card
+    expect(find.text('2025'), findsOneWidget); // the card of the start year
     expect(find.textContaining('Abgabe bis'), findsWidgets);
     await tester.scrollUntilVisible(find.byKey(const Key('refund-next')), 300, scrollable: find.byType(Scrollable).first);
     expect(find.byKey(const Key('refund-next')), findsOneWidget);

@@ -4,7 +4,7 @@ import '../l10n/l10n.dart';
 
 class BuddyHelp {
   static final _ask = RegExp(
-      r'^\s*(was kannst du( alles)?|was kann buddy|wie hilfst du mir|hilfe|what can you do|what do you do|help)\s*[?!.]*\s*$',
+      r'^\s*(was kannst du( alles)?( für mich)?( tun| machen)?|was kann (buddy|ahead)( alles)?|was kann ich( alles)? (mit dir|hier) (machen|tun)|was geht( hier)?( alles)?|wie hilfst du mir|hilfe|what can you do( for me)?|what can i do (with you|here)|what do you do|help)\s*[?!.]*\s*$',
       caseSensitive: false);
 
   static bool matches(String q) => _ask.hasMatch(q);
@@ -17,12 +17,10 @@ class BuddyHelp {
             '- **Begriffe:** ETF, Steuerklasse, Schufa, Dispo\n\n'
             'Mit einem kostenlosen Konto rechne ich mit deinen Zahlen.\n\n'
             'Nächster Schritt: Frag mich, was von 3.000 € brutto netto bleibt.')
-        : tr('Ich rechne mit deinen Zahlen. Zum Beispiel:\n\n'
-            '- **Monat:** was bis Monatsende frei ist\n'
-            '- **Sparen:** Ziele, Notgroschen, Sparrate\n'
-            '- **Verträge:** Frist und Kündigung\n'
-            '- **Gehalt:** Brutto-Netto, Abrechnung, Steuer\n'
-            '- **Plan:** Woche, Monatsabschluss, Rente\n\n'
+        : tr('Ich rechne mit deinen Zahlen und bediene mit dir die ganze App:\n\n'
+            '- **Fragen:** Konten, Ausgaben, Verträge, Depot, Steuer, Rente, meine Funde\n'
+            '- **Hinbringen:** „Öffne meine Verträge“, ich öffne dir jede Seite\n'
+            '- **Ändern:** Budget, Sparziel, Buchung, Kontostand, Kündigung, Einstellungen\n\n'
             'Gespeichert wird erst, wenn du auf Übernehmen tippst.\n\n'
             'Nächster Schritt: Frag mich, was diesen Monat noch frei ist.');
     final chips = guest

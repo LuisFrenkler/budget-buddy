@@ -10,7 +10,9 @@
 #   keys/         Enable Banking .pem and other key files (never in git)
 services:
   server:
-    build: ../backend
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
     restart: unless-stopped
     env_file: .env
     environment:

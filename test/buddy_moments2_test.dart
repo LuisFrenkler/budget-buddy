@@ -76,6 +76,8 @@ void main() {
   test('"Was kannst du alles?" is answered on the device', () {
     expect(BuddyHelp.matches('Was kannst du alles?'), isTrue);
     expect(BuddyHelp.matches('what can you do'), isTrue);
+    expect(BuddyHelp.matches('Was kann ich alles mit dir machen?'), isTrue);
+    expect(BuddyHelp.matches('Was kann Ahead?'), isTrue);
     expect(BuddyHelp.matches('Was kannst du mir zum Thema ETF sagen?'), isFalse);
     final a = BuddyHelp.answer();
     expect(a.text, contains('Nächster Schritt:'));

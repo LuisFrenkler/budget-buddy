@@ -56,7 +56,7 @@ void main() {
       final hints = HintsService.build(tx: _data(), budgets: const [], goals: const [], balanceCents: 20000, now: now);
       final h = hints.firstWhere((h) => h.kind == HintKind.overdraft);
       expect(h.urgent, isTrue);
-      expect(h.text, contains('40,00'));
+      expect(h.title, contains('40,00'));
       expect(h.text, contains('Telekom'));
       expect(h.question, contains('ohne Dispo'));
       expect(HintsService.build(tx: _data(), budgets: const [], goals: const [], now: now)

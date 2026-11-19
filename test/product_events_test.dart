@@ -1,3 +1,4 @@
+import 'package:budget_buddy/services/ahead_agent.dart';
 import 'package:budget_buddy/services/product_events.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -47,5 +48,37 @@ void main() {
     await ProductEvents.track(ProductEvents.bankConnect, now: DateTime(2026, 11, 5));
     await ProductEvents.track(ProductEvents.bankConnect, now: DateTime(2026, 11, 6));
     expect(got, ['2026-11-05 bank_connect']);
+  });
+
+  test('a find counts once per kind and sends the kind, never the id', () async {
+    final got = <String>[];
+    ProductEvents.send = (name, day) async => got.add(name);
+    ProductEvents.sendKind = (name, kind) async => got.add('$name $kind');
+    final day = DateTime(2026, 11, 5);
+    await ProductEvents.track(ProductEvents.findShown, kind: ProductEvents.kindOf('price-Netflix-2026-11-01'), now: day);
+    await ProductEvents.track(ProductEvents.findShown, kind: ProductEvents.kindOf('price-Spotify-2026-11-02'), now: day);
+    await ProductEvents.track(ProductEvents.findShown, kind: ProductEvents.kindOf('tax-2025'), now: day);
+    await ProductEvents.track(ProductEvents.findYesMoney, kind: 'priceUp', now: day);
+    // an id the list does not know, or free text, counts as the plain event
+    await ProductEvents.track(ProductEvents.findLater, kind: ProductEvents.kindOf('something-new-7'), now: day);
+    await ProductEvents.track(ProductEvents.findLater, kind: 'Netflix 12,99', now: day);
+    expect(got, ['find_shown priceUp', 'find_shown tax', 'find_yes_money priceUp', 'find_later']);
+    expect(ProductEvents.log.first, '2026-11-05 find_shown priceUp');
+  });
+
+  test('without sendKind a find still counts by name', () async {
+    final got = <String>[];
+    ProductEvents.send = (name, day) async => got.add(name);
+    await ProductEvents.track(ProductEvents.findShown, kind: 'tax');
+    expect(got, ['find_shown']);
+  });
+
+  test('the kinds are the agent\'s finds: tax, its money kinds and the contracts look', () {
+    // the account about to go below zero is a find of its own kind
+    expect(ProductEvents.kinds, {'tax', 'contracts', 'overdraft', ...AheadAgent.moneyKinds.map((k) => k.name)});
+    expect(ProductEvents.kindOf('tax-check'), 'tax');
+    expect(ProductEvents.kindOf('contracts'), 'contracts');
+    expect(ProductEvents.kindOf('abo-tip-2026-netflix'), 'subTip');
+    expect(ProductEvents.kindOf('budget-over-food'), isNull);
   });
 }

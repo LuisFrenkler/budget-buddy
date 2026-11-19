@@ -221,20 +221,31 @@ class ContractsCard extends StatelessWidget {
   }
 }
 
+// The ready cancellation letter for the contract a find is about; false when
+// the contract is not in the bookings (the caller falls back to the chat).
+Future<bool> showCancellationLetter(BuildContext context, String name) async {
+  final c = Contracts.detect(DB.getTx()).where((c) => c.name == name).firstOrNull;
+  if (c == null) return false;
+  await _ContractSheet.show(context, c, writing: true);
+  return true;
+}
+
 // One contract: what it costs, its payments, and cancelling it with a ready
 // letter. Copying the letter or opening the mail app doesn't cancel anything
 // yet; only once the user says it went out does the row show "Gekündigt" and
 // Buddy watch whether the payments stop.
 class _ContractSheet extends StatefulWidget {
   final Contract contract;
-  const _ContractSheet(this.contract);
+  // opened from a find: the letter is already written
+  final bool writing;
+  const _ContractSheet(this.contract, {this.writing = false});
 
-  static Future<void> show(BuildContext context, Contract c) => showModalBottomSheet(
+  static Future<void> show(BuildContext context, Contract c, {bool writing = false}) => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: AppColors.surface,
         showDragHandle: true,
-        builder: (_) => _ContractSheet(c),
+        builder: (_) => _ContractSheet(c, writing: writing),
       );
 
   @override
@@ -243,7 +254,7 @@ class _ContractSheet extends StatefulWidget {
 
 class _ContractSheetState extends State<_ContractSheet> {
   final _customerNo = TextEditingController();
-  bool _writing = false;
+  late bool _writing = widget.writing;
   // the letter was copied or handed to the mail app; sent only once confirmed
   bool _prepared = false;
 

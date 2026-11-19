@@ -15,6 +15,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/buddy_tips.dart';
@@ -28,7 +29,12 @@ import '../services/demo_data.dart';
 import '../services/account_service.dart';
 import '../services/db.dart';
 import '../services/guest_buddy.dart';
+import 'places_screen.dart';
+import 'profile_screen.dart';
 import 'refund_check_screen.dart';
+import 'tax_screen.dart';
+import '../services/product_events.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import '../services/hints_service.dart';
 import '../services/life_stages.dart';
 import '../services/plus_service.dart';
@@ -39,7 +45,12 @@ import '../utils/dates.dart';
 import '../utils/errors.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
+import '../widgets/finance_stand.dart';
+import '../widgets/user_avatar.dart';
+import '../widgets/import_flows.dart';
 import '../widgets/agent_feed.dart';
+import '../services/guest_money_check.dart';
+import '../services/app_nav.dart';
 import '../services/ahead_agent.dart';
 import '../widgets/buddy_orb.dart';
 import '../widgets/buddy_text.dart';
@@ -90,15 +101,18 @@ class BuddyScreen extends StatefulWidget {
 
   // a question for the Buddy tab ('' just opens it); the shell switches to the tab
   static final ask = ValueNotifier<String?>(null);
+  // the screen that question was asked on: its answer starts with that screen's chart
+  static AskPlace? askedFrom;
 
   // store and landing-page pictures show Buddy as he usually is: online
   // (set only by tool/screenshots_test.dart)
   static String? debugStatus;
 
   // from anywhere: back to the shell and on into the Buddy chat
-  static void open(BuildContext context, [String? question]) {
+  static void open(BuildContext context, [String? question, AskPlace? from]) {
     HapticFeedback.selectionClick();
     Navigator.popUntil(context, (r) => r.isFirst);
+    askedFrom = from;
     ask.value = question ?? '';
   }
 
@@ -187,7 +201,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // throttle token paints (~50 ms) so streaming does not rebuild every fragment
   Timer? _flushTimer;
   String? _pendingPiece;
-  DateTime? _lastScrollAt;
+  // how much the newest message grew in this layout, for [_Hold]
+  double _grown = 0;
   // a photo picked for the next message (receipt, bank or broker screenshot)
   ({Uint8List bytes, String type})? _photo;
   // setup chat (Vorsorge, Sparziel, Depot) that ends in a confirm card
@@ -224,6 +239,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // signed out: the wipe of a former session's numbers, awaited before answering
   Future<void>? _guestReady;
 
+  static bool _linkStarted = false;
+
   @override
   void initState() {
     super.initState();
@@ -237,6 +254,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _consentListenable.addListener(_consentListener);
     // signed out, the chat must not see another session's ledger or stale demo numbers
     if (_guest) _guestReady = _isolateGuestFinance();
+    // the landing page's "Rückhol-Check starten" (…/?start=refund) opens the check once per launch
+    if (_guest && !_linkStarted && Uri.base.queryParameters['start'] == 'refund') {
+      _linkStarted = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start')));
+      });
+    }
     _scroll.addListener(_onScroll);
     _focus.addListener(_onFocus);
     VoiceInput.listening.addListener(_onFocus);
@@ -303,7 +327,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     for (final m in saved) {
       _messages.add(_Message(m.fromUser, m.text, at: m.at, offline: m.offline)..restored = true);
     }
-    if (_messages.isNotEmpty) _scrollDown(jump: true);
   }
 
   Future<void> _persist() => BuddyHistory.save([
@@ -343,7 +366,28 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _input.clear();
     setState(() {
       _messages.add(_Message(true, question));
-      _messages.add(_Message(false, BuddyAppGuide.answerOrNull(question) ?? ''));
+      _messages.add(_Message(false, BuddyAppGuide.answerOrNull(question) ?? '')
+        ..actions = [if (BuddyAppGuide.placeOf(question) case final place?) BuddyActions.open(place)]);
+    });
+    _persist();
+    _scrollDown();
+    // "Öffne meine Verträge": the answer says it, the shell does it
+    BuddyAppGuide.open(question);
+  }
+
+  // "Stell die App auf Englisch": done, said in one line; "Was Ahead getan hat" keeps the way back
+  Future<void> _setting(String question, BuddyProposal order) async {
+    _input.clear();
+    String said;
+    try {
+      said = await order.apply();
+    } catch (e) {
+      said = tr('Ging nicht. {x}', {'x': friendlyError(e)});
+    }
+    if (!mounted) return;
+    setState(() {
+      _messages.add(_Message(true, question));
+      _messages.add(_Message(false, '**$said**'));
     });
     _persist();
     _scrollDown();
@@ -440,7 +484,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   void _onScroll() {
     if (!_scroll.hasClients) return;
-    final away = _scroll.position.maxScrollExtent - _scroll.offset > 280;
+    final away = _scroll.offset > 280;
     if (away != _away) setState(() => _away = away);
   }
 
@@ -464,7 +508,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => BuddyScreen.ask.value = null);
     // a still screen draws no new frame by itself
     WidgetsBinding.instance.scheduleFrame();
-    if (q.isNotEmpty) _send(q);
+    final from = BuddyScreen.askedFrom;
+    BuddyScreen.askedFrom = null;
+    // coming from another screen: the latest message, not where the chat was left
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (q.isNotEmpty) _send(q, from: from);
   }
 
   @override
@@ -617,7 +665,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
       });
     }
     _persist();
-    _scrollDown();
     return true;
   }
 
@@ -669,7 +716,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
       answer.streaming = false;
     });
     _persist();
-    _scrollDown();
   }
 
   Future<void> _apply(_Message m, int i) async {
@@ -844,7 +890,21 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _persist();
   }
 
-  Future<void> _send(String text) async {
+  // [from]: the screen the question was written on. Whatever answers it, the
+  // first answer starts with that screen's chart; later questions have none.
+  Future<void> _send(String text, {AskPlace? from}) async {
+    final before = _messages.length;
+    final chart = from == null ? null : PlaceChart.of(from);
+    await _answer(text);
+    if (chart == null || !mounted) return;
+    final i = _messages.indexWhere((m) => !m.fromUser, before);
+    if (i < 0) return;
+    final answer = _messages[i];
+    final c = await chart;
+    if (c != null && mounted) setState(() => answer.place = c);
+  }
+
+  Future<void> _answer(String text) async {
     await _awaitGuestReady();
     if (!mounted) return;
     final question = text.trim();
@@ -857,6 +917,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     HapticFeedback.selectionClick();
     if (_photo == null && BuddyAppGuide.matches(question)) return _appGuide(question);
     if (_photo == null && BuddyHelp.matches(question)) return _help(question);
+    // a setting asked for by name is done on the device at once, with or without the model
+    if (_photo == null && !_guest) {
+      if (BuddyProposal.settingFrom(question) case final order?) return _setting(question, order);
+    }
     // privacy is answered from the app's own list, never improvised
     if (_photo == null && DataMap.matches(question)) return _privacy(question);
     // "Monatsrückblick" / story share stays on-device
@@ -961,7 +1025,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
   }
 
-  void _flushPending(_Message answer, int gen, {bool jump = true}) {
+  void _flushPending(_Message answer, int gen) {
     _flushTimer?.cancel();
     _flushTimer = null;
     final chunk = _pendingPiece;
@@ -969,21 +1033,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (chunk == null || chunk.isEmpty) return;
     if (!mounted || gen != _answerGen) return;
     setState(() => answer.text += chunk);
-    _scrollDownThrottled(jump: jump);
-  }
-
-  void _scrollDownThrottled({bool jump = false}) {
-    final now = DateTime.now();
-    final last = _lastScrollAt;
-    if (last != null && now.difference(last) < const Duration(milliseconds: 280)) {
-      if (jump && _scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
-        _lastScrollAt = now;
-      }
-      return;
-    }
-    _lastScrollAt = now;
-    _scrollDown(jump: jump);
   }
 
   // runs one answer stream into [answer]; [onLimit] retries offline when the
@@ -1033,7 +1082,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       },
       onError: (e) {
         if (!mounted || gen != _answerGen) return;
-        _flushPending(answer, gen, jump: false);
+        _flushPending(answer, gen);
         final text = '$e';
         final limit = text.contains('ausgelastet') ||
             text.contains('Tageslimit') ||
@@ -1056,7 +1105,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       },
       onDone: () {
         if (gen != _answerGen) return;
-        _flushPending(answer, gen, jump: false);
+        _flushPending(answer, gen);
         // only an answer that arrived uses up one of the free questions
         if (countsQuestion && !answer.error && !answer.degraded) PlusService.count(PlusFeature.aiQuestion);
         if (!mounted || answer.error) return;
@@ -1072,7 +1121,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
         });
         _persist();
         if (!_guest && !answer.offline) BuddyJournal.add(question, answer.text);
-        _scrollDown();
         HapticFeedback.lightImpact();
         if (_speakNext) {
           _speakNext = false;
@@ -1128,16 +1176,26 @@ class _BuddyScreenState extends State<BuddyScreen> {
     _send(f);
   }
 
-  void _scrollDown({bool jump = false}) {
+  // The chat list is reversed: offset 0 is the latest message, and there the
+  // list follows a growing answer by itself. Only for what the person does
+  // (sending, the keyboard): a finished answer never pulls back who scrolled up.
+  void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
-      if (jump) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
-      } else {
-        _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
-      }
+      _scroll.animateTo(0, duration: const Duration(milliseconds: 260), curve: Curves.easeOutCubic);
     });
+  }
+
+  void _grew(double by) {
+    _grown += by;
+    // only this frame's layout may use it
+    WidgetsBinding.instance.addPostFrameCallback((_) => _grown = 0);
+  }
+
+  double _takeGrown() {
+    final by = _grown;
+    _grown = 0;
+    return by;
   }
 
   Future<void> _newChat() async {
@@ -1149,11 +1207,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
     await BuddyHistory.clear(guest: _guest);
     _warmStart();
   }
-
-  void _openStage(LifeStage stage) =>
-      showLifeStage(context, stage, onAsk: (q) => _send(q), save: !_guest).then((_) {
-        if (mounted) setState(() {});
-      });
 
   void _message(_Message m) {
     final plain = m.fromUser ? m.text : BuddyMarkers.parse(m.text).text;
@@ -1329,11 +1382,14 @@ class _BuddyScreenState extends State<BuddyScreen> {
         ]),
         actions: [
           if (_messages.isNotEmpty)
-            IconButton(
+            // a word, not an icon to guess: where this leads
+            TextButton(
               key: const Key('feed-toggle'),
-              tooltip: _feed ? tr('Zum Gespräch') : tr('Zu den Funden'),
-              onPressed: () => setState(() => _feed = !_feed),
-              icon: Icon(_feed ? Icons.chat_bubble_outline_rounded : Icons.auto_awesome_outlined),
+              onPressed: () {
+                setState(() => _feed = !_feed);
+                if (_feed) _warmStart();
+              },
+              child: Text(_feed ? tr('Gespräch') : tr('Start')),
             ),
           PopupMenuButton<String>(
             tooltip: tr('Mehr'),
@@ -1345,10 +1401,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyMemoryScreen()));
                 case 'log':
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const BuddyLogScreen()));
-                case 'stage':
-                  _openStage(LifeStages.current ?? LifeStages.firstJob);
-                case 'story':
-                  _shareMonthStory();
                 case 'new':
                   _newChat();
                 default:
@@ -1356,8 +1408,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
               }
             },
             itemBuilder: (_) => [
-              PopupMenuItem(value: 'stage', child: _menuRow(Icons.flag_outlined, tr('Lebenslage'))),
-              PopupMenuItem(value: 'story', child: _menuRow(Icons.auto_stories_outlined, tr('Monats-Story teilen'))),
               PopupMenuItem(value: 'memory', child: _menuRow(Icons.bookmark_outline_rounded, tr('Was Ahead weiß'))),
               PopupMenuItem(value: 'log', child: _menuRow(Icons.history_rounded, tr('Was Ahead getan hat'))),
               if (_messages.isNotEmpty)
@@ -1369,7 +1419,24 @@ class _BuddyScreenState extends State<BuddyScreen> {
                         _aiOn ? tr('KI ausschalten') : tr('KI einschalten'))),
             ],
           ),
-          const SizedBox(width: 8),
+          // the profile sits top right on every place
+          if (widget.tab)
+            Semantics(
+              button: true,
+              label: tr('Profil'),
+              excludeSemantics: true,
+              child: InkWell(
+                key: const Key('profile-avatar'),
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: UserAvatar(
+                      name: AccountService.current.value?.firstName ?? '', size: 32, fontSize: 14, brandGradient: false),
+                ),
+              ),
+            ),
+          const SizedBox(width: 12),
         ],
       );
 
@@ -1414,19 +1481,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
           child: Text(tr('Anmelden')),
         ),
-        Padding(
-          padding: const EdgeInsets.only(right: 12, left: 2),
-          child: FilledButton(
-            style: FilledButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              backgroundColor: copper ? Colors.white : AppColors.brand,
-              foregroundColor: copper ? const Color(0xFF17120E) : Colors.white,
-            ),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen())),
-            child: Text(tr('Starten')),
-          ),
-        ),
+        const SizedBox(width: 8),
       ],
     );
   }
@@ -1437,9 +1492,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text.rich(
               TextSpan(children: [
-                TextSpan(text: tr('Hol dir dein ')),
-                TextSpan(text: tr('Steuergeld'), style: const TextStyle(color: CopperLight.peach)),
-                TextSpan(text: tr(' zurück.')),
+                TextSpan(text: tr('Dein persönlicher ')),
+                TextSpan(text: tr('Finanz-Agent.'), style: const TextStyle(color: CopperLight.peach)),
               ]),
               style: const TextStyle(
                 fontFamily: AppFonts.display,
@@ -1452,7 +1506,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              tr('Ahead ist dein Agent, der verlorenes Geld findet. Er fängt mit deiner Steuer an: drei Antworten, ohne Anmeldung.'),
+              tr('Ahead verschafft dir den Überblick, zeigt dir, wo du Geld verlierst, und erledigt den nächsten Schritt mit dir. Ohne Anmeldung.'),
               style: const TextStyle(fontSize: 17, height: 1.4, color: Color(0xDBFFF7F0)),
             ),
             const SizedBox(height: 20),
@@ -1460,39 +1514,187 @@ class _BuddyScreenState extends State<BuddyScreen> {
           ]),
       );
 
-  // after the check: what the agent found, and signing up to let it carry on
+  // the refund check from the start screen; back here its finds show
+  void _guestCheck() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start')))
+      .then((_) => mounted ? setState(() {}) : null);
+
+  // the second way into the money check: bank bookings, read on this device and kept in memory only
+  Future<void> _guestMoney() async {
+    final tx = await pickBankBookings();
+    if (tx == null || !mounted) return;
+    if (tx.isEmpty) {
+      _snack(tr('In dieser Datei wurden keine neuen Umsätze gefunden. Exportiere sie im Online-Banking als CSV.'));
+      return;
+    }
+    GuestMoneyCheck.set(tx);
+    ProductEvents.track(ProductEvents.moneyCheck);
+    setState(() {});
+  }
+
+  // a find's yes before sign-up: the check's answers fill the years, then that year's tax page opens.
+  // A money find needs the account: the letter and the follow-up live there.
+  Future<void> _guestYes(AgentFind f) async {
+    if (f.kind != FindKind.tax) {
+      ProductEvents.track(ProductEvents.findYesMoney, kind: ProductEvents.kindOf(f.id));
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpScreen()));
+      return;
+    }
+    ProductEvents.track(ProductEvents.findYesTax);
+    // the start screen's wipe must be through, or it takes the answers with it
+    await _awaitGuestReady();
+    await RefundCheckScreen.saveProfiles(now: DateTime.now());
+    if (!mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => TaxScreen(year: f.year)));
+    if (mounted) setState(() {});
+  }
+
+  // whole euros for the headline, rounded down: it never promises a cent too much
+  static String _euros(int cents) => Money.masked
+      ? Money.hidden
+      : NumberFormat.currency(locale: L10n.intlLocale, symbol: '€', decimalDigits: 0).format(cents ~/ 100);
+
+  // a find before sign-up, the same card as in the feed
+  Widget _guestFind(AgentFind f) => Padding(
+        key: Key('guest-find-${f.id}'),
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Material(
+          color: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppColors.hairline)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Icon(f.kind == FindKind.tax ? Icons.receipt_long_outlined : Icons.savings_outlined,
+                        size: 20, color: AppColors.glow)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(f.title, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, height: 1.25)),
+                    if (f.kind == FindKind.money && (f.cents ?? 0) > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(
+                            f.yearly
+                                ? tr('{x} im Jahr', {'x': Money.format(f.cents!)})
+                                : tr('{x} zurückholen', {'x': Money.format(f.cents!)}),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.glow)),
+                      ),
+                    const SizedBox(height: 3),
+                    Text(f.text, style: TextStyle(fontSize: 13.5, color: AppColors.textDim, height: 1.35)),
+                  ]),
+                ),
+              ]),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  key: Key('guest-go-${f.id}'),
+                  onPressed: () => _guestYes(f),
+                  child: Text(f.kind == FindKind.tax ? f.action : tr('Konto anlegen'),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.glow)),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      );
+
+  // the two ways into the money check: three answers for the taxes, the bank bookings for everything else
+  Widget _guestWay(Key key, IconData icon, String label, String hint, VoidCallback onTap, {bool primary = false}) {
+    const ink = Color(0xFF17120E);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        key: key,
+        color: primary ? Colors.white : Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+            child: Row(children: [
+              Icon(icon, size: 20, color: primary ? ink : Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(label,
+                      style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: primary ? ink : Colors.white)),
+                  const SizedBox(height: 2),
+                  Text(hint,
+                      style: TextStyle(
+                          fontSize: 13, height: 1.3, color: primary ? const Color(0xFF6E655F) : const Color(0xDBFFF7F0))),
+                ]),
+              ),
+              Icon(Icons.chevron_right_rounded, size: 20, color: primary ? ink : Colors.white),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // the money check: its two ways in, then what the agent found, each with its yes
   List<Widget> _guestFinds() {
-    final finds = AheadAgent.guestFinds();
-    void check() => Navigator.push(context, MaterialPageRoute(builder: (_) => const RefundCheckScreen(source: 'start')))
-        .then((_) => mounted ? setState(() {}) : null);
+    final tax = AheadAgent.guestFinds();
+    final money = GuestMoneyCheck.finds();
+    final taxDone = Hive.box('settings').get('refundCheck') != null;
+    final finds = [...tax, ...money];
+    // the overview comes first: the bookings show what goes out every month and where money is lost
+    final moneyWay = _guestWay(
+        const Key('guest-money-check'), Icons.insights_outlined, tr('Überblick und Abos prüfen'),
+        tr('Umsätze als CSV aus dem Online-Banking. Sie bleiben auf diesem Gerät.'), _guestMoney,
+        primary: !GuestMoneyCheck.done);
+    final taxWay = _guestWay(
+        const Key('guest-refund-check'), Icons.receipt_long_outlined, tr('Steuer prüfen'),
+        tr('Drei Antworten, dann siehst du jedes offene Jahr.'), _guestCheck,
+        primary: GuestMoneyCheck.done && !taxDone);
+    final stand = GuestMoneyCheck.done ? FinanceStand.figures(GuestMoneyCheck.tx) : null;
+    final standLine = stand == null || stand.fixedCents <= 0
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Text(
+                tr('Deine Fixkosten: {x} im Monat.', {'x': _euros(stand.fixedCents)}),
+                key: const Key('guest-stand'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFFFFF7F0))),
+          );
     if (finds.isEmpty) {
       return [
-        FilledButton.icon(
-          key: const Key('guest-refund-check'),
-          style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
-          onPressed: check,
-          icon: const Icon(Icons.savings_outlined, size: 18),
-          label: Text(tr('Rückhol-Check starten')),
-        ),
+        if (taxDone || GuestMoneyCheck.done)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(tr('Bisher habe ich nichts gefunden. Der andere Weg zeigt oft mehr.'),
+                key: const Key('guest-nothing'), style: const TextStyle(fontSize: 15, color: Color(0xDBFFF7F0))),
+          ),
+        if (standLine != null) standLine,
+        moneyWay,
+        taxWay,
       ];
     }
     final open = AheadAgent.openCents(finds);
     final upTo = AheadAgent.upToCents(finds);
+    final yearly = AheadAgent.yearlyCents(finds);
     const dim = Color(0xDBFFF7F0);
     return [
+      if (standLine != null) standLine,
       Text(tr('Ahead hat für dich gefunden'), style: const TextStyle(fontSize: 15, color: dim)),
       if (open > 0 || upTo > 0)
-        Text(open > 0 ? tr('mind. {x}', {'x': Money.format(open)}) : tr('bis zu {x}', {'x': Money.format(upTo)}),
+        Text(open > 0 ? tr('mind. {x}', {'x': _euros(open)}) : tr('bis zu {x}', {'x': _euros(upTo)}),
             key: const Key('guest-found'),
             style: const TextStyle(
                 fontFamily: AppFonts.display, fontSize: 40, fontWeight: FontWeight.w600, letterSpacing: -1.5, color: CopperLight.peach)),
-      const SizedBox(height: 8),
-      for (final f in finds.take(4))
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Text('· ${f.title}', style: const TextStyle(fontSize: 15, height: 1.3, color: Color(0xFFFFF7F0))),
-        ),
-      const SizedBox(height: 14),
+      if (yearly > 0)
+        Text(
+            open > 0 || upTo > 0
+                ? tr('dazu {x} im Jahr, die du sparen kannst', {'x': _euros(yearly)})
+                : tr('{x} im Jahr, die du sparen kannst', {'x': _euros(yearly)}),
+            key: const Key('guest-yearly'),
+            style: const TextStyle(fontSize: 15, color: dim)),
+      const SizedBox(height: 12),
+      for (final f in finds.take(5)) _guestFind(f),
+      const SizedBox(height: 6),
       FilledButton.icon(
         key: const Key('guest-carry-on'),
         style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF17120E)),
@@ -1500,21 +1702,19 @@ class _BuddyScreenState extends State<BuddyScreen> {
         icon: const Icon(Icons.arrow_forward_rounded, size: 18),
         label: Text(tr('Konto anlegen, ich mache weiter')),
       ),
-      TextButton(
-        key: const Key('guest-recheck'),
-        onPressed: check,
-        style: TextButton.styleFrom(foregroundColor: dim),
-        child: Text(tr('Neu prüfen')),
-      ),
+      const SizedBox(height: 12),
+      // the way not taken yet stays on offer; the taxes can always be checked again
+      if (!GuestMoneyCheck.done) moneyWay,
+      if (!taxDone) taxWay,
+      if (taxDone)
+        TextButton(
+          key: const Key('guest-recheck'),
+          onPressed: _guestCheck,
+          style: TextButton.styleFrom(foregroundColor: dim),
+          child: Text(tr('Steuer neu prüfen')),
+        ),
     ];
   }
-
-  // three short ways in, as small pills right above the input
-  static List<({String label, String question})> get _guestStarts => [
-        (label: tr('Steuern zurück?'), question: tr('Bekomme ich Steuern zurück?')),
-        (label: tr('Frist verpasst?'), question: tr('Bis wann kann ich meine Steuererklärung nachholen?')),
-        (label: tr('Erste Gehaltsabrechnung?'), question: tr('Wie prüfe ich meine erste Gehaltsabrechnung?')),
-      ];
 
   String get _statusLabel {
     if (BuddyScreen.debugStatus != null) return BuddyScreen.debugStatus!;
@@ -1528,12 +1728,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
       final left = GuestBuddy.left();
       if (_live != true) return tr('Ohne KI');
       if (left == 0) return tr('KI für heute aufgebraucht, Grundlagen gehen weiter');
-      return left == 1 ? tr('Noch 1 KI-Antwort heute') : tr('Noch {n} KI-Antworten heute', {'n': left});
+      // the count only when it is about to matter
+      return left == 1 ? tr('Noch 1 KI-Antwort heute') : null;
     }
     if (_live != true || PlusService.active.value) return null;
     final left = PlusService.left(PlusFeature.aiQuestion);
     if (left == 0) return tr('Gratis-KI-Fragen aufgebraucht');
     if (left == 1) return tr('Noch 1 Gratis-KI-Frage diesen Monat');
+    // the count only when it is about to matter
+    if (left > 5) return null;
     return tr('Noch {left} von {x} Gratis-KI-Fragen', {'left': left, 'x': PlusService.limit(PlusFeature.aiQuestion)});
   }
 
@@ -1552,7 +1755,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
   // Logged-in start: the free-cash number when we have one, then one obvious question.
   // Without a forecast, one salary question. Life stages stay in the chat.
   Widget _welcome() {
-    final name = AccountService.current.value?.firstName;
     if (_guest) {
       // the question on top, the ways in at the bottom next to the input
       return LayoutBuilder(
@@ -1566,21 +1768,6 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   _guestHero(),
                   const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-                    child: Wrap(spacing: 8, runSpacing: 8, children: [
-                      for (final g in _guestStarts)
-                        ActionChip(
-                          key: Key('start-${g.label}'),
-                          label: Text(g.label),
-                          onPressed: () => _send(g.question),
-                          labelStyle: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-                          side: const BorderSide(color: Color(0x33FFFFFF)),
-                          backgroundColor: CopperLight.card,
-                          shape: const StadiumBorder(),
-                        ),
-                    ]),
-                  ),
                 ]),
               ),
             ),
@@ -1593,37 +1780,70 @@ class _BuddyScreenState extends State<BuddyScreen> {
     final tip = brief?.tip;
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       children: [
-        Center(child: BuddyOrb(size: 44, mood: _mood)),
-        const SizedBox(height: 14),
-        AgentFeed(name: name, onAsk: _send),
-        if (brief != null && brief.free != null) ...[
-          const SizedBox(height: 14),
-          Text(tr('Diesen Monat noch frei: {x}, etwa {y} pro Tag', {'x': brief.free!, 'y': brief.perDay!}),
-              key: const Key('month-free'),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.35)),
-        ] else if (brief != null && !brief.numbers && tip == null) ...[
-          const SizedBox(height: 14),
-          Text(tr('Frag nach deinem Gehalt.'),
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
-        ],
-        if (tip != null) ...[
-          const SizedBox(height: 22),
-          _remark(tip),
-        ],
-        if (chips.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          for (var i = 0; i < chips.length; i++) _suggestion(chips[i], lead: i == 0),
-        ],
+        // the three questions Ahead answers, in this order: the overview, the losses, the one next step
+        // the long version of the overview is one tap away, no tab of its own
+        _ask3(tr('Wo stehe ich?'), more: DB.getTx().isEmpty ? null : () => AppNav.open('ueberblick')),
+        FinanceStand(
+          tx: DB.getTx(),
+          free: brief?.free,
+          perDay: brief?.perDay,
+          cashCents: BuddyService.cashCents(),
+          depotCents: DB.getHoldings().fold(0, (s, h) => s + h.valueCents),
+          onAdd: () => importBookings(context).then((_) {
+            if (!mounted) return;
+            AheadAgent.changed.value++;
+            _warmStart();
+          }),
+        ),
+        _ask3(tr('Wo verliere ich Geld?')),
+        AgentFeed(onAsk: _send),
+        if (tip != null || chips.isNotEmpty) _ask3(tr('Was ist mein nächster Schritt?')),
+        if (tip != null)
+          _remark(tip)
+        else if (brief != null && !brief.numbers && chips.isEmpty)
+          Text(tr('Frag nach deinem Gehalt.'), style: TextStyle(fontSize: 14, color: AppColors.textDim, height: 1.4)),
+        // exactly one next step: the remark when there is one, otherwise the first question
+        if (tip == null && chips.isNotEmpty) _suggestion(chips.first, lead: true),
+        const SizedBox(height: 18),
+        Center(
+          child: TextButton(
+            key: const Key('all-places'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PlacesScreen())),
+            child: Text(tr('Alle Bereiche'), style: const TextStyle(fontSize: 13)),
+          ),
+        ),
       ],
     );
   }
 
+  // one of the three questions as a quiet section label
+  Widget _ask3(String q, {VoidCallback? more}) => Padding(
+        padding: const EdgeInsets.only(top: 26, bottom: 10),
+        child: Row(children: [
+          Expanded(
+            child: Text(q,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.2, color: AppColors.brandText)),
+          ),
+          if (more != null)
+            InkWell(
+              key: const Key('stand-more'),
+              onTap: more,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Text(tr('Alles ansehen'), style: TextStyle(fontSize: 13, color: AppColors.textDim)),
+              ),
+            ),
+        ]),
+      );
+
   // after the first paint: one forecast for the number, the tip, and which question leads
   void _warmStart() {
-    if (!mounted || _guest || _messages.isNotEmpty) return;
+    // the start shows the numbers whenever it is on screen, also beside an older chat
+    if (!mounted || _guest || (_messages.isNotEmpty && !_feed)) return;
     final brief = _brief();
     // a tip is already the one way in when there is nothing to forecast
     final chips = brief.numbers || brief.tip == null ? BuddySuggestions.openers(hasNumbers: brief.numbers) : const <BuddyChip>[];
@@ -1646,7 +1866,15 @@ class _BuddyScreenState extends State<BuddyScreen> {
           : ForecastService.build(tx, goals: GoalsService.all(), balanceCents: cash);
       final tip = BuddyTips.pick(tx: tx, budgets: DB.getBudgets(), balanceCents: cash, knownForecast: f);
       if (f == null) return (free: null, perDay: null, tip: tip, numbers: false);
-      if (f.freeCents < 0) return (free: null, perDay: null, tip: tip, numbers: true);
+      // a month that runs short shows its minus, not a dash: the start must not look calmer than the find below it
+      if (f.freeCents < 0) {
+        return (
+          free: Settings.hideAmounts.value ? Money.hidden : Money.format(f.freeCents),
+          perDay: null,
+          tip: tip,
+          numbers: true
+        );
+      }
       final hidden = Settings.hideAmounts.value;
       return (
         free: hidden ? Money.hidden : Money.format(f.freeCents),
@@ -1728,23 +1956,47 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   Widget _chat() {
     final count = _messages.length + (_showCta ? 1 : 0);
-    return ListView.builder(
-      controller: _scroll,
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-      itemCount: count,
-      itemBuilder: (_, i) {
-        if (i == _messages.length) return _signUpCard();
-        final m = _messages[i];
-        final prev = i > 0 ? _messages[i - 1] : null;
-        final newDay = prev == null || !_sameDay(prev.at, m.at);
-        final last = i == _messages.length - 1;
-        final bubble = m.fromUser ? _userBubble(m) : _buddyMessage(m, last: last);
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (newDay) _dayChip(m.at),
-          _Appear(key: ObjectKey(m), animate: !m.restored, child: bubble),
-        ]);
-      },
+    // reversed, so offset 0 is the latest message: the chat opens there in its
+    // first frame, and the shell's "back to the top" lands there too
+    return Align(
+      alignment: Alignment.topCenter,
+      // a list shown again starts at the latest message, not at a remembered offset
+      child: PageStorage(
+        bucket: PageStorageBucket(),
+        child: ListView.builder(
+        controller: _scroll,
+        reverse: true,
+        // a short conversation still starts under the bar
+        shrinkWrap: true,
+        physics: _Hold(_takeGrown),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        itemCount: count,
+        // a new message moves every index: each one keeps its state
+        findChildIndexCallback: (key) {
+          final m = key is ObjectKey ? key.value : null;
+          final i = m is _Message ? _messages.indexOf(m) : -1;
+          return i < 0 ? null : count - 1 - i;
+        },
+        itemBuilder: (_, r) {
+          final i = count - 1 - r;
+          if (i == _messages.length) return _signUpCard();
+          final m = _messages[i];
+          final prev = i > 0 ? _messages[i - 1] : null;
+          final newDay = prev == null || !_sameDay(prev.at, m.at);
+          final last = i == _messages.length - 1;
+          final bubble = m.fromUser ? _userBubble(m) : _buddyMessage(m, last: last);
+          return _Grow(
+            key: ObjectKey(m),
+            onGrow: last ? _grew : null,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (newDay) _dayChip(m.at),
+              _Appear(key: ObjectKey(m), animate: !m.restored, child: bubble),
+            ]),
+          );
+        },
+        ),
+      ),
     );
   }
 
@@ -1805,6 +2057,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 26),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // asked on Konto or Depot: that screen's chart first, unless the answer brings its own
+            if (m.place != null && m.charts.isEmpty && !m.error && !(m.streaming && BuddyService.chartPending))
+              PlaceChartCard(m.place!, fade: m.streaming),
             if (m.checkIn)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
@@ -2094,6 +2349,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
       ProposalKind.category => Icons.label_outline_rounded,
       ProposalKind.reminder => Icons.notifications_none_rounded,
       ProposalKind.save => Icons.savings_outlined,
+      ProposalKind.txEdit => Icons.edit_outlined,
+      ProposalKind.txDelete => Icons.delete_outline_rounded,
+      ProposalKind.goalEdit => Icons.flag_outlined,
+      ProposalKind.balance => Icons.account_balance_wallet_outlined,
+      ProposalKind.contractHide => Icons.visibility_off_outlined,
+      ProposalKind.setting => Icons.tune_rounded,
     };
     // one card is one unit for a screen reader; buttons say which card they act on
     return AnimatedOpacity(
@@ -2513,6 +2774,8 @@ class _ChatAction extends StatelessWidget {
 // One line while a tool runs. [looking] is the German activity phrase
 // ("Konten", or the older "deine Konten").
 String buddyToolLine(String looking) {
+  // the open tool checks nothing, it takes the person somewhere
+  if (looking == 'Seite') return tr('Öffnet die Seite…');
   final noun = tr(_shortToolNoun(looking));
   final shown = L10n.isDe ? noun : noun.toLowerCase();
   return tr('Prüft {x}…', {'x': shown});
@@ -2544,6 +2807,7 @@ class _Message {
   final Map<int, String> proposalDone = {}; // proposal index -> what was done
   final Set<int> proposalDropped = {};
   List<BuddyChart> charts = const []; // small charts under the answer
+  PlaceChart? place; // the chart of the screen the question was asked on
   bool stepDone = false; // the next step is marked done
   String? question; // what this answer answers, for feedback
   List<String> tools = const []; // which tools it used
@@ -2557,6 +2821,55 @@ class _Message {
   String? rememberState; // saved, known, no
   Uint8List? image; // a photo the user sent
   _Message(this.fromUser, this.text, {DateTime? at, this.offline = false, this.image}) : at = at ?? DateTime.now();
+}
+
+// What the person scrolled up to read stays where it is while the newest
+// message grows below it; at the latest message the chat follows by itself.
+class _Hold extends ScrollPhysics {
+  final double Function() grown;
+  const _Hold(this.grown, {super.parent});
+
+  @override
+  _Hold applyTo(ScrollPhysics? ancestor) => _Hold(grown, parent: buildParent(ancestor));
+
+  @override
+  double adjustPositionForNewDimensions(
+      {required ScrollMetrics oldPosition,
+      required ScrollMetrics newPosition,
+      required bool isScrolling,
+      required double velocity}) {
+    final at = super.adjustPositionForNewDimensions(
+        oldPosition: oldPosition, newPosition: newPosition, isScrolling: isScrolling, velocity: velocity);
+    final by = grown();
+    // a line or two away from the end still counts as following
+    return oldPosition.pixels > 48 ? at + by : at;
+  }
+}
+
+// tells how much its child's height changed between two layouts
+class _Grow extends SingleChildRenderObjectWidget {
+  final ValueChanged<double>? onGrow;
+  const _Grow({super.key, this.onGrow, super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderGrow()..onGrow = onGrow;
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderGrow renderObject) => renderObject.onGrow = onGrow;
+}
+
+class _RenderGrow extends RenderProxyBox {
+  ValueChanged<double>? onGrow;
+  double? _was;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final was = _was;
+    _was = size.height;
+    // a message that only just came into view did not grow
+    if (was != null && was != size.height) onGrow?.call(size.height - was);
+  }
 }
 
 // a short fade and lift for new messages

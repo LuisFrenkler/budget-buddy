@@ -11,9 +11,13 @@ import '../utils/theme.dart';
 import '../l10n/l10n.dart';
 import 'buddy_proposals.dart';
 import 'affordability.dart';
+import 'ahead_agent.dart';
+import 'app_nav.dart';
 import 'booking_text.dart';
 import 'debt_plan.dart';
 import 'emergency_plan.dart';
+import 'goals_service.dart';
+import 'hints_service.dart';
 import 'net_salary.dart';
 import 'oddities.dart';
 import 'income_sources.dart';
@@ -78,6 +82,15 @@ class BuddyTools {
     'jahreszahlungen',
     'schulden_plan',
     'diagramm',
+    'oeffnen',
+    'funde',
+    'mitgliedschaft',
+    'buchung_aendern_vorschlagen',
+    'buchung_loeschen_vorschlagen',
+    'sparziel_aendern_vorschlagen',
+    'kontostand_vorschlagen',
+    'vertrag_ausblenden_vorschlagen',
+    'einstellung_vorschlagen',
   };
 
   // Runs one tool. A bad input or a failure comes back as {"fehler": …}, so
@@ -117,6 +130,15 @@ class BuddyTools {
         'kategorie_vorschlagen' => _propose(BuddyProposal.category(input)),
         'erinnerung_vorschlagen' => _propose(BuddyProposal.reminder(input)),
         'diagramm' => _diagramm(input),
+        'oeffnen' => _oeffnen(input),
+        'funde' => _funde(),
+        'mitgliedschaft' => _mitgliedschaft(),
+        'buchung_aendern_vorschlagen' => _propose(BuddyProposal.txEdit(input, tx)),
+        'buchung_loeschen_vorschlagen' => _propose(BuddyProposal.txDelete(input, tx)),
+        'sparziel_aendern_vorschlagen' => _propose(BuddyProposal.goalEdit(input)),
+        'kontostand_vorschlagen' => _propose(BuddyProposal.balance(input)),
+        'vertrag_ausblenden_vorschlagen' => _vertragAusblenden(input),
+        'einstellung_vorschlagen' => _propose(BuddyProposal.setting(input)),
         _ => {'fehler': 'Unbekanntes Werkzeug $name'},
       };
     } on FormatException catch (e) {
@@ -141,6 +163,79 @@ class BuddyTools {
       'hinweis':
           'Die Person sieht jetzt eine Karte mit „${p.confirm}“. Gespeichert ist noch nichts.',
     };
+  }
+
+  // takes the person to a place in the app; the shell opens it
+  Map<String, dynamic> _oeffnen(Map<String, dynamic> input) {
+    final place = '${input['ort'] ?? ''}';
+    if (!AppNav.open(place, year: (input['jahr'] as num?)?.toInt())) {
+      return {'fehler': 'Diesen Ort gibt es nicht. Möglich: ${AppNav.places.join(', ')}'};
+    }
+    return {'geoeffnet': place, 'hinweis': 'Die Seite ist jetzt offen. Sag das in einem kurzen Satz.'};
+  }
+
+  // what Ahead found on its own, the same list as the feed on the start page
+  Map<String, dynamic> _funde() {
+    var hints = const <Hint>[];
+    try {
+      // the same inputs as the feed, or the chat's finds would miss the account going below zero
+      hints = HintsService.current(
+          tx: tx,
+          budgets: DB.getBudgets(),
+          goals: GoalsService.all(),
+          freeCents: BuddyService.freeCents(),
+          balanceCents: BuddyService.cashCents(),
+          now: today);
+    } catch (_) {}
+    final finds = AheadAgent.run(tx: tx, hints: hints, now: today);
+    return {
+      'funde': [
+        for (final f in finds.take(10))
+          {
+            'titel': f.title,
+            'text': f.text,
+            'art': switch (f.kind) {
+              FindKind.tax => 'steuer',
+              FindKind.money => 'geld',
+              FindKind.waiting => 'wartet',
+              FindKind.done => 'erledigt',
+            },
+            if (f.cents != null) 'mindestens': _eur(f.cents!),
+            if (f.upTo != null) 'bisZu': _eur(f.upTo!),
+            if (f.yearly) 'proJahr': true,
+          }
+      ],
+      'offenMindestens': _eur(AheadAgent.openCents(finds)),
+      'offenBisZu': _eur(AheadAgent.upToCents(finds)),
+      'sparbarProJahr': _eur(AheadAgent.yearlyCents(finds)),
+      'schonZurueckgeholt': _eur(AheadAgent.recoveredCents(tx: tx, now: today)),
+      'hinweis': 'Offene Funde sind Schätzungen. Zurückgeholt ist nur Geld, das angekommen ist.',
+    };
+  }
+
+  // the price, the guarantee and where Plus stands
+  Map<String, dynamic> _mitgliedschaft() => {
+        'preis': {'proMonat': _eur(AheadAgent.monthlyFeeCents), 'proJahr': _eur(AheadAgent.yearlyFeeCents)},
+        'garantie': {
+          'mindestensZurueck': _eur(AheadAgent.guaranteeCents),
+          'schonZurueckgeholt': _eur(AheadAgent.recoveredCents(tx: tx, now: today)),
+          'regel': 'Holt Ahead in zwölf Monaten ab Beitritt nicht mindestens diesen Betrag zurück, gibt es den '
+              'ganzen Beitrag wieder. Es zählt nur Geld, das angekommen ist: Steuererstattung laut Bescheid für '
+              'Jahre, die mit Ahead abgegeben wurden, monatliche Abbuchungen, die nach einem Kündigungsschreiben '
+              'aus Ahead ausbleiben, und zurückgezahlte Doppelabbuchungen.',
+          'stand': 'Beitreten geht noch nicht, nur vormerken auf der Seite garantie.',
+        },
+        if (snapshot['plus'] != null) 'plus': snapshot['plus'],
+      };
+
+  Map<String, dynamic> _vertragAusblenden(Map<String, dynamic> input) {
+    final who = '${input['anbieter'] ?? ''}'.trim().toLowerCase();
+    if (who.isEmpty) return {'fehler': 'anbieter fehlt'};
+    final name = [
+      for (final c in (snapshot['vertraegeUndAbos'] as List?) ?? const []) '${(c as Map)['name']}'
+    ].where((n) => n.toLowerCase().contains(who) || who.contains(n.toLowerCase())).firstOrNull;
+    if (name == null) return {'fehler': 'Kein erkannter Vertrag mit diesem Namen.'};
+    return _propose(BuddyProposal.contractHide(name));
   }
 
   Map<String, dynamic> _diagramm(Map<String, dynamic> input) {
@@ -494,9 +589,19 @@ class BuddyTools {
         if (SubTips.forName('${(c as Map)['name']}') case final t?)
           {'name': c['name'], 'guenstiger': t.ways}
     ];
+    // the start screen's find counts without the rent, per year: give the model the same number
+    final mine = contracts.where((c) => (c as Map)['kategorie'] != 'Wohnen').toList();
+    final mineMonthly = mine.fold<double>(0, (s, c) => s + ((c as Map)['proMonat'] as num? ?? 0));
     return {
       'vertraegeUndAbos': contracts,
       'summeProMonat': _round(monthly),
+      'ohneMiete': {
+        'anzahl': mine.length,
+        'summeProMonat': _round(mineMonthly),
+        'summeProJahr': _round(mineMonthly * 12),
+        'hinweis': 'Geht es ums Kündigen oder Sparen, nenn zuerst diese Summe pro Jahr und diese Anzahl. '
+            'Die Miete gehört nicht dazu.',
+      },
       if (tips.isNotEmpty) ...{
         'spartipps': tips,
         'hinweisSpartipps':

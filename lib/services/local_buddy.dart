@@ -1,6 +1,7 @@
 // Buddy's answers without the AI: the common questions answered with real
 // numbers computed on the device. Used offline and whenever the
 // server has no AI configured. The app labels these answers as offline.
+import 'contracts.dart';
 import '../utils/dates.dart';
 import '../utils/merchant.dart';
 import '../utils/money.dart';
@@ -298,12 +299,12 @@ class LocalBuddy {
         s.contracts.where((c) => c.category == 'Unterhaltung').toList();
     if (subs.isNotEmpty) {
       final sum = subs.fold<int>(0, (a, c) => a + c.monthlyCents);
-      tips.add(tr('**{y}** im Monat für Abos ({x}), {z} im Jahr. Brauchst du alle?',
-          {
-            'x': subs.map((c) => c.name).join(', '),
-            'y': _eur(sum),
-            'z': _eur(sum * 12)
-          }));
+      tips.add(tr(
+          '**{y}** im Monat für Abos ({x}), {z} im Jahr. Brauchst du alle?', {
+        'x': subs.map((c) => c.name).join(', '),
+        'y': _eur(sum),
+        'z': _eur(sum * 12)
+      }));
     }
     if (tips.isEmpty) {
       final top = _top(avg, 1);
@@ -334,8 +335,8 @@ class LocalBuddy {
           {'x': _eur(-surplus)});
     }
     if (target == null || target <= 0) {
-      return tr('**{x}** bleiben im Monat. Nenn einen Betrag.',
-          {'x': _eur(surplus)});
+      return tr(
+          '**{x}** bleiben im Monat. Nenn einen Betrag.', {'x': _eur(surplus)});
     }
     final cents = target * 100;
     final months = (cents / surplus).ceil();
@@ -396,19 +397,29 @@ class LocalBuddy {
     if (s.contracts.isEmpty)
       return tr(
           'Noch keine festen Verträge. Dafür brauche ich drei Monate gleicher Zahlungen.');
-    final total = s.contracts.fold<int>(0, (a, c) => a + c.monthlyCents);
+    // the same count as the find on the start: without the rent, per year first
+    final mine = Contracts.cancellable(s.contracts);
+    final rent = s.contracts.fold<int>(0, (a, c) => a + c.monthlyCents) -
+        Contracts.monthlyTotal(mine);
+    if (mine.isEmpty)
+      return tr(
+          'Außer der Miete ({x} im Monat) sehe ich noch keine festen Verträge.',
+          {'x': _eur(rent)});
+    final total = Contracts.monthlyTotal(mine);
     final lines = [
-      for (final c in s.contracts.take(6))
-        '- ${c.name}: ${_eur(c.monthlyCents)}'
+      for (final c in mine.take(6)) '- ${c.name}: ${_eur(c.monthlyCents)}'
     ];
-    return tr(
-        '**{y}** im Monat für **{x}** feste Zahlungen ({z} im Jahr):\n{a}',
-        {
-          'x': s.contracts.length,
-          'y': _eur(total),
-          'z': _eur(total * 12),
-          'a': lines.join('\n')
-        });
+    return [
+      tr('**{z} im Jahr** für **{x}** Verträge, das sind {y} im Monat:\n{a}', {
+        'x': mine.length,
+        'y': _eur(total),
+        'z': _eur(total * 12),
+        'a': lines.join('\n')
+      }),
+      if (rent > 0)
+        tr('Dazu kommt die Miete mit {x} im Monat.', {'x': _eur(rent)}),
+      tr('Nächster Schritt: Sag mir, welchen Vertrag ich zuerst prüfen soll.'),
+    ].join('\n\n');
   }
 
   static String _budgets(FinanceSnapshot s) {
@@ -454,15 +465,14 @@ class LocalBuddy {
           ..sort((a, b) => b.valueCents.compareTo(a.valueCents)))
         .first;
     return tr(
-        '**{x}** im Depot, {y} {z} auf {a}. Größte Position: {b} ({c} %).',
-        {
-          'x': _eur(s.depotCents),
-          'y': gain >= 0 ? tr('ein Plus') : tr('ein Minus'),
-          'z': _eur(gain.abs()),
-          'a': _eur(invested),
-          'b': biggest.name,
-          'c': (biggest.valueCents / s.depotCents * 100).round()
-        });
+        '**{x}** im Depot, {y} {z} auf {a}. Größte Position: {b} ({c} %).', {
+      'x': _eur(s.depotCents),
+      'y': gain >= 0 ? tr('ein Plus') : tr('ein Minus'),
+      'z': _eur(gain.abs()),
+      'a': _eur(invested),
+      'b': biggest.name,
+      'c': (biggest.valueCents / s.depotCents * 100).round()
+    });
   }
 
   static String _goals(FinanceSnapshot s) {
@@ -472,8 +482,7 @@ class LocalBuddy {
     final surplus = s.avgIncome - s.avgExpenses;
     final g = s.goals.first;
     final lead = g.reached
-        ? tr('**{x}** für {y} sind da.',
-            {'x': _eur(g.savedCents), 'y': g.name})
+        ? tr('**{x}** für {y} sind da.', {'x': _eur(g.savedCents), 'y': g.name})
         : tr('**{x}** fehlen noch für {y}.',
             {'x': _eur(g.remainingCents), 'y': g.name});
     if (s.goals.length == 1) {
@@ -514,9 +523,9 @@ class LocalBuddy {
       return '$lead ${tr('Sparquote {x} %.', {'x': s.savingsRatePercent})}';
     }
     return '$lead ${tr('Konten {y}, Depot {z}.', {
-      'y': _eur(s.balanceCents),
-      'z': _eur(s.depotCents),
-    })}';
+          'y': _eur(s.balanceCents),
+          'z': _eur(s.depotCents),
+        })}';
   }
 
   static String? _emergencyLine(FinanceSnapshot s) {
@@ -527,8 +536,8 @@ class LocalBuddy {
     }
     final gap = target - s.emergencyHaveCents;
     if (gap <= 0) {
-      return tr('Notgroschen ist voll ({x}).',
-          {'x': _eur(s.emergencyHaveCents)});
+      return tr(
+          'Notgroschen ist voll ({x}).', {'x': _eur(s.emergencyHaveCents)});
     }
     return tr('Notgroschen: noch **{x}**.', {'x': _eur(gap)});
   }
@@ -632,10 +641,10 @@ class LocalBuddy {
     if (s.recent.isEmpty) return '$total$name';
     final t = s.recent.first;
     return '$total$name ${tr('Zuletzt {x} {sign}{y}.', {
-      'x': t.note,
-      'sign': t.cents < 0 ? '−' : '+',
-      'y': _eur(t.cents.abs()),
-    })}';
+          'x': t.note,
+          'sign': t.cents < 0 ? '−' : '+',
+          'y': _eur(t.cents.abs()),
+        })}';
   }
 
   // "Was wäre ohne Netflix?" / "wenn ich 200 ausgebe", same formula as the sheet
@@ -718,14 +727,12 @@ class LocalBuddy {
                 .map((d) => '${d.name} ${_eur(d.cents)}')
                 .join(', ')
           });
-    return tr(
-        '**{x}** bis Monatsende, etwa {y} am Tag. Tempo: {tempo}.{due}',
-        {
-          'x': _eur(f.freeCents),
-          'y': _eur(f.perDayCents),
-          'tempo': tempo,
-          'due': due
-        });
+    return tr('**{x}** bis Monatsende, etwa {y} am Tag. Tempo: {tempo}.{due}', {
+      'x': _eur(f.freeCents),
+      'y': _eur(f.perDayCents),
+      'tempo': tempo,
+      'due': due
+    });
   }
 
   static String _plus(FinanceSnapshot s) {

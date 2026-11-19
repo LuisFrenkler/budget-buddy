@@ -72,6 +72,7 @@ import 'lib/rate_limit.dart';
 import 'lib/vault.dart';
 import 'lib/splits.dart';
 import 'lib/net.dart';
+import 'lib/product_counts.dart';
 import 'lib/whatsapp.dart';
 
 String _env(String k) => Platform.environment[k] ?? _dotEnv[k] ?? '';
@@ -710,15 +711,19 @@ Future<void> _handle(HttpRequest req) async {
         return;
       }
       return _json(req, 200, answer);
-    // POST {name} -> {} : one anonymous funnel step, no account, no amount
+    // POST {name, kind?} -> {} : one anonymous funnel step, no account, no amount
     case '/events':
       if (req.method != 'POST') return _json(req, 405, {'error': 'POST only'});
       final ip = _clientIp(req);
       if (_eventsLimit.blocked(ip)) throw AuthError.wait(_eventsLimit.wait(ip));
       _eventsLimit.hit(ip);
-      final name = '${(await _body(req))['name'] ?? ''}';
-      if (!_appEvents.contains(name)) return _json(req, 400, {'error': 'unbekanntes Ereignis'});
-      _productEvent(name);
+      final event = await _body(req);
+      final name = '${event['name'] ?? ''}';
+      final kind = event['kind'] == null ? null : '${event['kind']}';
+      if (!_appEvents.contains(name) || !ProductCounts.allows(name, kind)) {
+        return _json(req, 400, {'error': 'unbekanntes Ereignis'});
+      }
+      _productEvent(name, kind);
       return _json(req, 200, {});
     // POST {email, ref?} -> {code, position, total, friends}
     case '/waitlist/join':
@@ -1961,14 +1966,20 @@ const _appEvents = {
   'estimate_within_10', 'estimate_within_25', 'estimate_off',
   'refund_check_start', 'refund_check_app', 'control_within_10', 'control_within_25', 'control_off', 'mcp_check',
   'find_shown', 'find_yes_tax', 'find_yes_money', 'find_later', 'money_recovered',
+  'guarantee_seen', 'guarantee_reserve', 'money_check',
 };
 
-void _productEvent(String name) {
+// the same events as numbers per UTC day; ProductCounts.summary() reads them
+final _counts = ProductCounts(File('$_dataDir/events.json'));
+
+void _productEvent(String name, [String? kind]) {
   if (name != 'waitlist_signup' && name != 'bank_connect' && !_appEvents.contains(name)) return;
   final d = DateTime.now().toUtc();
   final month = d.month.toString().padLeft(2, '0');
   final day = d.day.toString().padLeft(2, '0');
-  stderr.writeln('product_event ${d.year}-$month-$day $name');
+  stderr.writeln('product_event ${d.year}-$month-$day $name${kind == null ? '' : ' $kind'}');
+  // a count that cannot be written must not fail the request it belongs to
+  unawaited(_counts.add(name, kind: kind, now: d).catchError((_) {}));
 }
 
 String _page(String body) => '''<!doctype html>

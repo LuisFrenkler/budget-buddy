@@ -64,7 +64,7 @@ class DataMap {
         place: DataPlace.device,
         where: tr('Nur auf diesem Gerät, im geschützten Speicher der App'),
         who: tr('Nur du. Wir haben keinen Zugriff.'),
-        end: tr('Profil › Erweitert › App zurücksetzen, oder die App löschen'),
+        end: tr('Profil › App zurücksetzen, oder die App löschen'),
         section: '2',
         active: true,
         optional: false,
@@ -123,7 +123,7 @@ class DataMap {
         who: google
             ? tr('Google, um zu antworten. Im kostenlosen Gemini-Tarif kann Google sie zur Verbesserung nutzen.')
             : tr('Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.'),
-        end: tr('Schalter „Ahead mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Ahead dann auf dem Gerät.'),
+        end: tr('Schalter „Ahead mit KI“ unter Profil › Schutz und Daten. Einfache Fragen beantwortet Ahead dann auf dem Gerät.'),
         section: '5',
         facts: google ? const ['Gemini', 'Google'] : const ['Anthropic', 'Training'],
         active: s.signedIn && s.aiConsent,

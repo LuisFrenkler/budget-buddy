@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../legal/legal_info.dart';
+import '../services/guest_money_check.dart';
 import '../services/cloud_sync.dart';
 import '../services/account_service.dart';
+import '../services/ahead_agent.dart';
 import '../services/demo_data.dart';
 import '../services/settings_service.dart';
 import '../utils/errors.dart';
+import '../utils/money.dart';
 import '../utils/password.dart';
 import '../utils/theme.dart';
 import '../widgets/brand.dart';
@@ -56,6 +59,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _busy = false;
   String? _error;
 
+  // after the refund check: what Ahead found leads the page, the same line as on the start screen
+  late final String? _found = () {
+    final finds = AheadAgent.guestFinds();
+    if (finds.isEmpty) return null;
+    final open = AheadAgent.openCents(finds);
+    return open > 0
+        ? tr('mind. {x}', {'x': Money.format(open)})
+        : tr('bis zu {x}', {'x': Money.format(AheadAgent.upToCents(finds))});
+  }();
+
   @override
   void dispose() {
     _name.dispose();
@@ -73,10 +86,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _busy = true;
       _error = null;
     });
+    // came through the refund check: the feed already holds the finds, no second start question
+    final fromCheck =
+        GuestMoneyCheck.done || (Hive.isBoxOpen('settings') && Hive.box('settings').get('refundCheck') != null);
     try {
       final account = await AccountService.register(name: _name.text, email: _email.text, password: _password.text);
       // a new account starts its copy with what is on this device
       await CloudSync.unlock(account.id, _password.text);
+      // bookings shown to Ahead before sign-up become this account's first bookings
+      await GuestMoneyCheck.adopt();
       var backedUp = false;
       try {
         await CloudSync.push(required: true, force: true);
@@ -93,7 +111,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
             duration: Duration(milliseconds: 3200),
             content: Text(tr('Konto erstellt. Die Sicherung folgt, sobald die Verbindung steht.'))));
       }
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
+      if (fromCheck) {
+        Navigator.of(context, rootNavigator: true).popUntil((r) => r.isFirst);
+      } else {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const StartChoiceScreen()));
+      }
     } catch (e) {
       setState(() => _error = friendlyError(e));
     } finally {
@@ -108,7 +130,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final colors = passwordStrengthScale;
     return _AuthScaffold(
       title: tr('Konto erstellen'),
-      subtitle: tr('Bank und Sicherung nur für dich.'),
+      subtitle: _found != null ? tr('Ahead hat für dich gefunden') : tr('Bank und Sicherung nur für dich.'),
+      amount: _found,
       children: [
         AutofillGroup(
           child: Column(children: [
@@ -159,11 +182,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: TextStyle(fontSize: 12, color: AppColors.textDim)),
           ),
         ]),
-        const SizedBox(height: 10),
-        Text(
-          tr('Passwort = Schlüssel zur Cloud. Ohne Passwort kein Wiederherstellen, auch nicht durch uns.'),
-          style: TextStyle(fontSize: 12, color: AppColors.warningText, height: 1.35),
-        ),
         const SizedBox(height: 18),
         InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -204,6 +222,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             style: TextStyle(fontSize: 12.5, height: 1.35, color: AppColors.textDim),
           ),
         ],
+        const SizedBox(height: 10),
+        Text(
+          tr('Dein Passwort verschlüsselt deine Sicherung. Merk es dir gut: Wir können es nicht zurücksetzen.'),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12.5, height: 1.35, color: AppColors.textDim),
+        ),
         const SizedBox(height: 8),
         Center(
           child: TextButton(
@@ -256,6 +280,8 @@ class _SignInScreenState extends State<SignInScreen> {
     });
     try {
       if (_challenge == null) {
+        // an existing account signs in: a guest's bookings on this device are not theirs
+        GuestMoneyCheck.clear();
         await AccountService.login(email: _email.text, password: _password.text);
       } else {
         await AccountService.loginTotp(challenge: _challenge!, code: _code.text);
@@ -544,8 +570,10 @@ class _StartChoiceScreenState extends State<StartChoiceScreen> {
 class _AuthScaffold extends StatelessWidget {
   final String title;
   final String subtitle;
+  // a figure under the subtitle, when there is one to show
+  final String? amount;
   final List<Widget> children;
-  const _AuthScaffold({required this.title, required this.subtitle, required this.children});
+  const _AuthScaffold({required this.title, required this.subtitle, this.amount, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -576,6 +604,18 @@ class _AuthScaffold extends StatelessWidget {
                           color: Color(0xFFFFF7F0))),
                   const SizedBox(height: 10),
                   Text(subtitle, style: const TextStyle(fontSize: 16, color: Color(0xDBFFF7F0), height: 1.4)),
+                  if (amount != null)
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(amount!,
+                          style: const TextStyle(
+                              fontFamily: AppFonts.display,
+                              fontSize: 30,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -1,
+                              color: Color(0xFFFFF7F0))),
+                    ),
                 ]),
               ),
             ),

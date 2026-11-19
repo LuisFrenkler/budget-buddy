@@ -7,16 +7,19 @@ import '../models/money_account.dart';
 import '../models/transaction.dart';
 import '../services/money_accounts.dart';
 import '../widgets/account_sheet.dart';
+import '../widgets/agent_bar.dart';
 import '../widgets/add_account_choice.dart';
 import '../services/bank_sync.dart';
 import '../services/db.dart';
 import '../services/history.dart';
+import '../services/insights_service.dart';
 import '../services/ledger_busy.dart';
 import '../services/settings_service.dart';
 import '../utils/dates.dart';
 import '../utils/money.dart';
 import '../utils/theme.dart';
 import '../widgets/interactive_chart.dart';
+import '../widgets/pressable.dart';
 import '../widgets/segmented.dart';
 import '../services/tx_search.dart';
 import '../widgets/getting_started.dart';
@@ -135,25 +138,13 @@ class _AccountScreenState extends State<AccountScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          _agentBar(tx),
+                          // one quiet row under Ahead: the bank or the balance on the left, adding on the right
                           Row(children: [
-                            Text(tr('Konto'),
-                                style: TextStyle(fontFamily: AppFonts.display, 
-                                    fontSize: 22, fontWeight: FontWeight.w600)),
-                            // adding by hand: quick entry, receipt, keypad, transfer
-                            IconButton(
-                              key: const Key('add-booking'),
-                              tooltip: tr('Buchung hinzufügen'),
-                              onPressed: () {
-                                HapticFeedback.selectionClick();
-                                HomeScreen.addMenu?.call();
-                              },
-                              icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.textDim),
-                            ),
-                            SizedBox(width: 4),
                             // shrinks rather than overflows with large text or a long bank name
                             Expanded(
                               child: Align(
-                                alignment: Alignment.centerRight,
+                                alignment: Alignment.centerLeft,
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: synced
@@ -176,6 +167,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                               label: Text(
                                                   tr('Kontostand anpassen')),
                                               style: TextButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
                                                   foregroundColor:
                                                       AppColors.textDim),
                                             )
@@ -183,8 +175,20 @@ class _AccountScreenState extends State<AccountScreen> {
                                 ),
                               ),
                             ),
+                            // adding by hand: quick entry, receipt, keypad, transfer
+                            TextButton.icon(
+                              key: const Key('add-booking'),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.textDim),
+                              onPressed: () {
+                                HapticFeedback.selectionClick();
+                                HomeScreen.addMenu?.call();
+                              },
+                              icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                              // the word says what the plus adds
+                              label: Text(tr('Buchung hinzufügen')),
+                            ),
                           ]),
-                          SizedBox(height: 12),
+
                           _accountChips(all),
                           SizedBox(height: 16),
                           ChartHeader(
@@ -224,14 +228,14 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
                   if (segment == 0) ..._transactionSlivers(tx),
-                  if (segment == 1)
+                  if (segment != 0)
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
                       sliver: SliverToBoxAdapter(
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              if (one)
+                              if (one && MoneyAccounts.several)
                                 Padding(
                                   padding: EdgeInsets.only(bottom: 10),
                                   child: Text(
@@ -240,32 +244,11 @@ class _AccountScreenState extends State<AccountScreen> {
                                           color: AppColors.textDim,
                                           fontSize: 13)),
                                 ),
-                              BudgetView(),
+                              segment == 1 ? BudgetView() : StatsView(),
                             ]),
                       ),
                     ),
-                  if (segment == 2)
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-                      sliver: SliverToBoxAdapter(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (one)
-                                Padding(
-                                  padding: EdgeInsets.only(bottom: 10),
-                                  child: Text(
-                                      tr('Für alle Konten.'),
-                                      style: TextStyle(
-                                          color: AppColors.textDim,
-                                          fontSize: 13)),
-                                ),
-                              StatsView(),
-                            ]),
-                      ),
-                    ),
-                  // room for the floating navigation bar
-                  const SliverToBoxAdapter(child: SizedBox(height: 110)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 40)),
                 ],
               ),
             ),
@@ -327,7 +310,10 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(width: 8),
         ],
         for (final a in accounts) ...[
-          chip('${tr(a.name)} · ${Money.format(MoneyAccounts.balanceOf(a, all))}',
+          chip(
+              MoneyAccounts.several
+                  ? '${tr(a.name)} · ${Money.format(MoneyAccounts.balanceOf(a, all))}'
+                  : tr(a.name),
               selected == a.id, () {
             HapticFeedback.selectionClick();
             if (selected == a.id) {
@@ -341,7 +327,7 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
         // a real bank first, by hand second
         chip(
-            MoneyAccounts.several ? tr('Konto') : tr('Konto hinzufügen'),
+            tr('Konto'),
             false,
             () => showAddAccountChoice(context, byHand: () async {
                   final added = await showAccountSheet(context);
@@ -350,6 +336,27 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.add_rounded),
       ]),
     );
+  }
+
+  // Ahead on Konto: bookings still waiting for a category first, then this
+  // month against the last (or its biggest item); with neither, the plain offer
+  Widget _agentBar(List<Transaction> tx) {
+    final misc = _sonstigesCount(tx);
+    if (misc > 0) {
+      return AgentBar(
+        line: misc == 1
+            ? tr('**Eine Buchung** steckt noch in Sonstiges.')
+            : tr('**{n} Buchungen** stecken noch in Sonstiges.', {'n': misc}),
+        question: tr('Sonstiges aufräumen'),
+      );
+    }
+    String? change;
+    try {
+      change = InsightsService.forMonth(tx, DateTime.now(), max: 1).firstOrNull;
+    } catch (_) {}
+    return change != null
+        ? AgentBar(line: change, question: tr('Was fällt dir an meinen Ausgaben diesen Monat auf?'))
+        : AgentBar(line: tr('Frag mich zu deinem Konto.'), question: tr('Was fällt dir an meinem Konto auf?'));
   }
 
   int _sonstigesCount(List<Transaction> tx) =>
@@ -366,51 +373,26 @@ class _AccountScreenState extends State<AccountScreen> {
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: _searchField(tx))
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                      if (misc > 0) ...[
-                        const SizedBox(height: 4),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: FilterChip(
-                            label: Text(
-                                tr('Sonstiges · {misc} {x}', {'misc': misc, 'x': misc == 1 ? tr('Buchung') : tr('Buchungen')})),
-                            selected: _sonstigesOnly,
-                            showCheckmark: false,
-                            side: BorderSide(
-                                color: _sonstigesOnly
-                                    ? AppColors.warning
-                                    : AppColors.border),
-                            selectedColor:
-                                AppColors.warning.withValues(alpha: 0.18),
-                            onSelected: (on) =>
-                                setState(() => _sonstigesOnly = on),
-                          ),
-                        ),
-                        if (_sonstigesOnly)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 6, bottom: 2),
-                            child: Text(
-                              tr('Buchung tippen oder Ahead fragen.'),
-                              style: TextStyle(
-                                  color: AppColors.textDim,
-                                  fontSize: 12.5,
-                                  height: 1.35),
-                            ),
-                          ),
-                      ],
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton.icon(
-                          onPressed: () => setState(() => _searching = true),
-                          icon: const Icon(Icons.search_rounded, size: 18),
-                          label: Text(tr('Suchen')),
-                          style: TextButton.styleFrom(
-                              foregroundColor: AppColors.textDim),
-                        ),
-                      ),
-                    ]),
+              : Row(children: [
+                  if (misc > 0)
+                    FilterChip(
+                      label: Text('${tr('Sonstiges')} · $misc'),
+                      selected: _sonstigesOnly,
+                      showCheckmark: false,
+                      side: BorderSide(
+                          color: _sonstigesOnly
+                              ? AppColors.warning
+                              : AppColors.border),
+                      selectedColor: AppColors.warning.withValues(alpha: 0.18),
+                      onSelected: (on) => setState(() => _sonstigesOnly = on),
+                    ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: tr('Suchen'),
+                    onPressed: () => setState(() => _searching = true),
+                    icon: Icon(Icons.search_rounded, color: AppColors.textDim),
+                  ),
+                ]),
         ),
       ),
       if (tx.isEmpty)
@@ -426,10 +408,6 @@ class _AccountScreenState extends State<AccountScreen> {
               Text(tr('Keine Treffer'),
                   style: TextStyle(
                       color: AppColors.textDim, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
-              Text(tr('Andere Suche oder Filter weg.'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textDim, fontSize: 13)),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => setState(() {
@@ -526,31 +504,28 @@ class _AccountScreenState extends State<AccountScreen> {
               bankLinked ? tr('Noch keine Umsätze sichtbar') : tr('Noch keine Umsätze'),
               style:
                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(
-              bankLinked
-                  ? tr('Bank verbunden. Zum Aktualisieren ziehen oder von Hand erfassen.')
-                  : tr('Bank verbinden oder erste Ausgabe tippen.'),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textDim, height: 1.35)),
           const SizedBox(height: 20),
-          if (bankLinked)
-            FilledButton.icon(
+          Pressable(
+            builder: (states) => FilledButton.icon(
+              statesController: states,
               style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(48)),
-              onPressed: () => _syncBank(context),
-              icon: const Icon(Icons.sync_rounded, size: 18),
-              label: Text(tr('Jetzt synchronisieren')),
-            )
-          else
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48)),
-              onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ConnectionsScreen())),
-              icon: const Icon(Icons.account_balance_rounded, size: 18),
-              label: Text(tr('Bank verbinden')),
+              onPressed: bankLinked
+                  ? () => _syncBank(context)
+                  : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const ConnectionsScreen())),
+              icon: Icon(
+                  bankLinked
+                      ? Icons.sync_rounded
+                      : Icons.account_balance_rounded,
+                  size: 18),
+              label: Text(bankLinked
+                  ? tr('Jetzt synchronisieren')
+                  : tr('Bank verbinden')),
             ),
+          ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => showSmartEntry(context),

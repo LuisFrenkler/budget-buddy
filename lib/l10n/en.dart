@@ -10,9 +10,9 @@ const en = <String, String>{
   'Was das Gerät verlässt': 'What leaves the device',
   'Bank, Kopie, KI, Kurse': 'Bank, copy, AI, prices',
   'Buchungen, Budgets, Ziele und Depot bleiben auf diesem Gerät. Mit einem Konto liegt zusätzlich eine Kopie bei uns, verschlüsselt mit deinem Passwort.\n\nBank und Depot nur, wenn du sie verbindest. Den Login machst du bei der Bank (Enable Banking) oder bei Parqet. Zugangsdaten sehen wir nicht.\n\nAhead holt sich nur die Daten, die er für deine Frage braucht: Mit dem Schalter oben geht bei jeder Frage eine Zusammenfassung ohne Kontonummern an den KI-Anbieter, dazu was du Ahead zu merken erlaubt hast. Ohne Konto gehen nur deine Fragen an die KI, keine Finanzdaten. Kurse fragen nur das Börsenkürzel ab, nicht dein Depot. Mitteilungen plant das Gerät selbst.':
-      'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nAhead only fetches the data he needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Ahead to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
+      'Bookings, budgets, goals and portfolio stay on this device. With an account we also hold a copy, encrypted with your password.\n\nBank and portfolio only if you connect them. You sign in at the bank (Enable Banking) or at Parqet. We don\'t see login details.\n\nAhead only fetches the data it needs for your question: with the switch above, each question sends a summary without account numbers to the AI provider, plus what you\'ve allowed Ahead to remember. Without an account only your questions go to the AI, no financial data. Prices only query the ticker symbol, not your portfolio. Notifications are scheduled by the device itself.',
   'Frag Ahead. Ohne Anmeldung, ohne Bank. Er erklärt jeden Begriff und sagt dir den nächsten Schritt.':
-      'Ask Ahead. No sign-up, no bank. He explains every term and tells you the next step.',
+      'Ask Ahead. No sign-up, no bank. It explains every term and tells you the next step.',
   'Dein Fitnessstudio hat dich seit März nicht gesehen. Es bucht trotzdem ':
       'Your gym hasn\'t seen you since March. It still charges ',
   ' ab.': ' anyway.',
@@ -1107,8 +1107,8 @@ const en = <String, String>{
   'Nur auf diesem Gerät, im geschützten Speicher der App':
       'Only on this device, in the app\'s protected storage',
   'Nur du. Wir haben keinen Zugriff.': 'Only you. We have no access.',
-  'Profil › Erweitert › App zurücksetzen, oder die App löschen':
-      'Profile › Advanced › Reset app, or delete the app',
+  'Profil › App zurücksetzen, oder die App löschen':
+      'Profile › Reset app, or delete the app',
   'Name, E-Mail, Passwort': 'Name, email, password',
   'Unser Server. Das Passwort nur als Hash (bcrypt), nicht lesbar.':
       'Our server. The password only as a hash (bcrypt), not readable.',
@@ -1147,8 +1147,8 @@ const en = <String, String>{
       'Google, to answer. On the free Gemini plan Google may use it to improve its services.',
   'Anthropic, nur um zu antworten. Laut Vertrag nicht zum Training.':
       'Anthropic, only to answer. By contract not for training.',
-  'Schalter „Ahead mit KI“ unter Profil › Privatsphäre & KI. Einfache Fragen beantwortet Ahead dann auf dem Gerät.':
-      'The "Ahead with AI" switch under Profile › Privacy & AI. Ahead then answers simple questions on the device.',
+  'Schalter „Ahead mit KI“ unter Profil › Schutz und Daten. Einfache Fragen beantwortet Ahead dann auf dem Gerät.':
+      'The "Ahead with AI" switch under Profile › Protection and data. Ahead then answers simple questions on the device.',
   '{n} Dinge, die Ahead sich merken darf': '{n} things Ahead may remember',
   'Was Ahead sich merken darf': 'What Ahead may remember',
   'Auf dem Gerät und in deiner verschlüsselten Kopie. Geht mit jeder Ahead-Frage mit.':
@@ -1502,13 +1502,13 @@ const en = <String, String>{
   'Budget für {target} anlegen': 'Create budget for {target}',
   'Was Ahead getan hat': 'What Ahead did',
   'Ahead macht nur, was du bestätigst. Hier steht, was er angelegt oder geändert hat. Fast alles lässt sich zurücknehmen.':
-      'Ahead only does what you confirm. This lists what he created or changed. Almost all of it can be undone.',
+      'Ahead only does what you confirm. This lists what it created or changed. Almost all of it can be undone.',
   'Noch nichts. Übernimmst du Budget, Sparziel oder Erinnerung von Ahead, steht es hier.':
       'Nothing yet. When you take a budget, goal or reminder from Ahead, it shows up here.',
   'Zurückgenommen': 'Taken back',
   'Alles vergessen?': 'Forget everything?',
   'Ahead vergisst alles Gemerkte. Buchungen und Ziele bleiben.':
-      'Ahead forgets everything he stored. Bookings and goals stay.',
+      'Ahead forgets everything it stored. Bookings and goals stay.',
   'Alles vergessen': 'Forget everything',
   'Was Ahead weiß': 'What Ahead knows',
   'Ich merke mir nur, was du bestätigst, dann muss ich nicht neu fragen. Alles hier kannst du löschen.':
@@ -1526,7 +1526,7 @@ const en = <String, String>{
       'If Ahead with AI is on, these points go to the AI with your finance summary, only when you ask.',
   'Ahead mit KI nutzen?': 'Use Ahead with AI?',
   'Ahead holt sich nur die Daten, die er für deine Fragen braucht: eine Zusammenfassung deiner Finanzen (Summen, letzte Buchungen, Budgets, Sparziele, Verträge, Depot, Vermögen, Vorsorge, Splits, Plus-Status und was du Ahead zu merken erlaubt hast). Sie geht an die KI von {x}, ohne Kontonummern und ohne Zugangsdaten. {x2}':
-      'Ahead only fetches the data he needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Ahead to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
+      'Ahead only fetches the data it needs for your questions: a summary of your finances (totals, recent bookings, budgets, savings goals, contracts, portfolio, wealth, retirement, splits, Plus status and what you\'ve allowed Ahead to remember). It goes to the AI from {x}, without account numbers or login details. {x2}',
   'Google (Gemini)': 'Google (Gemini)',
   'Anthropic': 'Anthropic',
   'Im kostenlosen Gemini-Tarif kann Google die Daten nutzen, um seine Dienste zu verbessern.':
@@ -1695,7 +1695,7 @@ const en = <String, String>{
   'Foto senden': 'Send photo',
   'Ich höre zu …': 'Listening …',
   'Frag Ahead etwas …': 'Ask Ahead something …',
-  'Frag Ahead oder erzähl was …': 'Ask Ahead or tell him something …',
+  'Frag Ahead oder erzähl was …': 'Ask Ahead or tell it something …',
   'Zuhören beenden': 'Stop listening',
   'Sprechen': 'Speak',
   '{syncError} Erneut versuchen': '{syncError} Try again',
@@ -1876,7 +1876,7 @@ const en = <String, String>{
       'The app is built privacy-first. Transactions, budgets, goals and portfolio live on your device first. With an account there\'s also a copy that your device encrypts before uploading, we can\'t read it. No ads, no tracking, no selling of data.',
   'Für Investoren': 'For investors',
   'Finanzguru ist eine Haushalts-App für ein großes Publikum, mit KI als Zusatz. Ahead ist ein Coach, dem die App nur als Datenquelle dient: gebaut für Lebenslagen wie den ersten Job, mit Erklärungen genau dann, wenn ein Begriff auftaucht, und Ahead bereitet vor, die Person entscheidet. Depot und Vorsorge sind Orientierung ohne Vermittlung. Wir nennen keine Nutzerzahlen, die einen Vergleich tragen würden. Ahead holt sich nur die Daten, die er für eine Frage braucht, und nur mit Zustimmung.':
-      'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Ahead prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Ahead only fetches the data he needs for a question, and only with consent.',
+      'Finanzguru is a household budgeting app for a broad audience, with AI as an add-on. Ahead is a coach that uses the app only as a data source: built for life stages like the first job, with explanations right when a term comes up, and Ahead prepares while the person decides. Portfolio and retirement are guidance without brokerage. We don\'t publish user numbers that would support a comparison. Ahead only fetches the data it needs for a question, and only with consent.',
   'Karriere & Weiterbildung': 'Careers & learning',
   'Wir bauen die App selbst und sind offen für Werkstudenten, Praktika und Menschen, die Produkt, Flutter oder das Backend ernst nehmen. Ein paar Sätze, woran du arbeiten willst, reichen.':
       'We build the app ourselves and are open to working students, internships and people who take product, Flutter or the backend seriously. A few sentences on what you\'d like to work on are enough.',
@@ -3632,30 +3632,30 @@ const en = <String, String>{
       '**Signed in, with no name or email on the profile.**\n\nNext step: Profile › My account.',
   '**Profil**, die Karte **Ahead Plus**. Läuft Plus schon, steht dort Mein Abo.\n\nNächster Schritt: Tippe die Karte.':
       '**Profile**, the **Ahead Plus** card. If Plus is already on, it says My subscription.\n\nNext step: Tap the card.',
-  '**Profil › Privatsphäre & KI › Wo deine Daten liegen.** Die Erklärung findest du unter Profil › Ahead › Unternehmen & Vertrauen › Datenschutzerklärung.\n\nNächster Schritt: Öffne Wo deine Daten liegen.':
-      '**Profile › Privacy & AI › Where your data is.** The policy is under Profile › Ahead › Company & trust › Privacy policy.\n\nNext step: Open Where your data is.',
-  '**Profil › Erweitert › Import, Export & Backup › Als CSV exportieren.**\n\nNächster Schritt: Erweitert aufklappen, dann Als CSV exportieren.':
-      '**Profile › Advanced › Import, export & backup › Export as CSV.**\n\nNext step: Open Advanced, then Export as CSV.',
+  '**Profil › Schutz und Daten › Wo deine Daten liegen.** Die Erklärung findest du unter Profil › Hilfe & Rechtliches › Datenschutzerklärung.\n\nNächster Schritt: Öffne Wo deine Daten liegen.':
+      '**Profile › Protection and data › Where your data is.** The policy is under Profile › Help & legal › Privacy policy.\n\nNext step: Open Where your data is.',
+  '**Profil › Schutz und Daten › Import, Export & Backup › Als CSV exportieren.**\n\nNächster Schritt: Erweitert aufklappen, dann Als CSV exportieren.':
+      '**Profile › Protection and data › Import, export & backup › Export as CSV.**\n\nNext step: Open Advanced, then Export as CSV.',
   '**Du bist nicht angemeldet.** Hier gibt es kein Konto zum Löschen.\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden, falls das Konto noch woanders besteht.':
       '**You\'re not signed in.** There\'s no account here to delete.\n\nNext step: Profile › Create account, or Sign in, if the account still exists somewhere else.',
   '**Profil › Mein Konto › Konto löschen.** Das löscht das Konto endgültig.\n\nNächster Schritt: Mein Konto öffnen und unten Konto löschen tippen.':
       '**Profile › My account › Delete account.** That deletes the account for good.\n\nNext step: Open My account and tap Delete account at the bottom.',
-  '**Profil › Privatsphäre & KI**, Schalter **Ahead mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\nNächster Schritt: Schalter umlegen.':
-      '**Profile › Privacy & AI**, switch **Ahead with AI**. On, questions go to the AI; off, simple questions stay on the device.\n\nNext step: Flip the switch.',
+  '**Profil › Schutz und Daten**, Schalter **Ahead mit KI**. An gehen Fragen an die KI, aus bleiben einfache Fragen auf dem Gerät.\n\nNächster Schritt: Schalter umlegen.':
+      '**Profile › Protection and data**, switch **Ahead with AI**. On, questions go to the AI; off, simple questions stay on the device.\n\nNext step: Flip the switch.',
   '**Ahead** ist diese App, **Ahead** der Coach darin. Er rechnet mit deinen Zahlen und nennt den nächsten Schritt. Gespeichert wird erst, wenn du Übernehmen tippst.\n\nNächster Schritt: Frag, was diesen Monat noch frei ist.':
-      '**Ahead** is this app, **Ahead** the coach inside it. He works with your numbers and names the next step. Nothing is saved until you tap Apply.\n\nNext step: Ask what\'s still free this month.',
+      '**Ahead** is this app, **Ahead** the agent inside it. It works with your numbers and names the next step. Nothing is saved until you tap Apply.\n\nNext step: Ask what\'s still free this month.',
   '**Du bist schon abgemeldet.**\n\nNächster Schritt: Profil › Konto erstellen, oder Anmelden.':
       '**You\'re already signed out.**\n\nNext step: Profile › Create account, or Sign in.',
-  '**Profil › Mein Konto › Abmelden.** Auch unter Profil › Erweitert.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
-      '**Profile › My account › Sign out.** Also under Profile › Advanced.\n\nNext step: Open My account and tap Sign out.',
-  '**Profil › Mein Konto › Abmelden.** Angemeldet als {who}. Auch unter Profil › Erweitert.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
-      '**Profile › My account › Sign out.** Signed in as {who}. Also under Profile › Advanced.\n\nNext step: Open My account and tap Sign out.',
-  '**Profil › Erweitert › Vermögen & Absicherung**, Abschnitt Notgroschen. Als Sparziel: Profil › Planen › Sparziele.\n\nNächster Schritt: Erweitert aufklappen.':
-      '**Profile › Advanced › Wealth & protection**, section Emergency fund. As a goal: Profile › Plan › Savings goals.\n\nNext step: Open Advanced.',
-  '**Profil › Planen › Verträge & Abos.**\n\nNächster Schritt: Dort siehst du die erkannten Abos.':
-      '**Profile › Plan › Contracts & subscriptions.**\n\nNext step: There you see the subscriptions that were found.',
-  '**Profil › Planen › Geteilte Ausgaben.**\n\nNächster Schritt: Dort steht, wer wem was schuldet.':
-      '**Profile › Plan › Shared expenses.**\n\nNext step: There you see who owes whom.',
+  '**Profil › Mein Konto › Abmelden.**\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
+      '**Profile › My account › Sign out.**\n\nNext step: Open My account and tap Sign out.',
+  '**Profil › Mein Konto › Abmelden.** Angemeldet als {who}.\n\nNächster Schritt: Mein Konto öffnen und Abmelden tippen.':
+      '**Profile › My account › Sign out.** Signed in as {who}.\n\nNext step: Open My account and tap Sign out.',
+  '**Überblick › Vermögen**, Abschnitt Notgroschen. Als Sparziel: Sag mir „Öffne meine Sparziele“.\n\nNächster Schritt: Erweitert aufklappen.':
+      '**Overview › Wealth**, section Emergency fund. As a goal: Tell me “Open my savings goals”.\n\nNext step: Open Advanced.',
+  '**Sag mir „Öffne meine Verträge“.**\n\nNächster Schritt: Dort siehst du die erkannten Abos.':
+      '**Tell me “Open my contracts”.**\n\nNext step: There you see the subscriptions that were found.',
+  '**Überblick › Geteilte Ausgaben.**\n\nNächster Schritt: Dort steht, wer wem was schuldet.':
+      '**Overview › Shared expenses.**\n\nNext step: There you see who owes whom.',
   '**{x}** fehlen noch für {y}.': '**{x}** still to go for {y}.',
   '**{x}** für {y} sind da.': '**{x}** is already there for {y}.',
   '**{x}** bekommst du zurück, von {y}.': '**{x}** comes back to you, from {y}.',
@@ -3800,8 +3800,7 @@ const en = <String, String>{
   'Bescheid fotografieren': 'Photograph the notice',
   'Steuer {y}: mindestens {x} zurück': 'Tax {y}: at least {x} back',
   'Steuer {y}: bis zu {x} zurück': 'Tax {y}: up to {x} back',
-  'Noch {n} Tage, danach ist das Geld weg. Ich führe dich Schritt für Schritt durch.': '{n} days left, then the money is gone. I\'ll guide you step by step.',
-  'Abgabe bis {d}. Ich führe dich Schritt für Schritt durch.': 'File by {d}. I\'ll guide you step by step.',
+  'Noch {n} Tage, danach ist das Geld weg.': '{n} days left, then the money is gone.',
   'Ja, los': 'Yes, go',
   'Deine Steuer habe ich noch nicht geprüft': 'I haven\'t checked your taxes yet',
   'Bis zu vier Jahre lassen sich zurückholen. Drei Antworten, dann sage ich dir, was drin ist.': 'Up to four years can still be claimed. Three answers, then I\'ll tell you what\'s in it.',
@@ -3820,4 +3819,171 @@ const en = <String, String>{
   'Konto anlegen, ich mache weiter': 'Create an account, I\'ll carry on',
   'Neu prüfen': 'Check again',
   'bis zu {x}': 'up to {x}',
+  'Ab dem 1. Januar kannst du abgeben. Bis dahin sammle ich deine Belege.':
+      'You can file from 1 January. Until then I collect your receipts.',
+  '{n} Verträge kosten dich {x} im Jahr': '{n} contracts cost you {x} a year',
+  'Ich gehe sie mit dir durch und sage dir, welche du kündigen oder günstiger bekommen kannst.':
+      'I go through them with you and tell you which ones you can cancel or get cheaper.',
+  'Durchgehen': 'Go through',
+  'Geh meine Verträge mit mir durch: Welche kann ich kündigen oder günstiger bekommen?':
+      'Go through my contracts with me: which can I cancel or get cheaper?',
+  '{name} kostet dich {x} im Jahr': '{name} costs you {x} a year',
+  'Ich prüfe mit dir, ob du kündigen oder es günstiger bekommen kannst.':
+      'I check with you whether you can cancel it or get it cheaper.',
+  'Dein Passwort verschlüsselt deine Sicherung. Merk es dir gut: Wir können es nicht zurücksetzen.':
+      'Your password encrypts your backup. Remember it well: we cannot reset it.',
+  'Hast du schon ein ELSTER-Konto?': 'Do you already have an ELSTER account?',
+  'Oder auf Papier abgeben': 'Or file on paper',
+  'Formulare öffnen': 'Open the forms',
+  'Ich gebe auf Papier ab': 'I\'ll file on paper',
+  'Du gibst auf Papier ab. Übertrag die Werte unten in die Formulare und unterschreib den Hauptvordruck.':
+      'You are filing on paper. Copy the values below into the forms and sign the main form.',
+  'Mit Konto liest Ahead deine Lohnsteuerbescheinigung vom Foto.':
+      'With an account, Ahead reads your wage tax certificate from a photo.',
+  'Mit Konto liest Ahead deinen Bescheid vom Foto und prüft ihn.':
+      'With an account, Ahead reads your tax notice from a photo and checks it.',
+  'Überspringen': 'Skip',
+  'Mitgliedschaft mit Garantie': 'Membership with guarantee',
+  '{m} im Monat oder {y} im Jahr': '{m} a month or {y} a year',
+  'Holt Ahead dir in zwölf Monaten ab Beitritt nicht mindestens {x} zurück, bekommst du den ganzen Beitrag wieder.':
+      'If Ahead does not get you at least {x} back within twelve months of joining, you get the whole fee back.',
+  '{x} sind das Doppelte des Jahresbeitrags. Die zwölf Monate laufen ab dem Tag, an dem du beitrittst.':
+      '{x} is twice the yearly fee. The twelve months start on the day you join.',
+  'Das zählt': 'What counts',
+  'Steuererstattung laut Bescheid, für Jahre, die du mit Ahead abgegeben hast':
+      'Tax refunds as stated in the notice, for years you filed with Ahead',
+  'Monatliche Abbuchungen, die nach einem Kündigungsschreiben aus Ahead ausbleiben':
+      'Monthly debits that stop after a cancellation letter from Ahead',
+  'Doppelte Abbuchungen, die der Händler zurückgezahlt hat': 'Double charges the merchant paid back',
+  'Das zählt nicht': 'What does not count',
+  'Schätzungen und offene Funde. Es zählt nur Geld, das angekommen ist.':
+      'Estimates and open finds. Only money that has arrived counts.',
+  'Erstattungen für Jahre, die du ohne Ahead abgegeben hast': 'Refunds for years you filed without Ahead',
+  'Jahresverträge und alles, was sich in deinen Buchungen nicht zeigt':
+      'Yearly contracts and anything that does not show in your bookings',
+  'Bezahlen geht noch nicht. Mit „Vormerken“ sagst du uns nur, dass du dabei wärst. Es kostet nichts und verpflichtet dich zu nichts.':
+      'Paying is not possible yet. With "Reserve" you only tell us you would join. It costs nothing and commits you to nothing.',
+  'Vorgemerkt. Wir melden uns, sobald du beitreten kannst.': 'Reserved. We will get in touch as soon as you can join.',
+  'Vormerken': 'Reserve',
+  '{x} im Jahr, die du sparen kannst': '{x} a year you can save',
+  'dazu {x} im Jahr, die du sparen kannst': 'plus {x} a year you can save',
+  'Ahead findet dein ': 'Ahead finds your ',
+  'verlorenes Geld.': 'lost money.',
+  'Dein persönlicher Finanz-Agent. Er durchsucht Steuer, Abos und Verträge und zeigt dir jeden Fund mit Betrag. Ohne Anmeldung.':
+      'Your personal finance agent. It searches your taxes, subscriptions and contracts and shows every find with an amount. No sign-up.',
+  'Steuer prüfen': 'Check your taxes',
+  'Drei Antworten, dann siehst du jedes offene Jahr.': 'Three answers, then you see every open year.',
+  'Abos und Verträge prüfen': 'Check subscriptions and contracts',
+  'Umsätze als CSV aus dem Online-Banking. Sie bleiben auf diesem Gerät.':
+      'Bookings as a CSV from your online banking. They stay on this device.',
+  'Bisher habe ich nichts gefunden. Der andere Weg zeigt oft mehr.':
+      'I haven\'t found anything so far. The other way often shows more.',
+  'Steuer neu prüfen': 'Check taxes again',
+  'Abo kündigen?': 'Cancel a subscription?',
+  'Wie kündige ich ein Abo, das ich nicht mehr nutze?': 'How do I cancel a subscription I no longer use?',
+  'Dein persönlicher ': 'Your personal ',
+  'Finanz-Agent.': 'finance agent.',
+  'Ahead verschafft dir den Überblick, zeigt dir, wo du Geld verlierst, und erledigt den nächsten Schritt mit dir. Ohne Anmeldung.':
+      'Ahead gives you the overview, shows you where you lose money and takes care of the next step with you. No sign-up.',
+  'Überblick und Abos prüfen': 'Check overview and subscriptions',
+  'Deine Fixkosten: {x} im Monat.': 'Your fixed costs: {x} a month.',
+  'Wo stehe ich?': 'Where do I stand?',
+  'Wo verliere ich Geld?': 'Where do I lose money?',
+  'Was ist mein nächster Schritt?': 'What is my next step?',
+  'Ich kenne deine Zahlen noch nicht. Mit deinen Umsätzen siehst du hier, was frei ist und was jeden Monat rausgeht.':
+      'I don\'t know your numbers yet. With your bookings you see here what is free and what goes out every month.',
+  'Umsätze hochladen': 'Upload bookings',
+  'diesen Monat': 'this month',
+  '{y} pro Tag': '{y} a day',
+  'Rücklage': 'Savings',
+  'reicht so lange': 'lasts this long',
+  'unter 1 Monat': 'under 1 month',
+  '1 Monat': '1 month',
+  '{n} Monate': '{n} months',
+  'Ahead hat „{x}“ geöffnet': 'Ahead opened “{x}”',
+  'Zurück zu Ahead': 'Back to Ahead',
+  '{n} offen': '{n} open',
+  '**Eine Buchung** steckt noch in Sonstiges.': '**One booking** is still in Other.',
+  '**{n} Buchungen** stecken noch in Sonstiges.': '**{n} bookings** are still in Other.',
+  'Was fällt dir an meinen Ausgaben diesen Monat auf?': 'What stands out in my spending this month?',
+  'Frag mich zu deinem Konto.': 'Ask me about your account.',
+  'Was fällt dir an meinem Konto auf?': 'What stands out in my account?',
+  'Frag mich zu deinem Depot.': 'Ask me about your portfolio.',
+  'Wie fange ich mit einem Depot an?': 'How do I start a portfolio?',
+  'Was fällt dir an meinem Depot auf?': 'What stands out in my portfolio?',
+  'Dein Depot: **{x}** {period}.': 'Your portfolio: **{x}** {period}.',
+  'Wie hat sich mein Depot {period} entwickelt, und woran lag es?': 'How did my portfolio do {period}, and why?',
+  '{x} öffnen': 'Open {x}',
+  'Öffnet die Seite…': 'Opening the page…',
+  'Die Buchung gibt es nicht mehr.': 'That booking no longer exists.',
+  'Buchung gelöscht.': 'Booking deleted.',
+  'Buchung geändert.': 'Booking changed.',
+  'Sparziel {x} ist geändert.': 'Savings goal {x} is changed.',
+  '{x} steht jetzt bei {y}.': '{x} is now at {y}.',
+  '{x} zählt nicht mehr als Vertrag.': '{x} no longer counts as a contract.',
+  '{x} ist umgestellt.': '{x} is switched.',
+  '{x} ändern': 'Change {x}',
+  '{x} löschen': 'Delete {x}',
+  'Sparziel {x} ändern': 'Change savings goal {x}',
+  'Kontostand {x}': 'Balance {x}',
+  '{x} ausblenden': 'Hide {x}',
+  'Zählt nicht mehr als Vertrag. Die Buchungen bleiben.': 'No longer counts as a contract. The bookings stay.',
+  'Design': 'Appearance',
+  'hell': 'light',
+  'dunkel': 'dark',
+  'an': 'on',
+  'aus': 'off',
+  'Einstellung: {x}': 'Setting: {x}',
+  'Ich öffne **{x}**.': 'Opening **{x}**.',
+  '**Du bist nicht angemeldet.** Seiten öffne ich, sobald du ein Konto hast.\n\nNächster Schritt: Konto erstellen, oder Anmelden.': '**You\'re not signed in.** I open pages once you have an account.\n\nNext step: Create an account, or sign in.',
+  'Funde': 'Finds',
+  'Mitgliedschaft': 'Membership',
+  'Einstellung': 'Setting',
+  'Ich rechne mit deinen Zahlen und bediene mit dir die ganze App:\n\n- **Fragen:** Konten, Ausgaben, Verträge, Depot, Steuer, Rente, meine Funde\n- **Hinbringen:** „Öffne meine Verträge“, ich öffne dir jede Seite\n- **Ändern:** Budget, Sparziel, Buchung, Kontostand, Kündigung, Einstellungen\n\nGespeichert wird erst, wenn du auf Übernehmen tippst.\n\nNächster Schritt: Frag mich, was diesen Monat noch frei ist.': 'I work with your numbers and run the whole app with you:\n\n- **Ask:** accounts, spending, contracts, portfolio, tax, pension, my finds\n- **Go:** “Open my contracts”, I open any page for you\n- **Change:** budget, savings goal, booking, balance, cancellation, settings\n\nNothing is saved until you tap Apply.\n\nNext step: Ask me what\'s still free this month.',
+  'Alle {n} anzeigen': 'Show all {n}',
+  'Alles ansehen': 'See all',
+  'Prüf mit mir den Vertrag {name} für {x} im Jahr: Kann ich kündigen oder es günstiger bekommen?':
+      'Check the contract {name} for {x} a year with me: can I cancel it or get it cheaper?',
+  'Geh meine {n} Verträge für zusammen {x} im Jahr mit mir durch: Welche kann ich kündigen oder günstiger bekommen?':
+      'Go through my {n} contracts for {x} a year in total with me: which can I cancel or get cheaper?',
+  'Außer der Miete ({x} im Monat) sehe ich noch keine festen Verträge.':
+      'Apart from the rent ({x} a month) I don\'t see any fixed contracts yet.',
+  '**{z} im Jahr** für **{x}** Verträge, das sind {y} im Monat:\n{a}':
+      '**{z} a year** for **{x}** contracts, that is {y} a month:\n{a}',
+  'Dazu kommt die Miete mit {x} im Monat.': 'On top comes the rent at {x} a month.',
+  'Nächster Schritt: Sag mir, welchen Vertrag ich zuerst prüfen soll.':
+      'Next step: Tell me which contract I should check first.',
+  'Zu kurz': 'Too short',
+  'Schwach': 'Weak',
+  'Okay': 'Okay',
+  'Gut': 'Good',
+  'Stark': 'Strong',
+  'Bis zum Gehalt fehlen etwa {x}': 'About {x} short before payday',
+  'Dein Gehalt kommt am {d}.{due}': 'Your salary arrives on {d}.{due}',
+  'Mein Konto rutscht vor dem Gehalt ins Minus: Bis zum {d} fehlen etwa {x}. Mach mir einen Plan ohne Dispo.': 'My account will go below zero before payday: about {x} short until {d}. Make me a plan without the overdraft.',
+  'Ich habe eine Mahngebühr an {x} gezahlt. Prüf, ob dort noch etwas offen ist, und erinnere mich ans Zahlen.': 'I paid a late fee to {x}. Check whether anything is still open there and remind me to pay.',
+  'Eine Lastschrift von {x} über {y} ist zurückgegangen. Erinnere mich ans Überweisen und sag mir, worauf ich achten muss.': 'A direct debit from {x} for {y} bounced. Remind me to transfer the money and tell me what to watch out for.',
+  'Plan machen': 'Make a plan',
+  'Bis Monatsende fehlen etwa {x}.': 'About {x} short until the end of the month.',
+  'Dein Gehalt ist da: {x}.': 'Your salary is in: {x}.',
+  'Gehalt da: {s}. {f} fix, {a} zurücklegen, {x} frei.': 'Salary in: {s}. {f} fixed, {a} to put aside, {x} free.',
+  'Gehalt da: {s}. {f} fix, {x} frei.': 'Salary in: {s}. {f} fixed, {x} free.',
+  'Mein Gehalt von {s} ist da: {f} fix, {x} frei. Schlag mir vor, wie viel ich jetzt zurücklege und wohin.': 'My salary of {s} is in: {f} fixed, {x} free. Suggest how much I put aside now and where.',
+  'dem {d}': '{d}',
+  'Seit {d}: {x}.': 'Since {d}: {x}.',
+  'Gehalt da': 'salary in',
+  '{x} ausgegeben': '{x} spent',
+  'Was ist seit {d} mit meinem Geld passiert? Zeig mir, was auffällt.': 'What has happened with my money since {d}? Show me what stands out.',
+  'Steuer, Verträge und Fristen prüfe ich von selbst.': 'I check taxes, contracts and deadlines on my own.',
+  'Ich kenne deine Zahlen noch nicht.': 'I don\'t know your numbers yet.',
+  'Schutz und Daten': 'Protection and data',
+  'Hilfe & Rechtliches': 'Help & legal',
+  'keine': 'none',
+  'Geld': 'Money',
+  'Vermögen': 'Wealth',
+  'Steuern': 'Taxes',
+  'Gespräch': 'Chat',
+  'Start': 'Start',
+  'Alle Bereiche': 'Everything in Ahead',
+  'gesamt': 'overall',
 };

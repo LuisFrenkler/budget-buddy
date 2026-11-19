@@ -18,13 +18,22 @@ echo "2/4 Seiten zusammenstellen"
 rm -rf deploy/site && mkdir -p deploy/site/app deploy/site/landing
 cp -R build/web/. deploy/site/app/
 cp -R landing/. deploy/site/landing/
-# the landing page talks to the API on its own subdomain
-sed -i.bak "s|<meta name=\"ahead-api\" content=\"\">|<meta name=\"ahead-api\" content=\"https://api.$DOMAIN\">|" deploy/site/landing/index.html
-rm -f deploy/site/landing/index.html.bak
+# the landing pages talk to the API and open the app on their own subdomains; every page carries the tags it needs
+for page in deploy/site/landing/*.html; do
+  sed -i.bak -e "s|<meta name=\"ahead-api\" content=\"demo\">|<meta name=\"ahead-api\" content=\"https://api.$DOMAIN\">|" \
+    -e "s|<meta name=\"ahead-app\" content=\"../\">|<meta name=\"ahead-app\" content=\"https://app.$DOMAIN/\">|" "$page"
+  rm -f "$page.bak"
+done
+grep -q "content=\"https://api.$DOMAIN\"" deploy/site/landing/index.html || { echo "ahead-api nicht gesetzt"; exit 1; }
+# no page may still point at the preview API or at the app's GitHub Pages path
+if grep -l -e '<meta name="ahead-api" content="demo">' -e '<meta name="ahead-app" content="../">' deploy/site/landing/*.html; then
+  echo "ahead-api oder ahead-app in den Seiten oben nicht gesetzt"; exit 1
+fi
 
 echo "3/4 Hochladen nach $SERVER"
-ssh "$SERVER" "mkdir -p /opt/ahead/deploy /opt/ahead/backend"
+ssh "$SERVER" "mkdir -p /opt/ahead/deploy /opt/ahead/backend /opt/ahead/lib/legal"
 rsync -az --delete --exclude .data --exclude .env --exclude '*.pem' --exclude .dart_tool backend/ "$SERVER:/opt/ahead/backend/"
+rsync -az --delete lib/legal/ "$SERVER:/opt/ahead/lib/legal/"
 rsync -az --delete --exclude .env --exclude keys deploy/ "$SERVER:/opt/ahead/deploy/"
 
 echo "4/4 Starten"

@@ -394,4 +394,29 @@ void main() {
     await _pump(tester, const SignUpScreen(), dark: false);
     await _shot(tester, '16_sign_up_light');
   });
+
+  // the two phones on the landing page: the guest start, and the start with the three questions after sign-up
+  testWidgets('landing guest finds', (tester) async {
+    // the fresh start: the three questions as a promise and the two ways in
+    await tester.runAsync(() => Hive.box('settings').delete('refundCheck'));
+    await _pump(tester, const BuddyScreen(guest: true));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump(const Duration(milliseconds: 600));
+    await _shot(tester, 'landing_guest_finds');
+  });
+
+  testWidgets('landing agent feed', (tester) async {
+    await tester.runAsync(() async {
+      await DemoData.load();
+      await Hive.box('settings').put('account', {'id': 'u1', 'name': 'Lena', 'email': 'lena@example.com'});
+      await Hive.box('settings')
+          .put('refundCheck', {'startYear': 2022, 'startMonth': 9, 'grossMonth': 3000.0, 'km': 20.0});
+      await TaxEstimate.adoptRefundCheck(now: DateTime.now());
+    });
+    AccountService.current.value = Account.fromJson({'id': 'u1', 'name': 'Lena', 'email': 'lena@example.com'});
+    await _pump(tester, const BuddyScreen(tab: true));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump(const Duration(milliseconds: 600));
+    await _shot(tester, 'landing_agent_feed');
+  });
 }

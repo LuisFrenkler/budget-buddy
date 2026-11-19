@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:budget_buddy/models/budget.dart';
 import 'package:budget_buddy/models/transaction.dart';
+import 'package:budget_buddy/services/ahead_agent.dart';
 import 'package:budget_buddy/services/buddy_tips.dart';
 import 'package:budget_buddy/services/forecast_service.dart';
+import 'package:budget_buddy/services/hints_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
@@ -63,7 +65,7 @@ void main() {
     expect(BuddyTips.pick(tx: [_buy('a', 'REWE', 4000, 3)], budgets: const [], now: now), isNull);
   });
 
-  test('a known subscription older than 6 months tips once a year', () async {
+  test('a cheaper plan is a find on the start: the tip does not say it again', () async {
     final dir = Directory.systemTemp.createTempSync('buddytips');
     Hive.init(dir.path);
     final box = await Hive.openBox('settings');
@@ -72,12 +74,10 @@ void main() {
     final tx = [
       for (var m = 1; m <= 10; m++) _sub('n$m', 2026, m, 5),
     ];
-    final tip = BuddyTips.pick(tx: tx, budgets: const [], now: now)!;
-    expect(tip.text.toLowerCase(), contains('netflix'));
-    expect(tip.question, contains('Netflix'));
-    // same year: the Netflix tip does not repeat (another tip may still appear)
-    final again = BuddyTips.pick(tx: tx, budgets: const [], now: now);
-    expect(again?.text.toLowerCase().contains('netflix') ?? false, isFalse);
+    final hints = HintsService.current(tx: tx, budgets: const [], goals: const [], now: now);
+    expect(AheadAgent.run(tx: tx, hints: hints, now: now).any((f) => f.id.startsWith('abo-tip-')), isTrue);
+    final tip = BuddyTips.pick(tx: tx, budgets: const [], now: now, hints: hints);
+    expect(tip?.text.toLowerCase().contains('netflix') ?? false, isFalse);
     await box.close();
     await dir.delete(recursive: true);
   });
