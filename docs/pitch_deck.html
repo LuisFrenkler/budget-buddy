@@ -167,10 +167,34 @@
   }
   .milestones b { font: 600 13px/1 var(--display); color: var(--peach); }
 
-  @page { size: landscape; margin: 0; }
+  /* figures: vector, so they stay sharp in the PDF */
+  .fig { display: block; width: 100%; height: auto; }
+  .fig text { font-family: var(--text); }
+  .cap { margin-top: 8px; font: 500 12px/1.35 var(--text); color: var(--soft); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; width: 100%; }
+  .cols.l { grid-template-columns: 1.15fr .85fr; }
+  h2.s { font-size: clamp(27px, 3.2vw, 38px); }
+  .kv { display: flex; gap: 24px; margin-top: 16px; }
+  .kv b { display: block; font: 600 27px/1 var(--display); letter-spacing: -.03em; color: var(--copper); }
+  .kv span { display: block; margin-top: 5px; font: 500 12.5px/1.35 var(--text); color: var(--soft); max-width: 12.5em; }
+  .card { padding: 20px 22px; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
+  .card .big { font: 600 54px/1 var(--display); letter-spacing: -.045em; color: var(--copper); }
+  .card p { margin-top: 10px; font: 500 14.5px/1.4 var(--text); color: var(--soft); }
+  .card p strong { color: var(--ink); }
+  .plan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  .plan > div { padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); }
+  .plan b { display: block; font: 600 20px/1 var(--display); color: var(--peach); letter-spacing: -.02em; }
+  .plan p { margin-top: 8px; font: 500 13.5px/1.4 var(--text); color: rgba(255,247,240,.92); }
+  .plan p.ok { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.16); color: #fff; }
+  .plan p.ok i { font-style: normal; display: block; font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--peach); margin-bottom: 3px; }
+  .rail { height: 2px; background: rgba(255,255,255,.28); margin-top: 20px; position: relative; }
+  .rail i { position: absolute; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--peach); }
+
+  @page { size: 1280px 720px; margin: 0; }
   @media print {
     body { background: #fff; }
     .toolbar { display: none !important; }
+    .phone { box-shadow: none; }
     .deck { padding: 0; max-width: none; }
     .slide {
       margin: 0; border-radius: 0; max-width: none; width: 100%;
@@ -200,23 +224,23 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">1 / 10</div>
+        <div class="pg">Overview · 1 / 10</div>
       </div>
       <div class="mid">
         <div class="row2">
           <div>
-            <h1>What do I do with my <em>salary?</em></h1>
-            <p class="lead">Ahead is for your first years with your own money in Germany. Buddy uses your numbers and names one next step — with a real euro amount.</p>
+            <h1>Your personal <em>finance agent.</em></h1>
+            <p class="lead">Ahead is an app for young employees in Germany who have put off their tax return and their pension for years. It shows where they stand and takes the next step with them.</p>
             <div class="facts">
-              <span>First paycheck · first flat · first Abos</span>
-              <span>Plus €4.99 / month</span>
-              <span>Raising €150–250k</span>
+              <span>For employees aged 25 to 35</span>
+              <span>Free until it finds you money</span>
+              <span>Working product · try it without an account</span>
             </div>
           </div>
-          <div class="phone"><img src="../landing/app_chat_en.jpg" alt=""></div>
+          <div class="phone"><img src="../landing/app_finds_en.jpg" alt=""></div>
         </div>
       </div>
-      <div class="bot"><span>Luis Frenkler</span><span>Not another overview app · not ChatGPT without a ledger</span></div>
+      <div class="bot"><span>Luis Frenkler · WHU Master in Entrepreneurship · November 2026</span><span>Business idea: an AI agent that acts, not another overview app</span></div>
     </div>
   </section>
 
@@ -225,18 +249,39 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">2 / 10</div>
+        <div class="pg">Opportunity · 2 / 10</div>
       </div>
       <div class="mid">
-        <h2>First salary. First rent.<br>The bank app still won’t say <em>what to do.</em></h2>
-        <div class="note">Trip is €800. Balance is €2,400. ChatGPT doesn’t know the rent. Finanzguru wants every account. They just need the next step.</div>
-        <div class="nums">
-          <div><b>95%</b><span>of 16–29s in Germany bank online</span></div>
-          <div><b>82%</b><span>of Gen Z already check the bank app</span></div>
-          <div><b class="cu">~8%</b><span>use multibanking — overview isn’t the gap</span></div>
+        <div class="cols">
+          <div>
+            <h2 class="s">Money is left on the table.<br>AI agents can now <em>pick it up.</em></h2>
+            <p class="line" style="margin-top:14px">11.6 million employees never file a tax return, although most who do get money back. This is one example of money that people are owed and never receive.</p>
+            <div class="kv">
+              <div><b>25%</b><span>of people in Germany have already asked an AI such as ChatGPT about money</span></div>
+              <div><b>68%</b><span>of 16 to 29-year-olds see AI in finance as an opportunity</span></div>
+              <div><b>$1 bn</b><span>raised by Instinct, a US start-up for personal AI agents, in Sept 2026</span></div>
+            </div>
+          </div>
+          <div>
+            <svg class="fig" viewBox="0 0 480 232" role="img" aria-label="Of 26.8 million employees, 15.2 million file a tax return and 13.2 million get money back. 11.6 million never file.">
+  <text x="0" y="12" font-size="12" fill="#6E655F">Employees in Germany with wage income</text>
+  <rect x="0" y="20" width="480" height="38" rx="6" fill="#E8E0D8"/>
+  <text x="12" y="44.5" font-size="15" font-weight="700" fill="#17120E">26.8 m employees</text>
+  <text x="0" y="84" font-size="12" fill="#6E655F">Who files a tax return?</text>
+  <rect x="0" y="92" width="272" height="38" rx="6" fill="#F4C7A1"/>
+  <text x="12" y="116.5" font-size="15" font-weight="700" fill="#17120E">15.2 m file</text>
+  <rect x="277" y="93" width="202" height="36" rx="6" fill="none" stroke="#B06030" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="289" y="116.5" font-size="15" font-weight="700" fill="#B06030">11.6 m never file</text>
+  <text x="0" y="156" font-size="12" fill="#6E655F">What happens to those who file?</text>
+  <rect x="0" y="164" width="236" height="38" rx="6" fill="#B06030"/>
+  <text x="12" y="188.5" font-size="15" font-weight="700" fill="#fff">13.2 m get money back</text>
+  <rect x="240" y="164" width="32" height="38" rx="6" fill="#E8E0D8"/>
+  <text x="0" y="226" font-size="14" font-weight="700" fill="#17120E">Average refund: €1,240</text>
+</svg>
+          </div>
         </div>
       </div>
-      <div class="bot"><span>Bitkom · ING/Visa</span><span>Niche: first own money · ~18–27 in DE</span></div>
+      <div class="bot"><span>Destatis, 10 June 2026 (data for 2022); 11.6 m = 26.8 m − 15.2 m, own calculation · Bitkom, 21 May 2026 (n = 1,004) · TechCrunch, 28 Sept 2026</span><span>Why this, why now</span></div>
     </div>
   </section>
 
@@ -245,23 +290,28 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">3 / 10</div>
+        <div class="pg">Problem · 3 / 10</div>
       </div>
       <div class="mid">
-        <div class="row2">
+        <div class="cols l">
           <div>
-            <h2>Ask Buddy before you <em>spend.</em></h2>
-            <p class="lead">Built for people just starting out — not for tracking five banks or a depot.</p>
-            <div class="list">
-              <p><strong>Can I take the trip?</strong> What’s left after rent and Abos.</p>
-              <p><strong>Which Abos hit me?</strong> Including the ones that got more expensive.</p>
-              <p><strong>First flat · WG · BAV.</strong> One step for today, not a finance lecture.</p>
+            <h2 class="s">They know they should.<br>They <em>never get to it.</em></h2>
+            <div class="list" style="margin-top:14px;max-width:none">
+              <p><strong>The tax return.</strong> Never filed, although most who file get money back.</p>
+              <p><strong>The employer extras.</strong> Company pension subsidy, savings contributions: never claimed.</p>
+              <p><strong>The pension.</strong> Everyone says: start early. Nobody shows your own gap or the first step.</p>
+              <p><strong>The contracts.</strong> Subscriptions and insurance get more expensive, unnoticed.</p>
             </div>
+            <div class="note" style="margin-top:6px;font-size:15px">It is not a lack of knowledge or apps. The bank app shows a balance, ChatGPT explains the pension. Nobody gets the postponed thing done with them.</div>
           </div>
-          <div class="phone"><img src="../landing/app_coach_en.jpg" alt=""></div>
+          <div class="card">
+            <div class="big">95%</div>
+            <p><strong>of 17 to 27-year-olds expect security from their retirement provision.</strong> 91% want it explained in plain language.</p>
+            <p>The wish is there. What is missing is the step from knowing to doing. Young employees with a few years in the job lose money every year because of it.</p>
+          </div>
         </div>
       </div>
-      <div class="bot"><span>Bank optional · depot not the hero</span><span>Buddy is the product</span></div>
+      <div class="bot"><span>MetallRente youth study 2025 (about 2,500 respondents), reported by ihre-vorsorge.de, 12 June 2025 · Destatis, 10 June 2026</span><span>Target group: employees aged 25 to 35 who put money matters off</span></div>
     </div>
   </section>
 
@@ -270,14 +320,25 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">4 / 10</div>
+        <div class="pg">Solution · 4 / 10</div>
       </div>
       <div class="mid">
-        <h2>Why this isn’t “worse ChatGPT.”</h2>
-        <p class="line" style="margin-top:16px">ChatGPT doesn’t keep your German rent, Abos, and WG debts. Buddy does — then names a next step you can tap. Offline still works. No IBANs to the model.</p>
-        <p class="line">If the answer isn’t from <em>their</em> numbers, we don’t ship it as the hero.</p>
+        <div class="row2">
+          <div>
+            <h2 class="s">Three questions. <em>One agent.</em></h2>
+            <div class="list" style="margin-top:12px;max-width:none">
+              <p style="margin-bottom:6px"><strong>1. Where do I stand?</strong> What is free this month, fixed costs, wealth, pension gap.</p>
+              <p style="margin-bottom:6px"><strong>2. Where do I lose money?</strong> Open tax years, unclaimed employer extras, subscriptions, price increases. Each with an amount in euros.</p>
+              <p style="margin-bottom:6px"><strong>3. What is my next step?</strong> One step, and Ahead takes it with you.</p>
+            </div>
+            <p class="cap" style="margin-top:12px;font-size:12.5px;color:var(--ink);font-weight:600">How the agent works, with one example:</p>
+            <svg class="fig" viewBox="0 0 600 84" style="margin-top:6px" role="img" aria-label="How Ahead works: it finds, asks, does, checks and counts."><rect x="0.5" y=".5" width="107" height="83" rx="10" fill="#fff" stroke="#E8E0D8"/><text x="10" y="24" font-size="13" font-weight="700" fill="#B06030">1 · Finds</text><text x="10" y="46" font-size="11.5" fill="#17120E">Tax 2023 never filed,</text><text x="10" y="61" font-size="11.5" fill="#17120E">about €600 open</text><text x="111" y="47" font-size="15" font-weight="700" fill="#B06030">›</text><rect x="123.5" y=".5" width="107" height="83" rx="10" fill="#fff" stroke="#E8E0D8"/><text x="133" y="24" font-size="13" font-weight="700" fill="#B06030">2 · Asks</text><text x="133" y="46" font-size="11.5" fill="#17120E">“Shall I prepare</text><text x="133" y="61" font-size="11.5" fill="#17120E">the return?”</text><text x="234" y="47" font-size="15" font-weight="700" fill="#B06030">›</text><rect x="246.5" y=".5" width="107" height="83" rx="10" fill="#fff" stroke="#E8E0D8"/><text x="256" y="24" font-size="13" font-weight="700" fill="#B06030">3 · Does</text><text x="256" y="46" font-size="11.5" fill="#17120E">Fills it in with you,</text><text x="256" y="61" font-size="11.5" fill="#17120E">you submit it</text><text x="357" y="47" font-size="15" font-weight="700" fill="#B06030">›</text><rect x="369.5" y=".5" width="107" height="83" rx="10" fill="#fff" stroke="#E8E0D8"/><text x="379" y="24" font-size="13" font-weight="700" fill="#B06030">4 · Checks</text><text x="379" y="46" font-size="11.5" fill="#17120E">Reads the tax notice</text><text x="379" y="61" font-size="11.5" fill="#17120E">from a photo</text><text x="480" y="47" font-size="15" font-weight="700" fill="#B06030">›</text><rect x="492.5" y=".5" width="107" height="83" rx="10" fill="#fff" stroke="#E8E0D8"/><text x="502" y="24" font-size="13" font-weight="700" fill="#B06030">5 · Counts</text><text x="502" y="46" font-size="11.5" fill="#17120E">€640 back</text><text x="502" y="61" font-size="11.5" fill="#17120E">on your account</text></svg>
+            <p class="cap">Ahead asks before every action. Every change can be undone. Estimates are marked as estimates. Amounts above are an example.</p>
+          </div>
+          <div class="phone"><img src="../landing/app_feed_en.jpg" alt=""></div>
+        </div>
       </div>
-      <div class="bot"><span>Ledger · Abos · confirm entries · offline</span><span>Talk without numbers isn’t the product</span></div>
+      <div class="bot"><span>Working product: app for phone and web, built and tested</span><span>The first check needs no account</span></div>
     </div>
   </section>
 
@@ -286,24 +347,27 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">5 / 10</div>
+        <div class="pg">Validation · 5 / 10</div>
       </div>
       <div class="mid">
-        <h2>Free until Buddy gets useful.<br>Then <em>Plus.</em></h2>
-        <div class="price">
+        <div class="cols">
           <div>
-            <div class="tag">Free</div>
-            <div class="amt">€0</div>
-            <p class="desc">A few cloud questions each month. Offline Buddy, budgets and Abos stay free — so people learn the habit first.</p>
+            <h2 class="s">Two tests before building. The buyers are <em>the ones who put it off.</em></h2>
+            <p class="line" style="margin-top:14px"><strong>Test 1:</strong> the paid version at €49 a year with a bank file upload. 0 of 60 simulated buyers would pay. 56 named the upload, 52 wanted to see money first.</p>
+            <p class="line" style="margin-top:10px"><strong>Test 2:</strong> a new offer, shown to five groups of twelve. Free check without a file, €29 a year only after Ahead has found €100 or more. 6 of 60 would pay.</p>
+            <p class="line" style="margin-top:10px"><strong>What I learned:</strong> five of the six buyers gave the same reason: “I have put this off for years.” That defined my target group.</p>
           </div>
-          <div class="hi">
-            <div class="tag">Ahead Plus</div>
-            <div class="amt">€4.99</div>
-            <p class="desc">Per month, or €39.99 / year. Seven-day trial. Unlimited Buddy when they keep asking.</p>
+          <div>
+            <p class="cap" style="margin:0 0 8px;color:var(--ink);font-weight:600">Test 2: who would buy, out of twelve per group</p>
+            <svg class="fig" viewBox="0 0 480 160" role="img" aria-label="Simulated buyers per group, out of twelve each"><text x="0" y="17" font-size="13" fill="#17120E">Pension and security, 25 to 35</text><rect x="212" y="3" width="230" height="20" rx="5" fill="#E8E0D8"/><rect x="212" y="3" width="57.5" height="20" rx="5" fill="#B06030"/><text x="452" y="18" font-size="13" font-weight="700" fill="#17120E">3</text><text x="0" y="49" font-size="13" fill="#17120E">First working years, 1 to 5</text><rect x="212" y="35" width="230" height="20" rx="5" fill="#E8E0D8"/><rect x="212" y="35" width="38.3" height="20" rx="5" fill="#B06030"/><text x="452" y="50" font-size="13" font-weight="700" fill="#17120E">2</text><text x="0" y="81" font-size="13" fill="#17120E">Young family, first child</text><rect x="212" y="67" width="230" height="20" rx="5" fill="#E8E0D8"/><rect x="212" y="67" width="19.2" height="20" rx="5" fill="#F4C7A1"/><text x="452" y="82" font-size="13" font-weight="700" fill="#17120E">1</text><text x="0" y="113" font-size="13" fill="#17120E">Apprentices, first year in a job</text><rect x="212" y="99" width="230" height="20" rx="5" fill="#E8E0D8"/><text x="452" y="114" font-size="13" font-weight="700" fill="#17120E">0</text><text x="0" y="145" font-size="13" fill="#17120E">Under cost pressure, overdraft</text><rect x="212" y="131" width="230" height="20" rx="5" fill="#E8E0D8"/><text x="452" y="146" font-size="13" font-weight="700" fill="#17120E">0</text></svg>
+            <div class="kv" style="margin-top:14px">
+              <div><b style="color:var(--ink)">0 / 60</b><span>old offer: €49, file upload</span></div>
+              <div><b>6 / 60</b><span>new offer: free check, €29 after a find</span></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="bot"><span>They pay for answers they already want</span><span>Not for locking the household book</span></div>
+      <div class="bot"><span>Own simulated panels, November 2026: AI personas modelled on each group, not real customers. They show where an offer breaks. They do not predict sales.</span><span>Next: the same test with real people</span></div>
     </div>
   </section>
 
@@ -312,19 +376,26 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">6 / 10</div>
+        <div class="pg">Business model &amp; financials · 6 / 10</div>
       </div>
       <div class="mid">
-        <h2>Start where the first money questions are.</h2>
-        <p class="lead">About 18–27 in Germany. First paycheck, first flat, WG. They already open a bank app — they don’t need a fifth one. They need an answer.</p>
-        <div class="list">
-          <p>Short clips: someone asks Buddy live, sees a number, decides.</p>
-          <p>Campus and WG groups — shared expenses help it spread.</p>
-          <p>Store screenshots lead with Buddy, not charts.</p>
-          <p>Bank connection later, when people already care about the coach.</p>
+        <div class="cols">
+          <div>
+            <h2 class="s">Free until Ahead finds you money. Then <em>€29 a year.</em></h2>
+            <div class="list" style="margin-top:14px;max-width:none">
+              <p><strong>Free:</strong> the check. Where you stand and what Ahead has found, with amounts. No account needed.</p>
+              <p><strong>Ahead Plus, €29 a year:</strong> the doing. Ahead prepares the tax return, the letters and the applications with you, and checks every month. Offered only after a find of €100 or more.</p>
+              <p><strong>Guarantee:</strong> less than €100 back in the first year and the fee is refunded.</p>
+              <p><strong>What follows:</strong> winning a customer may cost at most €20. 5,000 customers bring €145k a year. Second source to test: employers pay for their young staff (50 employers × 200 people × €1.50 a month = €180k a year).</p>
+            </div>
+          </div>
+          <div>
+            <p class="cap" style="margin:0 0 6px;color:var(--ink);font-weight:600">What stays from one customer per year</p>
+            <svg class="fig" viewBox="0 0 480 244" role="img" aria-label="Of 29 euros a year, about 20 euros stay per customer after VAT, payment fee, AI cost and refunds."><line x1="0" y1="205.5" x2="480" y2="205.5" stroke="#E8E0D8"/><rect x="6" y="31.0" width="58" height="174.0" rx="4" fill="#17120E"/><text x="35" y="24.0" font-size="12.5" font-weight="700" text-anchor="middle" fill="#17120E">€29.00</text><text x="35" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">Price</text><text x="35" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">per year</text><rect x="86" y="31.0" width="58" height="27.8" rx="4" fill="#F4C7A1"/><text x="115" y="24.0" font-size="12.5" font-weight="700" text-anchor="middle" fill="#17120E">−€4.63</text><text x="115" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">VAT</text><text x="115" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">19%</text><rect x="166" y="58.8" width="58" height="4.1" rx="4" fill="#F4C7A1"/><text x="195" y="51.8" font-size="12.5" font-weight="700" text-anchor="middle" fill="#17120E">−€0.69</text><text x="195" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">Payment</text><text x="195" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">fee</text><rect x="246" y="62.9" width="58" height="10.8" rx="4" fill="#F4C7A1"/><text x="275" y="55.9" font-size="12.5" font-weight="700" text-anchor="middle" fill="#17120E">−€1.80</text><text x="275" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">AI</text><text x="275" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">answers</text><rect x="326" y="73.7" width="58" height="8.7" rx="4" fill="#F4C7A1"/><text x="355" y="66.7" font-size="12.5" font-weight="700" text-anchor="middle" fill="#17120E">−€1.45</text><text x="355" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">Refunds</text><text x="355" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">guarantee</text><rect x="406" y="82.4" width="58" height="122.6" rx="4" fill="#B06030"/><text x="435" y="75.4" font-size="12.5" font-weight="700" text-anchor="middle" fill="#B06030">€20.43</text><text x="435" y="223" font-size="12" font-weight="600" text-anchor="middle" fill="#17120E">Stays</text><text x="435" y="238" font-size="10.5" text-anchor="middle" fill="#6E655F">per customer</text></svg>
+          </div>
         </div>
       </div>
-      <div class="bot"><span>No “we’ll go viral” plan</span><span>Show the question, then the answer</span></div>
+      <div class="bot"><span>Assumptions, not results: payment 1.5% + €0.25 · 120 AI answers at 1.5 ct · 5% of fees refunded · the app today still shows €49 a year</span><span>No commissions, no financial products</span></div>
     </div>
   </section>
 
@@ -333,25 +404,36 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">7 / 10</div>
+        <div class="pg">Market · 7 / 10</div>
       </div>
       <div class="mid">
-        <h2>Not a worse Finanzguru.<br>Not a worse Finanzfluss.<br>A different <em>job.</em></h2>
-        <div class="pair">
-          <div class="block">
-            <h3>They win when you want…</h3>
-            <p><strong style="color:var(--ink)">Finanzguru</strong> — every bank, contracts, the overview habit.</p>
-            <p style="margin-top:10px"><strong style="color:var(--ink)">Finanzfluss Copilot</strong> — wealth, depot, the education brand.</p>
-            <p style="margin-top:10px"><strong style="color:var(--ink)">ChatGPT</strong> — a chat with no ledger.</p>
+        <div class="cols l">
+          <div>
+            <h2 class="s">Start with employees aged 25 to 35.<br><em>Grow with them.</em></h2>
+            <div class="list" style="margin-top:14px;max-width:none">
+              <p><strong>Who they are:</strong> a few years into the job, earning enough to care about security, never got around to it.</p>
+              <p><strong>How many:</strong> 11.6 million employees never file a tax return. The share aged 25 to 35 is the number I still have to find.</p>
+              <p><strong>How I reach them:</strong> employers who offer Ahead to their staff, and short videos that show what not filing costs.</p>
+              <p><strong>Why they stay:</strong> in year one Ahead gets money back. From year two it tracks the pension gap and prepares the tax return every year.</p>
+            </div>
           </div>
-          <div class="block dark">
-            <h3>We win when you want…</h3>
-            <p style="font:600 17px/1.35 var(--display);color:#fff;letter-spacing:-.02em;margin-top:4px">Help in the first money years — before you spend.</p>
-            <p style="margin-top:12px">They assume clear overview leads to good decisions. We don’t. The bank app already shows the balance. Ahead owns the next step for people just starting out.</p>
+          <div>
+            <svg class="fig" viewBox="0 0 330 310" style="max-width:360px;margin-left:auto" role="img" aria-label="Market: 26.8 million employees, 11.6 million of them never file a tax return, first goal 1,000 customers.">
+  <circle cx="165" cy="155" r="152" fill="#F1E7DC"/>
+  <text x="165" y="40" font-size="19" font-weight="700" text-anchor="middle" fill="#17120E">26.8 m</text>
+  <text x="165" y="57" font-size="11.5" text-anchor="middle" fill="#6E655F">employees in Germany</text>
+  <circle cx="165" cy="185" r="100" fill="#F4C7A1"/>
+  <text x="165" y="122" font-size="19" font-weight="700" text-anchor="middle" fill="#17120E">11.6 m</text>
+  <text x="165" y="139" font-size="11.5" text-anchor="middle" fill="#17120E">never file a tax return</text>
+  <circle cx="165" cy="222" r="46" fill="#B06030"/>
+  <text x="165" y="220" font-size="19" font-weight="700" text-anchor="middle" fill="#fff">1,000</text>
+  <text x="165" y="237" font-size="11" text-anchor="middle" fill="#fff">first goal</text>
+</svg>
+            <p class="cap" style="text-align:right">Circles not to scale.</p>
           </div>
         </div>
       </div>
-      <div class="bot"><span>We refuse the bank-count race</span><span>Niche: first own finances in DE</span></div>
+      <div class="bot"><span>Destatis, 10 June 2026 (data for 2022); 11.6 m = 26.8 m − 15.2 m, own calculation</span><span>Planned, not built: Ahead as a WhatsApp contact, direct bank connection</span></div>
     </div>
   </section>
 
@@ -360,21 +442,39 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">8 / 10</div>
+        <div class="pg">Competition · 8 / 10</div>
       </div>
       <div class="mid">
-        <div class="row2 wide">
+        <div class="cols">
           <div>
-            <h2>Luis Frenkler</h2>
-            <p class="lead" style="color:var(--ink);font-weight:600;max-width:20em">I built Ahead myself — the app, the backend, Buddy, the vault, the soft-launch path.</p>
-            <p class="lead">Flutter, Dart server, bank sync, Plus. What’s missing isn’t another prototype. It’s distribution, legal polish, and getting it in front of the right people.</p>
+            <h2 class="s">Others show the overview.<br>Ahead takes <em>the next step.</em></h2>
+            <div class="list" style="margin-top:14px;max-width:none">
+              <p><strong>Finanzguru:</strong> German finance app, connects 4,000+ banks, free with a paid plan at €0.99 a week. Strong on overview.</p>
+              <p><strong>Taxfix:</strong> more than 10 million tax returns filed, from €39.99 each. Strong, but tax only.</p>
+              <p><strong>ChatGPT:</strong> a quarter of Germans already ask an AI about money. It does not know their payments.</p>
+              <p><strong>Honest gap:</strong> Ahead has no lasting advantage yet. Bank access and AI models can be rented by anyone. The advantage has to come from reaching this group first and from what Ahead learns with every case.</p>
+            </div>
           </div>
-          <div class="note" style="margin-top:0;align-self:center">
-            WHU / capital helps me go to market — not rebuild what already runs.
+          <div>
+            <svg class="fig" viewBox="0 0 480 300" role="img" aria-label="Positioning: Ahead does the work and knows German money rules.">
+  <rect x="254" y="8" width="218" height="126" rx="8" fill="#FBEFE4"/>
+  <rect x="36.5" y="8.5" width="435" height="252" rx="8" fill="none" stroke="#E8E0D8"/>
+  <line x1="254" y1="8" x2="254" y2="260" stroke="#E8E0D8"/><line x1="36" y1="134" x2="472" y2="134" stroke="#E8E0D8"/>
+  <text x="145" y="282" font-size="12" text-anchor="middle" fill="#6E655F">shows you information</text>
+  <text x="363" y="282" font-size="12" font-weight="700" text-anchor="middle" fill="#17120E">does the work for you  →</text>
+  <text transform="translate(22 197) rotate(-90)" font-size="12" text-anchor="middle" fill="#6E655F">general</text>
+  <text transform="translate(22 71) rotate(-90)" font-size="12" font-weight="700" text-anchor="middle" fill="#17120E">German money  →</text>
+  <circle cx="92" cy="62" r="6" fill="#17120E"/><text x="106" y="63" font-size="13" font-weight="700" text-anchor="start" fill="#17120E">Finanzguru</text><text x="106" y="78" font-size="10.5" text-anchor="start" fill="#6E655F">accounts and contracts</text>
+  <circle cx="300" cy="104" r="6" fill="#17120E"/><text x="314" y="105" font-size="13" font-weight="700" text-anchor="start" fill="#17120E">Taxfix</text><text x="314" y="120" font-size="10.5" text-anchor="start" fill="#6E655F">tax returns only</text>
+  <circle cx="92" cy="200" r="6" fill="#17120E"/><text x="106" y="201" font-size="13" font-weight="700" text-anchor="start" fill="#17120E">ChatGPT</text><text x="106" y="216" font-size="10.5" text-anchor="start" fill="#6E655F">answers, no access to your data</text>
+  <circle cx="300" cy="206" r="6" fill="#17120E"/><text x="314" y="207" font-size="13" font-weight="700" text-anchor="start" fill="#17120E">Instinct, Meta</text><text x="314" y="222" font-size="10.5" text-anchor="start" fill="#6E655F">everything for everyone</text>
+  <circle cx="320" cy="46" r="10" fill="#B06030"/><text x="334" y="47" font-size="15" font-weight="700" text-anchor="start" fill="#B06030">Ahead</text><text x="334" y="62" font-size="10.5" text-anchor="start" fill="#6E655F">all money topics, one group</text>
+</svg>
+            <p class="cap">Positions are my own assessment.</p>
           </div>
         </div>
       </div>
-      <div class="bot"><span>Solo founder</span><span>Product first, then reach</span></div>
+      <div class="bot"><span>finanzguru.de and taxfix.de, read 20 Nov 2026 · Bitkom, 21 May 2026</span><span>One group, one job</span></div>
     </div>
   </section>
 
@@ -383,18 +483,26 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">9 / 10</div>
+        <div class="pg">Team · 9 / 10</div>
       </div>
       <div class="mid">
-        <h2>Numbers I’d actually watch.</h2>
-        <div class="nums">
-          <div><b>~18–27</b><span>ICP — first own finances in Germany</span></div>
-          <div><b>10–25k</b><span>registered in three years if we own that niche</span></div>
-          <div><b class="cu">€4.20</b><span>blended ARPU if Plus lands as priced</span></div>
+        <div class="row2 wide">
+          <div>
+            <h2>Luis Frenkler</h2>
+            <p class="lead" style="color:var(--ink);font-weight:600;max-width:20em">I built Ahead alone: the app for phone and web, the server and the AI agent.</p>
+            <p class="lead">The product works. What is missing is not another feature. It is customers, a way to reach them, and people who challenge the business model.</p>
+            <div class="kv">
+              <div><b>760</b><span>automated tests check the app and the server</span></div>
+              <div><b>246</b><span>saved development steps (commits) so far</span></div>
+              <div><b>2</b><span>languages: German and English</span></div>
+            </div>
+          </div>
+          <div class="note" style="margin-top:0;align-self:center">
+            Why WHU: I can build. I want to learn how to take a product to its first hundred paying customers, with people who challenge it.
+          </div>
         </div>
-        <p class="line">Week to week I’d watch: salary / rent / Abo questions to Buddy, Free→Plus, and whether they come back. Broad “finance app” downloads don’t count.</p>
       </div>
-      <div class="bot"><span>Early estimates, labeled as such</span><span>Margin target 70–85% after model + store fees</span></div>
+      <div class="bot"><span>Solo founder · Hamburg</span><span>The product exists. The proof is next.</span></div>
     </div>
   </section>
 
@@ -404,26 +512,24 @@
     <div class="pad">
       <div class="top">
         <div class="logo"><span class="coin"><svg><use href="#b"/></svg></span>Ahead.</div>
-        <div class="pg">10 / 10</div>
+        <div class="pg">Next steps · 10 / 10</div>
       </div>
       <div class="mid">
-        <div class="row2">
-          <div>
-            <p class="lead" style="margin-top:0;margin-bottom:8px">The product is ready enough to put in people’s hands.</p>
-            <div class="money">€150–250k</div>
-            <p class="lead">Twelve to eighteen months. Mostly go-to-market, some legal and hosting, some product on the life moments.</p>
-            <div class="milestones">
-              <div><b>0–3 mo</b><span>Soft launch · first thousand people</span></div>
-              <div><b>3–9 mo</b><span>~10k · first Plus habits</span></div>
-              <div><b>9–18 mo</b><span>25–40k · numbers we can defend</span></div>
-            </div>
+        <div>
+          <p class="lead" style="margin-top:0;margin-bottom:8px">Ahead has no users yet. I am not asking for funding.</p>
+          <h1 style="max-width:16em">Next: proof with <em>real users.</em></h1>
+          <div class="rail"><i style="left:0"></i><i style="left:calc(33.33% + 5px)"></i><i style="left:calc(66.66% + 10px)"></i></div>
+          <div class="plan">
+            <div><b>30 days</b><p>Build the new offer and put it live: the check with five questions, the paid version only after a find, payment.</p><p class="ok"><i>Success if</i>100 people finish the free check.</p></div>
+            <div><b>60 days</b><p>Talk to 15 employees aged 25 to 35 who have never filed a tax return. Watch five of them use Ahead.</p><p class="ok"><i>Success if</i>3 of 5 get to the last step on their own.</p></div>
+            <div><b>90 days</b><p>Price test: offer Ahead Plus at €29 to 100 strangers for whom Ahead found money.</p><p class="ok"><i>Success if</i>5 or more pay. If not, the business model changes again.</p></div>
           </div>
-          <div class="phone"><img src="../landing/app_welcome_en.jpg" alt=""></div>
         </div>
       </div>
-      <div class="bot"><span>Thanks for reading</span><span>Happy to show Buddy live</span></div>
+      <div class="bot"><span>Thanks for reading</span><span>Try it: <a href="https://luisfrenkler.github.io/budget-buddy/" style="color:inherit">luisfrenkler.github.io/budget-buddy</a></span></div>
     </div>
   </section>
+
 </div>
 </body>
 </html>
