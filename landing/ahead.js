@@ -27,6 +27,8 @@
   }
 
   var APP = meta('ahead-app') || '../';
+  // the Brevo sign-up form the waitlist posts to; works from any host
+  var WAITLIST = meta('ahead-waitlist');
   $$('[data-app]').forEach(function (a) { a.href = APP; });
 
   var qLang = new URLSearchParams(location.search).get('lang');
@@ -169,8 +171,17 @@
     if (link) link.dataset.email = email;
     step.classList.add('on');
     applyLang();
+    if (link) link.click();
     var r = step.getBoundingClientRect();
     if (r.top < 80 || r.bottom > window.innerHeight - 16) step.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  }
+  function showDone(form) {
+    var box = form.parentElement;
+    form.style.display = 'none';
+    $$('.hint', box).forEach(function (el) { el.hidden = true; });
+    $$('[data-join-head]').forEach(function (el) { el.hidden = true; });
+    var done = $('[data-done]', box);
+    if (done) done.classList.add('on');
   }
   $$('form.join').forEach(function (form) {
     form.addEventListener('input', function () {
@@ -184,6 +195,23 @@
       var err = form.nextElementSibling, btn = $('button', form), email = form.email.value.trim();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { form.classList.add('is-error'); form.email.setAttribute('aria-invalid', 'true'); err.hidden = false; err.textContent = L('Bitte gib eine gültige E-Mail-Adresse ein.', 'Please enter a valid email address.'); form.email.focus(); return; }
       form.classList.remove('is-error'); err.textContent = ''; btn.disabled = true; var label = btn.textContent; btn.textContent = L('Einen Moment …', 'One moment …');
+      if (WAITLIST) {
+        // Brevo answers with JSON when asked with ?isAjax=1: {success:true} or {success:false, errors:{EMAIL:…}}
+        var body = new URLSearchParams({ EMAIL: email, email_address_check: form['bot-field'].value, locale: lang, html_type: 'simple' }).toString();
+        // the English page posts to its own form, so the confirmation email comes in English
+        fetch(((lang === 'en' && meta('ahead-waitlist-en')) || WAITLIST) + '?isAjax=1', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (j && j.success) { showDone(form); return; }
+            // Brevo refused the address itself; the connection worked
+            form.classList.add('is-error'); err.hidden = false;
+            err.textContent = L('Diese E-Mail-Adresse nimmt die Liste nicht an. Bitte prüf sie noch einmal.', 'The list does not accept this email address. Please check it again.');
+          })
+          // no answer or not JSON: the prepared email still gets the person on the list
+          .catch(function () { showMailStep(form, email); })
+          .finally(function () { btn.disabled = false; btn.textContent = label; });
+        return;
+      }
       fetch(API + '/waitlist/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, ref: store.get('ahead-ref'), lang: lang }) })
         .then(function (r) {
           return r.text().then(function (t) {

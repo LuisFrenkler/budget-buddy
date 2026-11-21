@@ -4,22 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title data-en="Ahead — your personal finance agent">Ahead — dein persönlicher Finanz-Agent</title>
-<meta name="description" content="Ahead ist dein persönlicher Finanz-Agent. Er verschafft dir den Überblick, zeigt dir, wo du Geld verlierst, und erledigt den nächsten Schritt mit dir.">
+<meta name="description" content="Du schiebst Steuer und Vorsorge seit Jahren auf? Ahead ist dein persönlicher Finanz-Agent: Er zeigt dir, wo du stehst, und erledigt den nächsten Schritt mit dir.">
 <meta property="og:title" content="Ahead — dein persönlicher Finanz-Agent">
-<meta property="og:description" content="Ahead verschafft dir den Überblick, zeigt dir, wo du Geld verlierst, und erledigt den nächsten Schritt mit dir.">
-<meta property="og:image" content="og.png">
+<meta property="og:description" content="Für alle, die Steuer und Vorsorge seit Jahren aufschieben. Ahead zeigt dir, wo du stehst, und erledigt den nächsten Schritt mit dir.">
+<!-- link previews (LinkedIn, WhatsApp) need absolute addresses -->
+<meta property="og:image" content="https://joinahead.de/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://joinahead.de/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ahead">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
 <!-- the colour along the top edge of the hero, so the status bar continues it; JS switches it to paper once the nav bar is solid -->
 <meta name="theme-color" content="#C87639">
 <!-- where the Ahead server runs (waitlist and asking Ahead); empty = same origin, "demo" = preview without a server.
      GitHub Pages is static: keep "demo" until PUBLIC_URL is live, then set e.g. content="https://api.example.com". -->
 <meta name="ahead-api" content="demo">
-<!-- where the web app runs; "../" on GitHub Pages (landing/ sits inside the app), publish.sh sets https://app.DOMAIN/ -->
-<meta name="ahead-app" content="../">
+<!-- the waitlist goes to this Brevo sign-up form (list "Warteliste"). Without this tag the form opens a prepared email instead -->
+<meta name="ahead-waitlist" content="https://acc9bfa1.sibforms.com/serve/MUIFACbiNVvSICEKA76Zz2pR-yAFr6l7MotC9wt-OqS16ysmCEvMoHDhRHAgUkBO_G_XiNTHsRrYl8L7u_SwTjmRjdDchGqz_4gKYYMRwgYaeAVPVIHhLGQyytCgk4hpNI9w26jt2qqiIJLj7U35IBOhDwaSfFP_y0K4pEcyVHK89ht2OTkVZLiJzFwMVR8gpZSfFPkOtcgX0_lQJA==">
+<!-- the same list, with the confirmation email in English; used when the page is shown in English -->
+<meta name="ahead-waitlist-en" content="https://acc9bfa1.sibforms.com/serve/MUIFAG-aq6W-lNK5_mOrLOtqeR_QvL-ri7kDfCUxd1wmLBkDAUlGaUbRCu4kOeCq-2vLSj9cjOUhLgygLt_RI4NSxdtQlT_bd0UJ-UXw5m4OhR6Ai16v7YbMODjRiOlnRyJTp7WGoCPU9DKHrygL5jMaxwQZq3HAoNWl66K1nemxd66D4Meg5pcmGrHq_JGAFk1_K1MWfDRjI6g2kQ==">
 <link rel="icon" href="appicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ahead.css?v=4">
+<link rel="stylesheet" href="ahead.css?v=7">
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -34,7 +41,7 @@
     </nav>
     <div class="top-actions">
       <button class="ghost-btn" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
-      <a class="cta-btn" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
+      <a class="cta-btn" href="#platz" data-en="Waitlist">Warteliste</a>
     </div>
   </div>
 </header>
@@ -44,12 +51,11 @@
   <div class="w hero-grid">
     <div class="hero-copy">
       <h1 class="blur-in" data-en="Your personal <em>finance agent.</em>">Dein persönlicher <em>Finanz-Agent.</em></h1>
-      <p class="lead hi" data-en="Ahead gives you the overview, shows you where you lose money and takes care of the next step with you.">Ahead verschafft dir den Überblick, zeigt dir, wo du Geld verlierst, und erledigt den nächsten Schritt mit dir.</p>
+      <p class="lead hi" data-en="Putting off your tax return and your pension for years? Ahead shows you where you stand and takes the next step with you.">Du schiebst Steuer und Vorsorge seit Jahren auf? Ahead zeigt dir, wo du stehst, und erledigt den nächsten Schritt mit dir.</p>
       <div class="cta-row hi hi-2">
-        <a class="btn white" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
-        <a class="btn ghost" href="#platz" data-en="Join the waitlist">Auf die Warteliste</a>
+        <a class="btn white" href="#platz" data-en="Join the waitlist">Auf die Warteliste</a>
       </div>
-      <p class="cta-note hi hi-3" data-en="No sign-up.">Ohne Anmeldung.</p>
+      <p class="cta-note hi hi-3" data-en="The app is in the works. We will email you at launch.">Die App ist in Arbeit. Wir melden uns zum Start.</p>
     </div>
     <div class="stage" data-stage>
       <div class="phone-tilt" data-phone>
@@ -86,19 +92,6 @@
     </div>
   </section>
 
-  <section class="chapter" id="fragen">
-    <div class="w">
-      <div class="rise">
-        <h2 class="say two" data-en="Ask Ahead. <em>Now, no sign-up.</em>">Frag Ahead. <em>Jetzt, ohne Anmeldung.</em></h2>
-      </div>
-      <form class="ask">
-        <input id="q" name="q" placeholder="Wo verliere ich Geld?" autocomplete="off" enterkeyhint="send" maxlength="400" aria-label="Frage an Ahead" data-en-placeholder="Where do I lose money?" data-en-aria-label="Question for Ahead">
-        <button class="btn ink" type="submit" data-en="Ask">Fragen</button>
-      </form>
-      <div class="answer" aria-live="polite"></div>
-    </div>
-  </section>
-
   <div class="finale">
     <div class="grain"></div>
     <div class="w">
@@ -107,20 +100,24 @@
       </div>
       <div id="platz" class="waitlist">
         <form class="join" novalidate>
+          <input name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" hidden>
           <input type="email" id="email1" name="email" placeholder="Deine E-Mail" autocomplete="email" autocapitalize="none" spellcheck="false" enterkeyhint="go" aria-label="E-Mail" data-en-placeholder="Your email" data-en-aria-label="Email">
           <button class="btn white" type="submit" data-en="Join the waitlist">Auf die Warteliste</button>
         </form>
         <div class="err" role="alert"></div>
-        <p class="hint" data-demo hidden data-en="GitHub Pages preview: the waitlist needs the Ahead server. An email here is not stored.">Vorschau auf GitHub Pages: Die Warteliste braucht den Ahead-Server. Eine E-Mail hier wird nicht gespeichert.</p>
+        <p class="hint" data-en="You get news about Ahead by email and can unsubscribe at any time. <a href='datenschutz.html' style='color:inherit'>Privacy</a>">Du bekommst Neuigkeiten zu Ahead per E-Mail und kannst dich jederzeit abmelden. <a href="datenschutz.html" style="color:inherit">Datenschutz</a></p>
         <div class="mailstep" aria-live="polite">
-          <p class="ok" data-en="No server on this preview yet.">Hier läuft noch kein Server.</p>
-          <p data-en="Email luis.frenkler@t-online.de and we’ll add you. An email in this form is not stored.">Mail an luis.frenkler@t-online.de schicken, dann nehmen wir dich auf. Eine E-Mail hier wird nicht gespeichert.</p>
-          <a class="btn white go" data-mail href="mailto:luis.frenkler@t-online.de" data-en="Send the email">Mail schicken</a>
+          <p class="ok" data-en="Almost done.">Fast geschafft.</p>
+          <p data-en="Send the prepared email and you are on the list. Nothing is stored on this page.">Schick die vorbereitete Mail ab, dann stehst du auf der Liste. Auf dieser Seite wird nichts gespeichert.</p>
+          <a class="btn white go" data-mail href="mailto:luis.frenkler@t-online.de" data-en="Open the email">Mail öffnen</a>
+        </div>
+        <div class="mailstep" data-done aria-live="polite">
+          <p class="ok" data-en="Check your inbox.">Schau in dein Postfach.</p>
+          <p data-en="We have sent you an email. Click the link in it and you are on the list.">Wir haben dir eine Mail geschickt. Klick auf den Link darin, dann stehst du auf der Liste.</p>
         </div>
         <div class="spot">
           <p class="ok" data-en="You’re on the list.">Du bist auf der Liste.</p>
           <p data-en="Next is your invite by email: TestFlight, once the app is ready.">Als Nächstes kommt die Einladung per E-Mail: TestFlight, sobald die App bereit ist.</p>
-          <a class="btn white go" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
           <p data-en="Send the link. Anyone who joins through it gets on the same list.">Schick den Link. Wer darüber kommt, steht auf derselben Liste.</p>
           <div class="n" data-pos hidden></div>
           <p data-place hidden data-en="Every person who joins through your link moves you five places up.">Jede Person, die über deinen Link kommt, bringt dich fünf Plätze nach vorn.</p>
@@ -145,6 +142,6 @@
   </div>
 </footer>
 
-<script src="ahead.js?v=4" onerror="document.documentElement.classList.remove('js')"></script>
+<script src="ahead.js?v=8" onerror="document.documentElement.classList.remove('js')"></script>
 </body>
 </html>

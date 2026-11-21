@@ -1,9 +1,13 @@
-/* Ahead website: one system for index, konzept, preis and sicherheit */
+/* Ahead website: one system for index and konzept */
+/* fonts come from this site, so no visitor's address goes to a font service */
+@font-face{font-family:"Bricolage Grotesque";font-weight:400;font-display:swap;src:url(fonts/BricolageGrotesque-Regular.ttf) format("truetype")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:500;font-display:swap;src:url(fonts/BricolageGrotesque-Medium.ttf) format("truetype")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:600 700;font-display:swap;src:url(fonts/BricolageGrotesque-SemiBold.ttf) format("truetype")}
 :root{
   --copper:#B06030; --ember:#8E4620; --peach:#F4C7A1; --sand:#FBEFE4;
   --paper:#FAF7F4; --ink:#17120E; --soft:#6E655F; --line:#E8E0D8; --cream:#FFF7F0;
   --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
-  --text:"Figtree",ui-sans-serif,system-ui,sans-serif;
+  --text:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --ease:cubic-bezier(.16,1,.3,1);
   --gap:clamp(80px,11vw,144px);
   --copper-bg:radial-gradient(120% 90% at 70% 20%,#F6B98A 0%,#D9813F 26%,#A4542A 52%,#5E2C14 78%,#1F0E07 100%);
@@ -155,7 +159,7 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
 .open-in .label{margin-bottom:clamp(18px,2.6vw,28px)}
 .open-in h1,.intro h1{font-size:clamp(42px,8.2vw,104px);font-weight:600;letter-spacing:-.045em}
 .open-in .lead{margin-top:clamp(20px,2.6vw,32px);font-size:clamp(17px,1.7vw,20px);max-width:30em}
-.cue{margin-top:clamp(40px,10vh,104px)}
+.cue{display:inline-block;margin-top:clamp(40px,10vh,104px);padding:8px 0}
 .intro{padding-top:calc(clamp(120px,17vw,184px) + env(safe-area-inset-top))}
 .intro .label{margin-bottom:clamp(18px,2.6vw,28px)}
 .intro h1 em,.say em{font-style:normal;color:var(--copper)}

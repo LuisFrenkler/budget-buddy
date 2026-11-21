@@ -1,0 +1,3 @@
+# Netlify publishes the website only. The app and the server are deployed elsewhere.
+[build]
+  publish = "landing"

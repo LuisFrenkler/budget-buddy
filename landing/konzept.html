@@ -7,16 +7,18 @@
 <meta name="description" content="Wie Ahead arbeitet: drei Fragen zu deinem Geld und ein Agent, der von selbst sucht, vor jeder Aktion fragt und den nächsten Schritt mit dir erledigt.">
 <meta property="og:title" content="Ahead · Das Konzept">
 <meta property="og:description" content="Ein Agent, kein weiterer Chat. Drei Fragen zu deinem Geld und der nächste Schritt.">
-<meta property="og:image" content="og.png">
+<meta property="og:image" content="https://joinahead.de/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://joinahead.de/konzept.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ahead">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
 <!-- the colour along the top edge of the opening; JS switches it to paper once the nav bar is solid -->
 <meta name="theme-color" content="#C87639">
-<!-- where the web app runs; "../" on GitHub Pages (landing/ sits inside the app), publish.sh sets https://app.DOMAIN/ -->
-<meta name="ahead-app" content="../">
 <link rel="icon" href="appicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ahead.css?v=4">
+<link rel="stylesheet" href="ahead.css?v=7">
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -31,7 +33,7 @@
     </nav>
     <div class="top-actions">
       <button class="ghost-btn" type="button" data-lang aria-label="Sprache wechseln / Switch language">EN</button>
-      <a class="cta-btn" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
+      <a class="cta-btn" href="index.html#platz" data-en="Waitlist">Warteliste</a>
     </div>
   </div>
 </header>
@@ -42,7 +44,7 @@
     <p class="label" data-en="Ahead · The concept">Ahead · Das Konzept</p>
     <h1 class="two blur-in" data-en="An agent, <em>not another chat.</em>">Ein Agent, <em>kein weiterer Chat.</em></h1>
     <p class="lead hi" data-en="Ahead answers three questions about your money and takes care of the next step with you.">Ahead beantwortet dir drei Fragen zu deinem Geld und kümmert sich mit dir um den nächsten Schritt.</p>
-    <p class="cue label" aria-hidden="true" data-en="Scroll ↓">Scrollen ↓</p>
+    <a class="cue label" href="#problem" data-en="Scroll ↓">Scrollen ↓</a>
   </div>
 </section>
 
@@ -51,8 +53,8 @@
     <div class="w">
       <p class="label" data-en="The problem">Das Problem</p>
       <div class="rise">
-        <h2 class="say two" data-en="Everything costs more. <em>And nobody has the overview.</em>">Alles wird teurer. <em>Und niemand hat den Überblick.</em></h2>
-        <p class="sub" data-en="The overdraft is close, and retirement feels far away. Your account, your contracts and your taxes sit in different places.">Der Dispo ist schnell erreicht, und die Rente fühlt sich weit weg an. Konto, Verträge und Steuer liegen an verschiedenen Orten.</p>
+        <h2 class="say two" data-en="You know you should. <em>And you keep putting it off.</em>">Du weißt, dass du solltest. <em>Und schiebst es auf.</em></h2>
+        <p class="sub" data-en="The tax return has been waiting for years, the extras from your employer were never claimed, and retirement feels far away. That costs you money every year.">Die Steuererklärung liegt seit Jahren, die Zuschüsse vom Arbeitgeber sind nie beantragt, und die Rente fühlt sich weit weg an. Das kostet dich jedes Jahr Geld.</p>
       </div>
     </div>
   </section>
@@ -79,7 +81,7 @@
       <p class="label" data-en="What is my next step?">Was ist mein nächster Schritt?</p>
       <div class="rise">
         <h2 class="say two" data-en="One step. <em>Concrete enough for today.</em>">Ein Schritt. <em>Konkret genug für heute.</em></h2>
-        <p class="sub" data-en="Ahead names a single step and does it with you. For example avoiding the overdraft, building an emergency fund or asking about the company pension.">Ahead nennt einen einzigen Schritt und erledigt ihn mit dir. Zum Beispiel den Dispo vermeiden, einen Notgroschen aufbauen oder nach der Betriebsrente fragen.</p>
+        <p class="sub" data-en="Ahead names a single step and does it with you. For example preparing the tax return for an open year, asking about the company pension or building an emergency fund.">Ahead nennt einen einzigen Schritt und erledigt ihn mit dir. Zum Beispiel die Steuer für ein offenes Jahr vorbereiten, nach der Betriebsrente fragen oder einen Notgroschen aufbauen.</p>
       </div>
     </div>
   </section>
@@ -104,9 +106,9 @@
   <div class="finale">
     <div class="grain"></div>
     <div class="w rise">
-      <h2 class="two" data-en="Get the overview. <em>Today, no sign-up.</em>">Verschaff dir den Überblick. <em>Heute, ohne Anmeldung.</em></h2>
+      <h2 class="two" data-en="The app is in the works. <em>Be there early.</em>">Die App ist in Arbeit. <em>Sei früh dabei.</em></h2>
       <div class="cta-row">
-        <a class="btn white" href="../" data-app data-en="Start now ↗">Jetzt starten ↗</a>
+        <a class="btn white" href="index.html#platz" data-en="Join the waitlist">Auf die Warteliste</a>
       </div>
     </div>
   </div>
@@ -121,6 +123,6 @@
   </div>
 </footer>
 
-<script src="ahead.js?v=4" onerror="document.documentElement.classList.remove('js')"></script>
+<script src="ahead.js?v=8" onerror="document.documentElement.classList.remove('js')"></script>
 </body>
 </html>
