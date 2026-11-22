@@ -7,6 +7,12 @@
 <title>Impressum · Ahead</title>
 <link rel="icon" href="appicon.png">
 <style>
+  /* same opt-in as the main pages, otherwise navigating here aborts the transition
+     and throws in the console */
+  @view-transition{navigation:auto}
+  @media (prefers-reduced-motion:reduce){
+    ::view-transition-old(root),::view-transition-new(root){animation:none}
+  }
   :root{--copper:#B06030;--paper:#FFFFFF;--ink:#17120E;--soft:#6E655F;--line:#ECE6E1;
         --text:"Inter",ui-sans-serif,system-ui,-apple-system,sans-serif}
   @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#12100E;--ink:#F3EDE8;--soft:#A39A93;--line:#2A2420;color-scheme:dark}}

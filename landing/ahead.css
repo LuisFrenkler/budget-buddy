@@ -1,8 +1,10 @@
 /* Ahead website: one system for index and konzept */
 /* fonts come from this site, so no visitor's address goes to a font service */
-@font-face{font-family:"Bricolage Grotesque";font-weight:400;font-display:swap;src:url(fonts/BricolageGrotesque-Regular.ttf) format("truetype")}
-@font-face{font-family:"Bricolage Grotesque";font-weight:500;font-display:swap;src:url(fonts/BricolageGrotesque-Medium.ttf) format("truetype")}
-@font-face{font-family:"Bricolage Grotesque";font-weight:600 700;font-display:swap;src:url(fonts/BricolageGrotesque-SemiBold.ttf) format("truetype")}
+/* one variable file (400-700) instead of three static ones: half the bytes, one request,
+   and an optical-size axis, so big headlines get tighter spacing than body text */
+@font-face{font-family:"Bricolage Grotesque";font-weight:400 700;font-stretch:100%;font-display:swap;
+           src:url(fonts/BricolageGrotesque.woff2) format("woff2");
+           unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{
   --copper:#B06030; --ember:#8E4620; --peach:#F4C7A1; --sand:#FBEFE4;
   --paper:#FAF7F4; --ink:#17120E; --soft:#6E655F; --line:#E8E0D8; --cream:#FFF7F0;
@@ -15,7 +17,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;overflow-x:clip;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--paper);color:var(--ink);font:400 17px/1.55 var(--text);
-     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-optical-sizing:auto}
 [id]{scroll-margin-top:88px}
 .w{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
 a{color:inherit;text-decoration:none}
@@ -56,11 +58,12 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
 .ghost-btn::-webkit-details-marker{display:none}
 .ghost-btn[aria-current="page"]{opacity:1;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:6px;text-decoration-color:var(--copper)}
 .cta-btn{height:40px;padding:0 16px;border-radius:999px;background:var(--pill);color:var(--pill-fg);font:600 14px/1 var(--text);white-space:nowrap;
+         box-shadow:0 1px 2px rgba(31,14,7,.14),0 6px 16px -8px rgba(31,14,7,.3);
          display:inline-flex;align-items:center;transition:transform .16s var(--ease),background-color .2s ease,color .2s ease}
 /* phones: the three pages sit behind one "Menü" button (a details element, so it works without script) */
 .menu{position:relative}
 .menu-panel{position:absolute;right:0;top:calc(100% + 10px);min-width:208px;padding:8px;border-radius:18px;background:var(--paper);color:var(--ink);
-            border:1px solid var(--line);box-shadow:0 24px 48px -24px rgba(40,15,0,.35);display:grid;transform-origin:top right}
+            border:1px solid var(--line);box-shadow:0 1px 2px rgba(31,14,7,.12),0 24px 48px -24px rgba(31,14,7,.4);display:grid;transform-origin:top right}
 .menu[open] .menu-panel{animation:pop-in .18s var(--ease) both}
 .menu-panel a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:12px;font:600 16px/1 var(--text);transition:transform .16s var(--ease)}
 .menu-panel a[aria-current="page"]{color:var(--copper)}
@@ -72,7 +75,10 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
 
 /* copper stage: the home panel and the opening of the story */
 .hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;color:var(--cream);overflow:hidden;isolation:isolate;
-      background:var(--copper-bg)}
+      background:linear-gradient(176deg,rgba(31,14,7,.34) 0%,rgba(31,14,7,.1) 34%,transparent 58%),var(--copper-bg)}
+@media (min-width:860px){
+  .hero{background:linear-gradient(104deg,rgba(31,14,7,.4) 0%,rgba(31,14,7,.14) 42%,transparent 64%),var(--copper-bg)}
+}
 .hero::before,.hero::after{content:"";position:absolute;z-index:-1;border-radius:50%;filter:blur(80px);pointer-events:none;will-change:transform}
 .hero::before{width:58vmax;height:58vmax;left:-20vmax;top:-24vmax;background:radial-gradient(circle,#C7703A 0%,transparent 65%);opacity:.7;animation:drift 24s ease-in-out infinite alternate}
 .hero::after{width:48vmax;height:48vmax;right:-18vmax;bottom:22vh;background:radial-gradient(circle,#FFD6B0 0%,transparent 62%);opacity:.45;animation:drift 30s ease-in-out infinite alternate-reverse}
@@ -101,8 +107,8 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
      display:inline-flex;align-items:center;justify-content:center;gap:8px;
      transition:transform .16s var(--ease),opacity .2s ease}
 .btn:disabled{opacity:.6;cursor:default}
-.btn.white{background:#fff;color:#17120E}
-.btn.ink{background:var(--ink);color:var(--paper)}
+.btn.white{background:#fff;color:#17120E;box-shadow:0 1px 2px rgba(31,14,7,.16),0 8px 20px -10px rgba(31,14,7,.34)}
+.btn.ink{background:var(--ink);color:var(--paper);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(31,14,7,.18),0 10px 24px -12px rgba(31,14,7,.45)}
 .btn.ghost{background:transparent;border:1px solid currentColor;color:inherit}
 .cta-row{margin-top:28px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .cta-row .btn{padding:16px 22px;font-size:16px}
@@ -111,9 +117,10 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
 
 /* waitlist and "Frag Ahead" forms (on copper) */
 .join{margin-top:32px;display:flex;gap:6px;max-width:460px;padding:6px;border-radius:16px;
-      background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.34);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(31,14,7,.1);
       -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-.join:focus-within{border-color:rgba(255,255,255,.5);box-shadow:0 0 0 4px rgba(255,255,255,.08)}
+.join:focus-within{border-color:rgba(255,255,255,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 4px rgba(255,255,255,.12)}
 .join.is-error{border-color:rgba(255,232,212,.85);box-shadow:0 0 0 4px rgba(255,220,190,.14)}
 .join input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:500 16px var(--text);padding:0 14px;height:44px}
 .join input::placeholder{color:rgba(255,247,240,.72)}
@@ -121,13 +128,13 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
   -webkit-text-fill-color:#fff;caret-color:#fff;box-shadow:0 0 0 1000px rgba(255,255,255,.1) inset;transition:background-color 9999s ease-out}
 .err{min-height:22px;margin-top:10px;font-weight:600;font-size:14px;color:#FFE8D4}
 .err:not(:empty){animation:rise-in .2s var(--ease) both}
-.hint{margin-top:12px;font:500 13px/1.4 var(--text);color:rgba(255,247,240,.68);max-width:34em}
+.hint{margin-top:12px;font:500 14px/1.45 var(--text);color:rgba(255,247,240,.8);max-width:34em}
 .waitlist{width:min(100%,460px);text-align:center}
 .finale .waitlist{margin-left:auto;margin-right:auto}
 .waitlist .join{max-width:none;width:100%;margin-left:0;margin-right:0}
 .waitlist .hint,.waitlist .err{max-width:none;width:100%;margin-left:0;margin-right:0;text-align:center;text-wrap:balance}
 .hint + .hint{margin-top:6px}
-.hint[data-demo]{color:rgba(255,247,240,.56)}
+.hint[data-demo]{color:rgba(255,247,240,.68)}
 .spot{display:none;margin-top:20px;max-width:460px}
 .spot.on{display:block;animation:rise-in .28s var(--ease) both}
 .spot .ok{font:600 clamp(26px,3.5vw,36px)/1.05 var(--display);letter-spacing:-.03em}
@@ -224,7 +231,8 @@ h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.04em;line-h
 .punch{margin-top:28px;font:400 clamp(20px,2.4vw,28px)/1.3 var(--display);letter-spacing:-.02em;max-width:18em}
 
 .finale{margin:0 clamp(12px,2vw,20px) clamp(12px,2vw,20px);border-radius:clamp(24px,3vw,36px);padding:clamp(72px,10vw,120px) 0;text-align:center;color:var(--cream);position:relative;overflow:hidden;isolation:isolate;
-        background:radial-gradient(110% 90% at 50% 0%,#F6B98A 0%,#D9813F 28%,#A4542A 55%,#5E2C14 82%,#1F0E07 100%)}
+        background:linear-gradient(180deg,rgba(31,14,7,.36) 0%,rgba(31,14,7,.12) 30%,transparent 52%),
+                   radial-gradient(110% 90% at 50% 0%,#F6B98A 0%,#D9813F 28%,#A4542A 55%,#5E2C14 82%,#1F0E07 100%)}
 .finale .grain{opacity:.16}
 .finale h2{font-size:clamp(34px,5.8vw,68px);max-width:12em;margin:0 auto}
 .finale .label{margin-bottom:20px}
@@ -256,6 +264,25 @@ footer a{text-decoration:underline;text-underline-offset:3px;padding:10px 0}
 .js .rise[data-d="1"]{transition-delay:.06s}.js .rise[data-d="2"]{transition-delay:.1s}
 .js .rise .say,.js .rise h2{filter:blur(6px);transition:filter .5s var(--ease)}
 .js .rise.seen .say,.js .rise.seen h2{filter:none}
+
+/* moving between the pages: a soft cross-fade instead of a white flash.
+   Only Chrome and Safari do this; everyone else just navigates as before. */
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+}
+
+/* the phone drifts up a little as the hero leaves; scroll drives it, nothing is pinned.
+   The timeline hangs on .hero, not on .stage: .hero is overflow:hidden and would otherwise
+   be taken for the scroll container, and the progress would never move.
+   .stage is free — .phone-tilt and .phone already carry their own animations. */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    .hero{view-timeline-name:--hero;view-timeline-axis:block}
+    .stage{animation:stage-exit linear both;animation-timeline:--hero;animation-range:exit 0% exit 100%}
+  }
+}
+@keyframes stage-exit{to{transform:translateY(-44px)}}
 .typing{color:var(--soft)}
 .js .typing{animation:soft-pulse 1.15s ease-in-out infinite}
 
@@ -291,8 +318,8 @@ footer a{text-decoration:underline;text-underline-offset:3px;padding:10px 0}
 @media (hover:hover) and (pointer:fine){
   .ghost-btn:hover{opacity:1;background:var(--hover)}
   .cta-btn:hover,.btn:hover{transform:translateY(-1px)}
-  .cta-btn:hover{box-shadow:0 8px 22px rgba(40,15,0,.16)}
-  .btn.white:hover{box-shadow:0 8px 22px rgba(40,15,0,.18)}
+  .cta-btn:hover{box-shadow:0 1px 2px rgba(31,14,7,.16),0 12px 28px -10px rgba(31,14,7,.4)}
+  .btn.white:hover{box-shadow:0 1px 2px rgba(31,14,7,.18),0 14px 30px -12px rgba(31,14,7,.42)}
   .btn:disabled:hover{transform:none;box-shadow:none}
   .menu-panel a:hover{background:rgba(23,18,14,.06)}
   footer a:hover{color:var(--ink)}
